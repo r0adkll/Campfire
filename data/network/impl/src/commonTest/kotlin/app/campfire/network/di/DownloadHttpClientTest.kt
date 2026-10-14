@@ -5,6 +5,7 @@ package app.campfire.network.di
 
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
+import app.campfire.network.plugins.RedirectHeaderGuard
 import assertk.assertThat
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
@@ -38,5 +39,6 @@ class DownloadHttpClientTest {
     assertThat(client.pluginOrNull(HttpCache)).isNull()
     assertThat(client.pluginOrNull(Auth)).isNull()
     assertThat(client.pluginOrNull(HttpTimeout)).isNotNull()
+    assertThat(client.pluginOrNull(RedirectHeaderGuard)).isNotNull()
   }
 }

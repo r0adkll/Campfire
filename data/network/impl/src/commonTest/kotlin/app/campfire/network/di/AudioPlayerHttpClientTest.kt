@@ -9,6 +9,7 @@ import app.campfire.core.app.Flavor
 import app.campfire.core.session.UserSession
 import app.campfire.network.FakeAccountManager
 import app.campfire.network.FakeUserSessionManager
+import app.campfire.network.plugins.RedirectHeaderGuard
 import app.campfire.network.testUser
 import assertk.assertThat
 import assertk.assertions.containsExactly
@@ -103,6 +104,7 @@ class AudioPlayerHttpClientTest {
 
     assertThat(client.pluginOrNull(HttpCache)).isNull()
     assertThat(client.pluginOrNull(HttpTimeout)).isNotNull()
+    assertThat(client.pluginOrNull(RedirectHeaderGuard)).isNotNull()
     assertThat(client.pluginOrNull(Auth)).isNotNull()
   }
 

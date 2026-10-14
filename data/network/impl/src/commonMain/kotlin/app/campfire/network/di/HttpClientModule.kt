@@ -14,6 +14,7 @@ import app.campfire.core.session.userId
 import app.campfire.network.RefreshResponse
 import app.campfire.network.asBearerTokens
 import app.campfire.network.cleanServerUrl
+import app.campfire.network.plugins.RedirectHeaderGuard
 import app.campfire.network.plugins.suspendingDefaultHeaders
 import app.campfire.network.reachability.ReachabilityGate
 import app.campfire.network.reachability.serverReachabilityPlugin
@@ -88,6 +89,8 @@ interface HttpClientModule {
       }
 
       install(HttpCache)
+
+      install(RedirectHeaderGuard)
 
       install(Logging) {
         // Ktor logs the full request URL (user's private server host included) at INFO,
@@ -201,6 +204,8 @@ internal fun HttpClientConfig<*>.configureDownloadHttpClient(applicationInfo: Ap
     socketTimeoutMillis = 60_000
   }
 
+  install(RedirectHeaderGuard)
+
   defaultRequest {
     header(HttpHeaders.UserAgent, applicationInfo.userAgent)
   }
@@ -252,6 +257,8 @@ internal fun HttpClientConfig<*>.configureAudioPlayerClient(
       },
     )
   }
+
+  install(RedirectHeaderGuard)
 
   defaultRequest {
     header(HttpHeaders.UserAgent, applicationInfo.userAgent)

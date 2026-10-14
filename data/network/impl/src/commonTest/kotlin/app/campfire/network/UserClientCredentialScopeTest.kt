@@ -9,6 +9,7 @@ import app.campfire.network.di.installUserAuth
 import app.campfire.network.di.installUserExtraHeaders
 import app.campfire.network.di.isOnServer
 import app.campfire.network.di.userBearerAuthProvider
+import app.campfire.network.plugins.RedirectHeaderGuard
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -19,6 +20,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
@@ -50,8 +52,27 @@ class UserClientCredentialScopeTest {
     install(ContentNegotiation) {
       json(Json { ignoreUnknownKeys = true })
     }
+    install(RedirectHeaderGuard)
     installUserAuth(userBearerAuthProvider(sessionManager, accountManager), sessionManager)
     installUserExtraHeaders(sessionManager, accountManager)
+  }
+
+  private val accepts = mutableListOf<String?>()
+
+  /** Answers each URL in [redirects] with a 302 to the given location, anything else with 200. */
+  private fun redirectingEngine(redirects: Map<String, String>) = MockEngine { request ->
+    sent += SentRequest(
+      url = request.url.toString(),
+      authorization = request.headers[HttpHeaders.Authorization],
+      proxyAuth = request.headers["X-Proxy-Auth"],
+    )
+    accepts += request.headers[HttpHeaders.Accept]
+    val location = redirects[request.url.toString()]
+    if (location != null) {
+      respond("", HttpStatusCode.Found, headersOf(HttpHeaders.Location, location))
+    } else {
+      respond("{}", HttpStatusCode.OK, jsonHeaders)
+    }
   }
 
   private fun recordingEngine(status: HttpStatusCode = HttpStatusCode.OK) = MockEngine { request ->
@@ -108,6 +129,69 @@ class UserClientCredentialScopeTest {
 
     assertThat(sent).containsExactly(
       SentRequest("https://abs.example.com:8443/api/me", null, null),
+    )
+  }
+
+  @Test
+  fun redirectToAnotherHostDropsCredentials() = runTest {
+    val engine = redirectingEngine(
+      mapOf("https://abs.example.com/api/items/1/cover" to "https://cdn.example.net/cover.jpg"),
+    )
+
+    client(engine).get("https://abs.example.com/api/items/1/cover") {
+      header(HttpHeaders.Accept, "image/*")
+    }
+
+    assertThat(sent).containsExactly(
+      SentRequest("https://abs.example.com/api/items/1/cover", "Bearer access", "secret"),
+      SentRequest("https://cdn.example.net/cover.jpg", null, null),
+    )
+    assertThat(accepts).containsExactly("image/*", "image/*")
+  }
+
+  @Test
+  fun redirectWithinTheServerKeepsCredentials() = runTest {
+    val engine = redirectingEngine(
+      mapOf("https://abs.example.com/api/items/1/cover" to "/api/items/1/cover?ts=2"),
+    )
+
+    client(engine).get("https://abs.example.com/api/items/1/cover")
+
+    assertThat(sent).containsExactly(
+      SentRequest("https://abs.example.com/api/items/1/cover", "Bearer access", "secret"),
+      SentRequest("https://abs.example.com/api/items/1/cover?ts=2", "Bearer access", "secret"),
+    )
+  }
+
+  @Test
+  fun redirectToTheSameHostOnAnotherPortDropsCredentials() = runTest {
+    val engine = redirectingEngine(
+      mapOf("https://abs.example.com/api/me" to "https://abs.example.com:8443/api/me"),
+    )
+
+    client(engine).get("https://abs.example.com/api/me")
+
+    assertThat(sent).containsExactly(
+      SentRequest("https://abs.example.com/api/me", "Bearer access", "secret"),
+      SentRequest("https://abs.example.com:8443/api/me", null, null),
+    )
+  }
+
+  @Test
+  fun redirectBackToTheServerAfterLeavingStaysWithoutCredentials() = runTest {
+    val engine = redirectingEngine(
+      mapOf(
+        "https://abs.example.com/api/me" to "https://elsewhere.example.net/hop",
+        "https://elsewhere.example.net/hop" to "https://abs.example.com/api/me?again=1",
+      ),
+    )
+
+    client(engine).get("https://abs.example.com/api/me")
+
+    assertThat(sent).containsExactly(
+      SentRequest("https://abs.example.com/api/me", "Bearer access", "secret"),
+      SentRequest("https://elsewhere.example.net/hop", null, null),
+      SentRequest("https://abs.example.com/api/me?again=1", null, null),
     )
   }
 
