@@ -8,12 +8,14 @@ import app.campfire.account.api.RestorableAccount
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
+import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.network.oidc.OpenIdAuthorization
@@ -121,6 +123,31 @@ internal class UnusedAuthorizationFlow : AuthorizationFlow {
     serverUrl: String,
     extraHeaders: Map<String, String>?,
   ): Result<OpenIdAuthorization> = error("Unused")
+}
+
+/** Records each authorization request, then fails it as if the user backed out of the provider. */
+internal class RecordingAuthorizationFlow : AuthorizationFlow {
+  val requests = mutableListOf<Pair<String, Map<String, String>?>>()
+
+  override suspend fun getAuthorization(
+    serverUrl: String,
+    extraHeaders: Map<String, String>?,
+  ): Result<OpenIdAuthorization> {
+    requests += serverUrl to extraHeaders
+    return Result.failure(IllegalStateException("Cancelled"))
+  }
+}
+
+internal class FakeConnectLinkInbox(
+  vararg links: Pair<Long, ConnectLinkResult>,
+) : ConnectLinkInbox {
+  val links = mutableMapOf(*links)
+
+  override fun deliver(id: Long, result: ConnectLinkResult): Boolean = links.put(id, result) == null
+  override fun get(id: Long): ConnectLinkResult? = links[id]
+  override fun discard(id: Long) {
+    links.remove(id)
+  }
 }
 
 internal class GrantedLocalNetworkPermission : LocalNetworkPermissionController {

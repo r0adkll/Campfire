@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
@@ -33,12 +34,15 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.UserId
+import app.campfire.core.navigation.ConnectLink
+import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import coil3.toUri
 import com.slack.circuit.codegen.annotations.CircuitInject
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
@@ -59,17 +63,25 @@ class LoginPresenter(
   private val appThemeRepository: AppThemeRepository,
   private val restorableAccountRepository: RestorableAccountRepository,
   private val passwordCredentials: PasswordCredentials,
+  private val connectLinkInbox: ConnectLinkInbox,
 ) : Presenter<LoginUiState> {
+
+  /** The setup link this sign-in came from, while it's still held. Gone after process death. */
+  private val connectLink: ConnectLink? = (screen as? LoginScreen.Connect)
+    ?.let { connectLinkInbox[it.linkId] as? ConnectLinkResult.Valid }
+    ?.link
 
   private val initialServerName: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.serverName
     is LoginScreen.Restore -> screen.serverName
+    is LoginScreen.Connect -> screen.serverName
     else -> ""
   }
 
   private val initialServerUrl: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.serverUrl
     is LoginScreen.Restore -> screen.serverUrl
+    is LoginScreen.Connect -> screen.serverUrl
     is LoginScreen.Additional -> ""
     else -> BuildConfig.TEST_SERVER_URL ?: ""
   }
@@ -77,14 +89,14 @@ class LoginPresenter(
   private val initialUserName: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.userName
     is LoginScreen.Restore -> screen.userName
-    is LoginScreen.Additional -> ""
+    is LoginScreen.Additional, is LoginScreen.Connect -> ""
     else -> BuildConfig.TEST_USERNAME ?: ""
   }
 
   private val initialPassword: String = when (screen) {
     is LoginScreen.ReAuthentication -> ""
     is LoginScreen.Restore -> ""
-    is LoginScreen.Additional -> ""
+    is LoginScreen.Additional, is LoginScreen.Connect -> ""
     else -> BuildConfig.TEST_PASSWORD ?: ""
   }
 
@@ -107,7 +119,9 @@ class LoginPresenter(
     var theme by remember { mutableStateOf<AppTheme.Fixed>(AppTheme.Fixed.Tent) }
     var serverName by remember { mutableStateOf(initialServerName) }
     var serverUrl by remember { mutableStateOf(initialServerUrl) }
-    var networkSettings by remember { mutableStateOf<NetworkSettings?>(null) }
+    var networkSettings by remember {
+      mutableStateOf(connectLink?.let { null.withCloudflareServiceToken(it.clientId, it.clientSecret) })
+    }
     var username by remember { mutableStateOf(initialUserName) }
     var password by remember { mutableStateOf(initialPassword) }
 
@@ -182,11 +196,60 @@ class LoginPresenter(
           networkSettings = networkSettings,
         ).onSuccess {
           applySelectedTheme(theme, isRestoringAccount)
+          discardConnectLink()
           if (offerToSave) passwordCredentials.offerToSave(serverUrl, username, password)
         }.onFailure {
           isAuthenticating = false
           authError = it.asAuthError()
         }
+      }
+    }
+
+    val signInWithOpenId: () -> Unit = {
+      isAuthenticating = true
+      authError = null
+      coroutineScope.launch {
+        // Stop before sending the user off to the OpenID provider
+        if (existingUserId == null) {
+          authRepository.checkServerAvailable(serverUrl).onFailure {
+            isAuthenticating = false
+            authError = it.asAuthError()
+            return@launch
+          }
+        }
+        oauthAuthorizationFlow.getAuthorization(serverUrl, networkSettings?.extraHeaders)
+          .onSuccess { authorization ->
+            authRepository.authenticate(
+              serverUrl = serverUrl,
+              serverName = serverName,
+              codeVerifier = authorization.codeVerifier,
+              code = authorization.code,
+              state = authorization.state,
+              userId = existingUserId,
+              networkSettings = networkSettings,
+            ).onSuccess {
+              applySelectedTheme(theme, isRestoringAccount)
+              discardConnectLink()
+            }.onFailure { e ->
+              isAuthenticating = false
+              authError = e.asAuthError()
+            }
+          }
+          .onFailure {
+            isAuthenticating = false
+            authError = it.toOAuthAuthError()
+          }
+      }
+    }
+
+    // A setup link that asked for OpenID goes on to the provider as soon as the server answers,
+    // once: coming back without signing in leaves the user on the form.
+    var openIdStartedFromLink by rememberRetained { mutableStateOf(false) }
+    LaunchedEffect(connectionState) {
+      val offersOpenId = (connectionState as? ConnectionState.Success)?.authMethodState?.openIdState != null
+      if (connectLink?.signInWithOpenId == true && offersOpenId && !openIdStartedFromLink) {
+        openIdStartedFromLink = true
+        signInWithOpenId()
       }
     }
 
@@ -232,7 +295,10 @@ class LoginPresenter(
       focusPassword = isRestoringAccount && password.isEmpty(),
     ) { event ->
       when (event) {
-        NavigateBack -> navigator.pop()
+        NavigateBack -> {
+          discardConnectLink()
+          navigator.pop()
+        }
 
         is ChangeTheme -> theme = event.theme
         is ChangeNetworkSettings -> networkSettings = event.settings
@@ -258,43 +324,13 @@ class LoginPresenter(
 
         is AddCampsite -> signInWithPassword()
 
-        is LoginUiEvent.StartOpenIdAuth -> {
-          isAuthenticating = true
-          authError = null
-          coroutineScope.launch {
-            // Stop before sending the user off to the OpenID provider
-            if (existingUserId == null) {
-              authRepository.checkServerAvailable(serverUrl).onFailure {
-                isAuthenticating = false
-                authError = it.asAuthError()
-                return@launch
-              }
-            }
-            oauthAuthorizationFlow.getAuthorization(serverUrl, networkSettings?.extraHeaders)
-              .onSuccess { authorization ->
-                authRepository.authenticate(
-                  serverUrl = serverUrl,
-                  serverName = serverName,
-                  codeVerifier = authorization.codeVerifier,
-                  code = authorization.code,
-                  state = authorization.state,
-                  userId = existingUserId,
-                  networkSettings = networkSettings,
-                ).onSuccess {
-                  applySelectedTheme(theme, isRestoringAccount)
-                }.onFailure { e ->
-                  isAuthenticating = false
-                  authError = e.asAuthError()
-                }
-              }
-              .onFailure {
-                isAuthenticating = false
-                authError = it.toOAuthAuthError()
-              }
-          }
-        }
+        is LoginUiEvent.StartOpenIdAuth -> signInWithOpenId()
       }
     }
+  }
+
+  private fun discardConnectLink() {
+    if (screen is LoginScreen.Connect) connectLinkInbox.discard(screen.linkId)
   }
 
   /**

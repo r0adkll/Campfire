@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Connect to servers protected by Cloudflare Access with a service token
+- [Android] Add a server and its Cloudflare Access service token in one tap from a setup link
 
 ### Changed
 

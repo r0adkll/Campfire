@@ -7,11 +7,19 @@ import android.content.Intent
 import android.os.Bundle
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.navigation.ConnectLink
+import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
 
 /**
- * Translate an [Intent]'s extras into a [DeepLink].
+ * Translate an [Intent] into a [DeepLink].
+ *
+ * A setup link (the App Link `https://thescavengers.software/campfire/connect#…`, or its
+ * `campfireaudiobooks://connect?…` fallback) is always honored: it only opens a confirmation, and
+ * nothing in it is saved until the user agrees. It is ignored when
+ * [isRedelivery] (the activity being recreated, or relaunched from Recents with its original
+ * intent), so an old link doesn't ask again.
  *
  * `library_item_id` and `campfire_upcoming` are always honored (widgets / notifications use
  * them). The automation actions
@@ -19,7 +27,18 @@ import app.campfire.core.navigation.DeepLinkKeys
  * is true, which callers must tie to `BuildConfig.DEBUG` — they can sign the app into an
  * arbitrary server and must never be reachable from a release build.
  */
-internal fun Intent.toDeepLink(allowAutomation: Boolean, nonce: Long): DeepLink {
+internal fun Intent.toDeepLink(
+  allowAutomation: Boolean,
+  nonce: Long,
+  isRedelivery: Boolean = false,
+): DeepLink {
+  val connectLink = connectLink()
+  if (connectLink != null) {
+    val launchedFromHistory = flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+    if (isRedelivery || launchedFromHistory) return DeepLink.None
+    return DeepLink.Connect(connectLink, nonce)
+  }
+
   val extras = extras ?: return DeepLink.None
 
   val action = extras.getString(DeepLinkKeys.Action)
@@ -38,6 +57,16 @@ internal fun Intent.toDeepLink(allowAutomation: Boolean, nonce: Long): DeepLink 
     bark(LogPriority.WARN, tag = "DeepLink", throwable = e) { "Ignoring malformed automation intent" }
     DeepLink.None
   }
+}
+
+/**
+ * The setup link this intent carries, or `null` when it carries none. The URI is read still
+ * encoded, so that escaped `&` and `=` inside values survive until the form is decoded, and it
+ * goes through the same matching as a scanned QR code.
+ */
+private fun Intent.connectLink(): ConnectLinkResult? {
+  if (action != Intent.ACTION_VIEW) return null
+  return ConnectLink.parseUrl(dataString ?: return null)
 }
 
 private fun parseAutomation(

@@ -4,15 +4,21 @@
 package app.campfire.auth.ui.login
 
 import app.campfire.account.api.RestorableAccount
+import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
 import app.campfire.common.screens.LoginScreen
+import app.campfire.core.navigation.ConnectLink
+import app.campfire.core.navigation.ConnectLinkResult
+import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.ui.theming.api.AppTheme
 import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -25,6 +31,8 @@ class LoginPresenterTest {
   private var authRepository = FakeAuthRepository()
   private var passwordCredentials = FakePasswordCredentials()
   private val appThemeRepository = RecordingAppThemeRepository()
+  private var authorizationFlow: AuthorizationFlow = UnusedAuthorizationFlow()
+  private var connectLinkInbox = FakeConnectLinkInbox()
 
   @Test
   fun `restored accounts are offered and prefill the form`() = runTest {
@@ -356,15 +364,112 @@ class LoginPresenterTest {
     }
   }
 
+  @Test
+  fun `a setup link prefills the server and its service token`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = LINK_CLIENT_ID)
+    connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink()))
+
+    presenter(CONNECT_CAROL).test {
+      val state = awaitItemMatching { it.connectionState is ConnectionState.Success }
+      assertThat(state.serverUrl).isEqualTo(CAROL_URL)
+      assertThat(state.serverName).isEqualTo("Carol's Books")
+      assertThat(state.networkSettings).isEqualTo(null.withCloudflareServiceToken(LINK_CLIENT_ID, LINK_CLIENT_SECRET))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a setup link asking for OpenID starts it once the server answers`() = runTest {
+    authRepository = FakeAuthRepository(authMethods = listOf(AUTH_METHOD_OPENID), accessClientId = LINK_CLIENT_ID)
+    val flow = RecordingAuthorizationFlow()
+    authorizationFlow = flow
+    connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink(openId = true)))
+
+    presenter(CONNECT_CAROL).test {
+      // The provider was left without signing in, so the user is back on the form
+      assertThat(awaitItemMatching { it.authError != null }.authError).isEqualTo(AuthError.OAuthError)
+      testScheduler.advanceUntilIdle()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(flow.requests).containsExactly(
+      CAROL_URL to null.withCloudflareServiceToken(LINK_CLIENT_ID, LINK_CLIENT_SECRET).extraHeaders,
+    )
+    // Still needed if the user tries again
+    assertThat(connectLinkInbox.links.keys).containsOnly(LINK_ID)
+  }
+
+  @Test
+  fun `a setup link without OpenID waits on the form`() = runTest {
+    authRepository = FakeAuthRepository(authMethods = listOf(AUTH_METHOD_LOCAL, AUTH_METHOD_OPENID))
+    val flow = RecordingAuthorizationFlow()
+    authorizationFlow = flow
+    connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink(openId = false)))
+
+    presenter(CONNECT_CAROL).test {
+      val state = awaitItemMatching { it.connectionState is ConnectionState.Success }
+      testScheduler.advanceUntilIdle()
+      assertThat(state.isAuthenticating).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(flow.requests).isEmpty()
+  }
+
+  @Test
+  fun `a setup link that's gone leaves the server for a token to be added`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = LINK_CLIENT_ID)
+
+    presenter(CONNECT_CAROL).test {
+      val state = awaitItemMatching { it.connectionState is ConnectionState.AccessProtected }
+      assertThat(state.serverUrl).isEqualTo(CAROL_URL)
+      assertThat(state.networkSettings).isNull()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `signing in from a setup link lets go of it`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = LINK_CLIENT_ID)
+    connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink()))
+
+    presenter(CONNECT_CAROL).test {
+      val state = awaitItem()
+      state.eventSink(LoginUiEvent.UserName("carol"))
+      state.eventSink(LoginUiEvent.Password("secret"))
+      awaitItemMatching { it.password == "secret" && it.connectionState is ConnectionState.Success }
+        .eventSink(LoginUiEvent.AddCampsite)
+      awaitItemMatching { it.isAuthenticating }
+      testScheduler.advanceUntilIdle()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(authRepository.authenticatedUserNames).containsExactly("carol")
+    assertThat(connectLinkInbox.links).isEmpty()
+  }
+
+  @Test
+  fun `backing out of a setup link lets go of it`() = runTest {
+    connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink()))
+
+    presenter(CONNECT_CAROL).test {
+      awaitItem().eventSink(LoginUiEvent.NavigateBack)
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(connectLinkInbox.links).isEmpty()
+  }
+
   private fun presenter(screen: LoginScreen) = LoginPresenter(
     screen = screen,
     navigator = FakeNavigator(screen),
     authRepository = authRepository,
-    oauthAuthorizationFlow = UnusedAuthorizationFlow(),
+    oauthAuthorizationFlow = authorizationFlow,
     localNetworkPermission = GrantedLocalNetworkPermission(),
     appThemeRepository = appThemeRepository,
     restorableAccountRepository = restorableAccounts,
     passwordCredentials = passwordCredentials,
+    connectLinkInbox = connectLinkInbox,
   ).apply {
     // Ignore any fakes configured for this machine's builds
     fakeRestorableAccountCount = 0
@@ -372,6 +477,18 @@ class LoginPresenterTest {
 
   private companion object {
     const val CAROL_URL = "https://carol.example.net"
+    const val LINK_ID = 42L
+    const val LINK_CLIENT_ID = "0123456789abcdef.access"
+    const val LINK_CLIENT_SECRET = "0123456789abcdef0123456789abcdef"
+    val CONNECT_CAROL = LoginScreen.Connect(serverUrl = CAROL_URL, serverName = "Carol's Books", linkId = LINK_ID)
+
+    fun carolLink(openId: Boolean = false) = ConnectLink(
+      serverUrl = CAROL_URL,
+      serverName = "Carol's Books",
+      clientId = LINK_CLIENT_ID,
+      clientSecret = LINK_CLIENT_SECRET,
+      signInWithOpenId = openId,
+    )
 
     val ALICE = RestorableAccount(
       serverUrl = "https://abs.example.com",

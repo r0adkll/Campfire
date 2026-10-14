@@ -3,6 +3,7 @@
 
 package app.campfire.common.di
 
+import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.common.root.automation.UserAutomationDeepLinks
 import app.campfire.common.screens.BaseScreen
@@ -53,6 +54,9 @@ interface UserComponent {
 
   /** Debug-only automation deep links that need user-scoped dependencies */
   val automationDeepLinks: UserAutomationDeepLinks
+
+  /** Setup links waiting for the user to confirm them, whichever window shows them */
+  val connectLinkInbox: ConnectLinkInbox
 
   @Provides @RootScreen
   fun provideRootScreen(

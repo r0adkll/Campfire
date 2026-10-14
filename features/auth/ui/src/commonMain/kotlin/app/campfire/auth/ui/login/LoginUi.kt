@@ -122,13 +122,14 @@ private fun LoginContent(
                 when (screen) {
                   is LoginScreen.Additional,
                   is LoginScreen.Restore,
+                  is LoginScreen.Connect,
                   -> stringResource(Res.string.login_add_account_title)
                   is LoginScreen.ReAuthentication -> stringResource(Res.string.login_reauth_account_title)
                 },
               )
             },
             navigationIcon = {
-              if (screen is LoginScreen.Additional || screen is LoginScreen.Restore) {
+              if (screen is LoginScreen.Additional || screen is LoginScreen.Restore || screen is LoginScreen.Connect) {
                 NavigationBackButton(onClick = { state.eventSink(LoginUiEvent.NavigateBack) })
               }
             },

@@ -39,6 +39,34 @@
         <category android:name="android.intent.category.INFO" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+
+      <!--
+        Setup links, e.g. from a server's member page: a server and a Cloudflare Access service
+        token in the URL fragment. Verified against thescavengers.software/.well-known/assetlinks.json.
+        Nothing in a link is saved until the user confirms it (see DeepLinkIntents.kt).
+      -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" />
+        <data android:host="thescavengers.software" />
+        <data android:path="/campfire/connect" />
+      </intent-filter>
+
+      <!--
+        The same setup link as campfireaudiobooks://connect?…, which Chrome delivers from a page's
+        intent://connect?…#Intent;scheme=campfireaudiobooks;package=app.campfire.android;end
+        fallback when the App Link doesn't open Campfire. The OpenID redirect
+        (campfireaudiobooks://oauth) is a separate filter in data/network/oidc.
+      -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="campfireaudiobooks" />
+        <data android:host="connect" />
+      </intent-filter>
     </activity>
 
     <!-- Disable Firebase's built-in provider initializer so we can control when we initialize FB  -->
