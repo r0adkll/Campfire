@@ -78,14 +78,18 @@ class ServerStatusAccessTest {
   }
 
   @Test
-  fun accessDenialPageIsReportedAsCloudflareAccess() = runTest {
+  fun accessDenialNamingAccessIsReportedAsCloudflareAccess() = runTest {
     val api = api {
       respond(
-        content = "<html>Forbidden</html>",
-        status = HttpStatusCode.Forbidden,
+        content = "<html>Unauthorized</html>",
+        status = HttpStatusCode.Unauthorized,
         headers = headersOf(
           HttpHeaders.Server to listOf("cloudflare"),
           HttpHeaders.ContentType to listOf("text/html; charset=UTF-8"),
+          HttpHeaders.WWWAuthenticate to listOf(
+            "Cloudflare-Access resource_metadata=" +
+              "\"https://abs.example.com/.well-known/cloudflare-access-protected-resource/status\"",
+          ),
         ),
       )
     }
@@ -95,6 +99,35 @@ class ServerStatusAccessTest {
     assertThat(error).isNotNull().isInstanceOf<CloudflareAccessException>()
       .prop(CloudflareAccessException::teamDomain).isNull()
   }
+
+  @Test
+  fun cloudflareDenialOfAServiceTokenIsReportedAsCloudflareAccess() = runTest {
+    val api = api { cloudflareForbiddenPage() }
+
+    val error = api.status("https://abs.example.com", mapOf("CF-Access-Client-Id" to "id.access")).exceptionOrNull()
+
+    assertThat(error).isNotNull().isInstanceOf<CloudflareAccessException>()
+      .prop(CloudflareAccessException::teamDomain).isNull()
+  }
+
+  @Test
+  fun otherCloudflareErrorPagesAreNotAccess() = runTest {
+    val api = api { cloudflareForbiddenPage() }
+
+    val error = api.status("https://abs.example.com").exceptionOrNull()
+
+    assertThat(error).isNotNull().isInstanceOf<ApiException>()
+  }
+
+  /** A firewall block page: Cloudflare's, but with nothing naming Access. */
+  private fun MockRequestHandleScope.cloudflareForbiddenPage() = respond(
+    content = "<html>Sorry, you have been blocked</html>",
+    status = HttpStatusCode.Forbidden,
+    headers = headersOf(
+      HttpHeaders.Server to listOf("cloudflare"),
+      HttpHeaders.ContentType to listOf("text/html; charset=UTF-8"),
+    ),
+  )
 
   @Test
   fun otherRedirectsAreStillFollowed() = runTest {
