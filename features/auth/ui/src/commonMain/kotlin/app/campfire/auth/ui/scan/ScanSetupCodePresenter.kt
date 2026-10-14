@@ -15,19 +15,22 @@ import app.campfire.auth.api.screen.ConnectScreen
 import app.campfire.auth.api.screen.ScanSetupCodeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.navigation.ConnectLink
+import app.campfire.core.navigation.ConnectLinkResult
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 
 /**
  * Waits for the camera to read a setup link's QR code, then replaces itself with
  * [ConnectScreen], which confirms the link exactly as it does one opened from a page. The first
- * setup link wins; anything read after it is ignored. A QR code that isn't a setup link only
- * shows a hint, and scanning carries on.
+ * setup link wins; anything read after it is ignored. The guide shows that it read the code for a
+ * moment before the confirmation replaces it. A QR code that isn't a setup link only shows a hint,
+ * and scanning carries on.
  */
 @CircuitInject(ScanSetupCodeScreen::class, UserScope::class)
 @Inject
@@ -41,7 +44,19 @@ class ScanSetupCodePresenter(
 
   @Composable
   override fun present(): ScanSetupCodeUiState {
-    var handled by remember { mutableStateOf(false) }
+    // Held only while the guide shows the code was read, so closing meanwhile keeps nothing
+    var captured by remember { mutableStateOf<ConnectLinkResult?>(null) }
+    LaunchedEffect(captured) {
+      val result = captured ?: return@LaunchedEffect
+      delay(CapturedFeedbackDuration)
+      val linkId = nextLinkId()
+      if (connectLinkInbox.deliver(linkId, result)) {
+        navigator.pop()
+        navigator.goTo(ConnectScreen(linkId))
+      } else {
+        captured = null
+      }
+    }
 
     // The camera keeps reporting a code while it's in view; the hint fades once it's gone
     var otherCodeSightings by remember { mutableIntStateOf(0) }
@@ -53,22 +68,19 @@ class ScanSetupCodePresenter(
       sawOtherCode = false
     }
 
-    return ScanSetupCodeUiState(sawOtherCode = sawOtherCode) { event ->
+    return ScanSetupCodeUiState(
+      sawOtherCode = sawOtherCode && captured == null,
+      captured = captured != null,
+    ) { event ->
       when (event) {
         is ScanSetupCodeUiEvent.Scanned -> {
-          if (handled) return@ScanSetupCodeUiState
+          if (captured != null) return@ScanSetupCodeUiState
           val result = ConnectLink.parseUrl(event.text)
           if (result == null) {
             otherCodeSightings++
             return@ScanSetupCodeUiState
           }
-
-          val linkId = nextLinkId()
-          if (connectLinkInbox.deliver(linkId, result)) {
-            handled = true
-            navigator.pop()
-            navigator.goTo(ConnectScreen(linkId))
-          }
+          captured = result
         }
 
         ScanSetupCodeUiEvent.Close -> navigator.pop()
@@ -78,5 +90,6 @@ class ScanSetupCodePresenter(
 
   private companion object {
     val OtherCodeHintDuration = 3.seconds
+    val CapturedFeedbackDuration = 500.milliseconds
   }
 }

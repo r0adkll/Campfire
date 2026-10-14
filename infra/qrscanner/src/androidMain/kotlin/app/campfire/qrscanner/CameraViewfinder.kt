@@ -20,7 +20,6 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
@@ -44,7 +42,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -84,6 +81,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun CameraViewfinder(
   onScanned: (String) -> Unit,
+  captured: Boolean,
+  hint: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var requested by rememberSaveable { mutableStateOf(false) }
@@ -99,7 +98,12 @@ internal fun CameraViewfinder(
 
   val context = LocalContext.current
   when {
-    permission.status.isGranted -> CameraPreview(onScanned = onScanned, modifier = modifier)
+    permission.status.isGranted -> CameraPreview(
+      onScanned = onScanned,
+      captured = captured,
+      hint = hint,
+      modifier = modifier,
+    )
 
     // The system's own dialog is up; it explains itself
     requested && !answered -> Box(modifier)
@@ -127,6 +131,8 @@ internal fun CameraViewfinder(
 @Composable
 private fun CameraPreview(
   onScanned: (String) -> Unit,
+  captured: Boolean,
+  hint: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -199,47 +205,40 @@ private fun CameraPreview(
   }
 
   Box(modifier) {
-    surfaceRequest?.let { request ->
-      CameraXViewfinder(
-        surfaceRequest = request,
-        modifier = Modifier.fillMaxSize(),
-      )
-
-      // Where to hold the code. Any code in view is read, so this is only a guide.
-      Box(
-        Modifier
-          .align(Alignment.Center)
-          .size(240.dp)
-          .border(3.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(24.dp)),
-      )
-    }
+    val request = surfaceRequest ?: return@Box
+    CameraXViewfinder(
+      surfaceRequest = request,
+      modifier = Modifier.fillMaxSize(),
+    )
 
     val activeCamera = camera
-    if (activeCamera != null && activeCamera.cameraInfo.hasFlashUnit()) {
-      val label = stringResource(
-        if (torchOn) Res.string.action_turn_off_flashlight else Res.string.action_turn_on_flashlight,
-      )
-      IconButtonTooltip(
-        text = label,
-        // Just below the guide, clear of whatever the screen puts along its edges
-        modifier = Modifier
-          .align(Alignment.Center)
-          .padding(top = 336.dp),
-      ) {
-        FilledTonalIconToggleButton(
-          checked = torchOn,
-          onCheckedChange = { on ->
-            torchOn = on
-            activeCamera.cameraControl.enableTorch(on)
-          },
-        ) {
-          Icon(
-            if (torchOn) CampfireIcons.Rounded.FlashlightOff else CampfireIcons.Rounded.FlashlightOn,
-            contentDescription = label,
+    ViewfinderGuide(
+      captured = captured,
+      hint = hint,
+      controls = {
+        if (activeCamera != null && activeCamera.cameraInfo.hasFlashUnit()) {
+          val label = stringResource(
+            if (torchOn) Res.string.action_turn_off_flashlight else Res.string.action_turn_on_flashlight,
           )
+          IconButtonTooltip(text = label) {
+            FilledTonalIconToggleButton(
+              checked = torchOn,
+              onCheckedChange = { on ->
+                torchOn = on
+                activeCamera.cameraControl.enableTorch(on)
+              },
+              modifier = Modifier.size(56.dp),
+            ) {
+              Icon(
+                if (torchOn) CampfireIcons.Rounded.FlashlightOff else CampfireIcons.Rounded.FlashlightOn,
+                contentDescription = label,
+              )
+            }
+          }
         }
-      }
-    }
+      },
+      modifier = Modifier.fillMaxSize(),
+    )
   }
 }
 

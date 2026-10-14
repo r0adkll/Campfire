@@ -49,10 +49,13 @@
   <string name="connect_title_new">Add this campsite?</string>
   <string name="connect_title_update">Update this campsite?</string>
   <string name="connect_label_server">This link connects Campfire to</string>
+  <string name="connect_trust_title">Check before you continue</string>
   <string name="connect_token_notice">Campfire will send the Cloudflare Access service token in this link to %1$s with every request. Only continue if you expected a link to this server from someone you trust.</string>
   <string name="connect_update_notice">You're already signed in to this server as %1$s. Campfire will use the Cloudflare Access service token in this link for that account, sending it to %2$s with every request.</string>
-  <string name="connect_next_openid">Next, you'll sign in with OpenID.</string>
-  <string name="connect_next_sign_in">Next, you'll sign in to your account.</string>
+  <string name="connect_steps_title">What happens next</string>
+  <string name="connect_step_save">Campfire saves this server and its service token.</string>
+  <string name="connect_step_openid">You sign in with OpenID.</string>
+  <string name="connect_step_sign_in">You sign in to your account.</string>
   <string name="action_connect_add">Continue</string>
   <string name="action_connect_update">Update token</string>
   <string name="action_cancel">Cancel</string>
@@ -68,4 +71,5 @@
   <string name="scan_setup_code_title">Scan setup code</string>
   <string name="scan_setup_code_instructions">Point your camera at the setup QR code from your server's member page.</string>
   <string name="scan_setup_code_other_code">This isn't a Campfire setup code.</string>
+  <string name="scan_setup_code_found">Setup code found</string>
 </resources>

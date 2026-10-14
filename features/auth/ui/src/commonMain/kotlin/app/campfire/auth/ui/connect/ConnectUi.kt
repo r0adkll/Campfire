@@ -3,23 +3,27 @@
 
 package app.campfire.auth.ui.connect
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,8 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.api.screen.ConnectScreen
@@ -49,11 +55,14 @@ import campfire.features.auth.ui.generated.resources.action_done
 import campfire.features.auth.ui.generated.resources.connect_invalid_message
 import campfire.features.auth.ui.generated.resources.connect_invalid_title
 import campfire.features.auth.ui.generated.resources.connect_label_server
-import campfire.features.auth.ui.generated.resources.connect_next_openid
-import campfire.features.auth.ui.generated.resources.connect_next_sign_in
+import campfire.features.auth.ui.generated.resources.connect_step_openid
+import campfire.features.auth.ui.generated.resources.connect_step_save
+import campfire.features.auth.ui.generated.resources.connect_step_sign_in
+import campfire.features.auth.ui.generated.resources.connect_steps_title
 import campfire.features.auth.ui.generated.resources.connect_title_new
 import campfire.features.auth.ui.generated.resources.connect_title_update
 import campfire.features.auth.ui.generated.resources.connect_token_notice
+import campfire.features.auth.ui.generated.resources.connect_trust_title
 import campfire.features.auth.ui.generated.resources.connect_unsupported_message
 import campfire.features.auth.ui.generated.resources.connect_unsupported_title
 import campfire.features.auth.ui.generated.resources.connect_update_notice
@@ -68,12 +77,11 @@ fun Connect(
   state: ConnectUiState,
   modifier: Modifier = Modifier,
 ) {
-  Surface(
-    modifier = modifier
-      .fillMaxSize()
-      .systemBarsPadding(),
-  ) {
-    Box(contentAlignment = Alignment.Center) {
+  Surface(modifier = modifier.fillMaxSize()) {
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier.systemBarsPadding(),
+    ) {
       when (val content = state.content) {
         ConnectContent.Loading -> CircularProgressIndicator()
 
@@ -105,6 +113,7 @@ fun Connect(
           message = stringResource(Res.string.connect_invalid_message),
           action = stringResource(Res.string.action_close),
           onAction = { state.eventSink(ConnectUiEvent.Dismiss) },
+          isError = true,
         )
       }
     }
@@ -118,28 +127,55 @@ private fun ConfirmConnect(
   onCancel: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  ConnectColumn(modifier) {
-    Icon(
-      CampfireIcons.Rounded.Dns,
-      contentDescription = null,
-      tint = MaterialTheme.colorScheme.primary,
-      modifier = Modifier.size(48.dp),
-    )
+  val isNew = content.existingUserName == null
+  ConnectLayout(
+    modifier = modifier,
+    actions = {
+      Button(
+        onClick = onConfirm,
+        enabled = !content.isSaving,
+        modifier = Modifier
+          .fillMaxWidth()
+          .heightIn(min = ActionHeight),
+      ) {
+        if (content.isSaving) {
+          CircularProgressIndicator(
+            strokeWidth = 2.dp,
+            color = LocalContentColor.current,
+            modifier = Modifier.size(20.dp),
+          )
+        } else {
+          Text(
+            text = stringResource(if (isNew) Res.string.action_connect_add else Res.string.action_connect_update),
+            style = MaterialTheme.typography.titleMedium,
+          )
+        }
+      }
+      TextButton(
+        onClick = onCancel,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(stringResource(Res.string.action_cancel))
+      }
+    },
+  ) {
+    HeroIcon(CampfireIcons.Rounded.Dns)
     Text(
-      text = stringResource(
-        if (content.existingUserName == null) Res.string.connect_title_new else Res.string.connect_title_update,
-      ),
-      style = MaterialTheme.typography.headlineSmall,
+      text = stringResource(if (isNew) Res.string.connect_title_new else Res.string.connect_title_update),
+      style = MaterialTheme.typography.headlineMedium,
+      textAlign = TextAlign.Center,
+      modifier = Modifier.fillMaxWidth(),
     )
 
     // The host is what the token goes to, so it leads; the name is whatever the link says
-    Card(
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    Surface(
+      color = MaterialTheme.colorScheme.surfaceContainerHigh,
+      shape = MaterialTheme.shapes.large,
       modifier = Modifier.fillMaxWidth(),
     ) {
       Column(
-        modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(20.dp),
       ) {
         Text(
           text = stringResource(Res.string.connect_label_server),
@@ -163,47 +199,93 @@ private fun ConfirmConnect(
       }
     }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-      Icon(
-        CampfireIcons.Rounded.Policy,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Text(
-        text = if (content.existingUserName == null) {
-          stringResource(Res.string.connect_token_notice, content.serverHost)
-        } else {
-          stringResource(Res.string.connect_update_notice, content.existingUserName, content.serverHost)
-        },
-        style = MaterialTheme.typography.bodyMedium,
-      )
-    }
+    TrustCallout(
+      message = if (isNew) {
+        stringResource(Res.string.connect_token_notice, content.serverHost)
+      } else {
+        stringResource(Res.string.connect_update_notice, content.existingUserName.orEmpty(), content.serverHost)
+      },
+    )
 
-    if (content.existingUserName == null) {
-      Text(
-        text = stringResource(
-          if (content.signInWithOpenId) Res.string.connect_next_openid else Res.string.connect_next_sign_in,
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-    ) {
-      TextButton(onClick = onCancel) {
-        Text(stringResource(Res.string.action_cancel))
-      }
-      Button(
-        onClick = onConfirm,
-        enabled = !content.isSaving,
-      ) {
-        Text(
+    if (isNew) {
+      NextSteps(
+        steps = listOf(
+          stringResource(Res.string.connect_step_save),
           stringResource(
-            if (content.existingUserName == null) Res.string.action_connect_add else Res.string.action_connect_update,
+            if (content.signInWithOpenId) Res.string.connect_step_openid else Res.string.connect_step_sign_in,
           ),
+        ),
+      )
+    }
+  }
+}
+
+@Composable
+private fun TrustCallout(
+  message: String,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    color = MaterialTheme.colorScheme.tertiaryContainer,
+    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+    shape = MaterialTheme.shapes.large,
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
+      modifier = Modifier.padding(20.dp),
+    ) {
+      Icon(CampfireIcons.Rounded.Policy, contentDescription = null)
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          text = stringResource(Res.string.connect_trust_title),
+          style = MaterialTheme.typography.titleSmall,
+        )
+        Text(
+          text = message,
+          style = MaterialTheme.typography.bodyMedium,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun NextSteps(
+  steps: List<String>,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    Text(
+      text = stringResource(Res.string.connect_steps_title),
+      style = MaterialTheme.typography.titleSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    steps.forEachIndexed { index, step ->
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        Surface(
+          shape = CircleShape,
+          color = Color.Transparent,
+          contentColor = MaterialTheme.colorScheme.primary,
+          border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+          modifier = Modifier.size(28.dp),
+        ) {
+          Box(contentAlignment = Alignment.Center) {
+            Text(
+              text = (index + 1).toString(),
+              style = MaterialTheme.typography.labelLarge,
+            )
+          }
+        }
+        Text(
+          text = step,
+          style = MaterialTheme.typography.bodyLarge,
         )
       }
     }
@@ -218,39 +300,102 @@ private fun ConnectMessage(
   action: String,
   onAction: () -> Unit,
   modifier: Modifier = Modifier,
+  isError: Boolean = false,
 ) {
-  ConnectColumn(modifier) {
-    Icon(
-      icon,
-      contentDescription = null,
-      tint = MaterialTheme.colorScheme.primary,
-      modifier = Modifier.size(48.dp),
-    )
-    Text(title, style = MaterialTheme.typography.headlineSmall)
-    Text(message, style = MaterialTheme.typography.bodyLarge)
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.End,
-    ) {
-      Button(onClick = onAction) {
-        Text(action)
+  ConnectLayout(
+    modifier = modifier,
+    actions = {
+      Button(
+        onClick = onAction,
+        modifier = Modifier
+          .fillMaxWidth()
+          .heightIn(min = ActionHeight),
+      ) {
+        Text(action, style = MaterialTheme.typography.titleMedium)
       }
-    }
+    },
+  ) {
+    HeroIcon(icon, isError = isError)
+    Text(
+      text = title,
+      style = MaterialTheme.typography.headlineMedium,
+      textAlign = TextAlign.Center,
+      modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+      text = message,
+      style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      textAlign = TextAlign.Center,
+      modifier = Modifier.fillMaxWidth(),
+    )
   }
 }
 
 @Composable
-private fun ConnectColumn(
+private fun HeroIcon(
+  icon: ImageVector,
   modifier: Modifier = Modifier,
-  content: @Composable () -> Unit,
+  isError: Boolean = false,
 ) {
-  Column(
-    modifier = modifier
-      .widthIn(max = MaxContentWidth)
-      .verticalScroll(rememberScrollState())
-      .padding(horizontal = 24.dp, vertical = 16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+  Surface(
+    shape = CircleShape,
+    color = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+    contentColor = if (isError) {
+      MaterialTheme.colorScheme.onErrorContainer
+    } else {
+      MaterialTheme.colorScheme.onPrimaryContainer
+    },
+    modifier = modifier.size(80.dp),
   ) {
-    content()
+    Box(contentAlignment = Alignment.Center) {
+      Icon(icon, contentDescription = null, modifier = Modifier.size(40.dp))
+    }
   }
 }
+
+/**
+ * Scrolling [content], centered vertically while it fits, with [actions] pinned to the bottom,
+ * all within the auth screens' content width.
+ */
+@Composable
+private fun ConnectLayout(
+  actions: @Composable ColumnScope.() -> Unit,
+  modifier: Modifier = Modifier,
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = modifier
+      .fillMaxSize()
+      .widthIn(max = MaxContentWidth),
+  ) {
+    BoxWithConstraints(
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxWidth(),
+    ) {
+      // At least as tall as the space, so short content sits centered
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+        modifier = Modifier
+          .fillMaxWidth()
+          .verticalScroll(rememberScrollState())
+          .heightIn(min = maxHeight)
+          .padding(horizontal = 24.dp, vertical = 32.dp),
+        content = content,
+      )
+    }
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 24.dp, vertical = 16.dp),
+      content = actions,
+    )
+  }
+}
+
+private val ActionHeight = 56.dp
