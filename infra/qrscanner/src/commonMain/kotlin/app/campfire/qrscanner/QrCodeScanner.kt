@@ -19,13 +19,21 @@ interface QrCodeScanner {
   val isSupported: Boolean
 
   /**
-   * The camera's live view, filling [modifier]'s bounds. It asks for camera access itself, and
-   * explains what to do while it doesn't have it. [onScanned] gets the text of every QR code it
-   * reads, again and again while one stays in view, on the main thread. Frames aren't kept, and
-   * scanned text isn't logged.
+   * The camera's live view, filling [modifier]'s bounds, with a guide showing where to hold the
+   * code. It asks for camera access itself, and explains what to do while it doesn't have it.
+   * [onScanned] gets the text of every QR code it reads, again and again while one stays in view,
+   * on the main thread. Frames aren't kept, and scanned text isn't logged.
+   *
+   * @param captured the caller has what it wanted; the guide shows the code was read
+   * @param hint shown just below the guide while the camera is live
    */
   @Composable
-  fun Viewfinder(onScanned: (String) -> Unit, modifier: Modifier)
+  fun Viewfinder(
+    onScanned: (String) -> Unit,
+    captured: Boolean,
+    hint: @Composable () -> Unit,
+    modifier: Modifier,
+  )
 }
 
 /** The [QrCodeScanner] for platforms without one. */
@@ -35,5 +43,10 @@ class UnsupportedQrCodeScanner : QrCodeScanner {
   override val isSupported: Boolean get() = false
 
   @Composable
-  override fun Viewfinder(onScanned: (String) -> Unit, modifier: Modifier) = Unit
+  override fun Viewfinder(
+    onScanned: (String) -> Unit,
+    captured: Boolean,
+    hint: @Composable () -> Unit,
+    modifier: Modifier,
+  ) = Unit
 }

@@ -4,6 +4,7 @@
 package app.campfire.qrscanner
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -20,21 +21,13 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,29 +35,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.FlashlightOff
 import app.campfire.common.compose.icons.rounded.FlashlightOn
-import app.campfire.common.compose.icons.rounded.NoPhotography
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.infra.qrscanner.generated.resources.Res
-import campfire.infra.qrscanner.generated.resources.action_allow_camera
-import campfire.infra.qrscanner.generated.resources.action_open_app_settings
 import campfire.infra.qrscanner.generated.resources.action_turn_off_flashlight
 import campfire.infra.qrscanner.generated.resources.action_turn_on_flashlight
-import campfire.infra.qrscanner.generated.resources.camera_permission_denied_message
-import campfire.infra.qrscanner.generated.resources.camera_permission_message
-import campfire.infra.qrscanner.generated.resources.camera_permission_title
-import campfire.infra.qrscanner.generated.resources.camera_unavailable_message
-import campfire.infra.qrscanner.generated.resources.camera_unavailable_title
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -84,6 +67,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun CameraViewfinder(
   onScanned: (String) -> Unit,
+  captured: Boolean,
+  hint: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var requested by rememberSaveable { mutableStateOf(false) }
@@ -97,27 +82,28 @@ internal fun CameraViewfinder(
     }
   }
 
+  KeepSystemBarIconsLight()
+
   val context = LocalContext.current
   when {
-    permission.status.isGranted -> CameraPreview(onScanned = onScanned, modifier = modifier)
+    permission.status.isGranted -> CameraPreview(
+      onScanned = onScanned,
+      captured = captured,
+      hint = hint,
+      modifier = modifier,
+    )
 
     // The system's own dialog is up; it explains itself
     requested && !answered -> Box(modifier)
 
-    permission.status.shouldShowRationale -> CameraMessage(
-      icon = CampfireIcons.Rounded.NoPhotography,
-      title = stringResource(Res.string.camera_permission_title),
-      message = stringResource(Res.string.camera_permission_message),
-      action = stringResource(Res.string.action_allow_camera),
+    permission.status.shouldShowRationale -> CameraPermissionMessage(
+      denied = false,
       onAction = permission::launchPermissionRequest,
       modifier = modifier,
     )
 
-    else -> CameraMessage(
-      icon = CampfireIcons.Rounded.NoPhotography,
-      title = stringResource(Res.string.camera_permission_title),
-      message = stringResource(Res.string.camera_permission_denied_message),
-      action = stringResource(Res.string.action_open_app_settings),
+    else -> CameraPermissionMessage(
+      denied = true,
       onAction = { context.openAppSettings() },
       modifier = modifier,
     )
@@ -127,6 +113,8 @@ internal fun CameraViewfinder(
 @Composable
 private fun CameraPreview(
   onScanned: (String) -> Unit,
+  captured: Boolean,
+  hint: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -189,99 +177,65 @@ private fun CameraPreview(
   }
 
   if (unavailable) {
-    CameraMessage(
-      icon = CampfireIcons.Rounded.NoPhotography,
-      title = stringResource(Res.string.camera_unavailable_title),
-      message = stringResource(Res.string.camera_unavailable_message),
-      modifier = modifier,
-    )
+    CameraUnavailableMessage(modifier)
     return
   }
 
   Box(modifier) {
-    surfaceRequest?.let { request ->
-      CameraXViewfinder(
-        surfaceRequest = request,
-        modifier = Modifier.fillMaxSize(),
-      )
-
-      // Where to hold the code. Any code in view is read, so this is only a guide.
-      Box(
-        Modifier
-          .align(Alignment.Center)
-          .size(240.dp)
-          .border(3.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(24.dp)),
-      )
-    }
+    val request = surfaceRequest ?: return@Box
+    CameraXViewfinder(
+      surfaceRequest = request,
+      modifier = Modifier.fillMaxSize(),
+    )
 
     val activeCamera = camera
-    if (activeCamera != null && activeCamera.cameraInfo.hasFlashUnit()) {
-      val label = stringResource(
-        if (torchOn) Res.string.action_turn_off_flashlight else Res.string.action_turn_on_flashlight,
-      )
-      IconButtonTooltip(
-        text = label,
-        // Just below the guide, clear of whatever the screen puts along its edges
-        modifier = Modifier
-          .align(Alignment.Center)
-          .padding(top = 336.dp),
-      ) {
-        FilledTonalIconToggleButton(
-          checked = torchOn,
-          onCheckedChange = { on ->
-            torchOn = on
-            activeCamera.cameraControl.enableTorch(on)
-          },
-        ) {
-          Icon(
-            if (torchOn) CampfireIcons.Rounded.FlashlightOff else CampfireIcons.Rounded.FlashlightOn,
-            contentDescription = label,
+    ViewfinderGuide(
+      captured = captured,
+      hint = hint,
+      controls = {
+        if (activeCamera != null && activeCamera.cameraInfo.hasFlashUnit()) {
+          val label = stringResource(
+            if (torchOn) Res.string.action_turn_off_flashlight else Res.string.action_turn_on_flashlight,
           )
+          IconButtonTooltip(text = label) {
+            FilledTonalIconToggleButton(
+              checked = torchOn,
+              onCheckedChange = { on ->
+                torchOn = on
+                activeCamera.cameraControl.enableTorch(on)
+              },
+              modifier = Modifier.size(56.dp),
+            ) {
+              Icon(
+                if (torchOn) CampfireIcons.Rounded.FlashlightOff else CampfireIcons.Rounded.FlashlightOn,
+                contentDescription = label,
+              )
+            }
+          }
         }
-      }
-    }
+      },
+      modifier = Modifier.fillMaxSize(),
+    )
   }
 }
 
+/**
+ * The viewfinder is dark whatever the app's theme, so the status and navigation bars' icons stay
+ * light while it's shown, and go back to the theme's afterwards.
+ */
 @Composable
-private fun CameraMessage(
-  icon: ImageVector,
-  title: String,
-  message: String,
-  modifier: Modifier = Modifier,
-  action: String? = null,
-  onAction: () -> Unit = {},
-) {
-  Box(modifier, contentAlignment = Alignment.Center) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-      modifier = Modifier
-        .widthIn(max = 360.dp)
-        .padding(24.dp),
-    ) {
-      Icon(
-        icon,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.size(48.dp),
-      )
-      Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        textAlign = TextAlign.Center,
-      )
-      Text(
-        text = message,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-      )
-      if (action != null) {
-        Button(onClick = onAction) {
-          Text(action)
-        }
-      }
+private fun KeepSystemBarIconsLight() {
+  val view = LocalView.current
+  DisposableEffect(view) {
+    val window = (view.context as? Activity)?.window ?: return@DisposableEffect onDispose {}
+    val controller = WindowCompat.getInsetsController(window, view)
+    val lightStatusBars = controller.isAppearanceLightStatusBars
+    val lightNavigationBars = controller.isAppearanceLightNavigationBars
+    controller.isAppearanceLightStatusBars = false
+    controller.isAppearanceLightNavigationBars = false
+    onDispose {
+      controller.isAppearanceLightStatusBars = lightStatusBars
+      controller.isAppearanceLightNavigationBars = lightNavigationBars
     }
   }
 }

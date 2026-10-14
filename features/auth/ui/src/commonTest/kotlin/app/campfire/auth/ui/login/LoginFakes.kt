@@ -155,7 +155,12 @@ internal class FakeConnectLinkInbox(
 
 internal class FakeQrCodeScanner(override val isSupported: Boolean) : QrCodeScanner {
   @Composable
-  override fun Viewfinder(onScanned: (String) -> Unit, modifier: Modifier) = Unit
+  override fun Viewfinder(
+    onScanned: (String) -> Unit,
+    captured: Boolean,
+    hint: @Composable () -> Unit,
+    modifier: Modifier,
+  ) = Unit
 }
 
 internal class GrantedLocalNetworkPermission : LocalNetworkPermissionController {

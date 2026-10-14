@@ -22,7 +22,12 @@ class CameraQrCodeScanner(
     get() = application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 
   @Composable
-  override fun Viewfinder(onScanned: (String) -> Unit, modifier: Modifier) {
-    CameraViewfinder(onScanned = onScanned, modifier = modifier)
+  override fun Viewfinder(
+    onScanned: (String) -> Unit,
+    captured: Boolean,
+    hint: @Composable () -> Unit,
+    modifier: Modifier,
+  ) {
+    CameraViewfinder(onScanned = onScanned, captured = captured, hint = hint, modifier = modifier)
   }
 }

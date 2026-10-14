@@ -102,6 +102,37 @@ class ScanSetupCodePresenterTest {
   }
 
   @Test
+  fun `the guide shows the code was read before the confirmation opens`() = runTest {
+    presenter().test {
+      val initial = awaitItem()
+      assertThat(initial.captured).isFalse()
+
+      initial.eventSink(ScanSetupCodeUiEvent.Scanned(SETUP_LINK))
+      assertThat(awaitItem().captured).isTrue()
+      assertThat(inbox.links).isEmpty()
+
+      navigator.awaitPop()
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ConnectScreen(LINK_ID))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `closing while the code is shown as read keeps nothing`() = runTest {
+    presenter().test {
+      val initial = awaitItem()
+      initial.eventSink(ScanSetupCodeUiEvent.Scanned(SETUP_LINK))
+      awaitItem().eventSink(ScanSetupCodeUiEvent.Close)
+
+      navigator.awaitPop()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    navigator.expectNoEvents()
+    assertThat(inbox.links).isEmpty()
+  }
+
+  @Test
   fun `closing leaves without keeping anything`() = runTest {
     presenter().test {
       awaitItem().eventSink(ScanSetupCodeUiEvent.Close)

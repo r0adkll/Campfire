@@ -9,10 +9,12 @@ import com.slack.circuit.runtime.CircuitUiState
 
 /**
  * @property sawOtherCode the camera recently read a QR code that isn't a setup link
+ * @property captured the camera read a setup link, and its confirmation is about to open
  */
 @Stable
 data class ScanSetupCodeUiState(
   val sawOtherCode: Boolean,
+  val captured: Boolean,
   val eventSink: (ScanSetupCodeUiEvent) -> Unit,
 ) : CircuitUiState
 
