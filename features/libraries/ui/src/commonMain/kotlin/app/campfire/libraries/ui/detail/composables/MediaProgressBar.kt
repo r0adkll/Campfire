@@ -109,13 +109,16 @@ internal fun MediaProgressBar(
           progress.finishedAt!!.asDate().readableFormat,
         )
         else -> {
-          val duration = progress.duration ?: totalDuration.asSeconds()
+          val duration = progress.duration?.takeIf { it > 0f } ?: totalDuration.asSeconds()
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
-          if (!remainingDurationMillis.isNaN()) {
-            val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
-            stringResource(Res.string.remaining_duration_format, remainingDuration)
-          } else {
-            "--"
+          when {
+            // An ebook has no time left to show, only how far through it is
+            duration <= 0f -> ""
+            !remainingDurationMillis.isNaN() -> {
+              val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
+              stringResource(Res.string.remaining_duration_format, remainingDuration)
+            }
+            else -> "--"
           }
         }
       }

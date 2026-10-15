@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keeps the app in place underneath while a window screen rises over it or sinks away -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+  android:duration="350"
+  android:fromAlpha="1"
+  android:toAlpha="1" />

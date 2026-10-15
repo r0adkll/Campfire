@@ -57,9 +57,11 @@ import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
+import app.campfire.common.compose.window.LocalWindowScreenLauncher
 import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
 import app.campfire.common.navigator.OpenUrlNavigator
+import app.campfire.common.navigator.WindowScreenInterceptor
 import app.campfire.common.root.automation.AutomationScreens
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
@@ -102,6 +104,7 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
+import com.slack.circuitx.navigation.intercepting.NavigationInterceptor
 import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
@@ -127,6 +130,7 @@ internal fun LoggedInWindow(
   val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
   val navigator = rememberInterceptingNavigator(
     navigator = baseNavigator,
+    interceptors = rememberWindowScreenInterceptors(),
     eventListeners = userComponent.navigationEventListeners,
   )
 
@@ -262,6 +266,7 @@ private fun LoggedInUi(
   val baseDetailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
   val detailNavigator = rememberInterceptingNavigator(
     navigator = baseDetailNavigator,
+    interceptors = rememberWindowScreenInterceptors(),
     eventListeners = navigationEventListeners,
     enableBackHandler = false,
   )
@@ -573,5 +578,14 @@ private fun LoggedInUi(
     }
   } else {
     adaptiveLayout(modifier)
+  }
+}
+
+/** Opens window screens in their own window, where the platform host provides one. */
+@Composable
+private fun rememberWindowScreenInterceptors(): List<NavigationInterceptor> {
+  val launcher = LocalWindowScreenLauncher.current
+  return remember(launcher) {
+    listOfNotNull(launcher?.let(::WindowScreenInterceptor))
   }
 }

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Connect to servers protected by Cloudflare Access with a service token
 - [Android] Add a server and its Cloudflare Access service token from a setup link, or by scanning its QR code
+- [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) full screen, offline too, with your place kept in sync with Audiobookshelf
 
 ### Changed
 

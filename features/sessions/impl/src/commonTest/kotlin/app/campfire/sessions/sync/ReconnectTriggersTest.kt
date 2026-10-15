@@ -4,6 +4,7 @@
 package app.campfire.sessions.sync
 
 import app.campfire.network.reachability.Reachability
+import app.campfire.network.reachability.reconnectTriggers
 import app.cash.turbine.test
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds

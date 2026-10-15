@@ -1,0 +1,15 @@
+-- The e-book reader's per-book appearance (see readerBookSettings.sq)
+CREATE TABLE IF NOT EXISTS readerBookSettings (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  font TEXT,
+  fontScale INTEGER,
+  lineHeight REAL,
+  margin TEXT,
+  justify INTEGER,
+  hyphenate INTEGER,
+  flow TEXT,
+  pages TEXT,
+  PRIMARY KEY (userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);

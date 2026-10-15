@@ -17,13 +17,15 @@ sealed interface PlaylistDialogResult {
 
 interface AddToPlaylistDialog {
 
+  // No default values: since Kotlin 2.4.20, calling an interface composable's default from another
+  // module fails to link on Kotlin/Native (CMP-9392)
   @Composable
   fun Content(
     libraryItemId: LibraryItemId,
     itemTitle: String,
     onDismiss: (PlaylistDialogResult) -> Unit,
     modifier: Modifier,
-    episode: PodcastEpisode? = null,
+    episode: PodcastEpisode?,
   )
 
   companion object NoOp : AddToPlaylistDialog {

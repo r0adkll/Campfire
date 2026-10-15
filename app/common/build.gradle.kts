@@ -81,6 +81,9 @@ kotlin {
         api(projects.features.podcasts.impl)
         api(projects.features.podcasts.ui)
 
+        api(projects.features.reader.impl)
+        api(projects.features.reader.ui)
+
         api(projects.features.discover.impl)
         api(projects.features.discover.ui)
 

@@ -11,7 +11,10 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.window.ComposeUIViewController
+import app.campfire.common.compose.window.LocalWindowScreenLauncher
+import app.campfire.common.compose.window.WindowScreenLauncher
 import app.campfire.common.root.CampfireContent
+import app.campfire.common.root.WindowScreenContent
 import app.campfire.core.navigation.DeepLink
 import dev.zacsweers.metro.Inject
 import platform.Foundation.NSURL
@@ -21,6 +24,7 @@ import platform.UIKit.UIViewController
 @Inject
 fun CampfireUiViewController(
   campfireContent: CampfireContent,
+  windowScreenContent: WindowScreenContent,
 ): UIViewController = ComposeUIViewController {
   val uiViewController = LocalUIViewController.current
 
@@ -35,8 +39,16 @@ fun CampfireUiViewController(
     }
   }
 
+  val windowScreenLauncher = remember(uiViewController) {
+    WindowScreenLauncher { screen ->
+      val window = WindowScreenViewController(screen, windowScreenContent)
+      uiViewController.presentViewController(window, animated = true, completion = null)
+    }
+  }
+
   CompositionLocalProvider(
     LocalUriHandler provides uriHandler,
+    LocalWindowScreenLauncher provides windowScreenLauncher,
   ) {
     campfireContent(
       { /* No-Op */ },

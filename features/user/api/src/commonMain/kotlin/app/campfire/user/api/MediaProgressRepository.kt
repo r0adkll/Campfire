@@ -49,6 +49,21 @@ interface MediaProgressRepository {
     onlyIfFresher: Boolean = false,
   )
 
+  /**
+   * Save a reading position in [libraryItemId]'s ebook, here first and then to the server with
+   * only the ebook fields, so the item's listening progress is left alone. A position that can't
+   * reach the server yet is sent once it can.
+   *
+   * @param location the position in the format the official Audiobookshelf readers use: an
+   * epub.js CFI for EPUB, a 1-based page number for comics
+   * @param progress how far through the book, 0..1
+   */
+  suspend fun updateEbookProgress(
+    libraryItemId: LibraryItemId,
+    location: String,
+    progress: Float,
+  )
+
   suspend fun deleteProgress(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId? = null,

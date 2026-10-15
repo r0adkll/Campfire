@@ -22,7 +22,8 @@
   <string name="action_play">Play</string>
   <string name="action_direct_play">Direct play</string>
   <string name="action_stream">Stream</string>
-  <string name="action_ebook_not_supported">eBooks not supported</string>
+  <string name="action_read">Read</string>
+  <string name="action_read_ebook">Read the e-book</string>
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
   <string name="action_add_to_playlist_long">Add to playlist</string>

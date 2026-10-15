@@ -21,6 +21,7 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.mediaprogress.EbookProgressUploader
 import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
@@ -58,6 +59,7 @@ class StoreMediaProgressRepository(
   private val api: AudioBookShelfApi,
   private val libraryItemDao: LibraryItemDao,
   private val mediaProgressSynchronizer: MediaProgressSynchronizer,
+  private val ebookProgressUploader: EbookProgressUploader,
   private val fatherTime: FatherTime,
   private val dispatcherProvider: DispatcherProvider,
 ) : MediaProgressRepository {
@@ -149,6 +151,56 @@ class StoreMediaProgressRepository(
     if (!skipUpload) {
       mediaProgressSynchronizer.sync(updatedProgress, force)
     }
+  }
+
+  override suspend fun updateEbookProgress(
+    libraryItemId: LibraryItemId,
+    location: String,
+    progress: Float,
+  ) {
+    val userId = userSession.requiredUserId
+    val now = fatherTime.nowInEpochMillis()
+    val existing = withContext(dispatcherProvider.databaseRead) {
+      // Empty string is the DB sentinel for "no episode" (book-level progress)
+      db.mediaProgressQueries.selectForEpisode(userId, libraryItemId, "").awaitAsOneOrNull()
+    }
+
+    val updated = existing?.copy(
+      ebookLocation = location,
+      ebookProgress = progress.toDouble(),
+      lastUpdate = now,
+      source = MediaProgress.Source.Local,
+    ) ?: run {
+      val libraryItem = libraryItemDao.hydrateById(libraryItemId) ?: run {
+        MediaProgressStore.ebark { "Unable to find library item for $libraryItemId" }
+        return
+      }
+      app.campfire.data.MediaProgress(
+        // Server driven, so a placeholder until the upload fetches the record back
+        id = MediaProgress.UNKNOWN_ID,
+        userId = userId,
+        libraryItemId = libraryItemId,
+        episodeId = "",
+        mediaItemId = libraryItem.media.id,
+        mediaItemType = libraryItem.mediaType,
+        duration = null,
+        progress = 0.0,
+        currentTime = 0.0,
+        isFinished = false,
+        hideFromContinueListening = false,
+        ebookLocation = location,
+        ebookProgress = progress.toDouble(),
+        finishedAt = null,
+        lastUpdate = now,
+        startedAt = now,
+        source = MediaProgress.Source.Local,
+      )
+    }
+
+    withContext(dispatcherProvider.databaseWrite) {
+      db.mediaProgressQueries.insert(updated)
+    }
+    ebookProgressUploader.request(libraryItemId)
   }
 
   override suspend fun deleteProgress(

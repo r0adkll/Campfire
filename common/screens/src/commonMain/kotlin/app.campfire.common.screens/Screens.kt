@@ -183,6 +183,16 @@ abstract class DetailScreen(name: String) : BaseScreen(name) {
 }
 
 /**
+ * Screens that extend this open in a window of their own above the app, full screen: an Activity
+ * on Android, a full-screen view controller on iOS. Platforms without such a window push them
+ * like any other screen.
+ */
+abstract class WindowScreen(name: String) : BaseScreen(name) {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true, hidePlaybackBar = true)
+}
+
+/**
  * The Root screen class that all other screen definitions will use as the underlying screen
  * data type
  */

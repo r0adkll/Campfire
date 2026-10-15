@@ -52,6 +52,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
 
   data class PlayClick(val method: PlayMethod?) : LibraryItemUiEvent
+
+  /** Read the item's ebook, for an item with audio too. */
+  data object ReadClick : LibraryItemUiEvent
   data class PlayEpisodeClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem, val series: SeriesSequence) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
