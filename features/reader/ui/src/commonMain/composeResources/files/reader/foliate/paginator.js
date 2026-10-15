@@ -443,6 +443,7 @@ export class Paginator extends HTMLElement {
     #anchor = 0 // anchor view to a fraction (0-1), Range, or Element
     #justAnchored = false
     #locked = false // while true, prevent any further navigation
+    #scrollId = 0
     #styles
     #styleMap = new WeakMap()
     #mediaQuery = matchMedia('(prefers-color-scheme: dark)')
@@ -805,6 +806,9 @@ export class Paginator extends HTMLElement {
             element[scrollProp] + delta))
     }
     snap(vx, vy) {
+        // Campfire: a tap's touchend snaps too, and the page turn its click starts sets the
+        // position itself
+        if (this.#locked) return
         const velocity = this.#vertical ? vy : vx
         const [offset, a, b] = this.#scrollBounds
         const { start, end, pages, size } = this
@@ -815,7 +819,8 @@ export class Paginator extends HTMLElement {
             Math.max(min, Math.min(max, (start + end) / 2
                 + (isNaN(d) ? 0 : d))) / size)
 
-        this.#scrollToPage(page, 'snap').then(() => {
+        this.#scrollToPage(page, 'snap').then(done => {
+            if (done === false) return
             const dir = page <= 0 ? -1 : page >= pages - 1 ? 1 : null
             if (dir) return this.#goTo({
                 index: this.#adjacentIndex(dir),
@@ -894,6 +899,9 @@ export class Paginator extends HTMLElement {
     async #scrollTo(offset, reason, smooth) {
         const element = this.#container
         const { scrollProp, size } = this
+        // Campfire: the newest scroll wins; an older animation still running stops moving the
+        // page and reports nothing, rather than both setting the position every frame
+        const scroll = ++this.#scrollId
         if (element[scrollProp] === offset) {
             this.#scrollBounds = [offset, this.atStart ? 0 : size, this.atEnd ? 0 : size]
             this.#afterScroll(reason)
@@ -903,8 +911,9 @@ export class Paginator extends HTMLElement {
         if (this.scrolled && this.#vertical) offset = -offset
         if ((reason === 'snap' || smooth) && this.hasAttribute('animated')) return animate(
             element[scrollProp], offset, 300, easeOutQuad,
-            x => element[scrollProp] = x,
+            x => { if (scroll === this.#scrollId) element[scrollProp] = x },
         ).then(() => {
+            if (scroll !== this.#scrollId) return false
             this.#scrollBounds = [offset, this.atStart ? 0 : size, this.atEnd ? 0 : size]
             this.#afterScroll(reason)
         })
@@ -1036,7 +1045,7 @@ export class Paginator extends HTMLElement {
         }
         if (this.atStart) return
         const page = this.page - 1
-        return this.#scrollToPage(page, 'page', true).then(() => page <= 0)
+        return this.#scrollToPage(page, 'page', true).then(done => done !== false && page <= 0)
     }
     #scrollNext(distance) {
         if (!this.#view) return true
@@ -1048,7 +1057,7 @@ export class Paginator extends HTMLElement {
         if (this.atEnd) return
         const page = this.page + 1
         const pages = this.pages
-        return this.#scrollToPage(page, 'page', true).then(() => page >= pages - 1)
+        return this.#scrollToPage(page, 'page', true).then(done => done !== false && page >= pages - 1)
     }
     get atStart() {
         return this.#adjacentIndex(-1) == null && this.page <= 1

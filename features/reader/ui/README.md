@@ -9,7 +9,7 @@ page and the book are served from the app itself, never the network.
 | Path | Source | License |
 |---|---|---|
 | `index.html`, `reader.js` | Campfire | GPL-3.0-only |
-| `foliate/` | foliate-js `78914aef4466eb960965702401634c2cb348e9b1` (2026-05-01), the files the EPUB, MOBI/AZW3, FB2 and CBZ paths load; no PDF (pdf.js), TTS or search. One local change, marked `Campfire:` in `paginator.js`: a `max-column-count-portrait` attribute | MIT (`foliate/LICENSE`) |
+| `foliate/` | foliate-js `78914aef4466eb960965702401634c2cb348e9b1` (2026-05-01), the files the EPUB, MOBI/AZW3, FB2 and CBZ paths load; no PDF (pdf.js), TTS or search. Local changes, marked `Campfire:` in `paginator.js`: a `max-column-count-portrait` attribute, and page turns that a tap's swipe snap or an older scroll animation can't undo | MIT (`foliate/LICENSE`) |
 | `fonts/` | Literata, Atkinson Hyperlegible Next and OpenDyslexic from Fontsource 5.3.0: Latin subset, regular and bold, upright and italic | SIL OFL 1.1 (`fonts/LICENSE-*.txt`) |
 | `epubjs-cfi/epubcfi.js` | epub.js 0.3.88 `src/epubcfi.js`, unmodified except its import line | BSD-2-Clause (`epubjs-cfi/LICENSE`) |
 | `epubjs-cfi/core.js` | the four helpers `epubcfi.js` uses from epub.js `src/utils/core.js` | BSD-2-Clause |
