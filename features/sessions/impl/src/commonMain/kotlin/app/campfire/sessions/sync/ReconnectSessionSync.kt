@@ -10,23 +10,14 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.user
-import app.campfire.network.reachability.Reachability
 import app.campfire.network.reachability.ServerReachability
+import app.campfire.network.reachability.reconnectTriggers
 import dev.jordond.connectivity.Connectivity
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
 
 /**
@@ -73,29 +64,3 @@ class ReconnectSessionSync(
     }
   }
 }
-
-/**
- * Emits whenever the server may have just become reachable again: [status] turning
- * [Reachability.Reachable], [inRange] turning true, or [online] turning true. The initial values
- * are not transitions and never emit. Bursts (a network change typically flips several at once)
- * are collapsed by [settle].
- */
-@OptIn(FlowPreview::class)
-internal fun reconnectTriggers(
-  status: Flow<Reachability>,
-  inRange: Flow<Boolean>,
-  online: Flow<Boolean>,
-  settle: Duration = SETTLE,
-): Flow<Unit> = merge(
-  status.map { it == Reachability.Reachable }.risingEdges(),
-  inRange.risingEdges(),
-  online.risingEdges(),
-).debounce(settle)
-
-/** Emits each false → true change of [this], ignoring its initial value. */
-private fun Flow<Boolean>.risingEdges(): Flow<Unit> = distinctUntilChanged()
-  .runningFold(null as Pair<Boolean?, Boolean>?) { previous, current -> previous?.second to current }
-  .filter { it != null && it.first == false && it.second }
-  .map { }
-
-private val SETTLE = 2.seconds

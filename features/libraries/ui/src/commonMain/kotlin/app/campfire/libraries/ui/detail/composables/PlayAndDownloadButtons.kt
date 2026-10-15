@@ -51,8 +51,8 @@ import app.campfire.core.model.PlayMethod
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_direct_play
-import campfire.features.libraries.ui.generated.resources.action_ebook_not_supported
 import campfire.features.libraries.ui.generated.resources.action_play
+import campfire.features.libraries.ui.generated.resources.action_read
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
 import campfire.features.libraries.ui.generated.resources.action_resume_streaming
 import campfire.features.libraries.ui.generated.resources.action_stream
@@ -80,11 +80,11 @@ internal fun PlayAndDownloadButtons(
       offlineDownload.state != OfflineDownload.State.None
 
     // The trailing button is either the play-options menu (HLS-capable servers) or a plain
-    // download button. It never shows for ebooks, the menu is pointless while this item is
+    // download button. The menu never shows for ebooks and is pointless while this item is
     // already playing, and the download button never shows once a download record exists or
     // when the server doesn't allow this user to download.
     val showPlayOptionsMenu = canStreamHls && !isCurrentSession && !isEbookOnly
-    val showDownloadButton = !showPlayOptionsMenu && !hasOfflineDownload && !isEbookOnly && canDownload
+    val showDownloadButton = !showPlayOptionsMenu && !hasOfflineDownload && canDownload
     val showTrailingButton = showPlayOptionsMenu || showDownloadButton
 
     val size = ButtonDefaults.MediumContainerHeight
@@ -96,7 +96,7 @@ internal fun PlayAndDownloadButtons(
     )
 
     Button(
-      enabled = !isCurrentSession && !isEbookOnly,
+      enabled = !isCurrentSession,
       onClick = { onPlayClick(null) },
       modifier = Modifier
         .heightIn(size)
@@ -132,7 +132,7 @@ internal fun PlayAndDownloadButtons(
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
       Text(
         text = when {
-          isEbookOnly -> stringResource(Res.string.action_ebook_not_supported)
+          isEbookOnly -> stringResource(Res.string.action_read)
           isCurrentSession -> stringResource(Res.string.action_currently_playing)
           hasProgress -> stringResource(Res.string.action_resume_listening)
           willStreamHls -> stringResource(Res.string.action_stream)

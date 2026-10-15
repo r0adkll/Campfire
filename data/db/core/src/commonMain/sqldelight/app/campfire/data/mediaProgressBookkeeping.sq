@@ -43,6 +43,18 @@ getFailedUpdatesForUser:
 SELECT timestamp FROM mediaProgressFailedUpdate
 WHERE userId = ?;
 
+getFailedUpdateItemsForUser:
+SELECT libraryItemId FROM mediaProgressFailedUpdate
+WHERE userId = ?;
+
+insertFailedUpdateIfAbsent:
+INSERT OR IGNORE INTO mediaProgressFailedUpdate
+VALUES ?;
+
+clearFailedUpdateForUser:
+DELETE FROM mediaProgressFailedUpdate
+WHERE libraryItemId = ? AND userId = ?;
+
 getFailedDeletesForUser:
 SELECT timestamp FROM mediaProgressFailedDelete
 WHERE userId = ?;

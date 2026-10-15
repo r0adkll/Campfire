@@ -16,4 +16,6 @@ data class MediaProgressUpdatePayload(
   val hideFromContinueListening: Boolean? = null,
   val finishedAt: Long? = null,
   val startedAt: Long? = null,
+  val ebookLocation: String? = null,
+  val ebookProgress: Float? = null,
 )

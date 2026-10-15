@@ -8,9 +8,11 @@ import androidx.compose.ui.Modifier
 
 interface ThemeIconContent {
 
+  // No default values: since Kotlin 2.4.20, calling an interface composable's default from another
+  // module fails to link on Kotlin/Native (CMP-9392)
   @Composable
   fun Content(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
   )
 }

@@ -79,6 +79,10 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     invocations += Invocation.MarkAllNotFinished(keys)
   }
 
+  override suspend fun updateEbookProgress(libraryItemId: LibraryItemId, location: String, progress: Float) {
+    invocations += Invocation.UpdateEbookProgress(libraryItemId, location, progress)
+  }
+
   sealed interface Invocation {
     data class GetProgress(
       val libraryItemId: LibraryItemId,
@@ -108,5 +112,10 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     ) : Invocation
     data class MarkAllFinished(val keys: List<MediaProgressKey>) : Invocation
     data class MarkAllNotFinished(val keys: List<MediaProgressKey>) : Invocation
+    data class UpdateEbookProgress(
+      val libraryItemId: LibraryItemId,
+      val location: String,
+      val progress: Float,
+    ) : Invocation
   }
 }

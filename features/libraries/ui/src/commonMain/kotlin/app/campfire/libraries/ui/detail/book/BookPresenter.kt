@@ -34,6 +34,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -63,6 +64,9 @@ import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
+import app.campfire.reader.api.EbookDownload
+import app.campfire.reader.api.EbookRepository
+import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -106,6 +110,7 @@ class BookPresenter(
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val ebookRepository: EbookRepository,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
@@ -160,7 +165,12 @@ class BookPresenter(
     }.collectAsState(LoadState.Loading)
 
     val offlineDownloadState by remember {
-      offlineDownloadManager.observeForItem(libraryItem)
+      // An ebook is kept by the reader, but shows as any other download
+      if (libraryItem.isEbookOnly) {
+        ebookRepository.observeDownload(libraryItem.id).map { it.asOfflineDownload(libraryItem.id) }
+      } else {
+        offlineDownloadManager.observeForItem(libraryItem)
+      }
     }.collectAsState(null)
 
     // Live from the user row, which the socket updates when an admin changes permissions
@@ -273,7 +283,10 @@ class BookPresenter(
         }
 
         is LibraryItemUiEvent.PlayClick -> {
-          if (libraryItem.isEbookOnly) return@ContentUiState
+          if (libraryItem.isEbookOnly) {
+            navigator.goTo(ReaderScreen(libraryItem.id))
+            return@ContentUiState
+          }
           analytics.send(ActionEvent("play_item", Click, extras = event.method?.let { mapOf("method" to it) }))
           playbackController.startSession(libraryItem.id, methodOverride = event.method)
         }
@@ -367,22 +380,38 @@ class BookPresenter(
         }
 
         is LibraryItemUiEvent.DownloadClick -> {
-          if (libraryItem.isEbookOnly || !canDownload) return@ContentUiState
+          if (!canDownload) return@ContentUiState
           analytics.send(ActionEvent("download", Click))
           libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
 
-          offlineDownloadManager.download(libraryItem)
+          if (libraryItem.isEbookOnly) {
+            ebookRepository.download(libraryItem.id)
+          } else {
+            offlineDownloadManager.download(libraryItem)
+          }
         }
 
         LibraryItemUiEvent.RemoveDownloadClick -> {
           analytics.send(ActionEvent("delete_download", Click))
 
-          offlineDownloadManager.delete(libraryItem)
+          if (libraryItem.isEbookOnly) {
+            ebookRepository.deleteDownload(libraryItem.id)
+          } else {
+            offlineDownloadManager.delete(libraryItem)
+          }
         }
 
         LibraryItemUiEvent.StopDownloadClick -> {
+          // An ebook's single file can't be stopped part way
+          if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("stop_download", Click))
           offlineDownloadManager.stop(libraryItem)
+        }
+
+        LibraryItemUiEvent.ReadClick -> {
+          if (libraryItem.media.ebookFormat == null) return@ContentUiState
+          analytics.send(ActionEvent("read", Click))
+          navigator.goTo(ReaderScreen(libraryItem.id))
         }
 
         is LibraryItemUiEvent.TimeInBookChange -> {
@@ -489,7 +518,7 @@ private fun buildSlots(
     )
 
     mediaProgressState.onLoaded { mediaProgress ->
-      if (mediaProgress != null && mediaProgress.progress > 0f) {
+      if (mediaProgress != null && mediaProgress.actualProgress > 0f) {
         this += SpacerSlot.xlarge("progress_spacer_before")
         this += ProgressSlot(isPlaying, playbackSpeed, mediaProgress, libraryItem)
         this += SpacerSlot.small("progress_spacer_after")
@@ -610,3 +639,19 @@ private fun buildSlots(
     }
   }
 }
+
+/** An ebook download as the download UI shows any other. */
+internal fun EbookDownload.asOfflineDownload(itemId: LibraryItemId) = OfflineDownload(
+  libraryItemId = itemId,
+  state = when (state) {
+    EbookDownload.State.None -> OfflineDownload.State.None
+    EbookDownload.State.Downloading -> OfflineDownload.State.Downloading
+    EbookDownload.State.Downloaded -> OfflineDownload.State.Completed
+    EbookDownload.State.Failed -> OfflineDownload.State.Failed
+  },
+  contentLength = totalBytes,
+  progress = OfflineDownload.Progress(
+    bytes = bytes,
+    percent = if (totalBytes > 0) bytes.toFloat() / totalBytes * 100f else 0f,
+  ),
+)

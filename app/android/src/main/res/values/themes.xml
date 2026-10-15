@@ -21,4 +21,16 @@
     in-app theme.
   -->
   <style name="Theme.Campfire.Home" parent="Theme.Campfire.NoActionBar" />
+
+  <!-- Window screens rise over the app and sink back into it, rather than sliding sideways -->
+  <style name="Theme.Campfire.Window" parent="Theme.Campfire.NoActionBar">
+    <item name="android:windowAnimationStyle">@style/Animation.Campfire.Window</item>
+  </style>
+
+  <style name="Animation.Campfire.Window" parent="@android:style/Animation.Activity">
+    <item name="android:activityOpenEnterAnimation">@anim/window_screen_enter</item>
+    <item name="android:activityOpenExitAnimation">@anim/window_screen_hold</item>
+    <item name="android:activityCloseEnterAnimation">@anim/window_screen_hold</item>
+    <item name="android:activityCloseExitAnimation">@anim/window_screen_exit</item>
+  </style>
 </resources>

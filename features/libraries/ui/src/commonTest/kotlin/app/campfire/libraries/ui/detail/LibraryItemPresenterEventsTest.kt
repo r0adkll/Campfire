@@ -4,6 +4,7 @@
 package app.campfire.libraries.ui.detail
 
 import app.campfire.analytics.events.AnalyticEvent
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
@@ -18,12 +19,16 @@ import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.libraries.ui.detail.book.asOfflineDownload
+import app.campfire.reader.api.EbookDownload
+import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.cash.burst.Burst
 import app.cash.burst.burstValues
 import assertk.all
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
@@ -87,7 +92,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun ebookOnlyItem_ignoresPlayDownloadAndQueueEvents() = runTest {
+  fun ebookOnlyItem_playOpensReader_andIgnoresQueueEvents() = runTest {
     val ebookItem = emptyLibraryItem(numTracks = 0, ebookFormat = "epub")
     libraryItemRepository.libraryItemFlow.emit(ebookItem)
 
@@ -96,17 +101,64 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       val item = awaitItem()
 
       item.eventSink(LibraryItemUiEvent.PlayClick(null))
-      item.eventSink(LibraryItemUiEvent.DownloadClick())
       item.eventSink(LibraryItemUiEvent.AddToQueue)
 
       assertThat(playbackController.session)
         .isEqualTo(PlaybackControllerSession.None)
-      assertThat(offlineDownloadManager.invocations).isEmpty()
       assertThat(sessionQueue.queue).isEmpty()
       assertThat(analytics.events).isEmpty()
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ReaderScreen(ebookItem.id))
 
       cancelAndIgnoreRemainingEvents()
     }
+  }
+
+  @Test
+  fun ebookOnlyItem_downloadsAndDeletesThroughTheReader() = runTest {
+    val ebookItem = emptyLibraryItem(numTracks = 0, ebookFormat = "epub")
+    libraryItemRepository.libraryItemFlow.emit(ebookItem)
+
+    presenter.test {
+      skipItems(1)
+      val item = awaitItem()
+
+      item.eventSink(LibraryItemUiEvent.DownloadClick())
+      item.eventSink(LibraryItemUiEvent.StopDownloadClick)
+      item.eventSink(LibraryItemUiEvent.RemoveDownloadClick)
+
+      assertThat(ebookRepository.downloaded).containsExactly(ebookItem.id)
+      assertThat(ebookRepository.deleted).containsExactly(ebookItem.id)
+      assertThat(offlineDownloadManager.invocations).isEmpty()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun readClick_opensTheReaderForAnItemWithAnEbook() = runTest {
+    val audiobook = emptyLibraryItem(ebookFormat = "epub")
+    libraryItemRepository.libraryItemFlow.emit(audiobook)
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.ReadClick)
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ReaderScreen(audiobook.id))
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun ebookDownload_showsAsTheItemsDownload() {
+    val download = EbookDownload(EbookDownload.State.Downloading, bytes = 50, totalBytes = 200)
+      .asOfflineDownload("item")
+
+    assertThat(download.state).isEqualTo(OfflineDownload.State.Downloading)
+    assertThat(download.contentLength).isEqualTo(200L)
+    assertThat(download.progress.percent).isEqualTo(25f)
+    assertThat(EbookDownload(EbookDownload.State.Downloaded).asOfflineDownload("item").state)
+      .isEqualTo(OfflineDownload.State.Completed)
   }
 
   @Test

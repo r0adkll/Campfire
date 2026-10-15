@@ -19,6 +19,7 @@ import app.campfire.network.models.MediaProgress as NetworkMediaProgress
 import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.test.FakeAudioBookShelfApi
 import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.mediaprogress.EbookProgressUploader
 import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
 import app.campfire.user.test.fixtures.user
@@ -53,6 +54,8 @@ class StoreMediaProgressRepositoryTest {
     updateMediaProgressResult = { Result.success(Unit) }
   }
 
+  private val ebookUploads = RecordingEbookProgressUploader()
+
   private fun repository(db: CampfireDatabase) = StoreMediaProgressRepository(
     userSession = session,
     storeFactory = MediaProgressStore.Factory(api, db, dispatchers),
@@ -62,6 +65,7 @@ class StoreMediaProgressRepositoryTest {
     mediaProgressSynchronizer = object : MediaProgressSynchronizer {
       override suspend fun sync(mediaProgress: MediaProgress, force: Boolean) = Unit
     },
+    ebookProgressUploader = ebookUploads,
     fatherTime = FixedFatherTime,
     dispatcherProvider = dispatchers,
   )
@@ -162,6 +166,29 @@ class StoreMediaProgressRepositoryTest {
     assertThat(api.batchMediaProgressUpdates).isEmpty()
   }
 
+  @Test
+  fun updateEbookProgress_keepsTheListeningProgressOfAnExistingRow() = testDb { db ->
+    db.mediaProgressQueries.insert(playbackRow(id = "server-progress-id"))
+
+    repository(db).updateEbookProgress("item-1", location = "epubcfi(/6/4!/4/2/1:0)", progress = 0.25f)
+
+    val row = db.mediaProgressQueries.selectForEpisode("user-1", "item-1", "").awaitAsOne()
+    assertThat(row.ebookLocation).isEqualTo("epubcfi(/6/4!/4/2/1:0)")
+    assertThat(row.ebookProgress).isEqualTo(0.25)
+    assertThat(row.currentTime).isEqualTo(36.0)
+    assertThat(row.id).isEqualTo("server-progress-id")
+    assertThat(row.lastUpdate).isEqualTo(NOW)
+    assertThat(ebookUploads.requested).containsExactly("item-1")
+  }
+
+  @Test
+  fun updateEbookProgress_withoutAnItemToStartFrom_writesNothing() = testDb { db ->
+    repository(db).updateEbookProgress("missing", location = "3", progress = 0.5f)
+
+    assertThat(db.mediaProgressQueries.selectForEpisode("user-1", "missing", "").awaitAsOneOrNull()).isNull()
+    assertThat(ebookUploads.requested).isEmpty()
+  }
+
   private fun playbackRow(id: String) = app.campfire.data.MediaProgress(
     id = id,
     libraryItemId = "item-1",
@@ -253,4 +280,14 @@ class StoreMediaProgressRepositoryTest {
     const val EPISODE = "episode-1"
     const val NOW = 1_700_000_000_000L
   }
+}
+
+private class RecordingEbookProgressUploader : EbookProgressUploader {
+  val requested = mutableListOf<String>()
+
+  override fun request(libraryItemId: String) {
+    requested += libraryItemId
+  }
+
+  override suspend fun uploadPending() = Unit
 }

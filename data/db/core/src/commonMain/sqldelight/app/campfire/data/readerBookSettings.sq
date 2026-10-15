@@ -1,0 +1,33 @@
+import kotlin.Boolean;
+import kotlin.Int;
+
+-- How one book reads, where it differs from the reader's settings for all books: a null column
+-- follows those. Removed with the item by libraryItems.purgeForId.
+CREATE TABLE IF NOT EXISTS readerBookSettings (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  font TEXT,
+  fontScale INTEGER AS Int,
+  lineHeight REAL,
+  margin TEXT,
+  justify INTEGER AS Boolean,
+  hyphenate INTEGER AS Boolean,
+  flow TEXT,
+  pages TEXT,
+  PRIMARY KEY (userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Queries
+
+selectForItem:
+SELECT * FROM readerBookSettings
+WHERE userId = ? AND libraryItemId = ?;
+
+upsert:
+INSERT OR REPLACE INTO readerBookSettings
+VALUES ?;
+
+deleteForItem:
+DELETE FROM readerBookSettings
+WHERE userId = ? AND libraryItemId = ?;

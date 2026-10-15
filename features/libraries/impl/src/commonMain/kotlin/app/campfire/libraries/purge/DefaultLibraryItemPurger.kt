@@ -10,11 +10,14 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.libraries.api.LibraryItemPurger
+import app.campfire.libraries.api.PurgedItemCleanup
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.isNotFound
 import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Multibinds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 
@@ -24,6 +27,7 @@ class DefaultLibraryItemPurger(
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val cleanups: Set<PurgedItemCleanup>,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryItemPurger {
 
@@ -48,6 +52,15 @@ class DefaultLibraryItemPurger(
       } catch (e: Exception) {
         ebark(e) { "Failed to remove downloads for purged item $itemId" }
       }
+      cleanups.forEach { cleanup ->
+        try {
+          cleanup.onPurged(itemId)
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          ebark(e) { "Failed to clean up after purged item $itemId" }
+        }
+      }
     }
   }
 
@@ -66,4 +79,11 @@ class DefaultLibraryItemPurger(
     purge(removed)
     return removed
   }
+}
+
+/** No feature has to keep anything for an item. */
+@ContributesTo(UserScope::class)
+interface PurgedItemCleanups {
+  @Multibinds(allowEmpty = true)
+  val purgedItemCleanups: Set<PurgedItemCleanup>
 }

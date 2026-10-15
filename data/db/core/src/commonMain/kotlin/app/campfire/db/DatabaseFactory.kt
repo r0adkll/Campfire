@@ -29,6 +29,7 @@ import app.campfire.data.PodcastEpisodeAudioTrack
 import app.campfire.data.PodcastEpisodePage
 import app.campfire.data.PodcastEpisodePageJoin
 import app.campfire.data.PodcastMedia
+import app.campfire.data.ReaderBookSettings
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
@@ -130,6 +131,9 @@ class DatabaseFactory(
     bookmarksAdapter = Bookmarks.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,
       createdAtAdapter = LocalDateTimeAdapter,
+    ),
+    readerBookSettingsAdapter = ReaderBookSettings.Adapter(
+      fontScaleAdapter = IntColumnAdapter,
     ),
     bookmarkFailedCreateAdapter = BookmarkFailedCreate.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,

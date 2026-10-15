@@ -69,6 +69,18 @@
       </intent-filter>
     </activity>
 
+    <!--
+      Window screens (the e-book reader): full screen above MainActivity in the same task. They
+      handle size and theme changes themselves, so a rotation or fold doesn't rebuild the reader's
+      web view and lose the page.
+    -->
+    <activity
+      android:name=".WindowScreenActivity"
+      android:exported="false"
+      android:theme="@style/Theme.Campfire.Window"
+      android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboard|keyboardHidden|navigation|uiMode"
+      />
+
     <!-- Disable Firebase's built-in provider initializer so we can control when we initialize FB  -->
     <provider
       android:name="com.google.firebase.provider.FirebaseInitProvider"

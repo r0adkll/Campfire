@@ -57,6 +57,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
   internal val audioPlayer = FakeAudioPlayer()
   internal val offlineDownloadManager = FakeOfflineDownloadManager()
+  internal val ebookRepository = FakeEbookRepository()
   internal val themeManager = FakeThemeManager()
   internal val themeSettings = TestThemeSettings()
   internal val libraryViewSettings = TestLibraryViewSettings()
@@ -76,6 +77,7 @@ abstract class BaseLibraryItemPresenterTest {
     playbackController = playbackController,
     audioPlayerHolder = audioPlayerHolder,
     offlineDownloadManager = offlineDownloadManager,
+    ebookRepository = ebookRepository,
     userRepository = userRepository,
     libraryViewSettings = libraryViewSettings,
     analytics = analytics,

@@ -190,6 +190,11 @@ include(
   ":features:libraries:test",
 )
 include(
+  ":features:reader:api",
+  ":features:reader:impl",
+  ":features:reader:ui",
+)
+include(
   ":features:home:api",
   ":features:home:impl",
   ":features:home:ui",

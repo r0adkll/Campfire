@@ -27,3 +27,11 @@ interface LibraryItemPurger {
    */
   suspend fun purgeIfRemoved(candidates: Collection<LibraryItemId>): Set<LibraryItemId>
 }
+
+/**
+ * Something else a feature keeps for a library item, removed when [LibraryItemPurger] purges
+ * the item. Contributed into a set, so the purger needn't know each feature.
+ */
+fun interface PurgedItemCleanup {
+  suspend fun onPurged(itemId: LibraryItemId)
+}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2026, Drew Heavner and the Campfire project contributors
+  SPDX-License-Identifier: GPL-3.0-only
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Book content must not run scripts: foliate-js does not sandbox them, so the policy blocks them -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' blob:; script-src 'self'; style-src 'self' blob: 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' blob: data:; connect-src 'self' blob: data:; frame-src blob: data:; object-src 'none'; form-action 'none';">
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  foliate-view {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+<script type="module" src="reader.js"></script>

@@ -23,6 +23,7 @@ class DefaultLibraryItemPurgerTest {
     db = database.db,
     api = api,
     offlineDownloadManager = downloads,
+    cleanups = emptySet(),
     dispatcherProvider = asTestDispatcherProvider(),
   )
 

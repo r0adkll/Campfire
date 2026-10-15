@@ -85,6 +85,7 @@ class ExpressiveControlSlot(
           showAddToPlaylistDialog = false
         },
         modifier = Modifier,
+        episode = null,
       )
     }
 
@@ -99,6 +100,8 @@ class ExpressiveControlSlot(
       canDownload = canDownload,
       totalSizeInBytes = libraryItem.media.sizeInBytes,
       mediaProgress = mediaProgress,
+      onReadClick = { eventSink(LibraryItemUiEvent.ReadClick) }
+        .takeIf { libraryItem.media.ebookFormat != null && !libraryItem.isEbookOnly },
       onPlayClick = { method ->
         eventSink(LibraryItemUiEvent.PlayClick(method))
       },

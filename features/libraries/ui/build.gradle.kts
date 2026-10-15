@@ -22,6 +22,7 @@ kotlin {
         implementation(projects.features.filters.api)
         implementation(projects.ui.appbar)
         implementation(projects.features.playlists.api)
+        implementation(projects.features.reader.api)
         implementation(projects.ui.navigation.api)
         implementation(projects.ui.theming.api)
 

@@ -22,6 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
 import app.campfire.android.toast.AndroidToast
 import app.campfire.common.compose.toast.LocalToast
+import app.campfire.common.compose.window.LocalWindowScreenLauncher
+import app.campfire.common.compose.window.WindowScreenLauncher
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -95,9 +97,16 @@ class MainActivity : ComponentActivity() {
         }
       }
 
+      val windowScreenLauncher = remember {
+        WindowScreenLauncher { screen ->
+          startActivity(WindowScreenActivity.intent(this@MainActivity, screen))
+        }
+      }
+
       CompositionLocalProvider(
         LocalToast provides toaster,
         LocalUriHandler provides uriHandler,
+        LocalWindowScreenLauncher provides windowScreenLauncher,
       ) {
         component.campfireContent(
           ::finish,

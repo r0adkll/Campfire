@@ -61,6 +61,7 @@ import app.campfire.common.compose.icons.rounded.Delete
 import app.campfire.common.compose.icons.rounded.DownloadDone
 import app.campfire.common.compose.icons.rounded.Downloading
 import app.campfire.common.compose.icons.rounded.MarkFinished
+import app.campfire.common.compose.icons.rounded.MenuBook
 import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.icons.rounded.Replay
@@ -85,6 +86,7 @@ import campfire.features.libraries.ui.generated.resources.action_add_to_playlist
 import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_short
 import campfire.features.libraries.ui.generated.resources.action_delete_download
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
+import campfire.features.libraries.ui.generated.resources.action_read_ebook
 import campfire.features.libraries.ui.generated.resources.action_retry_download
 import campfire.features.libraries.ui.generated.resources.action_stop_downloading
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress
@@ -116,6 +118,8 @@ internal fun ExpressiveControlBar(
   canStreamHls: Boolean = false,
   willStreamHls: Boolean = false,
   canDownload: Boolean = true,
+  /** Reads the item's ebook, where an item with audio has one too. */
+  onReadClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier
@@ -143,6 +147,20 @@ internal fun ExpressiveControlBar(
         willStreamHls = willStreamHls,
         canDownload = canDownload,
       )
+
+      if (onReadClick != null) {
+        Spacer(Modifier.size(8.dp))
+        FilledTonalButton(
+          onClick = onReadClick,
+          modifier = Modifier
+            .fillMaxWidth()
+            .testTag("button_read"),
+        ) {
+          Icon(CampfireIcons.Rounded.MenuBook, contentDescription = null, modifier = Modifier.size(18.dp))
+          Spacer(Modifier.size(8.dp))
+          Text(stringResource(Res.string.action_read_ebook))
+        }
+      }
 
       if (!offlineDownload.isNullOrNone()) {
         Spacer(Modifier.size(8.dp))
