@@ -12,3 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: alstr/todo-to-issue-action@v5
+        with:
+          # Vendored upstream code: its TODOs belong to the upstream projects, not our backlog.
+          IGNORE: "^features/reader/ui/src/commonMain/composeResources/files/reader/(foliate|epubjs-cfi)/,^thirdparty/"
