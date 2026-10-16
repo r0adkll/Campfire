@@ -27,11 +27,6 @@ class TestAppStateSettings(
     observeStringOrNull(::lastSeenVersion)
       .stateIn(testScope, SharingStarted.Lazily, lastSeenVersion)
 
-  override var appUpdateSignInDismissed: Boolean by boolean()
-  override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> =
-    observeBoolean(::appUpdateSignInDismissed)
-      .stateIn(testScope, SharingStarted.Lazily, appUpdateSignInDismissed)
-
   override var appUpdateDismissedVersionCode: Long by long()
   override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
     observeLong(::appUpdateDismissedVersionCode)

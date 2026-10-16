@@ -190,8 +190,16 @@
   <string name="about_attributions_title">Open source attributions</string>
   <string name="about_changelog_title">Changelog</string>
   <string name="about_version_title">Version</string>
-  <string name="about_app_update_sign_in_title">Sign in for app updates</string>
-  <string name="about_app_update_sign_in_subtitle">Sign in to Firebase AppTester to enable automatic app updates</string>
+  <string name="about_app_update_title">Check for updates</string>
+  <string name="about_app_update_checking">Checking…</string>
+  <string name="about_app_update_up_to_date">Up to date</string>
+  <string name="about_app_update_available">Update available: %1$s</string>
+  <string name="about_app_update_channel_ended">Pull request closed: switch to main</string>
+  <string name="about_app_update_reinstall">Update needs a reinstall: %1$s</string>
+  <string name="about_app_update_downloading">Downloading update (%1$d%%)</string>
+  <string name="about_app_update_ready">Update ready to install</string>
+  <string name="about_app_update_installing">Installing update…</string>
+  <string name="about_app_update_failed">Update failed</string>
 
   <!-- Android Auto setting -->
   <string name="android_auto_unavailable_warning_title">Warning</string>

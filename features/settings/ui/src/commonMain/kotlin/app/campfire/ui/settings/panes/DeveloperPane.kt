@@ -167,17 +167,6 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = state.developerSettings.fakeAppUpdateSignedIn,
-        onValueChange = {
-          state.eventSink(DeveloperSettingEvent.FakeAppUpdateSignedIn(it))
-        },
-        headlineContent = { Text("Signed in for updates") },
-        supportingContent = {
-          Text("Fake the tester sign-in state. Turn off to test the sign-in widget in the drawer.")
-        },
-      )
-
-      SwitchSetting(
         value = state.developerSettings.fakeAppUpdateAvailable,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.FakeAppUpdateAvailable(it))
@@ -200,9 +189,9 @@ internal fun DeveloperPane(
       )
 
       ActionSetting(
-        headlineContent = { Text("Reset dismissed widgets") },
+        headlineContent = { Text("Reset dismissed widget") },
         supportingContent = {
-          Text("Clears dismissals of the update widgets so they show in the drawer again.")
+          Text("Clears dismissals of the update widget so it shows in the drawer again.")
         },
         onClick = {
           state.eventSink(DeveloperSettingEvent.ResetAppUpdateDismissals)

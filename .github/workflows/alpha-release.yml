@@ -12,7 +12,7 @@ on:
 jobs:
   android-release:
     name: Build Android Release
-    # Skip on fork PRs — this workflow needs first-party secrets (keystore, Firebase, Mixpanel).
+    # Skip on fork PRs — this workflow needs first-party secrets (Drop keystore, Firebase, Mixpanel).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
@@ -51,11 +51,23 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Decode Keystore
+      # Every Drop-distributed alpha (pull requests and main) is signed with the internal Drop key,
+      # so testers move between them without reinstalling.
+      - name: Decode Drop Keystore
         env:
-          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_DROP_KEYSTORE }}
         run: |
-          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
+          if [ -n "$ENCODED_KEYSTORE" ]; then
+            echo "$ENCODED_KEYSTORE" | base64 -di > app/signing/drop.keystore
+          else
+            echo "Skipping the Drop keystore (no secret available); the APK is debug-signed"
+          fi
+
+      # Minutes since 2020-01-01 UTC: shared by every alpha workflow, so the main build after a merge
+      # always outranks the pull request's build and installs over it.
+      - name: Generate build number
+        shell: bash
+        run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( ($(date +%s) - 1577836800) / 60 ))" >> $GITHUB_ENV
 
       - name: Download Service Accounts
         env:
@@ -68,10 +80,8 @@ jobs:
       - name: Assemble Alpha Release APK
         run: ./gradlew :app:android:assembleAlphaRelease
         env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_DROP_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_DROP_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
           CI: true
 
       # Alphas are 1:1 with squash-merged PRs, so the notes are the commit subject plus a

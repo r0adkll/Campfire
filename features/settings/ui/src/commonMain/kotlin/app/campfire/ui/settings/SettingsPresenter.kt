@@ -4,10 +4,12 @@
 package app.campfire.ui.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -268,10 +270,18 @@ class SettingsPresenter(
     val localNetworkMissing by remember { localNetworkPermission.observePermissionMissing() }
       .collectAsState(false)
     var localNetworkDenied by remember { mutableStateOf(false) }
-    val appUpdateSignInDismissed by remember { appStateSettings.observeAppUpdateSignInDismissed() }
-      .collectAsState()
+    // Only sources with their own update UI (Drop) get the About pane's "Check for updates" row.
+    val appUpdateSheet = remember { appUpdateSource.updateSheet?.takeIf { appUpdateSource.isSupported } }
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
-    val appUpdateSignedIn = remember(appUpdateInvalidator) { appUpdateSource.isSignedIn() }
+    var showAppUpdateSheet by remember { mutableStateOf(false) }
+    if (appUpdateSheet != null) {
+      LaunchedEffect(Unit) {
+        appUpdateSource.changes().collect { appUpdateInvalidator++ }
+      }
+    }
+    val appUpdateCheck by produceState<AppUpdateCheck>(AppUpdateCheck.Checking, appUpdateInvalidator) {
+      if (appUpdateSheet != null) value = AppUpdateCheck.Checked(appUpdateSource.getAvailableUpdate())
+    }
 
     // Android Auto Settings
     val androidAutoCategories by remember {
@@ -285,7 +295,6 @@ class SettingsPresenter(
     val hlsLargeItemThreshold by remember { devSettings.observeHlsLargeItemThreshold() }.collectAsState()
     val showWidgetPinningPrompt by remember { appStateSettings.observeHasShownWidgetPinning() }.collectAsState()
     val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState()
-    val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState()
     val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState()
     val fakeAppUpdateFailDownload by remember { devSettings.observeFakeAppUpdateFailDownload() }.collectAsState()
     val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState()
@@ -366,7 +375,13 @@ class SettingsPresenter(
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
-        showAppUpdateSignIn = appUpdateSignInDismissed && !appUpdateSignedIn,
+        appUpdate = appUpdateSheet?.let { sheet ->
+          AppUpdateInfo(
+            check = appUpdateCheck,
+            sheet = sheet,
+            showSheet = showAppUpdateSheet,
+          )
+        },
       ),
       androidAutoSettings = AndroidAutoSettingsInfo(
         isAndroidAutoAvailable = isAndroidAutoAvailable,
@@ -379,7 +394,6 @@ class SettingsPresenter(
         showWidgetPinningPrompt = showWidgetPinningPrompt,
         analyticsDebugState = analytics.debugState,
         mediaButtonPackages = mediaButtonPackages,
-        fakeAppUpdateSignedIn = fakeAppUpdateSignedIn,
         fakeAppUpdateAvailable = fakeAppUpdateAvailable,
         fakeAppUpdateFailDownload = fakeAppUpdateFailDownload,
         adaptToUnreachableServer = adaptToUnreachableServer,
@@ -542,14 +556,16 @@ class SettingsPresenter(
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
             privacySettings.crashReportingEnabled = event.enabled
           }
-          SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick -> {
+          SettingsUiEvent.AboutSettingEvent.CheckForUpdatesClick -> {
+            // The sheet shows whatever the check left in the source's state, so check first.
             scope.launch {
-              appUpdateSource.signIn()
-              if (appUpdateSource.isSignedIn()) {
-                appStateSettings.appUpdateSignInDismissed = false
-              }
-              appUpdateInvalidator++
+              appUpdateSource.getAvailableUpdate()
+              showAppUpdateSheet = true
             }
+          }
+          SettingsUiEvent.AboutSettingEvent.AppUpdateSheetDismissed -> {
+            showAppUpdateSheet = false
+            appUpdateInvalidator++
           }
         }
 
@@ -568,14 +584,11 @@ class SettingsPresenter(
               accountManager.invalidateAccount(userSession.requiredUser)
             }
           }
-          is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateSignedIn ->
-            devSettings.fakeAppUpdateSignedIn = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateAvailable ->
             devSettings.fakeAppUpdateAvailable = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateFailDownload ->
             devSettings.fakeAppUpdateFailDownload = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateDismissals -> {
-            appStateSettings.appUpdateSignInDismissed = false
             appStateSettings.appUpdateDismissedVersionCode = 0L
             appUpdateInvalidator++
           }

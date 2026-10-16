@@ -5,9 +5,9 @@ on:
     types: [ created ]
 
 jobs:
-  # Ships every release (rc and final) to Firebase App Distribution testers right away, without
-  # waiting on Google Play review. Same applicationId and key as the standard build, but with the
-  # App Distribution SDK so testers get in-app update prompts.
+  # Ships every release (rc and final) to Drop's `beta` Channel and Firebase App Distribution
+  # testers right away, without waiting on Google Play review. Same applicationId and key as the
+  # standard build, but with the Drop SDK so testers get in-app update prompts.
   android-beta:
     name: Build Android Beta Release
     runs-on: ubuntu-latest

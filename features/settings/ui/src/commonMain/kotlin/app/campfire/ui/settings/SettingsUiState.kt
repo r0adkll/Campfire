@@ -25,6 +25,8 @@ import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.api.StreamingMethod
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.updates.source.AppUpdate
+import app.campfire.updates.source.AppUpdateSheet
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import kotlin.time.Duration
@@ -154,8 +156,21 @@ data class SleepSettingsInfo(
 data class AboutSettingsInfo(
   val crashReportingEnabled: Boolean,
   val analyticReportingEnabled: Boolean,
-  val showAppUpdateSignIn: Boolean,
+  /** The "Check for updates" row, for builds whose update source has its own update sheet. */
+  val appUpdate: AppUpdateInfo?,
 )
+
+@Immutable
+data class AppUpdateInfo(
+  val check: AppUpdateCheck,
+  val sheet: AppUpdateSheet,
+  val showSheet: Boolean,
+)
+
+sealed interface AppUpdateCheck {
+  data object Checking : AppUpdateCheck
+  data class Checked(val update: AppUpdate?) : AppUpdateCheck
+}
 
 @Immutable
 data class AndroidAutoSettingsInfo(
@@ -171,7 +186,6 @@ data class DeveloperSettingsInfo(
   val showWidgetPinningPrompt: Boolean,
   val analyticsDebugState: String,
   val mediaButtonPackages: Set<String>,
-  val fakeAppUpdateSignedIn: Boolean,
   val fakeAppUpdateAvailable: Boolean,
   val fakeAppUpdateFailDownload: Boolean,
   val adaptToUnreachableServer: Boolean,
@@ -302,7 +316,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object ChangelogClick : AboutSettingEvent
     data class CrashReportingEnabled(val enabled: Boolean) : AboutSettingEvent
     data class AnalyticReportingEnabled(val enabled: Boolean) : AboutSettingEvent
-    data object AppUpdateSignInClick : AboutSettingEvent
+    data object CheckForUpdatesClick : AboutSettingEvent
+    data object AppUpdateSheetDismissed : AboutSettingEvent
   }
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {
@@ -313,7 +328,6 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class HlsLargeItemThreshold(val threshold: Duration) : DeveloperSettingEvent
     data class AdaptToUnreachableServer(val enabled: Boolean) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
-    data class FakeAppUpdateSignedIn(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateAvailable(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateFailDownload(val enabled: Boolean) : DeveloperSettingEvent
     data object ResetAppUpdateDismissals : DeveloperSettingEvent

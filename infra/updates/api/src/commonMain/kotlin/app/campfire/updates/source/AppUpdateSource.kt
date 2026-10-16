@@ -3,6 +3,7 @@
 
 package app.campfire.updates.source
 
+import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -13,8 +14,8 @@ interface AppUpdateSource {
 
   /**
    * Emits whenever the update state may have changed outside of direct user action,
-   * e.g. developer tooling manipulating faked update state. Observers should re-query
-   * [isSignedIn] / [getAvailableUpdate] on each emission.
+   * e.g. a background download progressing or developer tooling manipulating faked
+   * update state. Observers should re-query [getAvailableUpdate] on each emission.
    */
   fun changes(): Flow<Unit> = emptyFlow()
 
@@ -25,20 +26,11 @@ interface AppUpdateSource {
   val isSupported: Boolean
 
   /**
-   * Whether or not the user is signed-in to receive app updates. This is need for Beta
-   * updates, but on production builds this will always be true
+   * The source's own update UI, shown in place of Campfire's update sheet, or null to use
+   * Campfire's sheet driven by [installUpdate].
    */
-  fun isSignedIn(): Boolean
-
-  /**
-   * Start the tester sign-in process on Beta builds. This is a no-op on production builds
-   */
-  suspend fun signIn()
-
-  /**
-   * Whether or not there is an update available for this user
-   */
-  suspend fun isUpdateAvailable(): Boolean
+  val updateSheet: AppUpdateSheet?
+    get() = null
 
   /**
    * Get the latest available update
@@ -51,11 +43,43 @@ interface AppUpdateSource {
   suspend fun installUpdate(): Flow<AppUpdateProgress>
 }
 
+/**
+ * An update UI owned by an [AppUpdateSource], such as Drop's Update sheet.
+ */
+interface AppUpdateSheet {
+
+  @Composable
+  fun Content(onDismiss: () -> Unit)
+}
+
 data class AppUpdate(
   val versionName: String,
   val versionCode: Long,
   val releaseNotes: String? = null,
-)
+  /** A one-line summary of what changed, shown in place of [versionName] where there is one. */
+  val headline: String? = null,
+  val status: Status = Status.Available,
+) {
+
+  sealed interface Status {
+    /** Ready to download and install over the installed app. */
+    data object Available : Status
+
+    /** The installed build's channel ended (its pull request closed); this switches to main. */
+    data object ChannelEnded : Status
+
+    /** Installing it means uninstalling first (a lower version code or a different signer). */
+    data object ReinstallRequired : Status
+
+    data class Downloading(val progress: Float) : Status
+
+    data object ReadyToInstall : Status
+
+    data object Installing : Status
+
+    data object Failed : Status
+  }
+}
 
 data class AppUpdateProgress(
   val bytes: Long,

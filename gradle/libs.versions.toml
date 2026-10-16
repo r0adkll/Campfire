@@ -14,13 +14,13 @@ androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 androidxshapes = "1.1.0"
 appcompat = "1.8.0"
-appdistribution = "16.0.0-beta21"
 burst = "2.14.0"
 cadence = "0.2.0"
 clikt = "5.1.0"
 colorpicker-compose = "1.3.0"
 core-ktx = "1.19.1"
 coroutines = "1.11.0"
+drop = "0.1.1"
 compose-multiplatform = "1.12.2"
 compose-m3 = "1.12.0-alpha03"
 compose-m3-adaptive = "1.3.0"
@@ -92,12 +92,15 @@ firebase-crashlytics = "com.google.firebase.crashlytics:3.0.8"
 firebase-appdistribution = "com.google.firebase.appdistribution:5.3.0"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+drop = { id = "com.r0adkll.drop", version.ref = "drop" }
 emulatorwtf = { id = "wtf.emulator.gradle", version.ref = "emulatorwtf" }
 modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.15.0" }
 
 [libraries]
 swatchbuckler-compose = { module = "com.r0adkll.swatchbuckler:compose", version.ref = "swatchbuckler" }
 swatchbuckler-coil = { module = "com.r0adkll.swatchbuckler:coil", version.ref = "swatchbuckler" }
+
+drop-ui = { module = "com.r0adkll.drop:drop-ui", version.ref = "drop" }
 
 # About Libraries
 about-libraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "about-libraries" }
@@ -178,8 +181,6 @@ google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref
 google-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 google-firebase-perf = { module = "com.google.firebase:firebase-perf" }
-google-firebase-appdistribution-api = { module = "com.google.firebase:firebase-appdistribution-api-ktx", version.ref = "appdistribution" }
-google-firebase-appdistribution = { module = "com.google.firebase:firebase-appdistribution", version.ref = "appdistribution" }
 google-play-app-update = { module = "com.google.android.play:app-update-ktx", version = "2.1.0" }
 
 # Settings

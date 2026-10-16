@@ -14,16 +14,9 @@ class FirebaseConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
     with(target) {
       // The Crashlytics runtime ships via :data:crashreporting:firebase, wired per flavor
-      // in the app module, so nothing Firebase reaches the foss flavor. The only direct
-      // dependency added here is the App Distribution SDK that powers the in-app
-      // self-updater on the alpha/beta channels (used by src/preRelease sources).
-      val appDistributionDep = libs.findLibrary("google-firebase-appdistribution").get()
-      configurations
-        .matching { it.name == "alphaImplementation" || it.name == "betaImplementation" }
-        .configureEach {
-          dependencies.add(appDistributionDep.get())
-        }
-
+      // in the app module, so nothing Firebase reaches the foss flavor. App Distribution is
+      // upload-only: existing testers still get alpha/beta builds from it, but the in-app
+      // updater is Drop's.
       val googleServicesFile = rootProject.file("app/android/google-services.json")
       if (!googleServicesFile.exists()) {
         logger.lifecycle(

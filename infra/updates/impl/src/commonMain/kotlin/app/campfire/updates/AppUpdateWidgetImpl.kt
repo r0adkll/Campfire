@@ -46,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
-import app.campfire.common.compose.icons.rounded.Login
 import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -84,80 +83,62 @@ class AppUpdateWidgetImpl(
       appUpdateSource.changes().collect { invalidator++ }
     }
 
-    val state by remember(invalidator) {
-      flow {
-        val isSignedIn = appUpdateSource.isSignedIn()
-        emit(
-          AppUpdateState(
-            isSignedIn = isSignedIn,
-            appUpdate = if (isSignedIn) appUpdateSource.getAvailableUpdate() else null,
-          ),
-        )
-      }
+    val appUpdate by remember(invalidator) {
+      flow { emit(appUpdateSource.getAvailableUpdate()) }
     }.collectAsState(null)
-    val signInDismissed by appStateSettings.observeAppUpdateSignInDismissed().collectAsState()
     val dismissedVersionCode by appStateSettings.observeAppUpdateDismissedVersionCode().collectAsState()
+    var showSourceSheet by remember { mutableStateOf(false) }
 
-    val currentState = state
-    val availableUpdate = currentState?.appUpdate?.takeIf { it.versionCode != dismissedVersionCode }
-    val mode = when {
-      availableUpdate != null -> WidgetMode.UpdateAvailable(availableUpdate)
-      currentState?.isSignedIn == false && !signInDismissed -> WidgetMode.SignIn
-      else -> null
-    }
+    // Updates already under way can't be dismissed; the card tracks them to the install.
+    val visibleUpdate = appUpdate?.takeIf { !it.status.isDismissable || it.versionCode != dismissedVersionCode }
 
-    // Retain the last visible mode so the exit animation renders the same card
+    // Retain the last visible update so the exit animation renders the same card
     // that was on screen when the widget was dismissed or invalidated.
-    var lastMode by remember { mutableStateOf<WidgetMode?>(null) }
-    if (mode != null && mode != lastMode) {
-      lastMode = mode
+    var lastUpdate by remember { mutableStateOf<AppUpdate?>(null) }
+    if (visibleUpdate != null && visibleUpdate != lastUpdate) {
+      lastUpdate = visibleUpdate
     }
 
     AnimatedVisibility(
-      visible = mode != null,
+      visible = visibleUpdate != null,
       enter = slideInHorizontally { -it } + fadeIn(),
       exit = slideOutHorizontally { -it } +
         shrinkVertically(shrinkTowards = Alignment.CenterVertically) { 0 } +
         fadeOut(),
       modifier = modifier,
     ) {
-      when (val m = mode ?: lastMode) {
-        is WidgetMode.UpdateAvailable -> AppUpdateWidgetCard(
-          title = "Update available",
-          subtitle = m.update.versionName,
-          icon = CampfireIcons.Rounded.NewReleases,
-          onClick = {
+      val update = visibleUpdate ?: lastUpdate ?: return@AnimatedVisibility
+      AppUpdateWidgetCard(
+        title = update.status.cardTitle,
+        subtitle = update.cardSubtitle,
+        icon = CampfireIcons.Rounded.NewReleases,
+        onClick = {
+          if (appUpdateSource.updateSheet != null) {
+            showSourceSheet = true
+          } else {
             scope.launch {
-              overlayHost.showAppUpdateSheet(m.update)
+              overlayHost.showAppUpdateSheet(update)
               invalidator++
             }
-          },
-          onDismiss = {
-            appStateSettings.appUpdateDismissedVersionCode = m.update.versionCode
-          },
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        )
+          }
+        },
+        onDismiss = {
+          appStateSettings.appUpdateDismissedVersionCode = update.versionCode
+        }.takeIf { update.status.isDismissable },
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(top = 8.dp),
+      )
+    }
 
-        WidgetMode.SignIn, null -> AppUpdateWidgetCard(
-          title = "App updates",
-          subtitle = "Sign in to enable",
-          icon = CampfireIcons.Rounded.Login,
-          onClick = {
-            scope.launch {
-              appUpdateSource.signIn()
-              invalidator++
-            }
-          },
-          onDismiss = {
-            appStateSettings.appUpdateSignInDismissed = true
-          },
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        )
-      }
+    val sourceSheet = appUpdateSource.updateSheet
+    if (showSourceSheet && sourceSheet != null) {
+      sourceSheet.Content(
+        onDismiss = {
+          showSourceSheet = false
+          invalidator++
+        },
+      )
     }
   }
 
@@ -262,10 +243,38 @@ class AppUpdateWidgetImpl(
   }
 }
 
-private sealed interface WidgetMode {
-  data object SignIn : WidgetMode
-  data class UpdateAvailable(val update: AppUpdate) : WidgetMode
-}
+private val AppUpdate.Status.isDismissable: Boolean
+  get() = when (this) {
+    AppUpdate.Status.Available,
+    AppUpdate.Status.ChannelEnded,
+    AppUpdate.Status.ReinstallRequired,
+    AppUpdate.Status.Failed,
+    -> true
+    is AppUpdate.Status.Downloading,
+    AppUpdate.Status.ReadyToInstall,
+    AppUpdate.Status.Installing,
+    -> false
+  }
+
+private val AppUpdate.Status.cardTitle: String
+  get() = when (this) {
+    AppUpdate.Status.Available -> "Update available"
+    AppUpdate.Status.ChannelEnded -> "Pull request closed"
+    AppUpdate.Status.ReinstallRequired -> "Update needs a reinstall"
+    is AppUpdate.Status.Downloading -> "Downloading update"
+    AppUpdate.Status.ReadyToInstall -> "Update ready"
+    AppUpdate.Status.Installing -> "Installing update"
+    AppUpdate.Status.Failed -> "Update failed"
+  }
+
+private val AppUpdate.cardSubtitle: String
+  get() = when (val status = status) {
+    AppUpdate.Status.ChannelEnded -> "Switch to main"
+    is AppUpdate.Status.Downloading -> "${(status.progress * 100).toInt()}%"
+    AppUpdate.Status.ReadyToInstall -> "Tap to install"
+    AppUpdate.Status.Failed -> "Tap to retry"
+    else -> headline ?: versionName
+  }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -347,8 +356,3 @@ private val AppUpdateProgress.statusText: String
     AppUpdateProgress.Status.Failed -> "Update failed!"
     AppUpdateProgress.Status.Canceled -> "Update canceled"
   }
-
-data class AppUpdateState(
-  val isSignedIn: Boolean = false,
-  val appUpdate: AppUpdate? = null,
-)

@@ -20,6 +20,8 @@
 
 <a href="https://appdistribution.firebase.dev/i/14b078b4670cc57e"><img width=200 src=".github/art/badge_firebase_alpha.png" /></a>
 <a href="https://appdistribution.firebase.dev/i/6021e2e24ae35f4c"><img width=200 src=".github/art/badge_firebase_beta.png" /></a>
+<a href="https://drop.thescavengers.software/p/app.campfire.android.alpha/c/main"><img width=200 src=".github/art/badge_drop_alpha.png" /></a>
+<a href="https://drop.thescavengers.software/p/app.campfire.android/c/beta"><img width=200 src=".github/art/badge_drop_beta.png" /></a>
 
 ### Desktop
 
