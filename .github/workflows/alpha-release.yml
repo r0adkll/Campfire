@@ -15,6 +15,10 @@ jobs:
     # Skip on fork PRs — this workflow needs first-party secrets (keystore, Firebase, Mixpanel).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The Drop upload authenticates with the workflow's OIDC token
+      id-token: write
 
     steps:
       - name: Setup swap
@@ -87,6 +91,14 @@ jobs:
           ./gradlew :app:android:appDistributionUploadAlphaRelease \
             --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
             --releaseNotesFile="app/android/release-notes.txt"
+
+      # Uploads to the `main` Channel. Pushes only: PRs editing this workflow upload from build.yml.
+      - name: Upload APK to Drop
+        if: github.event_name == 'push'
+        uses: r0adkll/drop/action@main
+        with:
+          server: https://drop.thescavengers.software
+          apk: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
 
       - name: Upload build outputs
         if: always()
