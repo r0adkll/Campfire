@@ -19,18 +19,20 @@ import app.campfire.common.compose.icons.rounded.Code
 import app.campfire.common.compose.icons.rounded.Copyright
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.Github
-import app.campfire.common.compose.icons.rounded.Login
 import app.campfire.common.compose.icons.rounded.LogoDev
+import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.toast.LocalToast
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.toast.Toast
 import app.campfire.core.toast.ToastHandle
+import app.campfire.ui.settings.AppUpdateCheck
 import app.campfire.ui.settings.SettingsUiEvent
-import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AppUpdateSheetDismissed
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.CheckForUpdatesClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
@@ -39,9 +41,18 @@ import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
+import app.campfire.updates.source.AppUpdate
 import campfire.features.settings.ui.generated.resources.Res
-import campfire.features.settings.ui.generated.resources.about_app_update_sign_in_subtitle
-import campfire.features.settings.ui.generated.resources.about_app_update_sign_in_title
+import campfire.features.settings.ui.generated.resources.about_app_update_available
+import campfire.features.settings.ui.generated.resources.about_app_update_channel_ended
+import campfire.features.settings.ui.generated.resources.about_app_update_checking
+import campfire.features.settings.ui.generated.resources.about_app_update_downloading
+import campfire.features.settings.ui.generated.resources.about_app_update_failed
+import campfire.features.settings.ui.generated.resources.about_app_update_installing
+import campfire.features.settings.ui.generated.resources.about_app_update_ready
+import campfire.features.settings.ui.generated.resources.about_app_update_reinstall
+import campfire.features.settings.ui.generated.resources.about_app_update_title
+import campfire.features.settings.ui.generated.resources.about_app_update_up_to_date
 import campfire.features.settings.ui.generated.resources.about_attributions_title
 import campfire.features.settings.ui.generated.resources.about_changelog_title
 import campfire.features.settings.ui.generated.resources.about_data_analytic_reporting_subtitle
@@ -174,14 +185,45 @@ internal fun AboutPane(
       }.takeIf { !state.developerSettings.developerModeEnabled },
     )
 
-    if (state.aboutSettings.showAppUpdateSignIn) {
+    state.aboutSettings.appUpdate?.let { appUpdate ->
       ActionSetting(
-        leadingContent = { Icon(CampfireIcons.Rounded.Login, contentDescription = null) },
-        headlineContent = { Text(stringResource(Res.string.about_app_update_sign_in_title)) },
-        supportingContent = { Text(stringResource(Res.string.about_app_update_sign_in_subtitle)) },
-        onClick = { sendEvent(AppUpdateSignInClick) },
+        leadingContent = { Icon(CampfireIcons.Rounded.NewReleases, contentDescription = null) },
+        headlineContent = { Text(stringResource(Res.string.about_app_update_title)) },
+        supportingContent = { Text(appUpdate.check.statusText()) },
+        onClick = { sendEvent(CheckForUpdatesClick) },
       )
+
+      if (appUpdate.showSheet) {
+        appUpdate.sheet.Content(onDismiss = { sendEvent(AppUpdateSheetDismissed) })
+      }
     }
+  }
+}
+
+@Composable
+private fun AppUpdateCheck.statusText(): String {
+  val update = (this as? AppUpdateCheck.Checked)?.update
+  return when (val status = update?.status) {
+    null -> when (this) {
+      AppUpdateCheck.Checking -> stringResource(Res.string.about_app_update_checking)
+      is AppUpdateCheck.Checked -> stringResource(Res.string.about_app_update_up_to_date)
+    }
+    AppUpdate.Status.Available -> stringResource(
+      Res.string.about_app_update_available,
+      update.headline ?: update.versionName,
+    )
+    AppUpdate.Status.ChannelEnded -> stringResource(Res.string.about_app_update_channel_ended)
+    AppUpdate.Status.ReinstallRequired -> stringResource(
+      Res.string.about_app_update_reinstall,
+      update.headline ?: update.versionName,
+    )
+    is AppUpdate.Status.Downloading -> stringResource(
+      Res.string.about_app_update_downloading,
+      (status.progress * 100).toInt(),
+    )
+    AppUpdate.Status.ReadyToInstall -> stringResource(Res.string.about_app_update_ready)
+    AppUpdate.Status.Installing -> stringResource(Res.string.about_app_update_installing)
+    AppUpdate.Status.Failed -> stringResource(Res.string.about_app_update_failed)
   }
 }
 

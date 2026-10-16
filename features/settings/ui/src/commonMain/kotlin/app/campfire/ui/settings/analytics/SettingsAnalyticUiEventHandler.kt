@@ -160,7 +160,8 @@ class SettingsAnalyticUiEventHandler(
       GithubClick -> send("contribute", Click)
       PrivacyPolicyClick -> send("privacy_policy", Click)
       TermsOfServiceClick -> send("terms_of_service", Click)
-      SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick -> send("app_update_sign_in", Click)
+      SettingsUiEvent.AboutSettingEvent.CheckForUpdatesClick -> send("check_for_updates", Click)
+      SettingsUiEvent.AboutSettingEvent.AppUpdateSheetDismissed -> Unit
       is SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled -> Unit
       is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
         send("crash_reporting", Updated, event.enabled)

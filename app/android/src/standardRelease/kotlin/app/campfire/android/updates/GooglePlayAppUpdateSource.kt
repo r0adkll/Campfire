@@ -46,13 +46,6 @@ class GooglePlayAppUpdateSource(
 
   override val isSupported: Boolean = true
 
-  // Play updates are delivered to every install; there is no tester sign-in.
-  override fun isSignedIn(): Boolean = true
-
-  override suspend fun signIn() = Unit
-
-  override suspend fun isUpdateAvailable(): Boolean = getAvailableUpdate() != null
-
   override suspend fun getAvailableUpdate(): AppUpdate? {
     val info = try {
       updateManager.requestAppUpdateInfo()

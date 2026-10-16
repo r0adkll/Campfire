@@ -26,6 +26,7 @@ pluginManagement {
           includeGroup("io.coil-kt.coil3")
           includeGroup("com.r0adkll.cadence")
           includeGroup("com.livewire-kt")
+          includeGroup("com.r0adkll.drop")
         }
       }
     }
@@ -57,6 +58,7 @@ dependencyResolutionManagement {
           includeGroup("io.coil-kt.coil3")
           includeGroup("com.r0adkll.cadence")
           includeGroup("com.livewire-kt")
+          includeGroup("com.r0adkll.drop")
         }
       }
     }

@@ -7,7 +7,6 @@ import app.campfire.settings.api.DevSettings
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -15,8 +14,7 @@ import kotlinx.coroutines.flow.map
 /**
  * A fake [AppUpdateSource] for debug builds, driven entirely by the fake app update
  * toggles in [DevSettings] (surfaced in the Developer settings pane) so the update
- * widget, sign-in prompt, and update sheet can be tested without a real
- * Firebase App Distribution release.
+ * widget and update sheet can be tested without a real release.
  *
  * This is not contributed to the DI graph directly; debug-only platform bindings
  * delegate to it.
@@ -28,21 +26,9 @@ class FakeAppUpdateSource(
 
   override val isSupported: Boolean = true
 
-  override fun changes(): Flow<Unit> = combine(
-    devSettings.observeFakeAppUpdateSignedIn(),
-    devSettings.observeFakeAppUpdateAvailable(),
-  ) { _, _ -> }
+  override fun changes(): Flow<Unit> = devSettings.observeFakeAppUpdateAvailable()
     .drop(1)
     .map { }
-
-  override fun isSignedIn(): Boolean = devSettings.fakeAppUpdateSignedIn
-
-  override suspend fun signIn() {
-    delay(SIGN_IN_DELAY_MS)
-    devSettings.fakeAppUpdateSignedIn = true
-  }
-
-  override suspend fun isUpdateAvailable(): Boolean = devSettings.fakeAppUpdateAvailable
 
   override suspend fun getAvailableUpdate(): AppUpdate? {
     return if (devSettings.fakeAppUpdateAvailable) FAKE_UPDATE else null
@@ -93,7 +79,6 @@ class FakeAppUpdateSource(
       """.trimIndent(),
     )
 
-    private const val SIGN_IN_DELAY_MS = 1_000L
     private const val PENDING_DELAY_MS = 1_000L
     private const val DOWNLOAD_STEPS = 20
     private const val DOWNLOAD_STEP_DELAY_MS = 200L

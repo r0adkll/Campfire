@@ -4,7 +4,6 @@
 package app.campfire.convention
 
 import com.android.build.api.dsl.ApplicationExtension
-import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -14,16 +13,7 @@ class FirebaseConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
     with(target) {
       // The Crashlytics runtime ships via :data:crashreporting:firebase, wired per flavor
-      // in the app module, so nothing Firebase reaches the foss flavor. The only direct
-      // dependency added here is the App Distribution SDK that powers the in-app
-      // self-updater on the alpha/beta channels (used by src/preRelease sources).
-      val appDistributionDep = libs.findLibrary("google-firebase-appdistribution").get()
-      configurations
-        .matching { it.name == "alphaImplementation" || it.name == "betaImplementation" }
-        .configureEach {
-          dependencies.add(appDistributionDep.get())
-        }
-
+      // in the app module, so nothing Firebase reaches the foss flavor.
       val googleServicesFile = rootProject.file("app/android/google-services.json")
       if (!googleServicesFile.exists()) {
         logger.lifecycle(
@@ -36,27 +26,12 @@ class FirebaseConventionPlugin : Plugin<Project> {
       with(pluginManager) {
         apply("com.google.gms.google-services")
         apply("com.google.firebase.crashlytics")
-        apply("com.google.firebase.appdistribution")
       }
 
       extensions.configure<ApplicationExtension> {
         buildTypes.named("release") {
           configure<CrashlyticsExtension> {
             mappingFileUploadEnabled = true
-          }
-        }
-
-        productFlavors.matching { it.name == "alpha" }.configureEach {
-          firebaseAppDistribution {
-            artifactType = "APK"
-            groups = "internal,alpha-public"
-          }
-        }
-
-        productFlavors.matching { it.name == "beta" }.configureEach {
-          firebaseAppDistribution {
-            artifactType = "APK"
-            groups = "internal,external-public"
           }
         }
       }

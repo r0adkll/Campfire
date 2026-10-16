@@ -15,6 +15,7 @@ plugins {
   id("app.campfire.di")
   alias(libs.plugins.about.libraries)
   alias(libs.plugins.baselineprofile)
+  alias(libs.plugins.drop)
 }
 
 kotlin {
@@ -50,8 +51,8 @@ android {
       versionNameSuffix = "-alpha"
     }
 
-    // Tagged releases distributed through Firebase App Distribution: same applicationId and
-    // signing key as standard, but self-updates through App Distribution instead of Play.
+    // Tagged releases distributed through Drop: same applicationId and signing key as
+    // standard, but self-updates through Drop instead of Play.
     create("beta") {
     }
 
@@ -82,6 +83,17 @@ android {
       storePassword = "android"
       keyAlias = "androiddebugkey"
       keyPassword = "android"
+    }
+
+    // The internal key every Drop-distributed alpha (pull requests and main) is signed with, so
+    // testers can move between them without reinstalling. Never the Play upload key.
+    if (rootProject.file("app/signing/drop.keystore").exists()) {
+      create("drop") {
+        storeFile = rootProject.file("app/signing/drop.keystore")
+        storePassword = properties["CAMPFIRE_DROP_KEYSTORE_PWD"]?.toString().orEmpty()
+        keyAlias = "drop"
+        keyPassword = properties["CAMPFIRE_DROP_KEYSTORE_PWD"]?.toString().orEmpty()
+      }
     }
 
     if (rootProject.file("app/signing/campfire.keystore").exists()) {
@@ -137,6 +149,20 @@ android {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
     }
   }
+}
+
+androidComponents {
+  // A build type's signing config wins over a flavor's, so the alpha override goes on the variant.
+  onVariants(selector().withFlavor("default" to "alpha").withBuildType("release")) { variant ->
+    android.signingConfigs.findByName("drop")?.let { variant.signingConfig.setConfig(it) }
+  }
+}
+
+drop {
+  serverUrl = "https://drop.thescavengers.software"
+  enableFor { it.buildType == "release" && it.flavorName in setOf("alpha", "beta") }
+  // Local (unstamped) builds follow these; CI builds follow their Stamp.
+  channelFor { if (it.flavorName == "beta") "beta" else null }
 }
 
 // Guards the source-of-truth invariant: campfire.versionCode must equal
@@ -220,10 +246,17 @@ dependencies {
   }
 
   // Google Play in-app updates — only the Play-distributed production variant self-updates
-  // through Play; alpha/beta use Firebase App Distribution and foss updates via its store.
+  // through Play; alpha/beta update through Drop and foss updates via its store.
   configurations.matching { it.name == "standardReleaseImplementation" }.configureEach {
     dependencies.add(project.dependencies.create(libs.google.play.app.update.get()))
   }
+
+  // Drop's Update sheet, for the variants the Drop plugin gives the SDK (src/preRelease).
+  configurations
+    .matching { it.name == "alphaReleaseImplementation" || it.name == "betaReleaseImplementation" }
+    .configureEach {
+      dependencies.add(project.dependencies.create(libs.drop.ui.get()))
+    }
 
   implementation(libs.about.libraries.core)
 

@@ -229,9 +229,11 @@ jobs:
           sudo apt clean
           sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
 
+      # Minutes since 2020-01-01 UTC: shared by every alpha workflow, so the main build after a merge
+      # always outranks the pull request's build and installs over it.
       - name: Generate build number
         shell: bash
-        run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( $GITHUB_RUN_NUMBER + 10000 ))" >> $GITHUB_ENV
+        run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( ($(date +%s) - 1577836800) / 60 ))" >> $GITHUB_ENV
 
       - uses: actions/checkout@v7
 
@@ -255,8 +257,22 @@ jobs:
             echo "Skipping google-services.json (no secret available)"
           fi
 
+      # Every Drop-distributed alpha (pull requests and main) is signed with the internal Drop key,
+      # so testers move between them without reinstalling.
+      - name: Decode Drop Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_DROP_KEYSTORE }}
+        run: |
+          if [ -n "$ENCODED_KEYSTORE" ]; then
+            echo "$ENCODED_KEYSTORE" | base64 -di > app/signing/drop.keystore
+          else
+            echo "Skipping the Drop keystore (no secret available); the APK is debug-signed"
+          fi
+
       - name: Build Alpha Release APK
         run: ./gradlew :app:android:assembleAlphaRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_DROP_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_DROP_KEYSTORE_PWD }}
 
       - name: Upload APK
         if: always()

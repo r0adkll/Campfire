@@ -32,10 +32,6 @@ class AppStateSettingsImpl(
   override var lastSeenVersion: String? by lastSeenVersionProperty
   override fun observeLastSeenVersion(): StateFlow<String?> = lastSeenVersionProperty.observe()
 
-  private val appUpdateSignInDismissedProperty = booleanSetting(KEY_APP_UPDATE_SIGN_IN_DISMISSED, false)
-  override var appUpdateSignInDismissed: Boolean by appUpdateSignInDismissedProperty
-  override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> = appUpdateSignInDismissedProperty.observe()
-
   private val appUpdateDismissedVersionCodeProperty = longSetting(KEY_APP_UPDATE_DISMISSED_VERSION_CODE, 0L)
   override var appUpdateDismissedVersionCode: Long by appUpdateDismissedVersionCodeProperty
   override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
@@ -44,5 +40,4 @@ class AppStateSettingsImpl(
 
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"
 internal const val KEY_LAST_SEEN_WHATS_NEW = "pref_last_seen_whats_new"
-internal const val KEY_APP_UPDATE_SIGN_IN_DISMISSED = "pref_app_update_sign_in_dismissed"
 internal const val KEY_APP_UPDATE_DISMISSED_VERSION_CODE = "pref_app_update_dismissed_version_code"

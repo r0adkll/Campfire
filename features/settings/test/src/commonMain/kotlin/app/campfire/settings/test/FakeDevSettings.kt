@@ -49,12 +49,6 @@ class FakeDevSettings : DevSettings {
     _mediaButtonPackages.value = emptySet()
   }
 
-  private val _fakeAppUpdateSignedIn = MutableStateFlow(true)
-  override var fakeAppUpdateSignedIn: Boolean
-    get() = _fakeAppUpdateSignedIn.value
-    set(value) { _fakeAppUpdateSignedIn.value = value }
-  override fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean> = _fakeAppUpdateSignedIn.asStateFlow()
-
   private val _fakeAppUpdateAvailable = MutableStateFlow(false)
   override var fakeAppUpdateAvailable: Boolean
     get() = _fakeAppUpdateAvailable.value

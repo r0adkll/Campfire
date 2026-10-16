@@ -18,8 +18,10 @@
 
 ### Pre-release
 
-<a href="https://appdistribution.firebase.dev/i/14b078b4670cc57e"><img width=200 src=".github/art/badge_firebase_alpha.png" /></a>
-<a href="https://appdistribution.firebase.dev/i/6021e2e24ae35f4c"><img width=200 src=".github/art/badge_firebase_beta.png" /></a>
+Alpha builds (every pull request and every commit on `main`) and beta builds (every release) are
+distributed through [Drop](https://github.com/r0adkll/drop) and update themselves in-app. Install the
+newest alpha from the Drop comment on the [latest commit on `main`](https://github.com/r0adkll/Campfire/commits/main),
+or a beta from the comment on the latest release's commit.
 
 ### Desktop
 

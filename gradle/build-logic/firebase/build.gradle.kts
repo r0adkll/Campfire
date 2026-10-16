@@ -19,7 +19,6 @@ dependencies {
   compileOnly(libs.android.gradlePlugin)
   implementation(libs.google.services.gradlePlugin)
   implementation(libs.firebase.crashlytics.gradlePlugin)
-  implementation(libs.firebase.appdistribution.gradlePlugin)
 }
 
 gradlePlugin {

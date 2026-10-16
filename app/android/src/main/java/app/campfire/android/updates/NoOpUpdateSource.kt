@@ -17,13 +17,6 @@ import kotlinx.coroutines.flow.emptyFlow
 class NoOpUpdateSource : AppUpdateSource {
   override val isSupported: Boolean = false
 
-  override fun isSignedIn(): Boolean = true
-
-  override suspend fun signIn() {
-  }
-
-  override suspend fun isUpdateAvailable(): Boolean = false
-
   override suspend fun getAvailableUpdate(): AppUpdate? {
     return null
   }
