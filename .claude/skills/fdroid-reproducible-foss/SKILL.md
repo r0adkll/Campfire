@@ -14,7 +14,7 @@ The MR: `https://gitlab.com/fdroid/fdroiddata/-/merge_requests/46619` (metadata 
 
 ## Invariants you must not break
 
-- **Drop (in-app updates for alpha/beta) is Apache-2.0 from Maven Central**, so its Gradle plugin is applied to every variant: foss gets `drop-noop` and, since Drop 0.2.0, no Drop manifest meta-data (no server URL, no CI Stamp), which keeps its manifest identical between CI and F-Droid's builder. Keep `enableFor` / the `drop-ui` dependency off `foss*`.
+- **Drop (in-app updates for alpha/beta) is Apache-2.0 from Maven Central**, so its Gradle plugin is applied to every variant: foss gets `drop-noop` and, since Drop 0.1.1, no Drop manifest meta-data (no server URL, no CI Stamp), which keeps its manifest identical between CI and F-Droid's builder. Keep `enableFor` / the `drop-ui` dependency off `foss*`.
 - **The foss flavor never depends on a proprietary module.** Firebase, Cast, Block Store, ML Kit, Mixpanel, Play in-app-updates are wired to `standard*` / `alpha*` / `beta*` configurations only — **never `foss*`** (see `app/android/build.gradle.kts`). If you add a proprietary integration, follow the same pattern, and put its build files where F-Droid can `scandelete` them (see below).
 - **No custom Maven repository literal in any scanned `.gradle`/`.gradle.kts`.** The scanner flags **any** `maven(...)` / `maven { url … }` call whose URL isn't on F-Droid's allow-list — and it captures whatever is inside the parens, so even `maven(someVariable)` is flagged as `unknown maven repo 'someVariable)'`. Reading the URL from a property does **not** help. Custom repos must live in a `scandelete`-able standalone script (see the emulator.wtf pattern).
 - **Reproducibility hooks stay in place:**
