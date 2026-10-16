@@ -11,6 +11,13 @@ jobs:
   android-beta:
     name: Build Android Beta Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The Drop upload authenticates with the workflow's OIDC token
+      id-token: write
+    env:
+      # Release events aren't PRs or default-branch pushes, so Drop needs the Channel named
+      DROP_CHANNEL: beta
 
     steps:
       - name: Setup swap
@@ -89,6 +96,12 @@ jobs:
           ./gradlew :app:android:appDistributionUploadBetaRelease \
             --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
             --releaseNotesFile="app/android/release-notes.txt"
+
+      - name: Upload APK to Drop
+        uses: r0adkll/drop/action@main
+        with:
+          server: https://drop.thescavengers.software
+          apk: app/android/build/outputs/apk/beta/release/android-beta-release.apk
 
       - name: Upload build outputs
         if: always()
