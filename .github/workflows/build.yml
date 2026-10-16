@@ -209,7 +209,6 @@ jobs:
       contents: read
       # The Drop upload authenticates with the workflow's OIDC token
       id-token: write
-      pull-requests: write
 
     steps:
       - name: Setup swap
@@ -260,7 +259,6 @@ jobs:
         run: ./gradlew :app:android:assembleAlphaRelease
 
       - name: Upload APK
-        id: upload_artifact
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -268,21 +266,11 @@ jobs:
           path: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
 
       # Uploads to the PR's `pr/<number>` Channel; Drop's GitHub App posts the install comment.
-      # TODO: remove continue-on-error once the Drop deployment is live.
       - name: Upload APK to Drop
-        continue-on-error: true
         uses: r0adkll/drop/action@main
         with:
           server: https://drop.thescavengers.software
           apk: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
-
-      # TODO: remove once the Drop deployment is live and its comment replaces this one.
-      - name: Post Artifact URL to PR
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          message: |
-            [Android APK](${{ steps.upload_artifact.outputs.artifact-url }}) @ ${{ github.sha }}
-          comment-tag: apk_url
 
       - name: Upload reports
         if: failure()

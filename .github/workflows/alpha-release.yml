@@ -93,10 +93,8 @@ jobs:
             --releaseNotesFile="app/android/release-notes.txt"
 
       # Uploads to the `main` Channel. Pushes only: PRs editing this workflow upload from build.yml.
-      # TODO: remove continue-on-error once the Drop deployment is live.
       - name: Upload APK to Drop
         if: github.event_name == 'push'
-        continue-on-error: true
         uses: r0adkll/drop/action@main
         with:
           server: https://drop.thescavengers.software
