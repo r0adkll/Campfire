@@ -91,6 +91,20 @@ jobs:
           echo " "
           cat app/android/release-notes.txt
 
+      # Drop takes the first line as the Build's headline and the rest as What's new, capped at
+      # 4,000 characters.
+      - name: Create Drop Release Notes
+        id: drop_notes
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          notes="$(printf 'Campfire %s\n%s' "${TAG#v}" "$(cat app/android/release-notes.txt)")"
+          {
+            echo "notes<<DROP_NOTES_EOF"
+            echo "${notes:0:4000}"
+            echo "DROP_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Firebase App Distribution
         run: |
           ./gradlew :app:android:appDistributionUploadBetaRelease \
@@ -98,10 +112,11 @@ jobs:
             --releaseNotesFile="app/android/release-notes.txt"
 
       - name: Upload APK to Drop
-        uses: r0adkll/drop/action@main
+        uses: r0adkll/drop/action@v0
         with:
           server: https://drop.thescavengers.software
           apk: app/android/build/outputs/apk/beta/release/android-beta-release.apk
+          notes: ${{ steps.drop_notes.outputs.notes }}
 
       - name: Upload build outputs
         if: always()
