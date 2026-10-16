@@ -59,6 +59,11 @@
     <item quantity="other">Genres</item>
   </plurals>
 
+  <plurals name="collapsed_read_chapters">
+    <item quantity="one">%1$d read chapter</item>
+    <item quantity="other">%1$d read chapters</item>
+  </plurals>
+
   <plurals name="tags_title">
     <item quantity="one">Tag</item>
     <item quantity="other">Tags</item>

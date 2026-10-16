@@ -30,12 +30,16 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.DefocusedChapterAlpha
 import app.campfire.libraries.ui.detail.composables.DefocusedChapterTextAlpha
 import app.campfire.libraries.ui.detail.composables.ListItemHeight
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.collapsed_read_chapters
+import org.jetbrains.compose.resources.pluralStringResource
 
 class CollapsedChapterSlot(
   private val numOfCollapsedChapters: Int,
+  private val isRead: Boolean = false,
 ) : ContentSlot {
 
-  override val id: String = "collapsed_chapters"
+  override val id: String = if (isRead) "collapsed_ebook_contents" else "collapsed_chapters"
   override val contentType = ContentSlot.ContentType.Chapter
 
   @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -63,7 +67,11 @@ class CollapsedChapterSlot(
           verticalAlignment = Alignment.CenterVertically,
         ) {
           Text(
-            text = "$numOfCollapsedChapters listened chapters",
+            text = if (isRead) {
+              pluralStringResource(Res.plurals.collapsed_read_chapters, numOfCollapsedChapters, numOfCollapsedChapters)
+            } else {
+              "$numOfCollapsedChapters listened chapters"
+            },
             style = MaterialTheme.typography.labelLargeEmphasized,
             fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.SemiBold,

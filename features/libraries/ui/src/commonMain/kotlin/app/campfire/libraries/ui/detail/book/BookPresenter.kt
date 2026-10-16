@@ -661,7 +661,16 @@ private fun buildSlots(
       val currentIndex = current?.let { ebookContents.indexOf(it) } ?: -1
       this += SpacerSlot.large("ebook_contents_spacer")
       this += EbookContentsHeaderSlot()
+      // Like listened chapters, the entries read past (bar the first) fold into one row
+      var collapsedCount = 0
       ebookContents.forEachIndexed { index, entry ->
+        if (collapseListenedChapters && index in 1 until currentIndex) {
+          collapsedCount++
+          return@forEachIndexed
+        }
+        if (collapsedCount > 0 && index == currentIndex) {
+          this += CollapsedChapterSlot(numOfCollapsedChapters = collapsedCount, isRead = true)
+        }
         this += EbookContentsEntrySlot(
           entry = entry,
           index = index,

@@ -16,6 +16,7 @@ import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
+import app.campfire.libraries.ui.detail.composables.slots.CollapsedChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.EbookContentsEntrySlot
 import app.campfire.libraries.ui.detail.composables.slots.EbookContentsHeaderSlot
@@ -384,6 +385,42 @@ class EbookContentsPresenterTest : BaseLibraryItemPresenterTest() {
           )
         firstInstanceOf<ProgressSlot>().prop(ProgressSlot::chapter).isEqualTo("Chapter 1")
       }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun ebook_collapsesTheEntriesReadPast_untilExpanded() = runTest {
+    val three = EbookContentsEntry("Chapter 3", "ch3.xhtml", depth = 0, fraction = 0.8f)
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(numTracks = 0, ebookFormat = "epub"))
+    ebookContentsRepository.contents.value = listOf(prologue, one, two, three)
+    mediaProgressRepository.progressFlow.value = testMediaProgress(
+      libraryItemId = TestLibraryItemId,
+      duration = 0f,
+      ebookProgress = 0.7f,
+    )
+
+    presenter.test {
+      val collapsed = awaitItemWithSlot<EbookContentsEntrySlot>()
+      assertThat(collapsed).loadedSlots.all {
+        transform { it.filterIsInstance<EbookContentsEntrySlot>().map(EbookContentsEntrySlot::state) }
+          .containsExactly(
+            EbookContentsEntrySlot.State.Read,
+            EbookContentsEntrySlot.State.Current,
+            EbookContentsEntrySlot.State.Unread,
+          )
+        // The folded row sits between the first entry and the one being read
+        transform { slots -> slots[slots.indexOfFirst { it is EbookContentsEntrySlot } + 1] }
+          .isInstanceOf<CollapsedChapterSlot>()
+      }
+
+      collapsed.eventSink(LibraryItemUiEvent.ExpandChaptersClick)
+
+      val expanded = awaitItemMatching { state ->
+        val content = (state.contentState as? LoadState.Loaded<*>)?.data as? ContentUiState
+        content?.slots?.count { it is EbookContentsEntrySlot } == 4
+      }
+      assertThat(expanded).loadedSlots.doesNotContainInstance<CollapsedChapterSlot>()
       cancelAndIgnoreRemainingEvents()
     }
   }
