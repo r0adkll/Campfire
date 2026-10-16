@@ -69,11 +69,13 @@ jobs:
         shell: bash
         run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( ($(date +%s) - 1577836800) / 60 ))" >> $GITHUB_ENV
 
-      - name: Download Google Services JSON
+      - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
       - name: Assemble Alpha Release APK
         run: ./gradlew :app:android:assembleAlphaRelease
@@ -81,6 +83,24 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_DROP_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_DROP_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
           CI: true
+
+      # Alphas are 1:1 with squash-merged PRs, so the notes are the commit subject plus a
+      # link back to the PR (the subject carries the "(#123)" suffix GitHub adds on squash).
+      - name: Create Release Notes
+        run: |
+          subject="$(git log -1 --format='%s')"
+          echo "$subject" > app/android/release-notes.txt
+          if [[ "$subject" =~ \(#([0-9]+)\)$ ]]; then
+            echo "${{ github.server_url }}/${{ github.repository }}/pull/${BASH_REMATCH[1]}" >> app/android/release-notes.txt
+          fi
+          echo " "
+          cat app/android/release-notes.txt
+
+      - name: Firebase App Distribution
+        run: |
+          ./gradlew :app:android:appDistributionUploadAlphaRelease \
+            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+            --releaseNotesFile="app/android/release-notes.txt"
 
       # Uploads to the `main` Channel. Pushes only: PRs editing this workflow upload from build.yml.
       - name: Upload APK to Drop

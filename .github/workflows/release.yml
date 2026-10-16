@@ -5,9 +5,9 @@ on:
     types: [ created ]
 
 jobs:
-  # Ships every release (rc and final) to Drop's `beta` Channel right away, without waiting on
-  # Google Play review. Same applicationId and key as the standard build, but with the Drop SDK so
-  # testers get in-app update prompts.
+  # Ships every release (rc and final) to Drop's `beta` Channel and Firebase App Distribution
+  # testers right away, without waiting on Google Play review. Same applicationId and key as the
+  # standard build, but with the Drop SDK so testers get in-app update prompts.
   android-beta:
     name: Build Android Beta Release
     runs-on: ubuntu-latest
@@ -59,8 +59,10 @@ jobs:
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
       - name: Assemble Beta Release APK
         run: ./gradlew :app:android:assembleBetaRelease
@@ -70,6 +72,30 @@ jobs:
           ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
           CI: true
+
+      # scripts/release writes the store changelog for this versionCode when cutting the release;
+      # fall back to the GitHub release body if the tag was cut without it.
+      - name: Create Release Notes
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          code="$(sed -n 's/^campfire\.versionCode=//p' gradle.properties)"
+          changelog="fastlane/metadata/android/en-US/changelogs/$code.txt"
+          if [ -f "$changelog" ]; then
+            cat "$changelog" > app/android/release-notes.txt
+          else
+            printf '%s\n' "$RELEASE_BODY" > app/android/release-notes.txt
+          fi
+          echo "$RELEASE_URL" >> app/android/release-notes.txt
+          echo " "
+          cat app/android/release-notes.txt
+
+      - name: Firebase App Distribution
+        run: |
+          ./gradlew :app:android:appDistributionUploadBetaRelease \
+            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+            --releaseNotesFile="app/android/release-notes.txt"
 
       - name: Upload APK to Drop
         uses: r0adkll/drop/action@main

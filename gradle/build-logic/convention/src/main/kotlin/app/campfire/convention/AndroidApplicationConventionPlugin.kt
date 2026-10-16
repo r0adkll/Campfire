@@ -16,7 +16,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         apply("org.gradle.android.cache-fix")
       }
 
-      // Firebase (Crashlytics) is isolated in the :firebase build-logic module so its
+      // Firebase (Crashlytics, App Distribution uploads) is isolated in the :firebase build-logic module so its
       // proprietary Gradle plugins can be dropped from FOSS builds. Apply it whenever that
       // module is present — the same guard build-logic uses to include it; the plugin itself
       // skips the Firebase Gradle plugins without a google-services.json (fork PRs, local

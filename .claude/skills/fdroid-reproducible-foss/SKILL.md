@@ -37,7 +37,7 @@ Firebase's plugins can't sit in `build.gradle.kts` (root) or `gradle/build-logic
 - The proprietary plugin deps + the convention plugin live in a **separate build-logic module** `gradle/build-logic/firebase/` (its `build.gradle.kts` carries `libs.firebase.*.gradlePlugin`).
 - `gradle/build-logic/settings.gradle.kts` includes it only `if (file("firebase/build.gradle.kts").exists())`.
 - `convention/build.gradle.kts` does `runtimeOnly(project(":firebase"))` under the same `if (file(...).exists())` guard.
-- The plugin is applied from a convention plugin (`AndroidApplicationConventionPlugin`) via `pluginManager.apply("app.campfire.firebase")`, guarded by `rootProject.file("gradle/build-logic/firebase/build.gradle.kts").exists()` — the same presence check, so it is never requested once scandeleted. It already skips the Firebase Gradle plugins itself when `google-services.json` is missing (fork PRs, local builds).
+- The plugin is applied from a convention plugin (`AndroidApplicationConventionPlugin`) via `pluginManager.apply("app.campfire.firebase")`, guarded by `rootProject.file("gradle/build-logic/firebase/build.gradle.kts").exists()` — the same presence check, so it is never requested once scandeleted. It already skips the Firebase Gradle plugins (Crashlytics, App Distribution uploads) itself when `google-services.json` is missing (fork PRs, local builds).
 - fdroiddata `scandelete`s `gradle/build-logic/firebase/build.gradle.kts` → module not included, plugin never applied, build-logic still compiles.
 
 **Gotcha:** legacy `apply(plugin = "id")` does NOT resolve an included-build plugin — it must be applied from inside a convention plugin (on the build-logic classpath) or via the `plugins {}` block.

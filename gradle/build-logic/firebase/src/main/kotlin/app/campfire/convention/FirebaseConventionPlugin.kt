@@ -4,6 +4,7 @@
 package app.campfire.convention
 
 import com.android.build.api.dsl.ApplicationExtension
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -13,7 +14,9 @@ class FirebaseConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
     with(target) {
       // The Crashlytics runtime ships via :data:crashreporting:firebase, wired per flavor
-      // in the app module, so nothing Firebase reaches the foss flavor.
+      // in the app module, so nothing Firebase reaches the foss flavor. App Distribution is
+      // upload-only: existing testers still get alpha/beta builds from it, but the in-app
+      // updater is Drop's.
       val googleServicesFile = rootProject.file("app/android/google-services.json")
       if (!googleServicesFile.exists()) {
         logger.lifecycle(
@@ -26,12 +29,27 @@ class FirebaseConventionPlugin : Plugin<Project> {
       with(pluginManager) {
         apply("com.google.gms.google-services")
         apply("com.google.firebase.crashlytics")
+        apply("com.google.firebase.appdistribution")
       }
 
       extensions.configure<ApplicationExtension> {
         buildTypes.named("release") {
           configure<CrashlyticsExtension> {
             mappingFileUploadEnabled = true
+          }
+        }
+
+        productFlavors.matching { it.name == "alpha" }.configureEach {
+          firebaseAppDistribution {
+            artifactType = "APK"
+            groups = "internal,alpha-public"
+          }
+        }
+
+        productFlavors.matching { it.name == "beta" }.configureEach {
+          firebaseAppDistribution {
+            artifactType = "APK"
+            groups = "internal,external-public"
           }
         }
       }

@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [Android] Alpha and beta builds update in-app through Drop instead of Firebase App Distribution, with no tester sign-in
+- [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in
 
 ### Deprecated
 
