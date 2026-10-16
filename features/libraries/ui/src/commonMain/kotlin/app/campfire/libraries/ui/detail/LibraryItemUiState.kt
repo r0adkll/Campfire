@@ -55,6 +55,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   /** Read the item's ebook, for an item with audio too. */
   data object ReadClick : LibraryItemUiEvent
+
+  /** Read the item's ebook from [href], an entry in its contents. */
+  data class ReadAt(val href: String) : LibraryItemUiEvent
   data class PlayEpisodeClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem, val series: SeriesSequence) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent

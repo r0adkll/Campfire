@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in
 - E-book reading progress shows to a tenth of a percent
+- E-book details show the format and file size, the chapter you're on, the book's contents and edition details in place of audiobook-only information, and let you continue reading or discard your reading progress
+- Audiobooks that come with an e-book show your reading progress alongside your listening progress
 
 ### Deprecated
 

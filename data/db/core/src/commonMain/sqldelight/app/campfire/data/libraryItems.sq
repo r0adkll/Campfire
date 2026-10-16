@@ -166,6 +166,7 @@ purgeForId {
   DELETE FROM shelfJoin WHERE entityId = :id;
   DELETE FROM search_books WHERE libraryItemId = :id;
   DELETE FROM readerBookSettings WHERE libraryItemId = :id;
+  DELETE FROM ebookContents WHERE libraryItemId = :id;
 
   DELETE FROM mediaAudioFiles WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);
   DELETE FROM mediaAudioTracks WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);

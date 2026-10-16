@@ -27,13 +27,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.MenuBook
 import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.icons.rounded.Sensors
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
+import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.ebook_format_and_size
 import campfire.features.libraries.ui.generated.resources.streaming_badge_hls
 import campfire.features.libraries.ui.generated.resources.unknown_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
@@ -97,14 +100,24 @@ class TitleSlot(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
       ) {
+        // An ebook has no length to listen to, so it shows what it's read in and how big it is
+        val ebookFormat = libraryItem.media.ebookFormat?.takeIf { libraryItem.isEbookOnly }
         Icon(
-          CampfireIcons.Rounded.Schedule,
+          if (ebookFormat != null) CampfireIcons.Rounded.MenuBook else CampfireIcons.Rounded.Schedule,
           contentDescription = null,
           modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
         Text(
-          text = libraryItem.media.durationInMillis.milliseconds.readoutFormat(),
+          text = when {
+            ebookFormat == null -> libraryItem.media.durationInMillis.milliseconds.readoutFormat()
+            libraryItem.media.sizeInBytes > 0L -> stringResource(
+              Res.string.ebook_format_and_size,
+              ebookFormat.uppercase(),
+              libraryItem.media.sizeInBytes.asReadableBytes(),
+            )
+            else -> ebookFormat.uppercase()
+          },
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
         )

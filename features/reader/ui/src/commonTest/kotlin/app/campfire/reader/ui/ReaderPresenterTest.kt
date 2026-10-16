@@ -7,6 +7,8 @@ import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
 import app.campfire.reader.api.Ebook
+import app.campfire.reader.api.EbookContentsEntry
+import app.campfire.reader.api.EbookContentsRepository
 import app.campfire.reader.api.EbookDownload
 import app.campfire.reader.api.EbookRepository
 import app.campfire.reader.api.ReaderBookSettingsRepository
@@ -21,16 +23,20 @@ import app.campfire.user.test.FakeMediaProgressRepository
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
 class ReaderPresenterTest {
@@ -41,8 +47,11 @@ class ReaderPresenterTest {
   private val mediaProgress = FakeMediaProgressRepository()
   private val readerSettings = FakeReaderSettings()
   private val bookSettings = FakeReaderBookSettingsRepository()
+  private val contents = FakeEbookContentsRepository()
 
-  private val presenter = ReaderPresenter(
+  private val presenter = presenter(screen)
+
+  private fun presenter(screen: ReaderScreen) = ReaderPresenter(
     screen = screen,
     navigator = navigator,
     repository = ebooks,
@@ -50,7 +59,40 @@ class ReaderPresenterTest {
     audioPlayerHolder = FakeAudioPlayerHolder(),
     readerSettings = readerSettings,
     bookSettings = bookSettings,
+    contentsRepository = contents,
   )
+
+  @Test
+  fun `the book's contents are kept for its details`() = runTest {
+    presenter.test {
+      val state = awaitLoaded()
+      state.bridge.onMessage(
+        """{"type":"opened","toc":[{"label":"Chapter 1","href":"ch1.xhtml","depth":0,"fraction":0.1}]}""",
+      )
+
+      awaitUntil { it.toc.isNotEmpty() }
+      assertThat(contents.saved.await()).containsExactly(EbookContentsEntry("Chapter 1", "ch1.xhtml", 0, 0.1f))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `opened at an entry in the contents, it goes there and offers the way back`() = runTest {
+    presenter(ReaderScreen(ITEM, href = "ch9.xhtml")).test {
+      val state = awaitLoaded()
+      state.bridge.onMessage("""{"type":"restored","restored":true}""")
+
+      val jumped = awaitUntil { it.jumpBack != null }
+      assertThat(jumped.jumpBack).isEqualTo(JumpBack(LOCATION, 0.25f))
+      assertThat(jumped.chromeVisible).isTrue()
+      assertThat(state.bridge.drainScripts()).contains("""globalThis.campfire.goTo("ch9.xhtml")""")
+
+      // A renderer replaced later restores where the reader is, without jumping again
+      state.bridge.onMessage("""{"type":"restored","restored":true}""")
+      assertThat(state.bridge.drainScripts()).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
 
   @Test
   fun `opens the book where it was left once the page is ready`() = runTest {
@@ -275,6 +317,16 @@ class ReaderPresenterTest {
     override fun download(itemId: LibraryItemId) = Unit
     override fun deleteDownload(itemId: LibraryItemId) = Unit
     override suspend fun deleteFiles(itemId: LibraryItemId) = Unit
+  }
+
+  private class FakeEbookContentsRepository : EbookContentsRepository {
+    val saved = CompletableDeferred<List<EbookContentsEntry>>()
+
+    override fun observeContents(itemId: LibraryItemId): Flow<List<EbookContentsEntry>> = flowOf(emptyList())
+
+    override suspend fun saveContents(itemId: LibraryItemId, entries: List<EbookContentsEntry>) {
+      saved.complete(entries)
+    }
   }
 
   private class FakeReaderBookSettingsRepository : ReaderBookSettingsRepository {

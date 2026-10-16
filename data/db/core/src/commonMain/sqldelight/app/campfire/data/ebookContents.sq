@@ -1,0 +1,28 @@
+import kotlin.Int;
+
+-- An ebook's table of contents, as the reader last found it in the file: the server doesn't know
+-- it. Removed with the item by libraryItems.purgeForId.
+CREATE TABLE IF NOT EXISTS ebookContents (
+  libraryItemId TEXT NOT NULL,
+  position INTEGER AS Int NOT NULL,
+  label TEXT NOT NULL,
+  href TEXT NOT NULL,
+  depth INTEGER AS Int NOT NULL,
+  fraction REAL,
+  PRIMARY KEY (libraryItemId, position)
+);
+
+-- Queries
+
+selectForItem:
+SELECT * FROM ebookContents
+WHERE libraryItemId = ?
+ORDER BY position;
+
+insert:
+INSERT OR REPLACE INTO ebookContents
+VALUES ?;
+
+deleteForItem:
+DELETE FROM ebookContents
+WHERE libraryItemId = ?;
