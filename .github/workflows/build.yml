@@ -283,7 +283,7 @@ jobs:
 
       # Uploads to the PR's `pr/<number>` Channel; Drop's GitHub App posts the install comment.
       - name: Upload APK to Drop
-        uses: r0adkll/drop/action@main
+        uses: r0adkll/drop/action@v0
         with:
           server: https://drop.thescavengers.software
           apk: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
