@@ -37,6 +37,7 @@ import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableFormat
+import app.campfire.core.extensions.tenthsPercent
 import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.remaining_duration_finished
@@ -103,13 +104,13 @@ internal fun MediaProgressBar(
         Spacer(Modifier.width(4.dp))
       }
 
+      val duration = progress.duration?.takeIf { it > 0f } ?: totalDuration.asSeconds()
       val remainingText = when {
         progress.isFinished -> stringResource(
           Res.string.remaining_duration_finished,
           progress.finishedAt!!.asDate().readableFormat,
         )
         else -> {
-          val duration = progress.duration?.takeIf { it > 0f } ?: totalDuration.asSeconds()
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
           when {
             // An ebook has no time left to show, only how far through it is
@@ -152,11 +153,18 @@ internal fun MediaProgressBar(
 
       Spacer(Modifier.weight(1f))
 
-      val wholeProgress = progress.actualProgress.times(100f)
-        .takeIf { !it.isNaN() }
-        ?.roundToInt()
+      // How far through is all an ebook has to show, so it reads to the tenth
+      val percent = if (duration <= 0f) {
+        progress.actualProgress.tenthsPercent
+      } else {
+        progress.actualProgress.times(100f)
+          .takeIf { !it.isNaN() }
+          ?.roundToInt()
+          ?.toString()
+          ?: "--"
+      }
       Text(
-        text = "${wholeProgress ?: "--"}%",
+        text = "$percent%",
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.SemiBold,
       )

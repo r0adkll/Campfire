@@ -84,4 +84,24 @@ class FloatExtensionsTest {
     val (value, expected) = case
     assertThat(value.roundToHundredths()).isEqualTo(expected)
   }
+
+  @Test
+  fun tenthsPercent(
+    case: Pair<Float, String> = burstValues(
+      0f to "0",
+      0.0004f to "0",
+      0.001f to "0.1",
+      0.22f to "22.0",
+      0.225f to "22.5",
+      0.2259f to "22.5",
+      0.9999f to "99.9",
+      1f to "100",
+      1.2f to "100",
+      -0.1f to "0",
+      Float.NaN to "--",
+    ),
+  ) {
+    val (value, expected) = case
+    assertThat(value.tenthsPercent).isEqualTo(expected)
+  }
 }

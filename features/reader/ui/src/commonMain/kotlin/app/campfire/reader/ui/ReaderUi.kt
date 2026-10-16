@@ -81,6 +81,7 @@ import app.campfire.common.compose.window.SystemBarsVisibleEffect
 import app.campfire.common.compose.window.VolumeKeysEffect
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.tenthsPercent
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.reader.ui.web.BookRenderer
 import app.campfire.reader.ui.web.TocEntry
@@ -322,7 +323,7 @@ private fun ReaderFooter(
   position: ReaderPosition,
   modifier: Modifier = Modifier,
 ) {
-  val percent = (position.progress * 100).roundToInt()
+  val percent = position.progress.tenthsPercent
   val text = when (val pagesLeft = position.pagesLeftInChapter) {
     null -> stringResource(Res.string.reader_progress, percent)
     else -> stringResource(Res.string.reader_footer, pagesLeftLabel(pagesLeft), percent)
@@ -484,9 +485,9 @@ private fun ReaderBottomBar(
         )
         Spacer(Modifier.padding(horizontal = 6.dp))
         Text(
-          text = stringResource(Res.string.reader_progress, (shown * 100).roundToInt()),
+          text = stringResource(Res.string.reader_progress, shown.tenthsPercent),
           style = MaterialTheme.typography.labelLarge,
-          modifier = Modifier.widthIn(min = 40.dp),
+          modifier = Modifier.widthIn(min = 48.dp),
         )
       }
     }

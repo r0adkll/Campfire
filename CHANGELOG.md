@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in
+- E-book reading progress shows to a tenth of a percent
 
 ### Deprecated
 

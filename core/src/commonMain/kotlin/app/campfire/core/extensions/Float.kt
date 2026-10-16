@@ -4,6 +4,7 @@
 package app.campfire.core.extensions
 
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.time.Duration
@@ -64,5 +65,21 @@ val Float.readableHundredths: String
       hundredths % 100L == 0L -> toString(0)
       hundredths % 10L == 0L -> toString(1)
       else -> toString(2)
+    }
+  }
+
+/**
+ * The receiver, a 0..1 fraction, as a percentage to tenths. It rounds down, so it reads 100 only
+ * once the receiver is complete, and drops the decimal at either end
+ * (e.g. 0.225 -> "22.5", 0.22 -> "22.0", 0.9999 -> "99.9", 1 -> "100", 0 -> "0").
+ */
+val Float.tenthsPercent: String
+  get() {
+    if (isNaN() || isInfinite()) return "--"
+    // A nudge past float noise, so 0.225f (0.22499999…) still reads 22.5
+    val tenths = floor(coerceIn(0f, 1f).toDouble() * 1000.0 + 1e-4).toLong()
+    return when (tenths) {
+      0L, 1000L -> (tenths / 10L).toString()
+      else -> "${tenths / 10L}.${tenths % 10L}"
     }
   }
