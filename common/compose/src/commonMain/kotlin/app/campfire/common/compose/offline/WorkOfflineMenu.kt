@@ -3,16 +3,36 @@
 
 package app.campfire.common.compose.offline
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
+import androidx.compose.material3.DropdownMenuPopupPositionProvider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuGroupShapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CalendarClock
@@ -53,7 +73,10 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The ways to work offline, or — while offline — why and until when, with a way back online.
- * Shared by the navigation drawer and Settings so both always offer the same thing.
+ *
+ * It opens just above its anchor, like a menu from the drawer's footer. Material's own placement
+ * keeps 48dp clear of the window's bottom edge, so an anchor that close left the menu floating
+ * well above it.
  */
 @Composable
 fun WorkOfflineMenu(
@@ -64,51 +87,140 @@ fun WorkOfflineMenu(
   onGoOffline: (OfflineChoice) -> Unit,
   onGoOnline: () -> Unit,
   modifier: Modifier = Modifier,
-  offset: DpOffset = DpOffset(0.dp, 0.dp),
 ) {
-  DropdownMenu(
+  val density = LocalDensity.current
+  val positionProvider = remember(density) { AboveAnchorPositionProvider(density) }
+  DropdownMenuPopup(
     expanded = expanded,
     onDismissRequest = onDismissRequest,
-    shape = MaterialTheme.shapes.medium,
-    offset = offset,
-    modifier = modifier,
+    popupPositionProvider = positionProvider,
+    // Room for the groups' shadows, which the popup's window would otherwise clip
+    modifier = modifier.padding(ShadowClearance),
   ) {
     val reason = state.reason
     if (reason != null) {
-      MenuHeader(reason.statusText())
-      DropdownMenuItem(
-        text = { Text(reason.goOnlineLabel()) },
-        leadingIcon = { Icon(CampfireIcons.Rounded.CloudDone, contentDescription = null) },
-        onClick = {
-          onDismissRequest()
-          onGoOnline()
-        },
-      )
+      // Tinted like the drawer's offline button, so the status reads as the state it's in
+      MenuGroup(
+        shapes = MenuDefaults.groupShape(index = 0, count = 2),
+        containerColor = MenuDefaults.groupVibrantContainerColor,
+        border = null,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        MenuHeader(
+          text = reason.statusText(),
+          color = MaterialTheme.colorScheme.onTertiaryContainer,
+        )
+      }
+      Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+      MenuGroup(
+        shapes = MenuDefaults.groupShape(index = 1, count = 2),
+      ) {
+        DropdownMenuItem(
+          text = { Text(reason.goOnlineLabel()) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.CloudDone, contentDescription = null) },
+          onClick = {
+            onDismissRequest()
+            onGoOnline()
+          },
+        )
+      }
     } else {
-      MenuHeader(stringResource(Res.string.work_offline_title))
-      offlineChoices(canDetectWifi)
-        .forEach { choice ->
-          DropdownMenuItem(
-            text = { Text(choice.label(onWifi = state.onWifi)) },
-            leadingIcon = { Icon(choice.icon, contentDescription = null) },
-            onClick = {
-              onDismissRequest()
-              onGoOffline(choice)
-            },
-          )
-        }
+      MenuGroup(
+        shapes = MenuDefaults.groupShape(index = 0, count = 1),
+      ) {
+        MenuHeader(stringResource(Res.string.work_offline_title))
+        offlineChoices(canDetectWifi)
+          .forEach { choice ->
+            DropdownMenuItem(
+              text = { Text(choice.label(onWifi = state.onWifi)) },
+              leadingIcon = { Icon(choice.icon, contentDescription = null) },
+              onClick = {
+                onDismissRequest()
+                onGoOffline(choice)
+              },
+            )
+          }
+      }
     }
   }
 }
 
+/**
+ * A menu group set apart from the drawer it opens over: a step up from its surface container,
+ * outlined, and raised a level above Material's default.
+ */
 @Composable
-private fun MenuHeader(text: String) {
+private fun MenuGroup(
+  shapes: MenuGroupShapes,
+  modifier: Modifier = Modifier,
+  containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+  border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  DropdownMenuGroup(
+    shapes = shapes,
+    containerColor = containerColor,
+    shadowElevation = 6.dp,
+    border = border,
+    modifier = modifier,
+    content = content,
+  )
+}
+
+private val ShadowClearance = 8.dp
+
+@Composable
+private fun MenuHeader(
+  text: String,
+  modifier: Modifier = Modifier,
+  color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+) {
   Text(
     text = text,
     style = MaterialTheme.typography.labelLarge,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    color = color,
+    modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
   )
+}
+
+/**
+ * Places the menu's bottom edge on its anchor's top edge, start-aligned with it, or below the
+ * anchor when there's more room there; either way kept inside the window. Offsets by
+ * [ShadowClearance] so the visible menu, not its padding, lines up with the anchor.
+ */
+internal class AboveAnchorPositionProvider(density: Density) : DropdownMenuPopupPositionProvider {
+  private val clearance = with(density) { ShadowClearance.roundToPx() }
+
+  override var transformOrigin by mutableStateOf(TransformOrigin(0f, 1f))
+    private set
+
+  override fun calculatePosition(
+    anchorBounds: IntRect,
+    windowSize: IntSize,
+    layoutDirection: LayoutDirection,
+    popupContentSize: IntSize,
+  ): IntOffset {
+    val start = if (layoutDirection == LayoutDirection.Ltr) {
+      anchorBounds.left - clearance
+    } else {
+      anchorBounds.right + clearance - popupContentSize.width
+    }
+    val x = start.coerceIn(0, maxOf(0, windowSize.width - popupContentSize.width))
+
+    val above = anchorBounds.top + clearance - popupContentSize.height
+    val opensAbove = above >= 0 || anchorBounds.top > windowSize.height - anchorBounds.bottom
+    val y = if (opensAbove) above else anchorBounds.bottom - clearance
+
+    transformOrigin = TransformOrigin(
+      pivotFractionX = if (popupContentSize.width == 0) {
+        0f
+      } else {
+        ((anchorBounds.center.x - x).toFloat() / popupContentSize.width).coerceIn(0f, 1f)
+      },
+      pivotFractionY = if (opensAbove) 1f else 0f,
+    )
+    return IntOffset(x, y.coerceIn(0, maxOf(0, windowSize.height - popupContentSize.height)))
+  }
 }
 
 /** Why Campfire is working offline, e.g. "Offline until 3:45 PM". */
