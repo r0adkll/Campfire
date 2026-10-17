@@ -8,14 +8,14 @@
   <string name="reader_error_open">Couldn't open this book</string>
   <string name="reader_error_unsupported_platform">Reading isn't available on this device yet</string>
   <string name="reader_error_unsupported_format">Reading %1$s books isn't supported yet</string>
-  <string name="reader_progress">%1$d%</string>
+  <string name="reader_progress">%1$s%</string>
   <string name="reader_scrubber">Position in book</string>
   <plurals name="reader_pages_left">
     <item quantity="one">%1$d page left in chapter</item>
     <item quantity="other">%1$d pages left in chapter</item>
   </plurals>
   <string name="reader_last_page_in_chapter">Last page in chapter</string>
-  <string name="reader_footer">%1$s · %2$d%</string>
+  <string name="reader_footer">%1$s · %2$s%</string>
   <string name="reader_jump_back">Back to %1$d%</string>
   <string name="reader_end_title">You've reached the end</string>
   <string name="reader_end_mark_finished">Mark as finished</string>

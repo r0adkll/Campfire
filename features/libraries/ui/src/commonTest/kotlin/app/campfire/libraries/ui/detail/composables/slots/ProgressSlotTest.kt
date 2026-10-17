@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.common.test.mediaProgress
 import app.campfire.home.ui.libraryItem
+import app.campfire.home.ui.media
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
@@ -38,6 +39,29 @@ class ProgressSlotTest {
     onNodeWithTag("icon_finished_check").assertDoesNotExist()
     onNodeWithText("1m 20s left").assertExists()
     onNodeWithText("20%").assertExists()
+  }
+
+  @Test
+  fun ebookReadsToTheTenthTest() = runComposeUiTest {
+    val libraryItem = libraryItem(
+      media = media(numTracks = 0, numAudioFiles = 0, durationInMillis = 0L, ebookFormat = "epub"),
+    )
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 0f,
+      duration = 0f,
+      ebookProgress = 0.225f,
+    )
+    val slot = ProgressSlot(false, 1f, mediaProgress, libraryItem)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("22.5%").assertExists()
+    onNodeWithText("left", substring = true).assertDoesNotExist()
   }
 
   @Test
