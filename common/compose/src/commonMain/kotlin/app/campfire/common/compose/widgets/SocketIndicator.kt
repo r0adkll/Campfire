@@ -25,6 +25,9 @@ enum class ConnectionState {
   Connecting,
   Connected,
   Disconnected,
+
+  /** The user chose to work offline, so there's deliberately no connection. */
+  Offline,
 }
 
 val DefaultConnectionIndicatorSize = 8.dp
@@ -42,6 +45,7 @@ fun ConnectionIndicator(
       ConnectionState.Connected -> CampfireTheme.colorScheme.success
       ConnectionState.Connecting -> CampfireTheme.colorScheme.loading
       ConnectionState.Disconnected -> MaterialTheme.colorScheme.error
+      ConnectionState.Offline -> MaterialTheme.colorScheme.outline
     },
   )
 
@@ -50,6 +54,7 @@ fun ConnectionIndicator(
   val indicatorAlpha = when (state) {
     ConnectionState.Connected,
     ConnectionState.Disconnected,
+    ConnectionState.Offline,
     -> 1f
 
     ConnectionState.Connecting -> infiniteTransition.animateFloat(

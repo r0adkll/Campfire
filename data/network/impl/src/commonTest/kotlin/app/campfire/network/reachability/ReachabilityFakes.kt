@@ -20,6 +20,7 @@ internal fun reachability(
   connectivity: Connectivity = FakeConnectivity(Connectivity.Status.Connected(metered = false)),
   monitor: NetworkMonitor = FakeNetworkMonitor(supported = false),
   mobileDataSettings: FakeMobileDataSettings = FakeMobileDataSettings(),
+  workOffline: WorkOffline = FakeWorkOffline(),
   devSettings: FakeDevSettings = FakeDevSettings(),
   localNetworkPermission: FakeLocalNetworkPermission = FakeLocalNetworkPermission(),
   time: FakeFatherTime = FakeFatherTime(),
@@ -27,10 +28,43 @@ internal fun reachability(
   connectivity = connectivity,
   networkMonitor = monitor,
   mobileDataSettings = mobileDataSettings,
+  workOffline = workOffline,
   devSettings = devSettings,
   localNetworkPermission = localNetworkPermission,
   fatherTime = time,
 )
+
+/** A [WorkOffline] the test switches with [offline]; going offline reads as [OfflineReason.UntilTurnedOff]. */
+internal class FakeWorkOffline(offline: Boolean = false) : WorkOffline {
+  private val _state = MutableStateFlow(stateFor(offline))
+  override val state: StateFlow<OfflineState> = _state
+
+  var offline: Boolean
+    get() = _state.value.isOffline
+    set(value) {
+      _state.value = stateFor(value)
+    }
+
+  override val canDetectWifi: Boolean = true
+  override val sessionEnded: Flow<Unit> = MutableSharedFlow()
+
+  override fun isOffline(): Boolean = offline
+
+  override fun goOffline(choice: OfflineChoice) {
+    offline = true
+  }
+
+  override fun goOnline() {
+    offline = false
+  }
+
+  private companion object {
+    fun stateFor(offline: Boolean) = OfflineState(
+      reason = if (offline) OfflineReason.UntilTurnedOff else null,
+      onWifi = true,
+    )
+  }
+}
 
 internal class FakeLocalNetworkPermission(missing: Boolean = false) : LocalNetworkPermissionController {
   val missing = MutableStateFlow(missing)

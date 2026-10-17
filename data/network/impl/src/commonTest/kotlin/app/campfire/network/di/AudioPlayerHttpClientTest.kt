@@ -10,10 +10,14 @@ import app.campfire.core.session.UserSession
 import app.campfire.network.FakeAccountManager
 import app.campfire.network.FakeUserSessionManager
 import app.campfire.network.plugins.RedirectHeaderGuard
+import app.campfire.network.reachability.FakeWorkOffline
+import app.campfire.network.reachability.WorkingOfflineException
 import app.campfire.network.testUser
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import io.ktor.client.HttpClient
@@ -61,6 +65,7 @@ class AudioPlayerHttpClientTest {
   }
   private val sessionManager = FakeUserSessionManager(UserSession.LoggedIn(testUser))
   private val bearerAuthProvider = userBearerAuthProvider(sessionManager, accountManager)
+  private val workOffline = FakeWorkOffline()
 
   private var refreshCount = 0
 
@@ -87,7 +92,7 @@ class AudioPlayerHttpClientTest {
     }
 
   private fun audioPlayerClient(engine: MockEngine) = HttpClient(engine) {
-    configureAudioPlayerClient(applicationInfo, sessionManager, accountManager, bearerAuthProvider)
+    configureAudioPlayerClient(applicationInfo, sessionManager, accountManager, bearerAuthProvider, workOffline)
   }
 
   private fun userClient(engine: MockEngine) = HttpClient(engine) {
@@ -100,7 +105,15 @@ class AudioPlayerHttpClientTest {
   @Test
   fun streamsWithoutAResponseCacheButWithTheSharedAuth() {
     val client =
-      HttpClient { configureAudioPlayerClient(applicationInfo, sessionManager, accountManager, bearerAuthProvider) }
+      HttpClient {
+        configureAudioPlayerClient(
+          applicationInfo,
+          sessionManager,
+          accountManager,
+          bearerAuthProvider,
+          workOffline,
+        )
+      }
 
     assertThat(client.pluginOrNull(HttpCache)).isNull()
     assertThat(client.pluginOrNull(HttpTimeout)).isNotNull()
@@ -158,5 +171,21 @@ class AudioPlayerHttpClientTest {
     assertThat(audioClient.authProvider<BearerAuthProvider>()).isNotNull()
     assertThat(audioClient.authProvider<BearerAuthProvider>())
       .isEqualTo(userClient.authProvider<BearerAuthProvider>())
+  }
+
+  @Test
+  fun makesNoRequestsWhileWorkingOffline() = runTest {
+    var calls = 0
+    workOffline.offline = true
+    val client = audioPlayerClient(
+      MockEngine { request ->
+        calls++
+        absServer(request)
+      },
+    )
+
+    assertFailure { client.get("${testUser.serverUrl}/api/items/1/file/1") }
+      .isInstanceOf<WorkingOfflineException>()
+    assertThat(calls).isEqualTo(0)
   }
 }

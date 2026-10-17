@@ -17,6 +17,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.PrivacySettings
@@ -57,6 +58,9 @@ interface UserComponent {
 
   /** Setup links waiting for the user to confirm them, whichever window shows them */
   val connectLinkInbox: ConnectLinkInbox
+
+  /** Working offline, whose sessions ending on their own the root UI announces */
+  val workOffline: WorkOffline
 
   @Provides @RootScreen
   fun provideRootScreen(

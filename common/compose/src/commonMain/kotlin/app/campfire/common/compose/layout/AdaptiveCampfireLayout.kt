@@ -91,6 +91,8 @@ fun AdaptiveCampfireLayout(
   onSupportingContentWidthChange: (Dp) -> Unit,
 
   modifier: Modifier = Modifier,
+  /** App-wide snackbars, drawn over the content and bottom navigation; position it in the box. */
+  snackbarHost: @Composable BoxScope.() -> Unit = {},
 ) {
   val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -218,6 +220,8 @@ fun AdaptiveCampfireLayout(
                 bottomBarNavigation()
               }
             }
+
+            snackbarHost()
 
             if (isSupportingPaneEnabled && isLoggedIn) {
               val supportingContentShape = if (usesBottomPlaybackBar) {

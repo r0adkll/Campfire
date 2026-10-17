@@ -36,7 +36,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  * can't be reached (a handful of cheap attempts an hour), without having to tell them apart.
  *
  * Some networks can't reach a local server at all; [routeVerdict] decides those, and nothing is
- * attempted on them ([Reachability.OutOfRange]).
+ * attempted on them ([Reachability.OutOfRange]). Nothing is attempted at all while the user is
+ * working offline ([Reachability.Offline]).
  */
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<ServerReachability>())
@@ -46,6 +47,7 @@ class DefaultServerReachability(
   private val connectivity: Connectivity,
   private val networkMonitor: NetworkMonitor,
   private val mobileDataSettings: MobileDataSettings,
+  private val workOffline: WorkOffline,
   private val devSettings: DevSettings,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val fatherTime: FatherTime,
@@ -69,8 +71,9 @@ class DefaultServerReachability(
       networkMonitor.snapshot,
       mobileDataSettings.observeHomeServerOnMobileData(),
       localNetworkPermission.observePermissionMissing(),
-    ) { snapshot, homeServerOnMobileData, blocked ->
-      routeVerdict(
+      workOffline.state,
+    ) { snapshot, homeServerOnMobileData, blocked, offline ->
+      !offline.isOffline && routeVerdict(
         locality = locality,
         network = snapshot,
         isSupported = networkMonitor.isSupported,
@@ -112,6 +115,10 @@ class DefaultServerReachability(
   }
 
   override fun shouldFailFast(origin: String): Boolean {
+    if (workOffline.isOffline()) {
+      markOffline(origin)
+      return true
+    }
     return when (verdict(origin)) {
       RouteVerdict.Skip -> {
         markOutOfRange(origin)
@@ -141,6 +148,18 @@ class DefaultServerReachability(
       ),
     )
     ibark { "Server not reachable from this network; skipping requests" }
+  }
+
+  /**
+   * Working offline overrides whatever was learned about the server; turning it off leaves the
+   * next request free to learn afresh, since [failFastWhileUnreachable] only holds back after a
+   * real failure.
+   */
+  private fun markOffline(origin: String) {
+    val current = belief.value
+    if (current.origin == origin && current.status == Reachability.Offline) return
+    publish(Belief(origin = origin, status = Reachability.Offline))
+    ibark { "Working offline; skipping requests" }
   }
 
   /**

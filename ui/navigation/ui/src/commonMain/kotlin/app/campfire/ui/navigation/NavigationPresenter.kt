@@ -29,6 +29,7 @@ import app.campfire.core.extensions.next
 import app.campfire.core.model.MediaType
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.settings.api.LayoutSettings
 import app.campfire.settings.api.ThemeSettings
@@ -64,6 +65,7 @@ class NavigationPresenter(
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
   private val layoutSettings: LayoutSettings,
   private val themeSettings: ThemeSettings,
+  private val workOffline: WorkOffline,
 ) {
 
   /**
@@ -110,14 +112,22 @@ class NavigationPresenter(
       themeSettings.observeTheme()
     }.collectAsState()
 
+    val offline by remember {
+      workOffline.state
+    }.collectAsState()
+
     return DrawerUiState(
       themeMode = themeMode,
+      offline = offline,
+      canDetectWifi = workOffline.canDetectWifi,
       navigationItems = items,
     ) { event ->
       when (event) {
         DrawerUiEvent.CycleThemeMode -> {
           themeSettings.themeMode = themeMode.next()
         }
+        is DrawerUiEvent.GoOffline -> workOffline.goOffline(event.choice)
+        DrawerUiEvent.GoOnline -> workOffline.goOnline()
       }
     }
   }

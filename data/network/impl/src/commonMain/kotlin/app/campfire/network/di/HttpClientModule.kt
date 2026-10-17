@@ -17,7 +17,9 @@ import app.campfire.network.cleanServerUrl
 import app.campfire.network.plugins.RedirectHeaderGuard
 import app.campfire.network.plugins.suspendingDefaultHeaders
 import app.campfire.network.reachability.ReachabilityGate
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.network.reachability.serverReachabilityPlugin
+import app.campfire.network.reachability.workOfflinePlugin
 import com.livewire.plugin.network.ktor.LivewireNetworkPlugin
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
@@ -162,8 +164,9 @@ interface HttpClientModule {
   @Provides
   fun provideDownloadHttpClient(
     applicationInfo: ApplicationInfo,
+    workOffline: WorkOffline,
   ): HttpClient = HttpClient {
-    configureDownloadHttpClient(applicationInfo)
+    configureDownloadHttpClient(applicationInfo, workOffline)
   }
 
   @UserClient
@@ -187,8 +190,15 @@ interface HttpClientModule {
     userSessionManager: UserSessionManager,
     accountManager: AccountManager,
     bearerAuthProvider: BearerAuthProvider,
+    workOffline: WorkOffline,
   ): HttpClient = HttpClient {
-    configureAudioPlayerClient(applicationInfo, userSessionManager, accountManager, bearerAuthProvider)
+    configureAudioPlayerClient(
+      applicationInfo,
+      userSessionManager,
+      accountManager,
+      bearerAuthProvider,
+      workOffline,
+    )
   }
 }
 
@@ -196,9 +206,14 @@ interface HttpClientModule {
  * Builds the [DownloadClient]: deliberately not derived from the base client, whose `HttpCache`
  * (and, in debug builds, Livewire inspection) reads whole responses into memory. There's no
  * request timeout, since a download legitimately takes minutes; the socket timeout instead
- * abandons a transfer that stops receiving data.
+ * abandons a transfer that stops receiving data. Nothing goes out while the user is working offline.
  */
-internal fun HttpClientConfig<*>.configureDownloadHttpClient(applicationInfo: ApplicationInfo) {
+internal fun HttpClientConfig<*>.configureDownloadHttpClient(
+  applicationInfo: ApplicationInfo,
+  workOffline: WorkOffline,
+) {
+  install(workOfflinePlugin(workOffline))
+
   install(HttpTimeout) {
     connectTimeoutMillis = 15_000
     socketTimeoutMillis = 60_000
@@ -237,13 +252,17 @@ internal fun HttpClientConfig<*>.configureUserHttpClient(
  * timeout so long streams aren't cut off. Its short connect and socket timeouts let a dead
  * connection fail over to the player's retry and cache handling quickly. `ContentNegotiation`
  * is installed because a 401 here runs the shared bearer provider's refresh on this client.
+ * Nothing goes out while the user is working offline.
  */
 internal fun HttpClientConfig<*>.configureAudioPlayerClient(
   applicationInfo: ApplicationInfo,
   userSessionManager: UserSessionManager,
   accountManager: AccountManager,
   bearerAuthProvider: BearerAuthProvider,
+  workOffline: WorkOffline,
 ) {
+  install(workOfflinePlugin(workOffline))
+
   install(HttpTimeout) {
     connectTimeoutMillis = AUDIO_PLAYER_CONNECT_TIMEOUT_MILLIS
     socketTimeoutMillis = AUDIO_PLAYER_SOCKET_TIMEOUT_MILLIS

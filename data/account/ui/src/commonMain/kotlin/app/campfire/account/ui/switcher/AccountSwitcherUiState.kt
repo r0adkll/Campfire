@@ -17,6 +17,8 @@ data class AccountSwitcherUiState(
   val allAccounts: LoadState<out List<Server>>,
   val libraryState: LibraryState?,
   val socketState: SocketState,
+  /** The user is working offline, so the socket is closed on purpose. */
+  val workingOffline: Boolean,
   val eventSink: (AccountSwitcherUiEvent) -> Unit,
 ) : CircuitUiState
 

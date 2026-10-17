@@ -130,6 +130,7 @@ private fun AccountSwitcher(
       appTheme = state.theme,
       switcherConfig = switcherConfig,
       socketState = state.socketState,
+      workingOffline = state.workingOffline,
       serverName = { Text(serverName) },
       userName = { userName?.let { Text(it) } },
       onClick = onClick,
@@ -170,6 +171,7 @@ internal fun AccountCard(
 private fun AccountSwitcher(
   appTheme: AppTheme,
   socketState: SocketState,
+  workingOffline: Boolean,
   serverName: @Composable () -> Unit,
   userName: @Composable () -> Unit,
   onClick: () -> Unit,
@@ -201,6 +203,7 @@ private fun AccountSwitcher(
       AccountIcon(
         appTheme = appTheme,
         socketState = socketState,
+        workingOffline = workingOffline,
         size = switcherConfig.iconSize,
         indicatorSize = switcherConfig.indicatorSize,
         indicatorOffset = switcherConfig.indicatorOffset,
@@ -282,6 +285,7 @@ private fun AccountSwitcher(
 internal fun AccountIcon(
   appTheme: AppTheme,
   socketState: SocketState,
+  workingOffline: Boolean,
   size: Dp,
   indicatorSize: Dp,
   indicatorOffset: Dp,
@@ -298,13 +302,12 @@ internal fun AccountIcon(
 
     if (socketState !is SocketState.Disabled) {
       ConnectionIndicator(
-        state = when (socketState) {
-          is SocketState.Authenticated -> ConnectionState.Connected
-          SocketState.Authenticating -> ConnectionState.Connecting
-          SocketState.Connecting -> ConnectionState.Connecting
-          SocketState.Disconnected -> ConnectionState.Disconnected
-          is SocketState.Failed -> ConnectionState.Disconnected
-          SocketState.Disabled -> error("guarded above")
+        state = when {
+          workingOffline -> ConnectionState.Offline
+          socketState is SocketState.Authenticated -> ConnectionState.Connected
+          socketState is SocketState.Authenticating -> ConnectionState.Connecting
+          socketState is SocketState.Connecting -> ConnectionState.Connecting
+          else -> ConnectionState.Disconnected
         },
         size = indicatorSize,
         borderWidth = 3.dp,

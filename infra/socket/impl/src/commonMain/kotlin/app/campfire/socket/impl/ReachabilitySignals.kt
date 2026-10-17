@@ -33,8 +33,8 @@ internal fun reachabilitySignals(status: Flow<Reachability>): Flow<ReachabilityS
   var previous: Reachability? = null
   status.collect { current ->
     val signal = when (current) {
-      // Out of range the socket is closed by connectionDemand anyway; slow any in-flight loop
-      Reachability.Unreachable, Reachability.OutOfRange -> ReachabilitySignal.Slow
+      // Out of range or offline, connectionDemand closes the socket anyway; slow any in-flight loop
+      Reachability.Unreachable, Reachability.OutOfRange, Reachability.Offline -> ReachabilitySignal.Slow
       Reachability.Unknown -> ReachabilitySignal.Fast
       Reachability.Reachable -> if (previous != null && previous != Reachability.Reachable) {
         ReachabilitySignal.Reconnect
