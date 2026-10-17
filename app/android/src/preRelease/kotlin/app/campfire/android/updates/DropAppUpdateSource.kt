@@ -13,6 +13,7 @@ import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSheet
 import app.campfire.updates.source.AppUpdateSource
 import com.r0adkll.drop.Drop
+import com.r0adkll.drop.DropManifest
 import com.r0adkll.drop.DropState
 import com.r0adkll.drop.Update
 import com.r0adkll.drop.UpdateCheckResult
@@ -20,6 +21,9 @@ import com.r0adkll.drop.ui.DropUpdateSheet
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -43,6 +47,18 @@ class DropAppUpdateSource(
   private val drop by lazy { Drop(application) }
 
   override val isSupported: Boolean = true
+
+  // Pull request builds are installed to test a change and replaced often, so they check on every
+  // foreground; main moves with every merge; beta only moves with a release.
+  override val checkInterval: Duration by lazy {
+    val config = DropManifest.read(application)
+    val channel = config.stamp?.channel ?: config.channel
+    when {
+      channel.startsWith("pr/") -> Duration.ZERO
+      channel == "beta" -> 1.hours
+      else -> 15.minutes
+    }
+  }
 
   override val updateSheet: AppUpdateSheet = object : AppUpdateSheet {
     @Composable
