@@ -128,6 +128,7 @@ internal fun RailAccountSwitcher(
           ToggleAccountIcon(
             appTheme = state.theme,
             socketState = state.socketState,
+            workingOffline = state.workingOffline,
             size = ExpandedIconSize,
             indicatorSize = 8.dp,
             indicatorOffset = 3.dp,
@@ -182,6 +183,7 @@ internal fun RailAccountSwitcher(
       ToggleAccountIcon(
         appTheme = state.theme,
         socketState = state.socketState,
+        workingOffline = state.workingOffline,
         size = CollapsedIconSize,
         indicatorSize = 12.dp,
         indicatorOffset = 6.dp,
@@ -197,6 +199,7 @@ internal fun RailAccountSwitcher(
 private fun ToggleAccountIcon(
   appTheme: AppTheme,
   socketState: SocketState,
+  workingOffline: Boolean,
   size: Dp,
   indicatorSize: Dp,
   indicatorOffset: Dp,
@@ -209,6 +212,7 @@ private fun ToggleAccountIcon(
     AccountIcon(
       appTheme = appTheme,
       socketState = socketState,
+      workingOffline = workingOffline,
       size = size,
       indicatorSize = indicatorSize,
       indicatorOffset = indicatorOffset,

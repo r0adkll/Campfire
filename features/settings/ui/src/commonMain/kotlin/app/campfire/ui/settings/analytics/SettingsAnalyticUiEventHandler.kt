@@ -71,6 +71,11 @@ class SettingsAnalyticUiEventHandler(
     }
 
     is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
+      is SettingsUiEvent.ConnectionSettingEvent.GoOffline -> send("work_offline", Updated, event.choice.name)
+      SettingsUiEvent.ConnectionSettingEvent.GoOnline -> send("work_offline", Updated, "online")
+      is SettingsUiEvent.ConnectionSettingEvent.WorkOfflineOnMobileData -> {
+        send("work_offline_on_mobile_data", Updated, event.enabled)
+      }
       is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }

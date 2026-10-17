@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,6 +53,7 @@ import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
+import app.campfire.common.compose.offline.BackOnlineSnackbarEffect
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
 import app.campfire.common.compose.theme.CampfireTheme
@@ -72,6 +76,7 @@ import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.requiredUserId
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
@@ -209,6 +214,7 @@ internal fun LoggedInWindow(
               navigator = urlNavigator,
               navigationEventListeners = userComponent.navigationEventListeners,
               deepLink = deepLink,
+              workOffline = userComponent.workOffline,
               supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
               onSupportingPaneWidthChange = { layoutSettings.supportingPaneWidth = it.value },
               tabletopSplit = tabletopSplit,
@@ -228,6 +234,7 @@ private fun LoggedInUi(
   navigator: Navigator,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
   deepLink: DeepLink,
+  workOffline: WorkOffline,
   supportingPaneWidth: Dp?,
   onSupportingPaneWidthChange: (Dp) -> Unit,
   modifier: Modifier = Modifier,
@@ -326,6 +333,9 @@ private fun LoggedInUi(
   }
 
   val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+  val snackbarHostState = remember { SnackbarHostState() }
+  BackOnlineSnackbarEffect(workOffline, snackbarHostState)
   LaunchedEffect(drawerState.currentValue) {
     if (drawerState.currentValue == DrawerValue.Open) {
       Analytics.send(ScreenViewEvent("Drawer", ScreenType.Overlay))
@@ -541,6 +551,25 @@ private fun LoggedInUi(
           )
         }
       },
+      snackbarHost = {
+        // Above the floating playback bar, which itself rides above the bottom navigation
+        val isPlaying = LocalPlaybackSession.current != null && !windowSizeClass.usesBottomPlaybackBar
+        val bottomSystemInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        SnackbarHost(
+          hostState = snackbarHostState,
+          modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .offset {
+              val barOffset = if (!windowSizeClass.isSupportingPaneEnabled) {
+                navigationBarState.playbackBarOffset().roundToInt()
+              } else {
+                bottomSystemInset.roundToPx()
+              }
+              val playerHeight = if (isPlaying) FloatingPlaybackBarClearance.roundToPx() else 0
+              IntOffset(0, -(barOffset + playerHeight))
+            },
+        )
+      },
       showSupportingContent = detailRootScreen !is EmptyScreen,
       supportingContentWidth = supportingPaneWidth,
       onSupportingContentWidthChange = onSupportingPaneWidthChange,
@@ -580,6 +609,9 @@ private fun LoggedInUi(
     adaptiveLayout(modifier)
   }
 }
+
+/** Room for the floating playback bar and its margin, so snackbars clear it. */
+private val FloatingPlaybackBarClearance = 80.dp
 
 /** Opens window screens in their own window, where the platform host provides one. */
 @Composable

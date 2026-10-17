@@ -14,6 +14,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
 import app.campfire.network.reachability.NetworkSnapshot
+import app.campfire.network.reachability.OfflineChoice
+import app.campfire.network.reachability.OfflineState
 import app.campfire.network.reachability.Reachability
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
@@ -40,6 +42,12 @@ data class SettingsUiState(
   val isShakingAvailable: Boolean,
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
+  val offline: OfflineState,
+  /** Whether the Wi-Fi based ways to work offline apply on this device. */
+  val canDetectWifi: Boolean,
+  val workOfflineOnMobileData: Boolean,
+  /** What the app last learned about reaching the server, for the connection status card. */
+  val reachability: Reachability,
   val socketSyncEnabled: Boolean,
   /** Extra headers sent with every request to the server, e.g. for reverse-proxy auth. */
   val customHeaders: Map<String, String>,
@@ -242,6 +250,9 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   // Appearance Pane Events
   sealed interface ConnectionSettingEvent : SettingsUiEvent {
+    data class GoOffline(val choice: OfflineChoice) : ConnectionSettingEvent
+    data object GoOnline : ConnectionSettingEvent
+    data class WorkOfflineOnMobileData(val enabled: Boolean) : ConnectionSettingEvent
     data class SocketSyncEnabled(val enabled: Boolean) : ConnectionSettingEvent
     data class HomeServerOnMobileData(val enabled: Boolean) : ConnectionSettingEvent
 

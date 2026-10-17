@@ -37,5 +37,11 @@ kotlin {
         implementation(libs.bundles.test.common)
       }
     }
+
+    jvmTest {
+      dependencies {
+        implementation(compose.desktop.currentOs)
+      }
+    }
   }
 }

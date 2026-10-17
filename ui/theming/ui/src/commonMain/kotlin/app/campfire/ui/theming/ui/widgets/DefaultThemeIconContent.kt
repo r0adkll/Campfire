@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.ConnectionIndicator
 import app.campfire.common.compose.widgets.ConnectionState
 import app.campfire.core.di.AppScope
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppThemeImage
@@ -32,6 +33,7 @@ import dev.zacsweers.metro.Inject
 class DefaultThemeIconContent(
   private val themeRepository: AppThemeRepository,
   private val socketManager: SocketManager,
+  private val workOffline: WorkOffline,
 ) : ThemeIconContent {
 
   @Composable
@@ -41,6 +43,7 @@ class DefaultThemeIconContent(
     }.collectAsState()
 
     val socketState by socketManager.state.collectAsState()
+    val offlineState by workOffline.state.collectAsState()
 
     Box(
       modifier = modifier,
@@ -55,13 +58,17 @@ class DefaultThemeIconContent(
 
       if (socketState !is SocketState.Disabled) {
         ConnectionIndicator(
-          state = when (socketState) {
-            is SocketState.Authenticated -> ConnectionState.Connected
-            SocketState.Authenticating -> ConnectionState.Connecting
-            SocketState.Connecting -> ConnectionState.Connecting
-            SocketState.Disconnected -> ConnectionState.Disconnected
-            is SocketState.Failed -> ConnectionState.Disconnected
-            SocketState.Disabled -> error("guarded above")
+          state = if (offlineState.isOffline) {
+            ConnectionState.Offline
+          } else {
+            when (socketState) {
+              is SocketState.Authenticated -> ConnectionState.Connected
+              SocketState.Authenticating -> ConnectionState.Connecting
+              SocketState.Connecting -> ConnectionState.Connecting
+              SocketState.Disconnected -> ConnectionState.Disconnected
+              is SocketState.Failed -> ConnectionState.Disconnected
+              SocketState.Disabled -> error("guarded above")
+            }
           },
           modifier = Modifier
             .align(Alignment.TopEnd)

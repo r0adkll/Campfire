@@ -29,9 +29,11 @@ class ConnectionReachabilityTest {
   private val monitor = FakeNetworkMonitor(initial = wifi(id = 1))
   private val settings = FakeMobileDataSettings()
   private val permission = FakeLocalNetworkPermission()
+  private val workOffline = FakeWorkOffline()
   private val reachability = reachability(
     monitor = monitor,
     mobileDataSettings = settings,
+    workOffline = workOffline,
     localNetworkPermission = permission,
     time = time,
   )
@@ -165,6 +167,44 @@ class ConnectionReachabilityTest {
     monitor.snapshot.value = cellular()
 
     assertThat(reachability.observeInRange("https://abs.example.com").first()).isTrue()
+  }
+
+  @Test
+  fun `working offline skips any server without touching the network`() = runTest {
+    workOffline.offline = true
+    var calls = 0
+
+    assertFailure { client { calls++ }.get("https://abs.example.com/api/me") }
+      .isInstanceOf<ServerUnreachableException>()
+    assertThat(calls).isEqualTo(0)
+    assertThat(reachability.status.value).isEqualTo(Reachability.Offline)
+  }
+
+  @Test
+  fun `going back online lets the next request through`() = runTest {
+    reachability.unreachable(local)
+    workOffline.offline = true
+    assertThat(reachability.shouldFailFast(local)).isTrue()
+
+    workOffline.offline = false
+    var calls = 0
+    client { calls++ }.get("$localUrl/api/me")
+
+    assertThat(calls).isEqualTo(1)
+    assertThat(reachability.status.value).isEqualTo(Reachability.Reachable)
+  }
+
+  @Test
+  fun `in range follows working offline`() = runTest {
+    reachability.observeInRange("https://abs.example.com").test {
+      assertThat(awaitItem()).isTrue()
+
+      workOffline.offline = true
+      assertThat(awaitItem()).isFalse()
+
+      workOffline.offline = false
+      assertThat(awaitItem()).isTrue()
+    }
   }
 
   @Test

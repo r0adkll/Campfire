@@ -26,7 +26,8 @@ interface ServerReachability {
 
   /**
    * Whether the current network can reach the server at [serverUrl] at all. False only when it
-   * certainly can't (see [Reachability.OutOfRange]); the socket stays closed until it flips back.
+   * certainly can't (see [Reachability.OutOfRange]) or the user is working offline; the socket
+   * stays closed until it flips back.
    */
   fun observeInRange(serverUrl: String): Flow<Boolean>
 
@@ -48,4 +49,7 @@ enum class Reachability {
    * Android's local network permission missing. Nothing is attempted until that changes.
    */
   OutOfRange,
+
+  /** The user chose to work offline; nothing is attempted until they turn it off. */
+  Offline,
 }

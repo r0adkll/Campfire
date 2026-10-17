@@ -42,6 +42,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.AppStateSettings
@@ -149,6 +150,7 @@ class SettingsPresenter(
   private val appUpdateSource: AppUpdateSource,
   private val mobileDataSettings: MobileDataSettings,
   private val serverReachability: ServerReachability,
+  private val workOffline: WorkOffline,
   private val networkMonitor: NetworkMonitor,
   private val localNetworkPermission: LocalNetworkPermissionController,
 ) : NonPausablePresenter<SettingsUiState> {
@@ -254,6 +256,9 @@ class SettingsPresenter(
     val crashReportingEnabled by remember { privacySettings.observeCrashReportingEnabled() }
       .collectAsState()
     val analyticReportingEnabled by remember { privacySettings.observeAnalyticReportingEnabled() }
+      .collectAsState()
+    val offline by remember { workOffline.state }.collectAsState()
+    val workOfflineOnMobileData by remember { connectionSettings.observeWorkOfflineOnMobileData() }
       .collectAsState()
     val socketSyncEnabled by remember { connectionSettings.observeSocketEnabled() }
       .collectAsState()
@@ -361,6 +366,10 @@ class SettingsPresenter(
           null
         },
       ),
+      offline = offline,
+      canDetectWifi = workOffline.canDetectWifi,
+      workOfflineOnMobileData = workOfflineOnMobileData,
+      reachability = reachability,
       socketSyncEnabled = socketSyncEnabled,
       customHeaders = customHeaders,
       localNetworkAccess = when {
@@ -428,6 +437,14 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
+          is SettingsUiEvent.ConnectionSettingEvent.GoOffline -> workOffline.goOffline(event.choice)
+
+          SettingsUiEvent.ConnectionSettingEvent.GoOnline -> workOffline.goOnline()
+
+          is SettingsUiEvent.ConnectionSettingEvent.WorkOfflineOnMobileData -> {
+            connectionSettings.workOfflineOnMobileData = event.enabled
+          }
+
           is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
             connectionSettings.socketEnabled = event.enabled
           }
