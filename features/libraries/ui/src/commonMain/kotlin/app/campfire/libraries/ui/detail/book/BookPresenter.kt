@@ -659,6 +659,14 @@ private fun buildSlots(
         ?.actualProgress
       val current = readTo?.let { ebookContents.entryAt(it) }
       val currentIndex = current?.let { ebookContents.indexOf(it) } ?: -1
+      // How far through the current entry, measured to where the next one starts
+      val start = current?.fraction
+      val progressInEntry = if (readTo != null && start != null) {
+        val end = ebookContents.drop(currentIndex + 1).firstNotNullOfOrNull { it.fraction } ?: 1f
+        if (end > start) (readTo - start) / (end - start) else 0f
+      } else {
+        0f
+      }
       this += SpacerSlot.large("ebook_contents_spacer")
       this += EbookContentsHeaderSlot()
       // Like listened chapters, the entries read past (bar the first) fold into one row
@@ -682,6 +690,7 @@ private fun buildSlots(
             index < currentIndex -> EbookContentsEntrySlot.State.Read
             else -> EbookContentsEntrySlot.State.Unread
           },
+          progressInEntry = if (index == currentIndex) progressInEntry else 0f,
         )
       }
     }

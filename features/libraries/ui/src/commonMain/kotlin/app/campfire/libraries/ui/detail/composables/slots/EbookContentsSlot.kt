@@ -7,31 +7,24 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
+import app.campfire.libraries.ui.detail.composables.ChapterListItem
 import app.campfire.reader.api.EbookContentsEntry
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.header_contents
@@ -70,8 +63,8 @@ class EbookContentsHeaderSlot : ContentSlot {
 }
 
 /**
- * One entry of an ebook's contents, which opens the reader there. The entry being read stands
- * out, and those before it fade.
+ * One entry of an ebook's contents, which opens the reader there. Like an audiobook's chapters, the
+ * entry being read is highlighted with how far into it the reader is, and those before it fade.
  */
 class EbookContentsEntrySlot(
   @get:VisibleForTesting val entry: EbookContentsEntry,
@@ -79,6 +72,8 @@ class EbookContentsEntrySlot(
   private val isFirst: Boolean,
   private val isLast: Boolean,
   @get:VisibleForTesting val state: State,
+  /** How far through this entry the reader is, when it's the [State.Current] one. */
+  @get:VisibleForTesting val progressInEntry: Float = 0f,
 ) : ContentSlot {
 
   enum class State { Read, Current, Unread }
@@ -103,37 +98,20 @@ class EbookContentsEntrySlot(
           bottomEnd = bottomCornerSize,
         ),
       ) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
+        ChapterListItem(
+          title = entry.label,
+          trailing = entry.fraction?.let { "${(it * 100).roundToInt()}%" }.orEmpty(),
+          // The row only highlights strictly inside (0, 1), so the entry being read always does
+          progress = when (state) {
+            State.Read -> 1f
+            State.Current -> progressInEntry.coerceIn(0.01f, 0.99f)
+            State.Unread -> 0f
+          },
+          startPadding = 16.dp + (entry.depth * 16).dp,
           modifier = Modifier
-            .fillMaxWidth()
             .clickable { eventSink(LibraryItemUiEvent.ReadAt(entry.href)) }
-            .heightIn(min = 56.dp)
-            .padding(start = 16.dp + (entry.depth * 16).dp, end = 16.dp)
-            .alpha(if (state == State.Read) 0.6f else 1f)
             .testTag("ebook_contents_entry"),
-        ) {
-          Text(
-            text = entry.label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (state == State.Current) FontWeight.Bold else null,
-            color = when (state) {
-              State.Current -> MaterialTheme.colorScheme.primary
-              else -> MaterialTheme.colorScheme.onSurface
-            },
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-          )
-          entry.fraction?.let { fraction ->
-            Spacer(Modifier.width(16.dp))
-            Text(
-              text = "${(fraction * 100).roundToInt()}%",
-              style = MaterialTheme.typography.labelMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
-        }
+        )
       }
 
       Spacer(Modifier.height(if (isLast) 32.dp else 2.dp))

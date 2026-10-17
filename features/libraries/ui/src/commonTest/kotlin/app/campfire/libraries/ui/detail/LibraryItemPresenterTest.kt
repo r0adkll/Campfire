@@ -34,6 +34,7 @@ import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
+import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
@@ -384,6 +385,9 @@ class EbookContentsPresenterTest : BaseLibraryItemPresenterTest() {
             EbookContentsEntrySlot.State.Unread,
           )
         firstInstanceOf<ProgressSlot>().prop(ProgressSlot::chapter).isEqualTo("Chapter 1")
+        // A third of the way from Chapter 1 (30%) to Chapter 2 (60%)
+        transform { it.filterIsInstance<EbookContentsEntrySlot>()[1].progressInEntry }
+          .isCloseTo(1f / 3f, 0.001f)
       }
       cancelAndIgnoreRemainingEvents()
     }
