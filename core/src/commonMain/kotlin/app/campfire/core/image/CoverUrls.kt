@@ -20,10 +20,20 @@ object CoverUrls {
   const val ARTWORK_WIDTH = 1200
 
   private val SERVER_IMAGE_PATH = Regex("""/api/(items/[^/?#]+/cover|authors/[^/?#]+/image)(?:[?#].*)?$""")
+  private val ITEM_COVER_PATH = Regex("""/api/items/([^/?#]+)/cover(?:[?#].*)?$""")
   private val SIZE_PARAMS = setOf("width", "height", "raw")
 
   /** True when [url] points at a server-resized cover or author image endpoint. */
   fun isServerImageUrl(url: String): Boolean = SERVER_IMAGE_PATH.containsMatchIn(url)
+
+  /** The library item id of an item cover [url], or null when it isn't one. */
+  fun itemId(url: String): String? = ITEM_COVER_PATH.find(url)?.groupValues?.get(1)
+
+  /** The `ts` (the item's last update, in epoch millis) that versions a cover [url], or null without one. */
+  fun timestamp(url: String): Long? = queryParams(url)
+    .firstOrNull { it.substringBefore('=') == "ts" }
+    ?.substringAfter('=')
+    ?.toLongOrNull()
 
   /** Rounds [widthPx] up to the nearest [WIDTH_BUCKETS] entry (capped at the largest); null when unknown. */
   fun bucketWidth(widthPx: Int?): Int {
@@ -45,10 +55,11 @@ object CoverUrls {
     return "$base${separator}width=$width$fragment"
   }
 
-  private fun hasSizeParam(url: String): Boolean {
+  private fun hasSizeParam(url: String): Boolean = queryParams(url).any { it.substringBefore('=') in SIZE_PARAMS }
+
+  private fun queryParams(url: String): List<String> {
     val queryStart = url.indexOf('?')
-    if (queryStart < 0) return false
-    val query = url.substring(queryStart + 1).substringBefore('#')
-    return query.split('&').any { it.substringBefore('=') in SIZE_PARAMS }
+    if (queryStart < 0) return emptyList()
+    return url.substring(queryStart + 1).substringBefore('#').split('&')
   }
 }

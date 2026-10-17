@@ -16,13 +16,15 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 @Inject
 class IosOfflineDownloadManager : OfflineDownloadManager {
+  // Nothing is downloaded, rather than never knowing, so downloaded ebooks still keep their covers
   override fun observeAll(): Flow<List<OfflineDownload>> {
-    return emptyFlow()
+    return flowOf(emptyList())
   }
 
   override fun observeForItem(item: LibraryItem): Flow<OfflineDownload> {

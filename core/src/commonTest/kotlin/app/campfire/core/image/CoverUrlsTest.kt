@@ -6,6 +6,7 @@ package app.campfire.core.image
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
 
@@ -83,5 +84,21 @@ class CoverUrlsTest {
   @Test
   fun sized_uses_artwork_width_when_size_is_unknown() {
     assertThat(CoverUrls.sized(itemCover, null)).isEqualTo("$itemCover?width=${CoverUrls.ARTWORK_WIDTH}")
+  }
+
+  @Test
+  fun itemId_reads_the_item_of_a_cover_url() {
+    assertThat(CoverUrls.itemId(itemCover)).isEqualTo("li_123")
+    assertThat(CoverUrls.itemId("$itemCover?ts=1&width=400")).isEqualTo("li_123")
+    assertThat(CoverUrls.itemId(authorImage)).isNull()
+    assertThat(CoverUrls.itemId("https://cdn.example.com/cover.jpg")).isNull()
+  }
+
+  @Test
+  fun timestamp_reads_the_ts_param() {
+    assertThat(CoverUrls.timestamp("$itemCover?ts=1700000000")).isEqualTo(1700000000L)
+    assertThat(CoverUrls.timestamp("$itemCover?width=400&ts=42#frag")).isEqualTo(42L)
+    assertThat(CoverUrls.timestamp(itemCover)).isNull()
+    assertThat(CoverUrls.timestamp("$itemCover?ts=abc")).isNull()
   }
 }

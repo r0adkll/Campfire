@@ -15,6 +15,7 @@ import app.campfire.core.logging.Corked
 import app.campfire.core.logging.loggableUrl
 import coil3.imageLoader
 import coil3.request.ImageRequest
+import java.io.File
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
@@ -33,6 +34,13 @@ class CoverContentProvider : ContentProvider() {
 
     val ctx = context
       ?: throw FileNotFoundException("ContentProvider has no context")
+
+    // A downloaded item's kept cover works offline, and survives the OS clearing the cache
+    offlineCover(uri)?.let { path ->
+      dbark { "Kept cover for $uri found" }
+      return ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
+    }
+
     // The app's image loader rewrites server cover URLs to request a sized rendition, and that rewritten
     // URL is the disk cache key — so look up (and warm) the same rendition it would produce.
     val url = resolveRemoteUrl(uri)
@@ -90,6 +98,14 @@ class CoverContentProvider : ContentProvider() {
     selection: String?,
     selectionArgs: Array<out String>?,
   ): Int = 0
+
+  private fun offlineCover(uri: Uri): String? {
+    val offlineCovers = ComponentHolder.maybeComponent<CoverContentUserComponent>()?.offlineCovers
+      ?: return null
+    if (uri.pathSegments.getOrNull(0) != PATH_ITEMS) return null
+    val id = uri.pathSegments.getOrNull(1) ?: return null
+    return runBlocking { offlineCovers.get(id) }?.path?.takeIf { File(it).isFile }
+  }
 
   private fun resolveRemoteUrl(uri: Uri): String? {
     val hydrator = ComponentHolder.maybeComponent<CoverContentUserComponent>()?.urlHydrator
