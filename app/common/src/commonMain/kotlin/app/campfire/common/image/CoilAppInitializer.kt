@@ -5,6 +5,7 @@ package app.campfire.common.image
 
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
+import app.campfire.covers.api.OfflineCovers
 import app.campfire.network.di.UserClient
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
@@ -19,6 +20,7 @@ import io.ktor.client.HttpClient
 @Inject
 class CoilAppInitializer(
   @UserClient private val httpClient: Lazy<HttpClient>,
+  private val offlineCovers: OfflineCovers,
 ) : AppInitializer {
 
   override val priority: Int = AppInitializer.HIGHEST_PRIORITY
@@ -33,6 +35,7 @@ class CoilAppInitializer(
             .build()
         }
         .components {
+          add(OfflineCoverInterceptor(offlineCovers))
           add(CoverSizingInterceptor())
           add(
             KtorNetworkFetcherFactory(

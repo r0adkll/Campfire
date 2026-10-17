@@ -112,6 +112,18 @@ class DefaultEbookRepository(
     .map { it[itemId] ?: EbookDownload.None }
     .distinctUntilChanged()
 
+  override fun observeDownloads(): Flow<Set<LibraryItemId>> = downloads
+    .onStart {
+      val onDisk = withContext(dispatcherProvider.io) { downloadedFiles() }
+      downloads.update { current ->
+        current + onDisk
+          .filterKeys { it !in current }
+          .mapValues { (_, file) -> EbookDownload(EbookDownload.State.Downloaded, file.size(), file.size()) }
+      }
+    }
+    .map { downloads -> downloads.filterValues { it.state in KEPT_STATES }.keys }
+    .distinctUntilChanged()
+
   override fun download(itemId: LibraryItemId) {
     if (downloads.value[itemId]?.state == EbookDownload.State.Downloading) return
     setDownload(itemId, EbookDownload(EbookDownload.State.Downloading))
@@ -169,6 +181,15 @@ class DefaultEbookRepository(
 
   private fun downloadedFile(itemId: LibraryItemId): Path? = filesIn(storage.downloadDirectory(), itemId)
     .firstOrNull { it.hasContent() }
+
+  /** Every whole downloaded book, by item; a `.part` file is one cut short. */
+  private fun downloadedFiles(): Map<LibraryItemId, Path> {
+    val dir = Path(storage.downloadDirectory())
+    if (!SystemFileSystem.exists(dir)) return emptyMap()
+    return SystemFileSystem.list(dir)
+      .filter { !it.name.endsWith(".part") && it.hasContent() }
+      .associateBy { it.name.substringBefore('.') }
+  }
 
   private fun deleteFilesIn(directory: String, itemId: LibraryItemId) {
     filesIn(directory, itemId).forEach { SystemFileSystem.delete(it, mustExist = false) }
@@ -262,6 +283,9 @@ private fun moveFile(from: Path, to: Path) {
     SystemFileSystem.delete(from)
   }
 }
+
+/** The states of a download that's kept, or on its way. */
+private val KEPT_STATES = setOf(EbookDownload.State.Downloading, EbookDownload.State.Downloaded)
 
 private const val BUFFER_SIZE = 64 * 1024
 private const val PROGRESS_STEP_UNKNOWN_SIZE = 256 * 1024L

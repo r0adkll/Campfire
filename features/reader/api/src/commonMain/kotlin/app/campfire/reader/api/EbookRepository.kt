@@ -27,6 +27,9 @@ interface EbookRepository {
   /** Whether [itemId]'s ebook is downloaded to read offline, or on its way. */
   fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload>
 
+  /** The items whose ebook is downloaded to read offline, or on its way. */
+  fun observeDownloads(): Flow<Set<LibraryItemId>>
+
   /** Keep [itemId]'s ebook on this device to read offline. */
   fun download(itemId: LibraryItemId)
 

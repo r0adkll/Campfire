@@ -5,9 +5,11 @@ package app.campfire.audioplayer.impl.content
 
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.di.UserScope
+import app.campfire.covers.api.OfflineCovers
 import dev.zacsweers.metro.ContributesTo
 
 @ContributesTo(UserScope::class)
 interface CoverContentUserComponent {
   val urlHydrator: UrlHydrator
+  val offlineCovers: OfflineCovers
 }

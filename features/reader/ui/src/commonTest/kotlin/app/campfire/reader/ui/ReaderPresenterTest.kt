@@ -314,6 +314,7 @@ class ReaderPresenterTest {
     }
 
     override fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload> = MutableStateFlow(EbookDownload.None)
+    override fun observeDownloads(): Flow<Set<LibraryItemId>> = MutableStateFlow(emptySet())
     override fun download(itemId: LibraryItemId) = Unit
     override fun deleteDownload(itemId: LibraryItemId) = Unit
     override suspend fun deleteFiles(itemId: LibraryItemId) = Unit

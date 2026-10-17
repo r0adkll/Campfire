@@ -71,6 +71,8 @@ kotlin {
       dependencies {
         api(libs.media3.exoplayer)
 
+        implementation(projects.infra.covers.api)
+
         // These are used in the AudiPlayerService to facilitate
         // Android Auto support via the MediaLibraryService
         implementation(projects.features.home.api)

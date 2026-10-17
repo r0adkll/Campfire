@@ -20,6 +20,7 @@ import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.fixtures.user
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
@@ -159,6 +160,25 @@ class DefaultEbookRepositoryTest {
     // A new session reads what's downloaded from the disk
     val restarted = repository().observeDownload(ITEM).first()
     assertThat(restarted.state).isEqualTo(EbookDownload.State.Downloaded)
+  }
+
+  @Test
+  fun observeDownloads_followsDownloads_andReadsThemFromTheDiskAfterARestart() = runTest {
+    repository().apply {
+      assertThat(observeDownloads().first()).isEmpty()
+      download(ITEM)
+      // On its way counts as downloaded
+      observeDownloads().first { ITEM in it }
+      observeDownload(ITEM).first { it.state == EbookDownload.State.Downloaded }
+    }
+    // A download cut short isn't one
+    SystemFileSystem.sink(Path(storage.downloadDirectory(), "other.epub.part")).buffered().use { it.write(BOOK) }
+
+    val restarted = repository()
+    assertThat(restarted.observeDownloads().first()).isEqualTo(setOf(ITEM))
+
+    restarted.deleteDownload(ITEM)
+    assertThat(restarted.observeDownloads().first()).isEmpty()
   }
 
   @Test

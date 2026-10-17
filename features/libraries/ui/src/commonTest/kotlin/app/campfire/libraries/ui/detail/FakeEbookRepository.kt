@@ -24,6 +24,8 @@ class FakeEbookRepository : EbookRepository {
 
   override fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload> = download
 
+  override fun observeDownloads(): Flow<Set<LibraryItemId>> = MutableStateFlow(emptySet())
+
   override fun download(itemId: LibraryItemId) {
     downloaded += itemId
   }

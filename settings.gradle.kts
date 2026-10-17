@@ -131,6 +131,10 @@ include(
   ":infra:socket:test",
 )
 include(
+  ":infra:covers:api",
+  ":infra:covers:impl",
+)
+include(
   ":common:screens",
   ":common:compose",
   ":common:test",
