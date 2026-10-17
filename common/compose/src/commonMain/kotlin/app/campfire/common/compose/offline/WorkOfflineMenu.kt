@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
@@ -156,7 +157,7 @@ fun WorkOfflineMenu(
           )
         }
       } else {
-        MenuCard(shape = StandaloneCardShape) {
+        MenuCard {
           MenuHeader(stringResource(Res.string.work_offline_title))
           offlineChoices(canDetectWifi)
             .forEach { choice ->
@@ -178,11 +179,15 @@ fun WorkOfflineMenu(
 /**
  * One card of the menu, set apart from the drawer it opens over: a step up from its surface
  * container, outlined, and raised.
+ *
+ * Its shadow is always cast from the evenly rounded [CardShape], whatever [shape] it's drawn in:
+ * Android started the shadow of a card with mixed corner sizes a couple of pixels below its edge,
+ * leaving a pale strip there. The two differ only at the small corners, which face the other card.
  */
 @Composable
 private fun MenuCard(
-  shape: Shape,
   modifier: Modifier = Modifier,
+  shape: Shape = CardShape,
   color: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
   border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
   content: @Composable ColumnScope.() -> Unit,
@@ -191,8 +196,9 @@ private fun MenuCard(
     shape = shape,
     color = color,
     border = border,
-    shadowElevation = 6.dp,
-    modifier = modifier.fillMaxWidth(),
+    modifier = modifier
+      .fillMaxWidth()
+      .shadow(elevation = 6.dp, shape = CardShape, clip = false),
   ) {
     Column(
       modifier = Modifier.padding(vertical = 4.dp),
@@ -201,7 +207,7 @@ private fun MenuCard(
   }
 }
 
-private val StandaloneCardShape = RoundedCornerShape(16.dp)
+private val CardShape = RoundedCornerShape(16.dp)
 private val LeadingCardShape =
   RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
 private val TrailingCardShape =
