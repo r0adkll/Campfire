@@ -73,4 +73,21 @@
   <string name="playback_speed_dialog_cancel">Cancel</string>
   <string name="action_back">Back</string>
   <string name="action_close">Close</string>
+
+  <string name="work_offline_title">Work offline</string>
+  <string name="work_offline_choice_until_turned_off">Until I turn it off</string>
+  <string name="work_offline_choice_one_hour">For 1 hour</string>
+  <string name="work_offline_choice_four_hours">For 4 hours</string>
+  <string name="work_offline_choice_until_tomorrow">Until tomorrow morning</string>
+  <string name="work_offline_choice_until_wifi">Until I'm on Wi-Fi</string>
+  <string name="work_offline_choice_until_wifi_reconnect">Until I reconnect to Wi-Fi</string>
+  <string name="work_offline_status_until_turned_off">Working offline</string>
+  <string name="work_offline_status_until_today">Offline until %1$s</string>
+  <string name="work_offline_status_until_tomorrow">Offline until %1$s tomorrow</string>
+  <string name="work_offline_status_until_wifi">Offline until you're on Wi-Fi</string>
+  <string name="work_offline_status_until_wifi_reconnect">Offline until you reconnect to Wi-Fi</string>
+  <string name="work_offline_status_mobile_data">Offline on mobile data</string>
+  <string name="work_offline_go_online">Go online now</string>
+  <string name="work_offline_go_online_until_wifi">Go online until next Wi-Fi</string>
+  <string name="work_offline_back_online">Back online</string>
 </resources>

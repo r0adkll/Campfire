@@ -14,6 +14,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Library
 import app.campfire.core.model.Server
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.socket.SocketManager
 import app.campfire.ui.theming.api.AppThemeRepository
 import com.slack.circuit.runtime.presenter.Presenter
@@ -31,6 +32,7 @@ class AccountSwitcherPresenter(
   private val libraryRepository: LibraryRepository,
   private val themeRepository: AppThemeRepository,
   private val socketManager: SocketManager,
+  private val workOffline: WorkOffline,
 ) : Presenter<AccountSwitcherUiState> {
 
   @Composable
@@ -42,6 +44,7 @@ class AccountSwitcherPresenter(
     }.collectAsState()
 
     val socketState by socketManager.state.collectAsState()
+    val offline by remember { workOffline.state }.collectAsState()
 
     val accountState by remember {
       serverRepository.observeCurrentServer()
@@ -77,6 +80,7 @@ class AccountSwitcherPresenter(
         )
       },
       socketState = socketState,
+      workingOffline = offline.isOffline,
       allAccounts = allAccounts,
     ) { event ->
       when (event) {

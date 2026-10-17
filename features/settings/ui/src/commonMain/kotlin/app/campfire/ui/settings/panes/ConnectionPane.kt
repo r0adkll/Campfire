@@ -31,6 +31,15 @@ internal fun ConnectionPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    WorkOfflineSettings(
+      offline = state.offline,
+      canDetectWifi = state.canDetectWifi,
+      workOfflineOnMobileData = state.workOfflineOnMobileData,
+      serverName = state.server.dataOrNull?.name,
+      reachability = state.reachability,
+      onEvent = state.eventSink,
+    )
+
     state.localNetworkAccess?.let { access ->
       LocalNetworkAccessSetting(
         access = access,

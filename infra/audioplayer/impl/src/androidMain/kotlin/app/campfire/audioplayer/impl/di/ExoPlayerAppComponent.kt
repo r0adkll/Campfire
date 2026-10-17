@@ -24,6 +24,7 @@ import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
 import app.campfire.audioplayer.impl.offline.downloadRequirements
 import app.campfire.core.di.AppScope
 import app.campfire.network.di.AudioPlayerClient
+import app.campfire.network.reachability.WorkOffline
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesTo
@@ -98,6 +99,7 @@ interface ExoPlayerAppComponent {
     @DownloadCache downloadCache: SimpleCache,
     httpDataSourceFactory: HttpDataSource.Factory,
     mobileDataSettings: MobileDataSettings,
+    workOffline: WorkOffline,
   ): DownloadManager {
     val numCpus = Runtime.getRuntime().availableProcessors()
     return DownloadManager(
@@ -110,6 +112,7 @@ interface ExoPlayerAppComponent {
       maxParallelDownloads = numCpus
       // Set on the manager's own thread; later changes go through DownloadRequirementsObserver
       requirements = downloadRequirements(wifiOnly = mobileDataSettings.downloadOnWifiOnly)
+      if (workOffline.isOffline()) pauseDownloads()
     }
   }
 

@@ -5,7 +5,7 @@
   <string name="setting_account_title">Account</string>
   <string name="setting_account_subtitle">Name, tent, and other campsite settings</string>
   <string name="setting_connection_title">Connection</string>
-  <string name="setting_connection_subtitle">Live updates, your home server, and custom headers</string>
+  <string name="setting_connection_subtitle">Working offline, live updates, your home server, and custom headers</string>
   <string name="setting_appearance_title">Appearance</string>
   <string name="setting_appearance_subtitle">Theme, look and feel</string>
   <string name="setting_downloads_title">Downloads</string>
@@ -35,6 +35,18 @@
   <string name="setting_account_name_subtitle">Update the name of this server in the app</string>
   <string name="setting_account_dialog_title">Change server name</string>
   <string name="setting_account_dialog_label">Server name</string>
+  <string name="setting_connection_work_offline_title">Work offline</string>
+  <string name="setting_connection_online_title">Online</string>
+  <string name="setting_connection_online_connected">Connected to %1$s</string>
+  <string name="setting_connection_online_unreachable">Can't reach %1$s right now. Campfire keeps working from downloads and tries again on its own.</string>
+  <string name="setting_connection_online_server">Using %1$s</string>
+  <string name="setting_connection_server_fallback">your server</string>
+  <string name="setting_connection_work_offline_action">Work offline…</string>
+  <string name="setting_connection_offline_detail">Campfire isn't contacting the server. Downloads and anything already loaded stay available, and your progress syncs once you're back online.</string>
+  <string name="setting_connection_work_offline_dialog_confirm">Go offline</string>
+  <string name="setting_connection_work_offline_dialog_cancel">Cancel</string>
+  <string name="setting_connection_work_offline_mobile_data_title">Work offline on mobile data</string>
+  <string name="setting_connection_work_offline_mobile_data_subtitle">Stay offline whenever you're not on Wi-Fi, and catch up once you are.</string>
   <string name="setting_connection_realtime_sync_header">Realtime sync</string>
   <string name="setting_connection_socket_sync_title">Live updates</string>
   <string name="setting_connection_socket_sync_subtitle">Stay connected to the server so library, podcast, and playback changes from other devices appear instantly. Turn off to disable the persistent socket.</string>
