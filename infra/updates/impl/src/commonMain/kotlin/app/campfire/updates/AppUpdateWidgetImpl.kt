@@ -31,10 +31,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,17 +58,15 @@ import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 @ContributesBinding(AppScope::class)
 @Inject
 class AppUpdateWidgetImpl(
   private val appUpdateSource: AppUpdateSource,
+  private val appUpdateChecker: AppUpdateChecker,
   private val appStateSettings: AppStateSettings,
 ) : AppUpdateWidget {
-
-  private var invalidator by mutableIntStateOf(0)
 
   @Composable
   override fun Content(modifier: Modifier) {
@@ -79,13 +75,7 @@ class AppUpdateWidgetImpl(
     val scope = rememberCoroutineScope()
     val overlayHost = LocalOverlayHost.current
 
-    LaunchedEffect(Unit) {
-      appUpdateSource.changes().collect { invalidator++ }
-    }
-
-    val appUpdate by remember(invalidator) {
-      flow { emit(appUpdateSource.getAvailableUpdate()) }
-    }.collectAsState(null)
+    val appUpdate by appUpdateChecker.update.collectAsState()
     val dismissedVersionCode by appStateSettings.observeAppUpdateDismissedVersionCode().collectAsState()
     var showSourceSheet by remember { mutableStateOf(false) }
 
@@ -118,7 +108,7 @@ class AppUpdateWidgetImpl(
           } else {
             scope.launch {
               overlayHost.showAppUpdateSheet(update)
-              invalidator++
+              appUpdateChecker.refresh()
             }
           }
         },
@@ -136,7 +126,7 @@ class AppUpdateWidgetImpl(
       sourceSheet.Content(
         onDismiss = {
           showSourceSheet = false
-          invalidator++
+          appUpdateChecker.refresh()
         },
       )
     }

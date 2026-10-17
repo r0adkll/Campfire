@@ -23,5 +23,12 @@ kotlin {
         implementation(libs.compose.ui)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
+      }
+    }
   }
 }

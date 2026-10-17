@@ -5,6 +5,7 @@ package app.campfire.updates.source
 
 import app.campfire.settings.api.DevSettings
 import dev.zacsweers.metro.Inject
+import kotlin.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
@@ -25,6 +26,8 @@ class FakeAppUpdateSource(
 ) : AppUpdateSource {
 
   override val isSupported: Boolean = true
+
+  override val checkInterval: Duration = Duration.ZERO
 
   override fun changes(): Flow<Unit> = devSettings.observeFakeAppUpdateAvailable()
     .drop(1)

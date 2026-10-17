@@ -4,6 +4,8 @@
 package app.campfire.updates.source
 
 import androidx.compose.runtime.Composable
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -24,6 +26,13 @@ interface AppUpdateSource {
    * UI should be rendered.
    */
   val isSupported: Boolean
+
+  /**
+   * The least time between update checks made because the app returned to the foreground.
+   * Checks after [changes] or a closed update sheet aren't held to it.
+   */
+  val checkInterval: Duration
+    get() = 1.hours
 
   /**
    * The source's own update UI, shown in place of Campfire's update sheet, or null to use
