@@ -3,37 +3,52 @@
 
 package app.campfire.common.compose.offline
 
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.DropdownMenuPopupPositionProvider
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.MenuGroupShapes
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CalendarClock
 import app.campfire.common.compose.icons.rounded.CloudDone
@@ -74,10 +89,11 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The ways to work offline, or — while offline — why and until when, with a way back online.
  *
- * It opens just above its anchor, like a menu from the drawer's footer. Material's own placement
- * keeps 48dp clear of the window's bottom edge, so an anchor that close left the menu floating
- * well above it.
+ * Its own popup rather than Material's menu, which draws its own container and keeps 48dp clear
+ * of the window's bottom edge: this one is only its cards, opening just above its anchor in the
+ * drawer's footer.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WorkOfflineMenu(
   expanded: Boolean,
@@ -88,89 +104,108 @@ fun WorkOfflineMenu(
   onGoOnline: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val visibility = remember { MutableTransitionState(false) }
+  visibility.targetState = expanded
+  // Stays in composition until it has animated out
+  if (!visibility.currentState && !visibility.targetState) return
+
   val density = LocalDensity.current
   val positionProvider = remember(density) { AboveAnchorPositionProvider(density) }
-  DropdownMenuPopup(
-    expanded = expanded,
-    onDismissRequest = onDismissRequest,
+  Popup(
     popupPositionProvider = positionProvider,
-    // Room for the groups' shadows, which the popup's window would otherwise clip
-    modifier = modifier.padding(
-      start = ShadowClearance,
-      top = ShadowClearance,
-      end = ShadowClearance,
-      bottom = ShadowDrop,
-    ),
+    onDismissRequest = onDismissRequest,
+    properties = PopupProperties(focusable = true),
   ) {
-    val reason = state.reason
-    if (reason != null) {
-      // Tinted like the drawer's offline button, so the status reads as the state it's in
-      MenuGroup(
-        shapes = MenuDefaults.groupShape(index = 0, count = 2),
-        containerColor = MenuDefaults.groupVibrantContainerColor,
-        border = null,
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        MenuHeader(
-          text = reason.statusText(),
-          color = MaterialTheme.colorScheme.onTertiaryContainer,
-        )
-      }
-      Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-      MenuGroup(
-        shapes = MenuDefaults.groupShape(index = 1, count = 2),
-      ) {
-        DropdownMenuItem(
-          text = { Text(reason.goOnlineLabel()) },
-          leadingIcon = { Icon(CampfireIcons.Rounded.CloudDone, contentDescription = null) },
-          onClick = {
-            onDismissRequest()
-            onGoOnline()
-          },
-        )
-      }
-    } else {
-      MenuGroup(
-        shapes = MenuDefaults.groupShape(index = 0, count = 1),
-      ) {
-        MenuHeader(stringResource(Res.string.work_offline_title))
-        offlineChoices(canDetectWifi)
-          .forEach { choice ->
-            DropdownMenuItem(
-              text = { Text(choice.label(onWifi = state.onWifi)) },
-              leadingIcon = { Icon(choice.icon, contentDescription = null) },
-              onClick = {
-                onDismissRequest()
-                onGoOffline(choice)
-              },
-            )
-          }
+    val transition = rememberTransition(visibility, label = "WorkOfflineMenu")
+    val scaleSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
+    val alphaSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+    val scale by transition.animateFloat(transitionSpec = { scaleSpec }) { if (it) 1f else 0.8f }
+    val alpha by transition.animateFloat(transitionSpec = { alphaSpec }) { if (it) 1f else 0f }
+
+    Column(
+      verticalArrangement = Arrangement.spacedBy(2.dp),
+      modifier = modifier
+        // Room for the cards' shadows, which the popup's window would otherwise clip
+        .padding(start = ShadowClearance, top = ShadowClearance, end = ShadowClearance, bottom = ShadowDrop)
+        .width(IntrinsicSize.Max)
+        .graphicsLayer {
+          scaleX = scale
+          scaleY = scale
+          this.alpha = alpha
+          transformOrigin = positionProvider.transformOrigin
+        },
+    ) {
+      val reason = state.reason
+      if (reason != null) {
+        // Tinted like the drawer's offline button, so the status reads as the state it's in
+        MenuCard(
+          shape = LeadingCardShape,
+          color = MaterialTheme.colorScheme.tertiaryContainer,
+          border = null,
+        ) {
+          MenuHeader(reason.statusText(), color = LocalContentColor.current)
+        }
+        MenuCard(shape = TrailingCardShape) {
+          MenuRow(
+            icon = CampfireIcons.Rounded.CloudDone,
+            text = reason.goOnlineLabel(),
+            onClick = {
+              onDismissRequest()
+              onGoOnline()
+            },
+          )
+        }
+      } else {
+        MenuCard(shape = StandaloneCardShape) {
+          MenuHeader(stringResource(Res.string.work_offline_title))
+          offlineChoices(canDetectWifi)
+            .forEach { choice ->
+              MenuRow(
+                icon = choice.icon,
+                text = choice.label(onWifi = state.onWifi),
+                onClick = {
+                  onDismissRequest()
+                  onGoOffline(choice)
+                },
+              )
+            }
+        }
       }
     }
   }
 }
 
 /**
- * A menu group set apart from the drawer it opens over: a step up from its surface container,
- * outlined, and raised a level above Material's default.
+ * One card of the menu, set apart from the drawer it opens over: a step up from its surface
+ * container, outlined, and raised.
  */
 @Composable
-private fun MenuGroup(
-  shapes: MenuGroupShapes,
+private fun MenuCard(
+  shape: Shape,
   modifier: Modifier = Modifier,
-  containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+  color: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
   border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
   content: @Composable ColumnScope.() -> Unit,
 ) {
-  DropdownMenuGroup(
-    shapes = shapes,
-    containerColor = containerColor,
-    shadowElevation = 6.dp,
+  Surface(
+    shape = shape,
+    color = color,
     border = border,
-    modifier = modifier,
-    content = content,
-  )
+    shadowElevation = 6.dp,
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    Column(
+      modifier = Modifier.padding(vertical = 4.dp),
+      content = content,
+    )
+  }
 }
+
+private val StandaloneCardShape = RoundedCornerShape(16.dp)
+private val LeadingCardShape =
+  RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+private val TrailingCardShape =
+  RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
 
 private val ShadowClearance = 8.dp
 
@@ -191,16 +226,47 @@ private fun MenuHeader(
   )
 }
 
+@Composable
+private fun MenuRow(
+  icon: ImageVector,
+  text: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier
+      .fillMaxWidth()
+      .heightIn(min = 48.dp)
+      .clickable(role = Role.Button, onClick = onClick)
+      .padding(horizontal = 12.dp),
+  ) {
+    Icon(
+      imageVector = icon,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.size(24.dp),
+    )
+    Spacer(Modifier.width(12.dp))
+    Text(
+      text = text,
+      style = MaterialTheme.typography.labelLarge,
+      maxLines = 1,
+    )
+  }
+}
+
 /**
  * Places the menu's bottom edge on its anchor's top edge, start-aligned with it, or below the
  * anchor when there's more room there; either way kept inside the window. Offsets by
  * [ShadowClearance] and [ShadowDrop] so the visible menu, not its padding, lines up with the anchor.
  */
-internal class AboveAnchorPositionProvider(density: Density) : DropdownMenuPopupPositionProvider {
+internal class AboveAnchorPositionProvider(density: Density) : PopupPositionProvider {
   private val clearance = with(density) { ShadowClearance.roundToPx() }
   private val drop = with(density) { ShadowDrop.roundToPx() }
 
-  override var transformOrigin by mutableStateOf(TransformOrigin(0f, 1f))
+  /** Where the menu grows from: the anchor's side of it. */
+  var transformOrigin by mutableStateOf(TransformOrigin(0f, 1f))
     private set
 
   override fun calculatePosition(
