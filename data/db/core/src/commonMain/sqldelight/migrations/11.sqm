@@ -13,3 +13,14 @@ CREATE TABLE IF NOT EXISTS readerBookSettings (
   PRIMARY KEY (userId, libraryItemId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
+
+-- An ebook's table of contents, as the reader last found it (see ebookContents.sq)
+CREATE TABLE IF NOT EXISTS ebookContents (
+  libraryItemId TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  label TEXT NOT NULL,
+  href TEXT NOT NULL,
+  depth INTEGER NOT NULL,
+  fraction REAL,
+  PRIMARY KEY (libraryItemId, position)
+);

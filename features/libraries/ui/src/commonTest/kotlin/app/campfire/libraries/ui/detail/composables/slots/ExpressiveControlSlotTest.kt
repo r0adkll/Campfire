@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.common.test.mediaProgress as readingProgress
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -77,6 +78,33 @@ class ExpressiveControlSlotTest {
       .assertExists()
       .assertTextContains("Continue listening")
 
+    onNodeWithTag("button_discard_progress").assertExists()
+    onNodeWithTag("button_mark_finished").assertExists()
+  }
+
+  @Test
+  fun ebookWithReadingProgressContinuesReading() = runComposeUiTest {
+    val libraryItem = libraryItem(
+      media = media(numTracks = 0, numAudioFiles = 0, durationInMillis = 0L, ebookFormat = "epub"),
+    )
+    val slot = ExpressiveControlSlot(
+      libraryItem = libraryItem,
+      offlineDownload = null,
+      mediaProgress = readingProgress(libraryItemId = TestLibraryItemId, duration = 0f, ebookProgress = 0.4f),
+      isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+      showConfirmDownloadDialogSetting = false,
+    )
+
+    setCampfireContent {
+      slot.Content(Modifier) {}
+    }
+
+    onNodeWithTag("button_play")
+      .assertExists()
+      .assertTextContains("Continue reading")
     onNodeWithTag("button_discard_progress").assertExists()
     onNodeWithTag("button_mark_finished").assertExists()
   }

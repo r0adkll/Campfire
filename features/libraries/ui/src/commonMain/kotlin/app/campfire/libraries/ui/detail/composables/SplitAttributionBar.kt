@@ -45,7 +45,8 @@ internal fun SplitAttributionBar(
   leftTitle: @Composable () -> Unit,
   leftAttributions: List<String>,
   onLeftAttributeClick: (String) -> Unit,
-  rightTitle: @Composable () -> Unit,
+  /** The right-hand byline, or null for the left one alone (e.g. an ebook has no narrators). */
+  rightTitle: (@Composable () -> Unit)?,
   rightAttributions: List<String>,
   onRightAttributeClick: (String) -> Unit,
   modifier: Modifier = Modifier,
@@ -83,6 +84,8 @@ internal fun SplitAttributionBar(
           .padding(horizontal = 8.dp),
       )
     }
+
+    if (rightTitle == null) return@Row
 
     VerticalDivider(
       modifier = Modifier.height(32.dp),

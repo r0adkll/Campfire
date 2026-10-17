@@ -20,6 +20,8 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.reader.api.Ebook
+import app.campfire.reader.api.EbookContentsEntry
+import app.campfire.reader.api.EbookContentsRepository
 import app.campfire.reader.api.EbookRepository
 import app.campfire.reader.api.ReaderBookSettingsRepository
 import app.campfire.reader.api.screen.ReaderScreen
@@ -57,6 +59,7 @@ class ReaderPresenter(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val readerSettings: ReaderSettings,
   private val bookSettings: ReaderBookSettingsRepository,
+  private val contentsRepository: EbookContentsRepository,
 ) : Presenter<ReaderUiState> {
 
   @Composable
@@ -111,6 +114,9 @@ class ReaderPresenter(
       position = position.copy(progress = opened.progress ?: 0f)
       // The page is ready again after its renderer is replaced, and reopens where the reader is
       var location = opened.location
+      // Opened at an entry in the contents, it goes there once, after the place it was left is
+      // laid out, and offers the way back to it
+      var href = screen.href
       for (message in bridge.messages) {
         when (message) {
           ReaderMessage.Ready -> bridge.open(
@@ -120,8 +126,21 @@ class ReaderPresenter(
             style = style ?: DefaultStyle,
           )
 
-          is ReaderMessage.Opened -> toc = message.toc
-          is ReaderMessage.Restored -> bark { "Restored ${opened.location}: ${message.restored}" }
+          is ReaderMessage.Opened -> {
+            toc = message.toc
+            // The book's details show its contents, which only the file knows
+            launch { contentsRepository.saveContents(screen.libraryItemId, message.toc.map { it.asContentsEntry() }) }
+          }
+
+          is ReaderMessage.Restored -> {
+            bark { "Restored ${opened.location}: ${message.restored}" }
+            href?.let { target ->
+              href = null
+              location?.let { jumpBack = JumpBack(it, opened.progress ?: 0f) }
+              chromeVisible = jumpBack != null
+              bridge.goTo(target)
+            }
+          }
 
           is ReaderMessage.Relocate -> {
             position = ReaderPosition(
@@ -286,4 +305,11 @@ private val DefaultStyle = ReaderStyle(
   background = "#ffffff",
   foreground = "#000000",
   link = "#1a73e8",
+)
+
+private fun TocEntry.asContentsEntry() = EbookContentsEntry(
+  label = label,
+  href = href,
+  depth = depth,
+  fraction = fraction,
 )

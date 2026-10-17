@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.extensions.thenIf
@@ -45,6 +46,28 @@ internal fun DurationListItem(
   modifier: Modifier = Modifier,
   isValid: Boolean = true,
   progress: Float = 0f,
+) {
+  ChapterListItem(
+    title = title,
+    trailing = duration.clockFormat(),
+    modifier = modifier,
+    isValid = isValid,
+    progress = progress,
+  )
+}
+
+/**
+ * A chapter row: [progress] through it in (0, 1) marks it as the one in progress, with a bar along its
+ * foot, and 1 or more marks it as done.
+ */
+@Composable
+internal fun ChapterListItem(
+  title: String,
+  trailing: String,
+  modifier: Modifier = Modifier,
+  isValid: Boolean = true,
+  progress: Float = 0f,
+  startPadding: Dp = 16.dp,
   progressColor: Color = MaterialTheme.colorScheme.secondary,
   trackColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.50f),
   selectedColor: Color = MaterialTheme.colorScheme.secondaryContainer,
@@ -91,8 +114,10 @@ internal fun DurationListItem(
         }
       }
       .padding(
-        horizontal = 16.dp,
-        vertical = 12.dp,
+        start = startPadding,
+        end = 16.dp,
+        top = 12.dp,
+        bottom = 12.dp,
       )
       .thenIf(isActiveChapter) {
         padding(bottom = ProgressHeight)
@@ -122,7 +147,7 @@ internal fun DurationListItem(
     )
     Spacer(Modifier.width(16.dp))
     Text(
-      text = duration.clockFormat(),
+      text = trailing,
       style = MaterialTheme.typography.labelLarge,
       fontFamily = FontFamily.Monospace,
       fontWeight = if (isActiveChapter) FontWeight.Bold else null,

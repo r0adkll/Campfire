@@ -65,6 +65,48 @@ class ProgressSlotTest {
   }
 
   @Test
+  fun readingBarOfAnAudiobookShowsOnlyItsReadingPlace() = runComposeUiTest {
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 20f,
+      duration = 100f,
+      ebookProgress = 0.225f,
+    )
+    val slot =
+      ProgressSlot(false, 1f, mediaProgress, libraryItem(), chapter = "Chapter 7", kind = ProgressSlot.Kind.Reading)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("Chapter 7").assertExists()
+    onNodeWithText("22.5%").assertExists()
+    onNodeWithText("left", substring = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun listeningBarOfAnAudiobookIgnoresItsReadingPlace() = runComposeUiTest {
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 20f,
+      duration = 100f,
+      ebookProgress = 0.9f,
+    )
+    val slot = ProgressSlot(false, 1f, mediaProgress, libraryItem(), kind = ProgressSlot.Kind.Listening)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("1m 20s left").assertExists()
+    onNodeWithText("20%").assertExists()
+  }
+
+  @Test
   fun isAcceleratedTest() = runComposeUiTest {
     val libraryItem = libraryItem()
     val mediaProgress = mediaProgress(

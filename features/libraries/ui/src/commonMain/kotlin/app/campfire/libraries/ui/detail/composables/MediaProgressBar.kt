@@ -23,12 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Check
 import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
@@ -40,12 +42,16 @@ import app.campfire.core.extensions.readableFormat
 import app.campfire.core.extensions.tenthsPercent
 import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.last_read_just_now
+import campfire.features.libraries.ui.generated.resources.last_read_time_ago
 import campfire.features.libraries.ui.generated.resources.remaining_duration_finished
 import campfire.features.libraries.ui.generated.resources.remaining_duration_format
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -56,6 +62,10 @@ internal fun MediaProgressBar(
   totalDuration: Duration,
   progress: MediaProgress,
   modifier: Modifier = Modifier,
+  /** The chapter an ebook is being read in, shown before when it was last read. */
+  chapter: String? = null,
+  /** Says which progress this is, where an item shows more than one. */
+  leadingIcon: ImageVector? = null,
 ) {
   Column(
     modifier = modifier
@@ -102,6 +112,13 @@ internal fun MediaProgressBar(
             .testTag("icon_finished_check"),
         )
         Spacer(Modifier.width(4.dp))
+      } else if (leadingIcon != null) {
+        Icon(
+          leadingIcon,
+          contentDescription = null,
+          modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(4.dp))
       }
 
       val duration = progress.duration?.takeIf { it > 0f } ?: totalDuration.asSeconds()
@@ -113,8 +130,9 @@ internal fun MediaProgressBar(
         else -> {
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
           when {
-            // An ebook has no time left to show, only how far through it is
-            duration <= 0f -> ""
+            // An ebook has no time left to show, so it shows when it was last picked up
+            duration <= 0f -> listOfNotNull(chapter, lastReadLabel(progress.lastUpdate).ifEmpty { null })
+              .joinToString(" · ")
             !remainingDurationMillis.isNaN() -> {
               val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
               stringResource(Res.string.remaining_duration_format, remainingDuration)
@@ -170,4 +188,12 @@ internal fun MediaProgressBar(
       )
     }
   }
+}
+
+@Composable
+private fun lastReadLabel(lastUpdate: Long): String = when {
+  lastUpdate <= 0L -> ""
+  Clock.System.now().toEpochMilliseconds() - lastUpdate < 1.minutes.inWholeMilliseconds ->
+    stringResource(Res.string.last_read_just_now)
+  else -> stringResource(Res.string.last_read_time_ago, lastUpdate.timeAgo)
 }

@@ -87,6 +87,7 @@ import campfire.features.libraries.ui.generated.resources.action_add_to_playlist
 import campfire.features.libraries.ui.generated.resources.action_delete_download
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
 import campfire.features.libraries.ui.generated.resources.action_read_ebook
+import campfire.features.libraries.ui.generated.resources.action_resume_reading
 import campfire.features.libraries.ui.generated.resources.action_retry_download
 import campfire.features.libraries.ui.generated.resources.action_stop_downloading
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress
@@ -132,8 +133,9 @@ internal fun ExpressiveControlBar(
         .fillMaxWidth()
         .padding(16.dp),
     ) {
+      // An ebook's place is only ever its reading progress
       val hasProgress = mediaProgress != null &&
-        mediaProgress.progress > 0f &&
+        (if (isEbookOnly) mediaProgress.actualProgress else mediaProgress.progress) > 0f &&
         !mediaProgress.isFinished
 
       PlayAndDownloadButtons(
@@ -158,7 +160,8 @@ internal fun ExpressiveControlBar(
         ) {
           Icon(CampfireIcons.Rounded.MenuBook, contentDescription = null, modifier = Modifier.size(18.dp))
           Spacer(Modifier.size(8.dp))
-          Text(stringResource(Res.string.action_read_ebook))
+          val isReading = mediaProgress != null && !mediaProgress.isFinished && (mediaProgress.ebookProgress ?: 0f) > 0f
+          Text(stringResource(if (isReading) Res.string.action_resume_reading else Res.string.action_read_ebook))
         }
       }
 

@@ -46,6 +46,7 @@ import app.campfire.libraries.ui.detail.ContentUiState
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.libraries.ui.detail.composables.slots.AudioTrackSlot
+import app.campfire.libraries.ui.detail.composables.slots.BookDetailsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
@@ -54,6 +55,8 @@ import app.campfire.libraries.ui.detail.composables.slots.CollapsedChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.CommunitySlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
+import app.campfire.libraries.ui.detail.composables.slots.EbookContentsEntrySlot
+import app.campfire.libraries.ui.detail.composables.slots.EbookContentsHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
@@ -64,8 +67,11 @@ import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
+import app.campfire.reader.api.EbookContentsEntry
+import app.campfire.reader.api.EbookContentsRepository
 import app.campfire.reader.api.EbookDownload
 import app.campfire.reader.api.EbookRepository
+import app.campfire.reader.api.entryAt
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionQueue
@@ -111,6 +117,7 @@ class BookPresenter(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val ebookRepository: EbookRepository,
+  private val ebookContentsRepository: EbookContentsRepository,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
@@ -172,6 +179,15 @@ class BookPresenter(
         offlineDownloadManager.observeForItem(libraryItem)
       }
     }.collectAsState(null)
+
+    // Only the reader knows an ebook's contents, so they show once the book has been opened here
+    val ebookContents by remember {
+      if (libraryItem.media.ebookFormat != null) {
+        ebookContentsRepository.observeContents(libraryItem.id).catch { emit(emptyList()) }
+      } else {
+        flowOf(emptyList())
+      }
+    }.collectAsState(emptyList())
 
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()
@@ -253,6 +269,7 @@ class BookPresenter(
       offlineDownloadState = offlineDownloadState,
       seriesContentState = seriesContentState,
       communityInfoState = communityInfoState,
+      ebookContents = ebookContents,
       showTimeInBook = showTimeInBook,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       canDownload = canDownload,
@@ -414,6 +431,12 @@ class BookPresenter(
           navigator.goTo(ReaderScreen(libraryItem.id))
         }
 
+        is LibraryItemUiEvent.ReadAt -> {
+          if (libraryItem.media.ebookFormat == null) return@ContentUiState
+          analytics.send(ActionEvent("read_contents_entry", Click))
+          navigator.goTo(ReaderScreen(libraryItem.id, href = event.href))
+        }
+
         is LibraryItemUiEvent.TimeInBookChange -> {
           analytics.send(ActionEvent("time_in_book", Click))
           libraryViewSettings.showTimeInBook = event.enabled
@@ -457,6 +480,7 @@ private fun buildSlots(
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<SeriesWithBooks>>,
   communityInfoState: CommunityInfoState?,
+  ebookContents: List<EbookContentsEntry>,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
   canDownload: Boolean,
@@ -503,11 +527,18 @@ private fun buildSlots(
             ?: emptyList()
         }
       }
+      // The server sends an empty name for a book nobody narrates
+      .filter { it.isNotBlank() }
 
     this += SplitAttributionSlot(
       leftLabel = { stringResource(Res.string.by_author_line) },
       leftAttributions = authors,
-      rightLabel = { stringResource(Res.string.by_narrator_line) },
+      // An ebook has nobody reading it aloud
+      rightLabel = if (libraryItem.isEbookOnly && narrators.isEmpty()) {
+        null
+      } else {
+        { stringResource(Res.string.by_narrator_line) }
+      },
       rightAttributions = narrators,
       onLeftAttributeClick = { author ->
         LibraryItemUiEvent.AuthorClick(libraryItem, author)
@@ -518,9 +549,40 @@ private fun buildSlots(
     )
 
     mediaProgressState.onLoaded { mediaProgress ->
-      if (mediaProgress != null && mediaProgress.actualProgress > 0f) {
+      if (mediaProgress == null) return@onLoaded
+      val hasAudioAndEbook = libraryItem.media.ebookFormat != null && !libraryItem.isEbookOnly
+      val readingProgress = mediaProgress.ebookProgress ?: 0f
+      if (hasAudioAndEbook && !mediaProgress.isFinished && readingProgress > 0f) {
+        // Listening and reading are separate places in the book, so each gets its own bar
         this += SpacerSlot.xlarge("progress_spacer_before")
-        this += ProgressSlot(isPlaying, playbackSpeed, mediaProgress, libraryItem)
+        if (mediaProgress.progress > 0f || mediaProgress.currentTime > 0f) {
+          this += ProgressSlot(
+            isPlaying = isPlaying,
+            playbackSpeed = playbackSpeed,
+            mediaProgress = mediaProgress,
+            libraryItem = libraryItem,
+            kind = ProgressSlot.Kind.Listening,
+          )
+          this += SpacerSlot.small("progress_spacer_between")
+        }
+        this += ProgressSlot(
+          isPlaying = false,
+          playbackSpeed = 1f,
+          mediaProgress = mediaProgress,
+          libraryItem = libraryItem,
+          chapter = ebookContents.entryAt(readingProgress)?.label,
+          kind = ProgressSlot.Kind.Reading,
+        )
+        this += SpacerSlot.small("progress_spacer_after")
+      } else if (mediaProgress.actualProgress > 0f) {
+        this += SpacerSlot.xlarge("progress_spacer_before")
+        this += ProgressSlot(
+          isPlaying = isPlaying,
+          playbackSpeed = playbackSpeed,
+          mediaProgress = mediaProgress,
+          libraryItem = libraryItem,
+          chapter = ebookContents.entryAt(mediaProgress.actualProgress)?.label,
+        )
         this += SpacerSlot.small("progress_spacer_after")
       }
     }
@@ -581,6 +643,56 @@ private fun buildSlots(
         title = ChipsTitle(Res.plurals.tags_title, tags.size),
         chips = tags,
       )
+    }
+
+    if (libraryItem.isEbookOnly) {
+      BookDetailsSlot.from(libraryItem.media.metadata)?.let { details ->
+        this += SpacerSlot.medium("book_details_spacer")
+        this += details
+      }
+    }
+
+    // An item with audio lists its chapters instead
+    if (libraryItem.isEbookOnly && ebookContents.isNotEmpty()) {
+      val readTo = mediaProgressState.dataOrNull
+        ?.takeIf { !it.isFinished }
+        ?.actualProgress
+      val current = readTo?.let { ebookContents.entryAt(it) }
+      val currentIndex = current?.let { ebookContents.indexOf(it) } ?: -1
+      // How far through the current entry, measured to where the next one starts
+      val start = current?.fraction
+      val progressInEntry = if (readTo != null && start != null) {
+        val end = ebookContents.drop(currentIndex + 1).firstNotNullOfOrNull { it.fraction } ?: 1f
+        if (end > start) (readTo - start) / (end - start) else 0f
+      } else {
+        0f
+      }
+      this += SpacerSlot.large("ebook_contents_spacer")
+      this += EbookContentsHeaderSlot()
+      // Like listened chapters, the entries read past (bar the first) fold into one row
+      var collapsedCount = 0
+      ebookContents.forEachIndexed { index, entry ->
+        if (collapseListenedChapters && index in 1 until currentIndex) {
+          collapsedCount++
+          return@forEachIndexed
+        }
+        if (collapsedCount > 0 && index == currentIndex) {
+          this += CollapsedChapterSlot(numOfCollapsedChapters = collapsedCount, isRead = true)
+        }
+        this += EbookContentsEntrySlot(
+          entry = entry,
+          index = index,
+          isFirst = index == 0,
+          isLast = index == ebookContents.lastIndex,
+          state = when {
+            mediaProgressState.dataOrNull?.isFinished == true -> EbookContentsEntrySlot.State.Read
+            index == currentIndex -> EbookContentsEntrySlot.State.Current
+            index < currentIndex -> EbookContentsEntrySlot.State.Read
+            else -> EbookContentsEntrySlot.State.Unread
+          },
+          progressInEntry = if (index == currentIndex) progressInEntry else 0f,
+        )
+      }
     }
 
     if (libraryItem.media.chapters.isNotEmpty()) {

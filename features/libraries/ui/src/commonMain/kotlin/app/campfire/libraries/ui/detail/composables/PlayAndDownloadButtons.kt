@@ -54,6 +54,7 @@ import campfire.features.libraries.ui.generated.resources.action_direct_play
 import campfire.features.libraries.ui.generated.resources.action_play
 import campfire.features.libraries.ui.generated.resources.action_read
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
+import campfire.features.libraries.ui.generated.resources.action_resume_reading
 import campfire.features.libraries.ui.generated.resources.action_resume_streaming
 import campfire.features.libraries.ui.generated.resources.action_stream
 import campfire.features.libraries.ui.generated.resources.menu_item_download
@@ -132,6 +133,7 @@ internal fun PlayAndDownloadButtons(
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
       Text(
         text = when {
+          isEbookOnly && hasProgress -> stringResource(Res.string.action_resume_reading)
           isEbookOnly -> stringResource(Res.string.action_read)
           isCurrentSession -> stringResource(Res.string.action_currently_playing)
           hasProgress -> stringResource(Res.string.action_resume_listening)

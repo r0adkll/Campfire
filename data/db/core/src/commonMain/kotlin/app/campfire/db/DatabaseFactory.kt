@@ -12,6 +12,7 @@ import app.campfire.data.BookmarkFailedCreate
 import app.campfire.data.BookmarkFailedDelete
 import app.campfire.data.Bookmarks
 import app.campfire.data.CollectionsBookJoin
+import app.campfire.data.EbookContents
 import app.campfire.data.FilterData
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
@@ -134,6 +135,10 @@ class DatabaseFactory(
     ),
     readerBookSettingsAdapter = ReaderBookSettings.Adapter(
       fontScaleAdapter = IntColumnAdapter,
+    ),
+    ebookContentsAdapter = EbookContents.Adapter(
+      positionAdapter = IntColumnAdapter,
+      depthAdapter = IntColumnAdapter,
     ),
     bookmarkFailedCreateAdapter = BookmarkFailedCreate.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,

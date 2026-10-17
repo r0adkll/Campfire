@@ -7,25 +7,36 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf
+import app.campfire.common.test.mediaProgress as testMediaProgress
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.Media
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
+import app.campfire.libraries.ui.detail.composables.slots.CollapsedChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.composables.slots.EbookContentsEntrySlot
+import app.campfire.libraries.ui.detail.composables.slots.EbookContentsHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
+import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.reader.api.EbookContentsEntry
+import app.campfire.reader.api.screen.ReaderScreen
 import app.cash.turbine.ReceiveTurbine
 import assertk.Assert
 import assertk.all
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
+import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
 import assertk.assertions.prop
@@ -342,6 +353,163 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
           prop(ExpressiveControlSlot::canStreamHls).isEqualTo(true)
           prop(ExpressiveControlSlot::willStreamHls).isEqualTo(false)
         }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+}
+
+class EbookContentsPresenterTest : BaseLibraryItemPresenterTest() {
+
+  private val prologue = EbookContentsEntry("Prologue", "prologue.xhtml", depth = 0, fraction = 0f)
+  private val one = EbookContentsEntry("Chapter 1", "ch1.xhtml", depth = 0, fraction = 0.3f)
+  private val two = EbookContentsEntry("Chapter 2", "ch2.xhtml", depth = 0, fraction = 0.6f)
+
+  @Test
+  fun ebook_showsItsContents_andTheChapterBeingRead() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(numTracks = 0, ebookFormat = "epub"))
+    ebookContentsRepository.contents.value = listOf(prologue, one, two)
+    mediaProgressRepository.progressFlow.value = testMediaProgress(
+      libraryItemId = TestLibraryItemId,
+      duration = 0f,
+      ebookProgress = 0.4f,
+    )
+
+    presenter.test {
+      val slots = awaitItemWithSlot<EbookContentsEntrySlot>()
+      assertThat(slots).loadedSlots.all {
+        containsInstance<EbookContentsHeaderSlot>()
+        transform { it.filterIsInstance<EbookContentsEntrySlot>().map(EbookContentsEntrySlot::state) }
+          .containsExactly(
+            EbookContentsEntrySlot.State.Read,
+            EbookContentsEntrySlot.State.Current,
+            EbookContentsEntrySlot.State.Unread,
+          )
+        firstInstanceOf<ProgressSlot>().prop(ProgressSlot::chapter).isEqualTo("Chapter 1")
+        // A third of the way from Chapter 1 (30%) to Chapter 2 (60%)
+        transform { it.filterIsInstance<EbookContentsEntrySlot>()[1].progressInEntry }
+          .isCloseTo(1f / 3f, 0.001f)
+      }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun ebook_collapsesTheEntriesReadPast_untilExpanded() = runTest {
+    val three = EbookContentsEntry("Chapter 3", "ch3.xhtml", depth = 0, fraction = 0.8f)
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(numTracks = 0, ebookFormat = "epub"))
+    ebookContentsRepository.contents.value = listOf(prologue, one, two, three)
+    mediaProgressRepository.progressFlow.value = testMediaProgress(
+      libraryItemId = TestLibraryItemId,
+      duration = 0f,
+      ebookProgress = 0.7f,
+    )
+
+    presenter.test {
+      val collapsed = awaitItemWithSlot<EbookContentsEntrySlot>()
+      assertThat(collapsed).loadedSlots.all {
+        transform { it.filterIsInstance<EbookContentsEntrySlot>().map(EbookContentsEntrySlot::state) }
+          .containsExactly(
+            EbookContentsEntrySlot.State.Read,
+            EbookContentsEntrySlot.State.Current,
+            EbookContentsEntrySlot.State.Unread,
+          )
+        // The folded row sits between the first entry and the one being read
+        transform { slots -> slots[slots.indexOfFirst { it is EbookContentsEntrySlot } + 1] }
+          .isInstanceOf<CollapsedChapterSlot>()
+      }
+
+      collapsed.eventSink(LibraryItemUiEvent.ExpandChaptersClick)
+
+      val expanded = awaitItemMatching { state ->
+        val content = (state.contentState as? LoadState.Loaded<*>)?.data as? ContentUiState
+        content?.slots?.count { it is EbookContentsEntrySlot } == 4
+      }
+      assertThat(expanded).loadedSlots.doesNotContainInstance<CollapsedChapterSlot>()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun readAt_opensTheReaderAtTheEntry() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(numTracks = 0, ebookFormat = "epub"))
+
+    presenter.test {
+      awaitLoadedItem().eventSink(LibraryItemUiEvent.ReadAt("ch2.xhtml"))
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ReaderScreen(TestLibraryItemId, href = "ch2.xhtml"))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun audiobookWithAnEbook_showsListeningAndReadingApart() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(ebookFormat = "epub"))
+    ebookContentsRepository.contents.value = listOf(prologue, one, two)
+    mediaProgressRepository.progressFlow.value = testMediaProgress(
+      libraryItemId = TestLibraryItemId,
+      duration = 100f,
+      currentTime = 34f,
+      progress = 0.34f,
+      ebookProgress = 0.65f,
+    )
+
+    presenter.test {
+      val slots = awaitItemWithSlot<ProgressSlot>()
+      assertThat(slots).loadedSlots
+        .transform { it.filterIsInstance<ProgressSlot>().map { slot -> slot.kind to slot.chapter } }
+        .containsExactly(
+          ProgressSlot.Kind.Listening to null,
+          ProgressSlot.Kind.Reading to "Chapter 2",
+        )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun audiobookWithAnEbook_onlyRead_showsOnlyReading() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(ebookFormat = "epub"))
+    mediaProgressRepository.progressFlow.value = testMediaProgress(
+      libraryItemId = TestLibraryItemId,
+      duration = 100f,
+      ebookProgress = 0.2f,
+    )
+
+    presenter.test {
+      val slots = awaitItemWithSlot<ProgressSlot>()
+      assertThat(slots).loadedSlots
+        .transform { it.filterIsInstance<ProgressSlot>().map(ProgressSlot::kind) }
+        .containsExactly(ProgressSlot.Kind.Reading)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun ebookWithAnEmptyNarratorName_showsOnlyTheAuthorByline() = runTest {
+    val ebook = emptyLibraryItem(numTracks = 0, ebookFormat = "epub")
+    val media = ebook.media as Media.Book
+    libraryItemRepository.libraryItemFlow.emit(
+      ebook.copy(media = media.copy(metadata = media.metadata.copy(narratorName = "", narrators = emptyList()))),
+    )
+
+    presenter.test {
+      assertThat(awaitLoadedItem()).loadedSlots
+        .firstInstanceOf<SplitAttributionSlot>()
+        .prop(SplitAttributionSlot::showsRightByline)
+        .isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun audiobook_hasNoEbookContents() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem(ebookFormat = "epub"))
+    ebookContentsRepository.contents.value = listOf(prologue, one)
+
+    presenter.test {
+      assertThat(awaitLoadedItem()).loadedSlots.all {
+        doesNotContainInstance<EbookContentsHeaderSlot>()
+        doesNotContainInstance<EbookContentsEntrySlot>()
+      }
       cancelAndIgnoreRemainingEvents()
     }
   }

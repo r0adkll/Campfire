@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.home.ui.libraryItem
+import app.campfire.home.ui.media
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
@@ -43,5 +44,27 @@ class TitleSlotTest {
     onNodeWithText("test_title").assertExists()
     onNodeWithText("test_subtitle").assertExists()
     onNodeWithText(5.minutes.readoutFormat()).assertExists()
+  }
+
+  @Test
+  fun ebookShowsFormatAndSizeInsteadOfLength() = runComposeUiTest {
+    val libraryItem = libraryItem(
+      media = media(
+        numTracks = 0,
+        numAudioFiles = 0,
+        durationInMillis = 0L,
+        sizeInBytes = 1536L * 1024L,
+        ebookFormat = "epub",
+      ),
+    )
+    val slot = TitleSlot(libraryItem, "")
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("EPUB · 1.5 MB").assertExists()
   }
 }
