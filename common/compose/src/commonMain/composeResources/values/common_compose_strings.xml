@@ -1,10 +1,25 @@
 <resources>
   <string name="time_ago_now">now</string>
-  <string name="time_ago_minutes">%1$d minutes ago</string>
-  <string name="time_ago_hours">%1$d hours ago</string>
-  <string name="time_ago_days">%1$d days ago</string>
-  <string name="time_ago_months">%1$d months ago</string>
-  <string name="time_ago_years">%1$d years ago</string>
+  <plurals name="time_ago_minutes">
+    <item quantity="one">%1$d minute ago</item>
+    <item quantity="other">%1$d minutes ago</item>
+  </plurals>
+  <plurals name="time_ago_hours">
+    <item quantity="one">%1$d hour ago</item>
+    <item quantity="other">%1$d hours ago</item>
+  </plurals>
+  <plurals name="time_ago_days">
+    <item quantity="one">%1$d day ago</item>
+    <item quantity="other">%1$d days ago</item>
+  </plurals>
+  <plurals name="time_ago_months">
+    <item quantity="one">%1$d month ago</item>
+    <item quantity="other">%1$d months ago</item>
+  </plurals>
+  <plurals name="time_ago_years">
+    <item quantity="one">%1$d year ago</item>
+    <item quantity="other">%1$d years ago</item>
+  </plurals>
 
   <string name="relative_day_today">Today</string>
   <string name="relative_day_yesterday">Yesterday</string>

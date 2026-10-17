@@ -27,6 +27,7 @@ import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 val LocalDateTime.timeAgo: String
@@ -42,19 +43,25 @@ val Long.timeAgo: String
 
     return when {
       elapsedDuration < 1.minutes -> stringResource(Res.string.time_ago_now)
-      elapsedDuration < 1.hours -> stringResource(
-        Res.string.time_ago_minutes,
-        (elapsedDuration.inWholeMinutes % 60).toInt(),
-      )
+      elapsedDuration < 1.hours -> elapsedDuration.inWholeMinutes.toInt().let { minutes ->
+        pluralStringResource(Res.plurals.time_ago_minutes, minutes, minutes)
+      }
 
-      elapsedDuration < 1.days -> stringResource(Res.string.time_ago_hours, (elapsedDuration.inWholeHours % 24).toInt())
-      elapsedDuration < 30.days -> stringResource(Res.string.time_ago_days, elapsedDuration.inWholeDays.toInt())
-      elapsedDuration < 365.days -> stringResource(
-        Res.string.time_ago_months,
-        (elapsedDuration.inWholeDays / 30).toInt(),
-      )
+      elapsedDuration < 1.days -> elapsedDuration.inWholeHours.toInt().let { hours ->
+        pluralStringResource(Res.plurals.time_ago_hours, hours, hours)
+      }
 
-      else -> stringResource(Res.string.time_ago_years, (elapsedDuration.inWholeDays / 365).toInt())
+      elapsedDuration < 30.days -> elapsedDuration.inWholeDays.toInt().let { days ->
+        pluralStringResource(Res.plurals.time_ago_days, days, days)
+      }
+
+      elapsedDuration < 365.days -> (elapsedDuration.inWholeDays / 30).toInt().let { months ->
+        pluralStringResource(Res.plurals.time_ago_months, months, months)
+      }
+
+      else -> (elapsedDuration.inWholeDays / 365).toInt().let { years ->
+        pluralStringResource(Res.plurals.time_ago_years, years, years)
+      }
     }
   }
 
