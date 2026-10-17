@@ -16,7 +16,8 @@ import kotlin.test.Test
 /**
  * The work-offline menu opens from the drawer's footer, near the window's bottom edge. Material's
  * own placement keeps 48dp clear of that edge and, short of it, left the menu floating well above
- * the button; these pin it to the anchor. Density 1, so the 8px shadow clearance is 8dp.
+ * the button; these pin it to the anchor. Density 1, so the shadow clearances (8dp, and 16dp
+ * below the menu) are as many px.
  */
 class AboveAnchorPositionProviderTest {
 
@@ -31,7 +32,7 @@ class AboveAnchorPositionProviderTest {
     val position = provider.calculatePosition(anchor, window, LayoutDirection.Ltr, menu)
 
     // The visible menu, inside the clearance, lines up with the anchor's start and top
-    assertThat(position).isEqualTo(IntOffset(x = 16 - 8, y = 770 + 8 - 300))
+    assertThat(position).isEqualTo(IntOffset(x = 16 - 8, y = 770 + 16 - 300))
     assertThat(provider.transformOrigin.pivotFractionY).isEqualTo(1f)
   }
 

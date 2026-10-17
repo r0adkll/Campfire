@@ -95,7 +95,12 @@ fun WorkOfflineMenu(
     onDismissRequest = onDismissRequest,
     popupPositionProvider = positionProvider,
     // Room for the groups' shadows, which the popup's window would otherwise clip
-    modifier = modifier.padding(ShadowClearance),
+    modifier = modifier.padding(
+      start = ShadowClearance,
+      top = ShadowClearance,
+      end = ShadowClearance,
+      bottom = ShadowDrop,
+    ),
   ) {
     val reason = state.reason
     if (reason != null) {
@@ -169,6 +174,9 @@ private fun MenuGroup(
 
 private val ShadowClearance = 8.dp
 
+/** Shadows fall below their surface, so they need more room there than to the sides. */
+private val ShadowDrop = 16.dp
+
 @Composable
 private fun MenuHeader(
   text: String,
@@ -186,10 +194,11 @@ private fun MenuHeader(
 /**
  * Places the menu's bottom edge on its anchor's top edge, start-aligned with it, or below the
  * anchor when there's more room there; either way kept inside the window. Offsets by
- * [ShadowClearance] so the visible menu, not its padding, lines up with the anchor.
+ * [ShadowClearance] and [ShadowDrop] so the visible menu, not its padding, lines up with the anchor.
  */
 internal class AboveAnchorPositionProvider(density: Density) : DropdownMenuPopupPositionProvider {
   private val clearance = with(density) { ShadowClearance.roundToPx() }
+  private val drop = with(density) { ShadowDrop.roundToPx() }
 
   override var transformOrigin by mutableStateOf(TransformOrigin(0f, 1f))
     private set
@@ -207,7 +216,7 @@ internal class AboveAnchorPositionProvider(density: Density) : DropdownMenuPopup
     }
     val x = start.coerceIn(0, maxOf(0, windowSize.width - popupContentSize.width))
 
-    val above = anchorBounds.top + clearance - popupContentSize.height
+    val above = anchorBounds.top + drop - popupContentSize.height
     val opensAbove = above >= 0 || anchorBounds.top > windowSize.height - anchorBounds.bottom
     val y = if (opensAbove) above else anchorBounds.bottom - clearance
 
