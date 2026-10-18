@@ -13,7 +13,9 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.width
 import assertk.assertThat
@@ -75,6 +77,30 @@ class MarqueeTextTest {
     waitForIdle()
 
     assertThat(onNodeWithText(ShortText).getUnclippedBoundsInRoot().width).isLessThanOrEqualTo(ContainerWidth)
+  }
+
+  @Test
+  fun `text that briefly overflowed stops scrolling once it fits`() = runComposeUiTest {
+    // Stands in for a transient overflow, like a font that lays out wider before it loads: the
+    // text and width stay the same, so only the scrolling text noticing the fit can stop it. Once
+    // it does, autoSize grows the text back from the smallest size it scrolled at.
+    var letterSpacing by mutableStateOf(40.sp)
+    setContent {
+      MarqueeText(
+        text = ShortText,
+        style = TextStyle(letterSpacing = letterSpacing),
+        autoSize = TextAutoSize.StepBased(minFontSize = 4.sp, maxFontSize = 28.sp),
+        modifier = Modifier.width(ContainerWidth),
+      )
+    }
+    assertThat(onNodeWithText(ShortText).getUnclippedBoundsInRoot().width).isGreaterThan(ContainerWidth)
+
+    letterSpacing = 0.sp
+    waitForIdle()
+
+    val bounds = onNodeWithText(ShortText).getUnclippedBoundsInRoot()
+    assertThat(bounds.width).isLessThanOrEqualTo(ContainerWidth)
+    assertThat(bounds.height).isGreaterThan(20.dp)
   }
 
   @Test
