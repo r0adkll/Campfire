@@ -22,13 +22,13 @@ import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
+import app.campfire.db.updatePrimarySeriesSequence
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
@@ -167,13 +167,7 @@ class StoreSeriesRepository(
               db.mediaQueries.insertOrIgnore(media)
 
               // Make sure we keep our item series sequence up to date
-              runIfNotNull(
-                media.metadata_series_id,
-                media.metadata_series_name,
-                media.metadata_series_sequence,
-              ) { id, name, sequence ->
-                db.mediaQueries.updateSeriesSequence(id, name, sequence, item.id)
-              }
+              db.mediaQueries.updatePrimarySeriesSequence(media)
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(

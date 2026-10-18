@@ -15,10 +15,10 @@ import app.campfire.core.model.User
 import app.campfire.core.session.serverUrl
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.time.FatherTime
-import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.SeriesPageJoin
 import app.campfire.data.mapping.asDbModel
+import app.campfire.db.updatePrimarySeriesSequence
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.nextPage
@@ -137,13 +137,7 @@ class SeriesRemoteMediator(
                 db.mediaQueries.insertOrIgnore(media)
 
                 // Make sure we keep our item series sequence up to date
-                runIfNotNull(
-                  media.metadata_series_id,
-                  media.metadata_series_name,
-                  media.metadata_series_sequence,
-                ) { id, name, sequence ->
-                  db.mediaQueries.updateSeriesSequence(id, name, sequence, book.id)
-                }
+                db.mediaQueries.updatePrimarySeriesSequence(media)
 
                 // Insert junction entry
                 db.seriesBookJoinQueries.insert(
