@@ -38,6 +38,18 @@ class UpdatePrimarySeriesSequenceTest {
   }
 
   @Test
+  fun `sequence without a number still stores its labelled entry`() = testDb { db ->
+    db.mediaQueries.insert(dbMedia())
+    val prequel = SeriesSequence("extras", "Extras", SeriesSequence.UNKNOWN_SEQUENCE, label = "prequel")
+
+    db.mediaQueries.updatePrimarySeriesSequence(
+      dbMedia(primary = prequel, series = listOf(prequel)).copy(metadata_series_sequence = null),
+    )
+
+    assertThat(db.storedSeries()).containsExactlyInAnyOrder(prequel)
+  }
+
+  @Test
   fun `row without a primary series is left alone`() = testDb { db ->
     val other = SeriesSequence("other", "Other", 3.0, label = "3")
     db.mediaQueries.insert(dbMedia(series = listOf(other)))

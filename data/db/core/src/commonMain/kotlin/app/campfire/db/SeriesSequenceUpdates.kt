@@ -15,8 +15,10 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 suspend fun MediaQueries.updatePrimarySeriesSequence(media: Media) {
   val id = media.metadata_series_id ?: return
   val name = media.metadata_series_name ?: return
-  val sequence = media.metadata_series_sequence ?: return
-  updateSeriesSequence(id, name, sequence, media.libraryItemId)
+  // A sequence with no number (e.g. "prequel") parses to null; its entry below still carries it.
+  media.metadata_series_sequence?.let { sequence ->
+    updateSeriesSequence(id, name, sequence, media.libraryItemId)
+  }
 
   val entry = media.metadata_series?.find { it.id == id } ?: return
   val existing = selectSeriesList(media.libraryItemId).awaitAsOneOrNull()?.metadata_series.orEmpty()

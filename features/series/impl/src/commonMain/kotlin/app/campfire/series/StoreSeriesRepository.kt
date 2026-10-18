@@ -111,7 +111,7 @@ class StoreSeriesRepository(
               group = "series",
               value = s.seriesId,
             ),
-            // Listed in series order, so the stored join positions match it.
+            // The server's series order, kept for books whose sequence we can't read.
             sortMode = "sequence",
           )
         }
@@ -161,25 +161,29 @@ class StoreSeriesRepository(
             // them — books removed from the series (or the server) would otherwise linger.
             db.seriesBookJoinQueries.deleteForSeries(s.seriesId)
 
-            // Insert the books
-            networkResult.books.forEachIndexed { index, item ->
-              val libraryItem = item.asDbModel(serverUrl)
-              val media = item.media.asDbModel(item.id)
-              db.libraryItemsQueries.insertOrIgnore(libraryItem)
-              db.mediaQueries.insertOrIgnore(media)
+            // Insert the books in reading order. The server lists them by
+            // CAST(sequence AS FLOAT), which mis-orders dated series, so their join positions
+            // come from our own order instead.
+            networkResult.books
+              .map { item -> item to item.media.asDbModel(item.id) }
+              .sortedBySeriesSequence { (_, media) -> media.metadata_series?.find { it.id == s.seriesId } }
+              .forEachIndexed { index, (item, media) ->
+                val libraryItem = item.asDbModel(serverUrl)
+                db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                db.mediaQueries.insertOrIgnore(media)
 
-              // Make sure we keep our item series sequence up to date
-              db.mediaQueries.updatePrimarySeriesSequence(media)
+                // Make sure we keep our item series sequence up to date
+                db.mediaQueries.updatePrimarySeriesSequence(media)
 
-              // Insert junction entry
-              db.seriesBookJoinQueries.insert(
-                SeriesBookJoin(
-                  seriesId = s.seriesId,
-                  libraryItemId = item.id,
-                  position = index.toLong(),
-                ),
-              )
-            }
+                // Insert junction entry
+                db.seriesBookJoinQueries.insert(
+                  SeriesBookJoin(
+                    seriesId = s.seriesId,
+                    libraryItemId = item.id,
+                    position = index.toLong(),
+                  ),
+                )
+              }
           }
         }
       },

@@ -121,6 +121,14 @@ class SeriesSequenceTest {
   }
 
   @Test
+  fun sortedBySeriesSequence_sortsAnyMembersOfADatedSeries() {
+    val rows = listOf("2026.10", "2026.1", "2026.12", "2026.9", "prequel").map { it to sequence(it) }
+
+    assertThat(rows.sortedBySeriesSequence { it.second }.map { it.first })
+      .containsExactly("2026.1", "2026.9", "2026.10", "2026.12", "prequel")
+  }
+
+  @Test
   fun sortedBySeriesSequence_keepsListedOrderWhenAnySequenceIsUnknown() {
     val items = listOf(
       libraryItem(id = "listed-first").withSeries(sequence("3")).withTitle("Zed"),

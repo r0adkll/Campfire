@@ -114,14 +114,28 @@ fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesS
  * unknown the books keep the order they came in, which is the order the server listed them.
  */
 fun List<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId): List<LibraryItem> {
-  val sequences = map { it.media.metadata.seriesSequence(seriesId) ?: return this }
-  val order = seriesSequenceOrder(sequences)
-  return indices
-    .sortedWith(
-      compareBy<Int, SeriesSequence>(order) { sequences[it] }
-        .thenBy(String.CASE_INSENSITIVE_ORDER) { this[it].media.metadata.title.orEmpty() },
-    )
-    .map { this[it] }
+  return sortedBySeriesSequence(
+    thenBy = compareBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
+    sequenceOf = { it.media.metadata.seriesSequence(seriesId) },
+  )
+}
+
+/**
+ * Sort the members of one series by [sequenceOf] with [seriesSequenceOrder], then [thenBy].
+ * Keeps the incoming order when any member's sequence is unknown.
+ */
+fun <T> List<T>.sortedBySeriesSequence(
+  thenBy: Comparator<in T>? = null,
+  sequenceOf: (T) -> SeriesSequence?,
+): List<T> {
+  val sequences = map { sequenceOf(it) ?: return this }
+  val bySequence = compareBy<Int, SeriesSequence>(seriesSequenceOrder(sequences)) { sequences[it] }
+  val order = if (thenBy == null) {
+    bySequence
+  } else {
+    bySequence.thenComparator { a, b -> thenBy.compare(this[a], this[b]) }
+  }
+  return indices.sortedWith(order).map { this[it] }
 }
 
 private fun compareSequenceTokens(a: String, b: String): Int {
