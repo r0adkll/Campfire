@@ -132,6 +132,25 @@ class SeriesSequenceTest {
   }
 
   @Test
+  fun seriesSequenceOrder_sortsYearMonthSeriesPartByPart() {
+    val sequences = listOf("2026.10", "2026.9", "2027.1", "2026.12", "2026.1", "2026").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026", "2026.1", "2026.9", "2026.10", "2026.12", "2027.1")
+  }
+
+  @Test
+  fun seriesSequenceOrder_keepsDecimalOrderWhenAnyDottedSequenceIsNotAYearMonth() {
+    // 2026.13 can't be a month, so these stay decimals: 2026.1 (= 2026.10) < 2026.13 < 2026.9.
+    val sequences = listOf("2026.9", "2026.13", "2026.10").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026.10", "2026.13", "2026.9")
+  }
+
+  @Test
   fun seriesSequenceOrder_keepsDecimalOrderWithoutMultiPartSequences() {
     val sequences = listOf("1.5", "1.25", "2", "1.75", "1").map(::sequence)
 

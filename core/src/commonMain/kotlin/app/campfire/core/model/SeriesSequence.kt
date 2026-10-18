@@ -61,6 +61,7 @@ fun formatSeriesSequence(sequence: Double): String {
 
 private val SEQUENCE_TOKEN_REGEX = "\\d+|\\D+".toRegex()
 private val MULTI_PART_SEQUENCE_REGEX = "^\\s*\\d+(?:\\.\\d+){2,}".toRegex()
+private val YEAR_MONTH_SEQUENCE_REGEX = "^\\s*\\d{4}\\.(?:0?[1-9]|1[0-2])\\s*$".toRegex()
 
 /**
  * Decimal reading order. Matches the server's `CAST(sequence AS FLOAT)` order (so `1.25` sits
@@ -82,15 +83,22 @@ val SeriesSequencePartsOrder: Comparator<SeriesSequence> =
     .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
 
 /**
- * The reading order for a whole series. A sequence with two or more dots can't be a decimal,
- * so one in the series marks it as numbered by dates or versions and the series sorts part by
- * part ([SeriesSequencePartsOrder]); otherwise it keeps the server's decimal order
- * ([SeriesSequenceOrder]). Choosing once per series, rather than per pair, keeps the order
- * consistent across every comparison.
+ * The reading order for a whole series. It sorts part by part ([SeriesSequencePartsOrder]) when
+ * the series is numbered by dates or versions, and otherwise keeps the server's decimal order
+ * ([SeriesSequenceOrder]). A series counts as dated when:
+ * - any sequence has two or more dots (`2026.9.30`), which a decimal can't, or
+ * - every sequence with a dot reads as a year and month (`2026.9`, `2026.10`). Decimal series
+ *   don't number books in the thousands with month-sized fractions.
+ *
+ * Choosing once per series, rather than per pair, keeps the order consistent across every
+ * comparison.
  */
 fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesSequence> {
-  val multiPart = sequences.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it.formattedSequence) }
-  return if (multiPart) SeriesSequencePartsOrder else SeriesSequenceOrder
+  val labels = sequences.map { it.formattedSequence }
+  val multiPart = labels.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it) }
+  val dotted = labels.filter { '.' in it }
+  val yearMonth = dotted.isNotEmpty() && dotted.all { YEAR_MONTH_SEQUENCE_REGEX.matches(it) }
+  return if (multiPart || yearMonth) SeriesSequencePartsOrder else SeriesSequenceOrder
 }
 
 /**
