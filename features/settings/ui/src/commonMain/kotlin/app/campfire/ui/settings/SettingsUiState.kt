@@ -115,6 +115,12 @@ sealed interface DownloadEntry {
     val episode: PodcastEpisode,
     override val download: OfflineDownload,
   ) : DownloadEntry
+
+  /** An ebook kept by the reader to read offline. */
+  data class Ebook(
+    override val libraryItem: LibraryItem,
+    override val download: OfflineDownload,
+  ) : DownloadEntry
 }
 
 @Immutable

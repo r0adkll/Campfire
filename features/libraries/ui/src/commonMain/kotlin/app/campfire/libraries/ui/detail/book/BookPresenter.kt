@@ -34,7 +34,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -69,8 +68,8 @@ import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.reader.api.EbookContentsEntry
 import app.campfire.reader.api.EbookContentsRepository
-import app.campfire.reader.api.EbookDownload
 import app.campfire.reader.api.EbookRepository
+import app.campfire.reader.api.asOfflineDownload
 import app.campfire.reader.api.entryAt
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.series.api.SeriesRepository
@@ -751,19 +750,3 @@ private fun buildSlots(
     }
   }
 }
-
-/** An ebook download as the download UI shows any other. */
-internal fun EbookDownload.asOfflineDownload(itemId: LibraryItemId) = OfflineDownload(
-  libraryItemId = itemId,
-  state = when (state) {
-    EbookDownload.State.None -> OfflineDownload.State.None
-    EbookDownload.State.Downloading -> OfflineDownload.State.Downloading
-    EbookDownload.State.Downloaded -> OfflineDownload.State.Completed
-    EbookDownload.State.Failed -> OfflineDownload.State.Failed
-  },
-  contentLength = totalBytes,
-  progress = OfflineDownload.Progress(
-    bytes = bytes,
-    percent = if (totalBytes > 0) bytes.toFloat() / totalBytes * 100f else 0f,
-  ),
-)
