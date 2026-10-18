@@ -12,13 +12,18 @@ data class SeriesSequence(
    * sorts after every numbered entry via [UNKNOWN_SEQUENCE].
    */
   val sequence: Double,
+  /**
+   * The sequence exactly as the server stores it (e.g. `2026.10.10`), for display. Null when
+   * only the parsed [sequence] is known.
+   */
+  val label: String? = null,
 ) {
   /**
-   * The sequence formatted the way the server would present it: whole numbers drop the
-   * trailing `.0`, fractional numbers keep their decimals.
+   * The sequence as it should be displayed: the server's own [label] when there is one,
+   * otherwise [sequence] with whole numbers dropping the trailing `.0`.
    */
   val formattedSequence: String
-    get() = formatSeriesSequence(sequence)
+    get() = label?.trim()?.takeIf { it.isNotEmpty() } ?: formatSeriesSequence(sequence)
 
   companion object {
     /** Sort key used for books whose sequence is missing or unparseable. */
@@ -52,4 +57,48 @@ fun formatSeriesSequence(sequence: Double): String {
   if (sequence == SeriesSequence.UNKNOWN_SEQUENCE) return ""
   val whole = sequence.toLong()
   return if (whole.toDouble() == sequence) whole.toString() else sequence.toString()
+}
+
+private val SEQUENCE_TOKEN_REGEX = "\\d+|\\D+".toRegex()
+
+/**
+ * Reading order for books in a series. Matches the server's `CAST(sequence AS FLOAT)` order
+ * (so `1.5` sits between `1` and `2`, and `1.10` before `1.9`), then breaks the ties that cast
+ * leaves by comparing each run of digits in the displayed sequence as a number, which keeps
+ * dated entries like `2026.10.01` and `2026.10.10` in order.
+ */
+val SeriesSequenceOrder: Comparator<SeriesSequence> =
+  compareBy<SeriesSequence> { it.sequence }
+    .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
+
+/**
+ * Sort books by their position in [seriesId], or in their primary series when null. Books
+ * outside the series come first, and books at the same position fall back to their title.
+ */
+fun Iterable<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId? = null): List<LibraryItem> {
+  return sortedWith(
+    compareBy<LibraryItem, SeriesSequence?>(nullsFirst(SeriesSequenceOrder)) { item ->
+      val metadata = item.media.metadata
+      if (seriesId != null) metadata.seriesSequence(seriesId) else metadata.seriesSequence
+    }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
+  )
+}
+
+private fun compareSequenceTokens(a: String, b: String): Int {
+  val aTokens = SEQUENCE_TOKEN_REGEX.findAll(a).map { it.value }.iterator()
+  val bTokens = SEQUENCE_TOKEN_REGEX.findAll(b).map { it.value }.iterator()
+  while (aTokens.hasNext() && bTokens.hasNext()) {
+    val aToken = aTokens.next()
+    val bToken = bTokens.next()
+    val result = if (aToken[0].isDigit() && bToken[0].isDigit()) {
+      // Compare digit runs by value without parsing, so runs of any length can't overflow.
+      val aDigits = aToken.trimStart('0')
+      val bDigits = bToken.trimStart('0')
+      compareValuesBy(aDigits, bDigits, { it.length }, { it })
+    } else {
+      aToken.compareTo(bToken, ignoreCase = true)
+    }
+    if (result != 0) return result
+  }
+  return aTokens.hasNext().compareTo(bTokens.hasNext())
 }

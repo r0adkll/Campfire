@@ -180,7 +180,7 @@ private fun LoadedState(
         item = item,
         // Same "Book 2 · 2014" line as the missing books, in place of the author.
         subtitle = seriesBookLabel(
-          position = item.media.metadata.seriesSequence(seriesId)?.sequence,
+          position = item.media.metadata.seriesSequence(seriesId)?.formattedSequence,
           year = item.media.metadata.publishedYear,
         ),
         sharedTransitionKey = item.id + seriesName,

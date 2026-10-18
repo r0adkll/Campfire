@@ -149,6 +149,7 @@ fun <T : Media> T.asDbModel(
       } else {
         series.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE
       },
+      label = series.sequence,
     )
   }
 
@@ -267,7 +268,13 @@ private fun mergedSeries(
   primary: SeriesSequence?,
   series: List<SeriesSequence>?,
 ): List<SeriesSequence> = buildList {
-  primary?.let(::add)
+  primary?.let { primary ->
+    // The primary columns only hold the parsed number, so borrow the stored label as long
+    // as it still describes the same position.
+    val label = series?.find { it.id == primary.id }?.label
+      ?.takeIf { it.toSeriesSequenceOrNull() == primary.sequence }
+    add(primary.copy(label = label))
+  }
   series?.forEach { if (it.id != primary?.id) add(it) }
 }.sortedByName()
 

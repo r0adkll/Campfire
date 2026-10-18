@@ -6,6 +6,7 @@ package app.campfire.series.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.util.runIfNotNull
@@ -46,7 +47,7 @@ internal class SeriesSourceOfTruthFactory(
               )
               .awaitAsList()
               .map { it.asDomainModel(urlHydrator) }
-              .sortedBy { it.media.metadata.seriesSequence?.sequence }
+              .sortedBySeriesSequence()
 
             dbSeries.asDomainModel(
               books = books,

@@ -11,6 +11,7 @@ import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Series
 import app.campfire.core.model.User
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.db.paging.QueryPagingSource
@@ -63,7 +64,7 @@ class SeriesPagerFactory(
             )
             .awaitAsList()
             .map { it.asDomainModel(urlHydrator) }
-            .sortedBy { it.media.metadata.seriesSequence?.sequence }
+            .sortedBySeriesSequence()
 
           dbSeries.asDomainModel(
             books = books,

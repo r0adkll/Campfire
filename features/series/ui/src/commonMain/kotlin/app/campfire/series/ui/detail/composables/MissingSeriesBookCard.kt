@@ -17,6 +17,7 @@ import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
 import app.campfire.common.compose.widgets.ItemCardInformation
 import app.campfire.common.compose.widgets.placeholderBookPainter
+import app.campfire.core.model.formatSeriesSequence
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.cd_book_cover
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +57,7 @@ internal fun MissingSeriesBookCard(
       title = entry.title,
       // Blank rather than null so the card keeps an empty line instead of "Unknown author".
       subtitle = seriesBookLabel(
-        position = entry.position,
+        position = entry.position?.let(::formatSeriesSequence),
         year = entry.releaseDate?.take(4),
       ).orEmpty(),
     )

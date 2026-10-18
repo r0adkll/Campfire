@@ -25,6 +25,7 @@ fun MinifiedBookMetadata.asDomainModel(): Media.Metadata.Book {
           id = it.id,
           name = it.name,
           sequence = it.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE,
+          label = it.sequence,
         )
       },
     ),
@@ -61,6 +62,7 @@ fun ExpandedBookMetadata.asDomainModel(): Media.Metadata.Book {
         id = it.id,
         name = it.name,
         sequence = it.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE,
+        label = it.sequence,
       )
     }?.sortedByName() ?: emptyList(),
     narrators = narrators ?: emptyList(),

@@ -11,6 +11,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.crashreporting.CrashReporter
@@ -113,7 +114,7 @@ class ShelfSourceOfTruthFactory(
         seriesWithBooks.entries.map { (s, books) ->
           val sortedBooks = books
             .map { it.asDomainModel(urlHydrator) }
-            .sortedBy { it.media.metadata.seriesSequence?.sequence }
+            .sortedBySeriesSequence()
 
           s.asDomainModel(sortedBooks)
         }.dropDuplicates(shelfId) { it.id }

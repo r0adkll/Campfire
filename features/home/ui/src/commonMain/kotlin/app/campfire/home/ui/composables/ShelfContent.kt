@@ -39,6 +39,7 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.home.ui.UiShelf
@@ -187,7 +188,7 @@ private fun LoadedShelfContent(
           name = entity.name,
           description = entity.description,
           items = entity.books
-            ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+            ?.sortedBySeriesSequence()
             ?: emptyList(),
           onClick = { onItemClick(entity) },
           modifier = Modifier
