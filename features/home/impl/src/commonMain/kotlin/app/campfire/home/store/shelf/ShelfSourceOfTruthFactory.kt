@@ -114,7 +114,7 @@ class ShelfSourceOfTruthFactory(
         seriesWithBooks.entries.map { (s, books) ->
           val sortedBooks = books
             .map { it.asDomainModel(urlHydrator) }
-            .sortedBySeriesSequence()
+            .sortedBySeriesSequence(s.id)
 
           s.asDomainModel(sortedBooks)
         }.dropDuplicates(shelfId) { it.id }

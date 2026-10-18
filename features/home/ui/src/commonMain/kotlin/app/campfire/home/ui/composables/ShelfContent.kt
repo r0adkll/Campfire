@@ -188,7 +188,7 @@ private fun LoadedShelfContent(
           name = entity.name,
           description = entity.description,
           items = entity.books
-            ?.sortedBySeriesSequence()
+            ?.sortedBySeriesSequence(entity.id)
             ?: emptyList(),
           onClick = { onItemClick(entity) },
           modifier = Modifier

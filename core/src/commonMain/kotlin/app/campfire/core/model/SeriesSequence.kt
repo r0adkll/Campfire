@@ -60,27 +60,53 @@ fun formatSeriesSequence(sequence: Double): String {
 }
 
 private val SEQUENCE_TOKEN_REGEX = "\\d+|\\D+".toRegex()
+private val MULTI_PART_SEQUENCE_REGEX = "^\\s*\\d+(?:\\.\\d+){2,}".toRegex()
 
 /**
- * Reading order for books in a series. Matches the server's `CAST(sequence AS FLOAT)` order
- * (so `1.5` sits between `1` and `2`, and `1.10` before `1.9`), then breaks the ties that cast
- * leaves by comparing each run of digits in the displayed sequence as a number, which keeps
- * dated entries like `2026.10.01` and `2026.10.10` in order.
+ * Decimal reading order. Matches the server's `CAST(sequence AS FLOAT)` order (so `1.25` sits
+ * between `1` and `1.5`, and `1.10` before `1.9`), then breaks the ties that cast leaves by
+ * comparing each run of digits in the displayed sequence as a number, which keeps entries like
+ * `2026.10.01` and `2026.10.10` in order.
  */
 val SeriesSequenceOrder: Comparator<SeriesSequence> =
   compareBy<SeriesSequence> { it.sequence }
     .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
 
 /**
- * Sort books by their position in [seriesId], or in their primary series when null. Books
- * outside the series come first, and books at the same position fall back to their title.
+ * Part-by-part reading order for series numbered like dates or versions, where `2026.9.30`
+ * comes before `2026.10.01` because each run of digits is compared as a number. Sequences
+ * without a leading number sort last.
  */
-fun Iterable<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId? = null): List<LibraryItem> {
+val SeriesSequencePartsOrder: Comparator<SeriesSequence> =
+  compareBy<SeriesSequence> { it.sequence == SeriesSequence.UNKNOWN_SEQUENCE }
+    .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
+
+/**
+ * The reading order for a whole series. A sequence with two or more dots can't be a decimal,
+ * so one in the series marks it as numbered by dates or versions and the series sorts part by
+ * part ([SeriesSequencePartsOrder]); otherwise it keeps the server's decimal order
+ * ([SeriesSequenceOrder]). Choosing once per series, rather than per pair, keeps the order
+ * consistent across every comparison.
+ */
+fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesSequence> {
+  val multiPart = sequences.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it.formattedSequence) }
+  return if (multiPart) SeriesSequencePartsOrder else SeriesSequenceOrder
+}
+
+/**
+ * Sort a series' books by their position in [seriesId] (falling back to their primary series
+ * when that entry is missing), using [seriesSequenceOrder] for the series. Books with no
+ * series come first, and books at the same position fall back to their title.
+ */
+fun Iterable<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId): List<LibraryItem> {
+  val positions = associateWith { item ->
+    val metadata = item.media.metadata
+    metadata.seriesSequence(seriesId) ?: metadata.seriesSequence
+  }
+  val order = seriesSequenceOrder(positions.values.filterNotNull())
   return sortedWith(
-    compareBy<LibraryItem, SeriesSequence?>(nullsFirst(SeriesSequenceOrder)) { item ->
-      val metadata = item.media.metadata
-      if (seriesId != null) metadata.seriesSequence(seriesId) else metadata.seriesSequence
-    }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
+    compareBy<LibraryItem, SeriesSequence?>(nullsFirst(order)) { positions[it] }
+      .thenBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
   )
 }
 

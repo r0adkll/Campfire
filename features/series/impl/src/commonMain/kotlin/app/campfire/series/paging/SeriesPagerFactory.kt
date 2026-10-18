@@ -64,7 +64,7 @@ class SeriesPagerFactory(
             )
             .awaitAsList()
             .map { it.asDomainModel(urlHydrator) }
-            .sortedBySeriesSequence()
+            .sortedBySeriesSequence(dbSeries.id)
 
           dbSeries.asDomainModel(
             books = books,

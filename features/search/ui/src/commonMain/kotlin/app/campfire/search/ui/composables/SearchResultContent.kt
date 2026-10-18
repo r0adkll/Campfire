@@ -200,7 +200,7 @@ private fun SuccessContent(
           name = s.name,
           description = s.description,
           items = s.books
-            ?.sortedBySeriesSequence()
+            ?.sortedBySeriesSequence(s.id)
             ?: emptyList(),
           itemSize = 100.dp,
           onClick = { onSeriesClick(s) },

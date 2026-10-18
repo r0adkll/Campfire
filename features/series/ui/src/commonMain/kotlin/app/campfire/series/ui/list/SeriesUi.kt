@@ -179,7 +179,7 @@ private fun LoadedState(
             name = series.name,
             description = series.description,
             items = series.books
-              ?.sortedBySeriesSequence()
+              ?.sortedBySeriesSequence(series.id)
               ?: emptyList(),
             onClick = { onSeriesClick(series) },
             modifier = Modifier
@@ -192,7 +192,7 @@ private fun LoadedState(
             sharedTransitionKey = series.id,
             name = series.name,
             items = series.books
-              ?.sortedBySeriesSequence()
+              ?.sortedBySeriesSequence(series.id)
               ?: emptyList(),
             onClick = { onSeriesClick(series) },
             modifier = Modifier

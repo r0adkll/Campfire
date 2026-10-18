@@ -110,15 +110,42 @@ class SeriesSequenceTest {
   }
 
   @Test
-  fun sortedBySeriesSequence_usesPrimarySeriesAndTitleForTies() {
+  fun sortedBySeriesSequence_fallsBackToPrimarySeriesThenTitle() {
     val items = listOf(
       libraryItem(id = "zed").withSeries(sequence("2")).withTitle("Zed"),
       libraryItem(id = "none"),
       libraryItem(id = "alpha").withSeries(sequence("2")).withTitle("alpha"),
-      libraryItem(id = "first").withSeries(sequence("1")),
+      // Missing its entry for the shown series, so its primary series stands in.
+      libraryItem(id = "first").withSeries(sequence("1", seriesId = "primary")),
     )
 
-    assertThat(items.sortedBySeriesSequence().map { it.id }).containsExactly("none", "first", "alpha", "zed")
+    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("none", "first", "alpha", "zed")
+  }
+
+  @Test
+  fun seriesSequenceOrder_sortsDatedSeriesPartByPart() {
+    val sequences = listOf("2026.10.01", "2026.9.30", "2026.10", "2026.9.5", "prequel", "2026.12.1").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026.9.5", "2026.9.30", "2026.10", "2026.10.01", "2026.12.1", "prequel")
+  }
+
+  @Test
+  fun seriesSequenceOrder_keepsDecimalOrderWithoutMultiPartSequences() {
+    val sequences = listOf("1.5", "1.25", "2", "1.75", "1").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("1", "1.25", "1.5", "1.75", "2")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_switchesToPartOrderForDatedSeries() {
+    fun book(id: String, label: String) = libraryItem(id = id).withSeries(sequence(label))
+    val items = listOf(book("oct", "2026.10.01"), book("sep", "2026.9.30"), book("aug", "2026.08.15"))
+
+    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("aug", "sep", "oct")
   }
 
   private fun sequence(label: String, seriesId: String = "id") = SeriesSequence(
