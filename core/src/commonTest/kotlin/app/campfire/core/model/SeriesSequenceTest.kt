@@ -162,6 +162,17 @@ class SeriesSequenceTest {
   }
 
   @Test
+  fun isDatedSeries_spotsDatesButNotDecimals() {
+    fun dated(vararg labels: String) = isDatedSeries(labels.map(::sequence))
+
+    assertThat(dated("2026.10.10", "3")).isEqualTo(true)
+    assertThat(dated("2026.9", "2026.10", "2027")).isEqualTo(true)
+    assertThat(dated("2026.9", "2026.13")).isEqualTo(false)
+    assertThat(dated("1", "1.5", "2")).isEqualTo(false)
+    assertThat(dated("1", "2", "prequel")).isEqualTo(false)
+  }
+
+  @Test
   fun seriesSequenceOrder_keepsDecimalOrderWithoutMultiPartSequences() {
     val sequences = listOf("1.5", "1.25", "2", "1.75", "1").map(::sequence)
 

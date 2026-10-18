@@ -83,22 +83,27 @@ val SeriesSequencePartsOrder: Comparator<SeriesSequence> =
     .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
 
 /**
- * The reading order for a whole series. It sorts part by part ([SeriesSequencePartsOrder]) when
- * the series is numbered by dates or versions, and otherwise keeps the server's decimal order
- * ([SeriesSequenceOrder]). A series counts as dated when:
+ * Whether a series is numbered by dates or versions rather than book numbers, judged from all
+ * of its [sequences] at once. A series counts as dated when:
  * - any sequence has two or more dots (`2026.9.30`), which a decimal can't, or
  * - every sequence with a dot reads as a year and month (`2026.9`, `2026.10`). Decimal series
  *   don't number books in the thousands with month-sized fractions.
- *
+ */
+fun isDatedSeries(sequences: Iterable<SeriesSequence>): Boolean {
+  val labels = sequences.map { it.formattedSequence }
+  if (labels.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it) }) return true
+  val dotted = labels.filter { '.' in it }
+  return dotted.isNotEmpty() && dotted.all { YEAR_MONTH_SEQUENCE_REGEX.matches(it) }
+}
+
+/**
+ * The reading order for a whole series: part by part ([SeriesSequencePartsOrder]) for a dated
+ * series (see [isDatedSeries]), otherwise the server's decimal order ([SeriesSequenceOrder]).
  * Choosing once per series, rather than per pair, keeps the order consistent across every
  * comparison.
  */
 fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesSequence> {
-  val labels = sequences.map { it.formattedSequence }
-  val multiPart = labels.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it) }
-  val dotted = labels.filter { '.' in it }
-  val yearMonth = dotted.isNotEmpty() && dotted.all { YEAR_MONTH_SEQUENCE_REGEX.matches(it) }
-  return if (multiPart || yearMonth) SeriesSequencePartsOrder else SeriesSequenceOrder
+  return if (isDatedSeries(sequences)) SeriesSequencePartsOrder else SeriesSequenceOrder
 }
 
 /**

@@ -111,6 +111,8 @@ class StoreSeriesRepository(
               group = "series",
               value = s.seriesId,
             ),
+            // Listed in series order, so the stored join positions match it.
+            sortMode = "sequence",
           )
         }
 
