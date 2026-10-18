@@ -96,6 +96,9 @@ fun MarqueeText(
         textAlign = textAlign,
         containerWidthPx = constraints.maxWidth,
         fadeEdgeWidth = fadeEdgeWidth,
+        // The overflow can be transient (a font still loading, a width mid-transition) without the
+        // text or width keys changing, so fall back to plain text once it fits again.
+        onFits = { overflowFontSize = null },
       )
 
       else -> Text(
@@ -122,6 +125,7 @@ private fun ScrollingText(
   textAlign: TextAlign?,
   containerWidthPx: Int,
   fadeEdgeWidth: Dp,
+  onFits: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var contentWidthPx by remember { mutableIntStateOf(0) }
@@ -159,7 +163,10 @@ private fun ScrollingText(
     textAlign = textAlign,
     maxLines = 1,
     softWrap = false,
-    onTextLayout = { contentWidthPx = it.size.width },
+    onTextLayout = { result ->
+      contentWidthPx = result.size.width
+      if (result.size.width <= containerWidthPx) onFits()
+    },
     modifier = modifier
       .fadingEdges(fadeEdgeWidth, startFade = { startFade })
       .basicMarquee(
