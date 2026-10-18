@@ -43,6 +43,7 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.network.reachability.WorkOffline
+import app.campfire.reader.api.EbookRepository
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.AppStateSettings
@@ -141,6 +142,7 @@ class SettingsPresenter(
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val ebookRepository: EbookRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
   private val tokenBackup: TokenBackup,
@@ -208,11 +210,15 @@ class SettingsPresenter(
       offlineDownloadManager.observeAll()
     }.collectAsState(emptyList())
 
+    val ebookDownloads by remember {
+      ebookRepository.observeOfflineDownloads()
+    }.collectAsState(emptyList())
+
     val downloadEntries by remember {
-      snapshotFlow { downloads }
-        .mapLatest { items ->
-          items
-            .mapNotNull { download ->
+      snapshotFlow { downloads to ebookDownloads }
+        .mapLatest { (items, ebooks) ->
+          (items.map { it to false } + ebooks.map { it to true })
+            .mapNotNull { (download, isEbook) ->
               // A download whose item can't be resolved (server unreachable with no cached copy,
               // or deleted on the server) shouldn't take the whole settings screen down.
               val libraryItem = try {
@@ -224,7 +230,9 @@ class SettingsPresenter(
                 return@mapNotNull null
               }
               val episodeId = download.episodeId
-              if (episodeId == null) {
+              if (isEbook) {
+                DownloadEntry.Ebook(libraryItem, download)
+              } else if (episodeId == null) {
                 DownloadEntry.Book(libraryItem, download)
               } else {
                 val media = libraryItem.media as? Media.Podcast ?: return@mapNotNull null
@@ -494,6 +502,7 @@ class SettingsPresenter(
           )
           is DeleteDownload -> when (val entry = event.entry) {
             is DownloadEntry.Book -> offlineDownloadManager.delete(entry.libraryItem)
+            is DownloadEntry.Ebook -> ebookRepository.deleteDownload(entry.libraryItem.id)
             is DownloadEntry.Episode -> offlineDownloadManager.deleteEpisode(
               entry.libraryItem,
               entry.episode,

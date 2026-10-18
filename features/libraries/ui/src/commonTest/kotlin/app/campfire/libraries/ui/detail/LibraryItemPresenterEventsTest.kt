@@ -19,8 +19,8 @@ import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryScreen
-import app.campfire.libraries.ui.detail.book.asOfflineDownload
 import app.campfire.reader.api.EbookDownload
+import app.campfire.reader.api.asOfflineDownload
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
@@ -156,7 +156,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
     assertThat(download.state).isEqualTo(OfflineDownload.State.Downloading)
     assertThat(download.contentLength).isEqualTo(200L)
-    assertThat(download.progress.percent).isEqualTo(25f)
+    assertThat(download.progress.percent).isEqualTo(0.25f)
     assertThat(EbookDownload(EbookDownload.State.Downloaded).asOfflineDownload("item").state)
       .isEqualTo(OfflineDownload.State.Completed)
   }

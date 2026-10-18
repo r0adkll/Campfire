@@ -19,6 +19,7 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.features.reader.api)
         implementation(projects.infra.whatsNew.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.infra.updates.api)

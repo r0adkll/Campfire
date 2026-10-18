@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
@@ -49,6 +50,9 @@ import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.DownloadDone
 import app.campfire.common.compose.icons.rounded.Downloading
+import app.campfire.common.compose.icons.rounded.Headphones
+import app.campfire.common.compose.icons.rounded.MenuBook
+import app.campfire.common.compose.icons.rounded.Podcasts
 import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
@@ -107,6 +111,7 @@ internal fun DownloadsPane(
 
     if (state.downloadsSettings.downloads.isNotEmpty()) {
       var confirmingKey by remember { mutableStateOf<String?>(null) }
+      val showMediaType = state.downloadsSettings.downloads.hasMixedMediaTypes
       state.downloadsSettings.downloads.forEach { entry ->
         val key = entry.confirmKey
         ConfirmationLayout(
@@ -127,6 +132,7 @@ internal fun DownloadsPane(
         ) {
           ItemDownloadListItem(
             entry = entry,
+            showMediaType = showMediaType,
             onClick = {
               state.eventSink(
                 SettingsUiEvent.DownloadsSettingEvent.DownloadClicked(entry),
@@ -240,11 +246,54 @@ private val DownloadEntry.confirmKey: String
   get() = when (this) {
     is DownloadEntry.Book -> libraryItem.id
     is DownloadEntry.Episode -> "${libraryItem.id}:${episode.id}"
+    is DownloadEntry.Ebook -> "${libraryItem.id}:ebook"
   }
 
+/** Whether [this] holds more than one kind of download, so each row says which it is. */
+internal val List<DownloadEntry>.hasMixedMediaTypes: Boolean
+  get() = distinctBy { it::class }.size > 1
+
+private val DownloadEntry.mediaTypeIcon: ImageVector
+  get() = when (this) {
+    is DownloadEntry.Book -> CampfireIcons.Rounded.Headphones
+    is DownloadEntry.Ebook -> CampfireIcons.Rounded.MenuBook
+    is DownloadEntry.Episode -> CampfireIcons.Rounded.Podcasts
+  }
+
+/**
+ * The size of the download, after what it is: an ebook's format always, as its details show it,
+ * and an audiobook's file format when [showFormat], next to other kinds of downloads.
+ */
+internal fun DownloadEntry.supportingText(showFormat: Boolean): String = when (this) {
+  is DownloadEntry.Book -> {
+    val size = libraryItem.media.sizeInBytes.asReadableBytes()
+    // Only a single format reads cleanly; a book mixing them just shows its size
+    val format = libraryItem.media.tracks
+      .map { it.metadata.ext.removePrefix(".").uppercase() }
+      .filter { it.isNotBlank() }
+      .distinct()
+      .singleOrNull()
+    if (showFormat && format != null) "$format · $size" else size
+  }
+  is DownloadEntry.Ebook -> {
+    val size = download.contentLength
+      .takeIf { it > 0L }
+      ?.asReadableBytes()
+      ?: libraryItem.media.sizeInBytes.asReadableBytes()
+    val format = libraryItem.media.ebookFormat?.uppercase()
+    if (format != null) "$format · $size" else size
+  }
+  is DownloadEntry.Episode -> buildString {
+    append(libraryItem.media.metadata.title ?: "<unknown podcast>")
+    append(" · ")
+    append(episode.sizeInBytes.asReadableBytes())
+  }
+}
+
 @Composable
-private fun ItemDownloadListItem(
+internal fun ItemDownloadListItem(
   entry: DownloadEntry,
+  showMediaType: Boolean,
   onClick: () -> Unit,
   onDeleteClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -252,21 +301,26 @@ private fun ItemDownloadListItem(
   val item = entry.libraryItem
   val download = entry.download
   val titleText = when (entry) {
-    is DownloadEntry.Book -> item.media.metadata.title ?: "<unknown item>"
+    is DownloadEntry.Book,
+    is DownloadEntry.Ebook,
+    -> item.media.metadata.title ?: "<unknown item>"
     is DownloadEntry.Episode -> entry.episode.title
   }
-  val supportingText = when (entry) {
-    is DownloadEntry.Book -> item.media.sizeInBytes.asReadableBytes()
-    is DownloadEntry.Episode -> buildString {
-      append(item.media.metadata.title ?: "<unknown podcast>")
-      append(" · ")
-      append(entry.episode.sizeInBytes.asReadableBytes())
-    }
-  }
-
   ActionSetting(
     headlineContent = { Text(titleText) },
-    supportingContent = { Text(supportingText) },
+    supportingContent = {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        if (showMediaType) {
+          Icon(
+            entry.mediaTypeIcon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+          )
+          Spacer(Modifier.width(6.dp))
+        }
+        Text(entry.supportingText(showFormat = showMediaType))
+      }
+    },
     leadingContent = {
       ItemDownloadImage(
         item = item,

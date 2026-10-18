@@ -3,6 +3,7 @@
 
 package app.campfire.reader.api
 
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.Flow
 
@@ -65,3 +66,19 @@ data class EbookDownload(
     val None = EbookDownload()
   }
 }
+
+/** An ebook download as the download UI shows any other. */
+fun EbookDownload.asOfflineDownload(itemId: LibraryItemId) = OfflineDownload(
+  libraryItemId = itemId,
+  state = when (state) {
+    EbookDownload.State.None -> OfflineDownload.State.None
+    EbookDownload.State.Downloading -> OfflineDownload.State.Downloading
+    EbookDownload.State.Downloaded -> OfflineDownload.State.Completed
+    EbookDownload.State.Failed -> OfflineDownload.State.Failed
+  },
+  contentLength = totalBytes,
+  progress = OfflineDownload.Progress(
+    bytes = bytes,
+    percent = if (totalBytes > 0) bytes.toFloat() / totalBytes else 0f,
+  ),
+)
