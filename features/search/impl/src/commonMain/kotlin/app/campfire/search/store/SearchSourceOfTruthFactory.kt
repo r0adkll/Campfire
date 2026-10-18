@@ -203,7 +203,7 @@ class SearchSourceOfTruthFactory(
             seriesSearchResult.series.asDbModel(query.userId, query.libraryId),
           )
 
-          seriesSearchResult.books.forEach { libraryItem ->
+          seriesSearchResult.books.forEachIndexed { index, libraryItem ->
             libraryItemDao.insert(
               item = libraryItem,
               asTransaction = true,
@@ -213,6 +213,7 @@ class SearchSourceOfTruthFactory(
               SeriesBookJoin(
                 seriesId = seriesSearchResult.series.id,
                 libraryItemId = libraryItem.id,
+                position = index.toLong(),
               ),
             )
           }

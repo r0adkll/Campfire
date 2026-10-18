@@ -110,16 +110,27 @@ class SeriesSequenceTest {
   }
 
   @Test
-  fun sortedBySeriesSequence_fallsBackToPrimarySeriesThenTitle() {
+  fun sortedBySeriesSequence_breaksTiesByTitle() {
     val items = listOf(
       libraryItem(id = "zed").withSeries(sequence("2")).withTitle("Zed"),
-      libraryItem(id = "none"),
       libraryItem(id = "alpha").withSeries(sequence("2")).withTitle("alpha"),
-      // Missing its entry for the shown series, so its primary series stands in.
-      libraryItem(id = "first").withSeries(sequence("1", seriesId = "primary")),
+      libraryItem(id = "first").withSeries(sequence("1")),
     )
 
-    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("none", "first", "alpha", "zed")
+    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("first", "alpha", "zed")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_keepsListedOrderWhenAnySequenceIsUnknown() {
+    val items = listOf(
+      libraryItem(id = "listed-first").withSeries(sequence("3")).withTitle("Zed"),
+      // Only knows its place in another series.
+      libraryItem(id = "listed-second").withSeries(sequence("1", seriesId = "other")),
+      libraryItem(id = "listed-third").withSeries(sequence("2")).withTitle("Alpha"),
+    )
+
+    assertThat(items.sortedBySeriesSequence("id").map { it.id })
+      .containsExactly("listed-first", "listed-second", "listed-third")
   }
 
   @Test

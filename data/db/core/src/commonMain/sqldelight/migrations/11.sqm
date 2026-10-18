@@ -24,3 +24,6 @@ CREATE TABLE IF NOT EXISTS ebookContents (
   fraction REAL,
   PRIMARY KEY (libraryItemId, position)
 );
+
+-- The server-listed position of each book in a series (see seriesBookJoin.sq)
+ALTER TABLE seriesBookJoin ADD COLUMN position INTEGER;

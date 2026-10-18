@@ -144,6 +144,7 @@ class SeriesRemoteMediator(
                   SeriesBookJoin(
                     seriesId = series.id,
                     libraryItemId = book.id,
+                    position = index.toLong(),
                   ),
                 )
               }

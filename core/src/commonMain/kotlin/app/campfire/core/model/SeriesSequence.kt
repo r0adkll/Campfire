@@ -102,20 +102,21 @@ fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesS
 }
 
 /**
- * Sort a series' books by their position in [seriesId] (falling back to their primary series
- * when that entry is missing), using [seriesSequenceOrder] for the series. Books with no
- * series come first, and books at the same position fall back to their title.
+ * Sort a series' books by their sequence in [seriesId], using [seriesSequenceOrder] for the
+ * series, with books at the same position falling back to their title.
+ *
+ * Books listed with a series don't always carry their sequence in it, so when any book's is
+ * unknown the books keep the order they came in, which is the order the server listed them.
  */
-fun Iterable<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId): List<LibraryItem> {
-  val positions = associateWith { item ->
-    val metadata = item.media.metadata
-    metadata.seriesSequence(seriesId) ?: metadata.seriesSequence
-  }
-  val order = seriesSequenceOrder(positions.values.filterNotNull())
-  return sortedWith(
-    compareBy<LibraryItem, SeriesSequence?>(nullsFirst(order)) { positions[it] }
-      .thenBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
-  )
+fun List<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId): List<LibraryItem> {
+  val sequences = map { it.media.metadata.seriesSequence(seriesId) ?: return this }
+  val order = seriesSequenceOrder(sequences)
+  return indices
+    .sortedWith(
+      compareBy<Int, SeriesSequence>(order) { sequences[it] }
+        .thenBy(String.CASE_INSENSITIVE_ORDER) { this[it].media.metadata.title.orEmpty() },
+    )
+    .map { this[it] }
 }
 
 private fun compareSequenceTokens(a: String, b: String): Int {

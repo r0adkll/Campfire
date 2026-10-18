@@ -160,7 +160,7 @@ class StoreSeriesRepository(
             db.seriesBookJoinQueries.deleteForSeries(s.seriesId)
 
             // Insert the books
-            networkResult.books.forEach { item ->
+            networkResult.books.forEachIndexed { index, item ->
               val libraryItem = item.asDbModel(serverUrl)
               val media = item.media.asDbModel(item.id)
               db.libraryItemsQueries.insertOrIgnore(libraryItem)
@@ -174,6 +174,7 @@ class StoreSeriesRepository(
                 SeriesBookJoin(
                   seriesId = s.seriesId,
                   libraryItemId = item.id,
+                  position = index.toLong(),
                 ),
               )
             }
