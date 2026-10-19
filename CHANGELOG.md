@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) full screen, offline too, with your place kept in sync with Audiobookshelf
 - Downloaded books and podcasts keep their cover art offline, even after the app's cache is cleared
 - Work offline from the navigation drawer or Connection settings — until you turn it off, for a few hours, or until you're back on Wi-Fi, or whenever you're on mobile data. Campfire stops contacting your server and runs from your downloads, then syncs your progress when you're back online
+- A book's details show its position in each series it belongs to
 
 ### Changed
 

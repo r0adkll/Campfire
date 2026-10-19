@@ -49,6 +49,7 @@ class SeriesSlot(
         SeriesMetadata(
           seriesName = seriesSequence.name,
           seriesBooks = seriesBooks,
+          sequence = seriesSequence.formattedSequence,
           modifier = Modifier
             .clickable(
               onClick = {
