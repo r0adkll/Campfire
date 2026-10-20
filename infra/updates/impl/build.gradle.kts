@@ -21,13 +21,21 @@ kotlin {
         implementation(libs.circuitx.overlays)
         implementation(libs.compose.runtime)
         implementation(libs.compose.ui)
+        implementation(libs.compose.components.resources)
       }
     }
 
     commonTest {
       dependencies {
+        implementation(projects.features.settings.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
+      }
+    }
+
+    jvmTest {
+      dependencies {
+        implementation(compose.desktop.currentOs)
       }
     }
   }

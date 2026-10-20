@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -66,6 +69,7 @@ internal fun CampfireSearchAppBar(
   themeIconEnabled: Boolean,
   onNavigationClick: () -> Unit,
   modifier: Modifier = Modifier,
+  themeIconBadged: Boolean = false,
   actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
@@ -73,12 +77,20 @@ internal fun CampfireSearchAppBar(
     searchComponent = searchComponent,
     navigationIcon = if (themeIconEnabled) {
       {
-        themeIconContent.Content(
-          onClick = onNavigationClick,
-          modifier = Modifier
-            .size(40.dp)
-            .padding(4.dp),
-        )
+        BadgedBox(
+          badge = {
+            if (themeIconBadged) {
+              Badge(Modifier.offset(x = (-6).dp, y = 6.dp))
+            }
+          },
+        ) {
+          themeIconContent.Content(
+            onClick = onNavigationClick,
+            modifier = Modifier
+              .size(40.dp)
+              .padding(4.dp),
+          )
+        }
       }
     } else {
       null

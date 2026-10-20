@@ -15,11 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloaded books and podcasts keep their cover art offline, even after the app's cache is cleared
 - Work offline from the navigation drawer or Connection settings — until you turn it off, for a few hours, or until you're back on Wi-Fi, or whenever you're on mobile data. Campfire stops contacting your server and runs from your downloads, then syncs your progress when you're back online
 - A book's details show its position in each series it belongs to
+- [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
 
 ### Changed
 
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in
 - [Android] Check for app updates when you come back to Campfire, not only when it starts
+- [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update
 - E-book reading progress shows to a tenth of a percent
 - E-book details show the format and file size, the chapter you're on, the book's contents and edition details in place of audiobook-only information, and let you continue reading or discard your reading progress
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress

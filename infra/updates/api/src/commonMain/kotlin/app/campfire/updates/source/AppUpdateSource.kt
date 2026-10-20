@@ -6,6 +6,7 @@ package app.campfire.updates.source
 import androidx.compose.runtime.Composable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -41,8 +42,15 @@ interface AppUpdateSource {
   val updateSheet: AppUpdateSheet?
     get() = null
 
+  /** The release channel this build follows, e.g. "beta" or "pr/1234", where the source has them. */
+  val channel: String?
+    get() = null
+
   /**
    * Get the latest available update
+   *
+   * @throws AppUpdateCheckException when the source couldn't be asked, so a failed check isn't
+   * mistaken for being up to date.
    */
   suspend fun getAvailableUpdate(): AppUpdate?
 
@@ -68,6 +76,14 @@ data class AppUpdate(
   /** A one-line summary of what changed, shown in place of [versionName] where there is one. */
   val headline: String? = null,
   val status: Status = Status.Available,
+  /** The download's size, where the source knows it. */
+  val sizeBytes: Long? = null,
+  /** When the build was published, where the source knows it. */
+  val publishedAt: Instant? = null,
+  /** The release channel the build comes from, where the source has them. */
+  val channel: String? = null,
+  /** The pull request the build was made from, for pull request builds. */
+  val pullRequest: Int? = null,
 ) {
 
   sealed interface Status {
@@ -89,6 +105,9 @@ data class AppUpdate(
     data object Failed : Status
   }
 }
+
+/** An update check that couldn't reach the [AppUpdateSource]'s server. */
+class AppUpdateCheckException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 data class AppUpdateProgress(
   val bytes: Long,
