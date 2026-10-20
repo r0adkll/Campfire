@@ -15,6 +15,8 @@ kotlin {
         api(projects.data.account.api)
         api(projects.ui.theming.api)
 
+        implementation(projects.infra.updates.api)
+
         implementation(libs.compose.components.resources)
       }
     }

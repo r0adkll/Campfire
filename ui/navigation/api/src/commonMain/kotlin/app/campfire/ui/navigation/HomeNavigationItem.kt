@@ -20,4 +20,9 @@ data class HomeNavigationItem(
    * download count.
    */
   val badgeCount: Int = 0,
+  /**
+   * Whether a dot marks something waiting behind the destination, e.g. an app update behind
+   * Settings. A [badgeCount] takes its place.
+   */
+  val badged: Boolean = false,
 )

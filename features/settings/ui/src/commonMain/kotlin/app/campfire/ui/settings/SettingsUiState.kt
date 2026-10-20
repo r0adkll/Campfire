@@ -27,6 +27,7 @@ import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.api.StreamingMethod
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.updates.AppUpdateCheck
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateSheet
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -60,6 +61,8 @@ data class SettingsUiState(
   val sleepSettings: SleepSettingsInfo,
   val androidAutoSettings: AndroidAutoSettingsInfo,
   val aboutSettings: AboutSettingsInfo,
+  /** Null where this build doesn't update itself, which hides the App updates pane. */
+  val appUpdates: AppUpdatesSettingsInfo?,
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
@@ -170,21 +173,22 @@ data class SleepSettingsInfo(
 data class AboutSettingsInfo(
   val crashReportingEnabled: Boolean,
   val analyticReportingEnabled: Boolean,
-  /** The "Check for updates" row, for builds whose update source has its own update sheet. */
-  val appUpdate: AppUpdateInfo?,
 )
 
+/** The App updates pane, for builds that update themselves. */
 @Immutable
-data class AppUpdateInfo(
+data class AppUpdatesSettingsInfo(
+  /** The newest build waiting, with how far its install has got; null when up to date. */
+  val update: AppUpdate?,
   val check: AppUpdateCheck,
+  /** This install's version name and code. */
+  val installedVersion: String,
+  val installedBuild: Long,
+  /** The release channel this build follows, where the update source has them. */
+  val channel: String?,
   val sheet: AppUpdateSheet,
   val showSheet: Boolean,
 )
-
-sealed interface AppUpdateCheck {
-  data object Checking : AppUpdateCheck
-  data class Checked(val update: AppUpdate?) : AppUpdateCheck
-}
 
 @Immutable
 data class AndroidAutoSettingsInfo(
@@ -225,6 +229,7 @@ enum class SettingsPane {
   Playback,
   Sleep,
   AndroidAuto,
+  Updates,
   About,
   Developer,
   ;
@@ -237,6 +242,7 @@ enum class SettingsPane {
     Playback -> SettingsScreen.Page.Playback
     Sleep -> SettingsScreen.Page.Sleep
     AndroidAuto -> SettingsScreen.Page.AndroidAuto
+    Updates -> SettingsScreen.Page.Updates
     About -> SettingsScreen.Page.About
     Developer -> SettingsScreen.Page.Developer
   }
@@ -333,8 +339,12 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object ChangelogClick : AboutSettingEvent
     data class CrashReportingEnabled(val enabled: Boolean) : AboutSettingEvent
     data class AnalyticReportingEnabled(val enabled: Boolean) : AboutSettingEvent
-    data object CheckForUpdatesClick : AboutSettingEvent
-    data object AppUpdateSheetDismissed : AboutSettingEvent
+  }
+
+  sealed interface AppUpdatesSettingEvent : SettingsUiEvent {
+    data object CheckNow : AppUpdatesSettingEvent
+    data object OpenUpdateSheet : AppUpdatesSettingEvent
+    data object UpdateSheetDismissed : AppUpdatesSettingEvent
   }
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {

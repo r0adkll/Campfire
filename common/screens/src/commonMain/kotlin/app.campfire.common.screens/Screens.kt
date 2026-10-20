@@ -156,6 +156,7 @@ data class SettingsScreen(
     Playback,
     Sleep,
     AndroidAuto,
+    Updates,
     About,
     Developer,
   }

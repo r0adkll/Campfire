@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -17,6 +18,7 @@ import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.core.di.UserScope
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
+import app.campfire.updates.AppUpdates
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import dev.zacsweers.metro.ContributesBinding
 
@@ -36,13 +38,24 @@ fun interface CampfireAppBar {
 class DefaultCampfireAppBar(
   private val searchComponent: SearchComponent,
   private val themeIconContent: ThemeIconContent,
+  private val appUpdates: AppUpdates,
 ) : CampfireAppBar {
   @OptIn(ExperimentalMaterial3Api::class)
   @Composable
   override fun invoke(
     modifier: Modifier,
     scrollBehavior: SearchBarScrollBehavior?,
-  ) = CampfireAppBarContent(searchComponent, themeIconContent, modifier, scrollBehavior)
+  ) {
+    // The drawer's update card waits behind the menu button
+    val update by appUpdates.undismissedUpdate.collectAsState()
+    CampfireAppBarContent(
+      searchComponent = searchComponent,
+      themeIconContent = themeIconContent,
+      menuBadged = update != null,
+      modifier = modifier,
+      scrollBehavior = scrollBehavior,
+    )
+  }
 }
 
 object SharedAppBar
@@ -52,6 +65,7 @@ object SharedAppBar
 private fun CampfireAppBarContent(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
+  menuBadged: Boolean,
   modifier: Modifier,
   scrollBehavior: SearchBarScrollBehavior?,
 ) = SharedElementTransitionScope {
@@ -71,6 +85,7 @@ private fun CampfireAppBarContent(
       searchComponent = searchComponent,
       themeIconContent = themeIconContent,
       themeIconEnabled = !windowSizeClass.isLandscapePhone,
+      menuBadged = menuBadged,
       scrollBehavior = scrollBehavior,
       modifier = modifier
         .sharedElement(
@@ -86,6 +101,7 @@ private fun CompactCampfireAppBar(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
   themeIconEnabled: Boolean,
+  menuBadged: Boolean,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
@@ -94,6 +110,7 @@ private fun CompactCampfireAppBar(
     searchComponent = searchComponent,
     themeIconContent = themeIconContent,
     themeIconEnabled = themeIconEnabled,
+    themeIconBadged = menuBadged,
     onNavigationClick = drawerOpener,
     modifier = modifier,
     scrollBehavior = scrollBehavior,

@@ -39,6 +39,18 @@ private fun WithBadge(item: HomeNavigationItem, content: @Composable () -> Unit)
       content()
     }
   } else {
+    WithDotBadge(item.badged, content)
+  }
+}
+
+/** Marks [content] with a dot while [badged], for something waiting behind it. */
+@Composable
+internal fun WithDotBadge(badged: Boolean, content: @Composable () -> Unit) {
+  if (badged) {
+    BadgedBox(badge = { Badge() }) {
+      content()
+    }
+  } else {
     content()
   }
 }

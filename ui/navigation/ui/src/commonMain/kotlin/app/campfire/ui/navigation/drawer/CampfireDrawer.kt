@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FilledTonalIconButton
@@ -67,6 +68,7 @@ import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.offline.WorkOfflineMenu
 import app.campfire.common.compose.offline.statusText
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.reflect.instanceOf
 import app.campfire.network.reachability.OfflineChoice
@@ -153,6 +155,12 @@ fun CampfireDrawer(
       )
 
       component.appUpdateWidget.Content(
+        onClick = {
+          navigator.goTo(SettingsScreen(SettingsScreen.Page.Updates))
+          scope.launch {
+            drawerState.close()
+          }
+        },
         modifier = Modifier.padding(
           horizontal = 16.dp,
         ),
@@ -371,6 +379,7 @@ private fun DestinationListItem(
       )
     },
     label = { Text(text = item.label) },
+    badge = { if (item.badged) Badge() },
     selected = selected,
     onClick = onClick,
     modifier = modifier
