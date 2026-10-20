@@ -12,13 +12,18 @@ data class SeriesSequence(
    * sorts after every numbered entry via [UNKNOWN_SEQUENCE].
    */
   val sequence: Double,
+  /**
+   * The sequence exactly as the server stores it (e.g. `2026.10.10`), for display. Null when
+   * only the parsed [sequence] is known.
+   */
+  val label: String? = null,
 ) {
   /**
-   * The sequence formatted the way the server would present it: whole numbers drop the
-   * trailing `.0`, fractional numbers keep their decimals.
+   * The sequence as it should be displayed: the server's own [label] when there is one,
+   * otherwise [sequence] with whole numbers dropping the trailing `.0`.
    */
   val formattedSequence: String
-    get() = formatSeriesSequence(sequence)
+    get() = label?.trim()?.takeIf { it.isNotEmpty() } ?: formatSeriesSequence(sequence)
 
   companion object {
     /** Sort key used for books whose sequence is missing or unparseable. */
@@ -52,4 +57,102 @@ fun formatSeriesSequence(sequence: Double): String {
   if (sequence == SeriesSequence.UNKNOWN_SEQUENCE) return ""
   val whole = sequence.toLong()
   return if (whole.toDouble() == sequence) whole.toString() else sequence.toString()
+}
+
+private val SEQUENCE_TOKEN_REGEX = "\\d+|\\D+".toRegex()
+private val MULTI_PART_SEQUENCE_REGEX = "^\\s*\\d+(?:\\.\\d+){2,}".toRegex()
+private val YEAR_MONTH_SEQUENCE_REGEX = "^\\s*\\d{4}\\.(?:0?[1-9]|1[0-2])\\s*$".toRegex()
+
+/**
+ * Decimal reading order. Matches the server's `CAST(sequence AS FLOAT)` order (so `1.25` sits
+ * between `1` and `1.5`, and `1.10` before `1.9`), then breaks the ties that cast leaves by
+ * comparing each run of digits in the displayed sequence as a number, which keeps entries like
+ * `2026.10.01` and `2026.10.10` in order.
+ */
+val SeriesSequenceOrder: Comparator<SeriesSequence> =
+  compareBy<SeriesSequence> { it.sequence }
+    .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
+
+/**
+ * Part-by-part reading order for series numbered like dates or versions, where `2026.9.30`
+ * comes before `2026.10.01` because each run of digits is compared as a number. Sequences
+ * without a leading number sort last.
+ */
+val SeriesSequencePartsOrder: Comparator<SeriesSequence> =
+  compareBy<SeriesSequence> { it.sequence == SeriesSequence.UNKNOWN_SEQUENCE }
+    .thenComparator { a, b -> compareSequenceTokens(a.formattedSequence, b.formattedSequence) }
+
+/**
+ * Whether a series is numbered by dates or versions rather than book numbers, judged from all
+ * of its [sequences] at once. A series counts as dated when:
+ * - any sequence has two or more dots (`2026.9.30`), which a decimal can't, or
+ * - every sequence with a dot reads as a year and month (`2026.9`, `2026.10`). Decimal series
+ *   don't number books in the thousands with month-sized fractions.
+ */
+fun isDatedSeries(sequences: Iterable<SeriesSequence>): Boolean {
+  val labels = sequences.map { it.formattedSequence }
+  if (labels.any { MULTI_PART_SEQUENCE_REGEX.containsMatchIn(it) }) return true
+  val dotted = labels.filter { '.' in it }
+  return dotted.isNotEmpty() && dotted.all { YEAR_MONTH_SEQUENCE_REGEX.matches(it) }
+}
+
+/**
+ * The reading order for a whole series: part by part ([SeriesSequencePartsOrder]) for a dated
+ * series (see [isDatedSeries]), otherwise the server's decimal order ([SeriesSequenceOrder]).
+ * Choosing once per series, rather than per pair, keeps the order consistent across every
+ * comparison.
+ */
+fun seriesSequenceOrder(sequences: Iterable<SeriesSequence>): Comparator<SeriesSequence> {
+  return if (isDatedSeries(sequences)) SeriesSequencePartsOrder else SeriesSequenceOrder
+}
+
+/**
+ * Sort a series' books by their sequence in [seriesId], using [seriesSequenceOrder] for the
+ * series, with books at the same position falling back to their title.
+ *
+ * Books listed with a series don't always carry their sequence in it, so when any book's is
+ * unknown the books keep the order they came in, which is the order the server listed them.
+ */
+fun List<LibraryItem>.sortedBySeriesSequence(seriesId: SeriesId): List<LibraryItem> {
+  return sortedBySeriesSequence(
+    thenBy = compareBy(String.CASE_INSENSITIVE_ORDER) { it.media.metadata.title.orEmpty() },
+    sequenceOf = { it.media.metadata.seriesSequence(seriesId) },
+  )
+}
+
+/**
+ * Sort the members of one series by [sequenceOf] with [seriesSequenceOrder], then [thenBy].
+ * Keeps the incoming order when any member's sequence is unknown.
+ */
+fun <T> List<T>.sortedBySeriesSequence(
+  thenBy: Comparator<in T>? = null,
+  sequenceOf: (T) -> SeriesSequence?,
+): List<T> {
+  val sequences = map { sequenceOf(it) ?: return this }
+  val bySequence = compareBy<Int, SeriesSequence>(seriesSequenceOrder(sequences)) { sequences[it] }
+  val order = if (thenBy == null) {
+    bySequence
+  } else {
+    bySequence.thenComparator { a, b -> thenBy.compare(this[a], this[b]) }
+  }
+  return indices.sortedWith(order).map { this[it] }
+}
+
+private fun compareSequenceTokens(a: String, b: String): Int {
+  val aTokens = SEQUENCE_TOKEN_REGEX.findAll(a).map { it.value }.iterator()
+  val bTokens = SEQUENCE_TOKEN_REGEX.findAll(b).map { it.value }.iterator()
+  while (aTokens.hasNext() && bTokens.hasNext()) {
+    val aToken = aTokens.next()
+    val bToken = bTokens.next()
+    val result = if (aToken[0].isDigit() && bToken[0].isDigit()) {
+      // Compare digit runs by value without parsing, so runs of any length can't overflow.
+      val aDigits = aToken.trimStart('0')
+      val bDigits = bToken.trimStart('0')
+      compareValuesBy(aDigits, bDigits, { it.length }, { it })
+    } else {
+      aToken.compareTo(bToken, ignoreCase = true)
+    }
+    if (result != 0) return result
+  }
+  return aTokens.hasNext().compareTo(bTokens.hasNext())
 }

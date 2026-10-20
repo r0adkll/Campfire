@@ -53,6 +53,169 @@ class SeriesSequenceTest {
   }
 
   @Test
+  fun formattedSequence_prefersServerLabel() {
+    val dated = SeriesSequence("id", "name", "2026.10.10".toSeriesSequenceOrNull()!!, label = "2026.10.10")
+
+    assertThat(dated.formattedSequence).isEqualTo("2026.10.10")
+    assertThat(SeriesSequence("id", "name", 2.0, label = " 02 ").formattedSequence).isEqualTo("02")
+    assertThat(SeriesSequence("id", "name", 2.0, label = " ").formattedSequence).isEqualTo("2")
+  }
+
+  @Test
+  fun seriesSequenceOrder_matchesServerCastOrder() {
+    val sorted = listOf("2", "1.9", "1.10", "1.5", "1", "prequel")
+      .map(::sequence)
+      .sortedWith(SeriesSequenceOrder)
+      .map { it.formattedSequence }
+
+    // CAST(sequence AS FLOAT) reads 1.10 as 1.1, so it comes before 1.9.
+    assertThat(sorted).containsExactly("1", "1.10", "1.5", "1.9", "2", "prequel")
+  }
+
+  @Test
+  fun seriesSequenceOrder_breaksCastTiesByEachNumber() {
+    val sorted = listOf("2026.10.10", "2026.10.02", "2026.1", "2026.10", "2026.10.01b", "2026.10.01")
+      .map(::sequence)
+      .sortedWith(SeriesSequenceOrder)
+      .map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026.1", "2026.10", "2026.10.01", "2026.10.01b", "2026.10.02", "2026.10.10")
+  }
+
+  @Test
+  fun seriesSequenceOrder_comparesLongDigitRunsByValue() {
+    // Both parse to the same Double, so only the digit-run comparison can order them.
+    val sorted = listOf("1.100000000000000000002", "1.100000000000000000001")
+      .map(::sequence)
+      .sortedWith(SeriesSequenceOrder)
+      .map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("1.100000000000000000001", "1.100000000000000000002")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_ordersByPositionInRequestedSeries() {
+    fun book(id: String, sessions: String, other: String) = libraryItem(id = id).withSeries(
+      sequence(sessions, seriesId = "sessions"),
+      sequence(other, seriesId = "other"),
+    )
+    val items = listOf(
+      book("c", sessions = "2026.10.10", other = "1"),
+      book("a", sessions = "2026.10.01", other = "3"),
+      book("b", sessions = "2026.10.02", other = "2"),
+    )
+
+    assertThat(items.sortedBySeriesSequence("sessions").map { it.id }).containsExactly("a", "b", "c")
+    assertThat(items.sortedBySeriesSequence("other").map { it.id }).containsExactly("c", "b", "a")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_breaksTiesByTitle() {
+    val items = listOf(
+      libraryItem(id = "zed").withSeries(sequence("2")).withTitle("Zed"),
+      libraryItem(id = "alpha").withSeries(sequence("2")).withTitle("alpha"),
+      libraryItem(id = "first").withSeries(sequence("1")),
+    )
+
+    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("first", "alpha", "zed")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_sortsAnyMembersOfADatedSeries() {
+    val rows = listOf("2026.10", "2026.1", "2026.12", "2026.9", "prequel").map { it to sequence(it) }
+
+    assertThat(rows.sortedBySeriesSequence { it.second }.map { it.first })
+      .containsExactly("2026.1", "2026.9", "2026.10", "2026.12", "prequel")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_keepsListedOrderWhenAnySequenceIsUnknown() {
+    val items = listOf(
+      libraryItem(id = "listed-first").withSeries(sequence("3")).withTitle("Zed"),
+      // Only knows its place in another series.
+      libraryItem(id = "listed-second").withSeries(sequence("1", seriesId = "other")),
+      libraryItem(id = "listed-third").withSeries(sequence("2")).withTitle("Alpha"),
+    )
+
+    assertThat(items.sortedBySeriesSequence("id").map { it.id })
+      .containsExactly("listed-first", "listed-second", "listed-third")
+  }
+
+  @Test
+  fun seriesSequenceOrder_sortsDatedSeriesPartByPart() {
+    val sequences = listOf("2026.10.01", "2026.9.30", "2026.10", "2026.9.5", "prequel", "2026.12.1").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026.9.5", "2026.9.30", "2026.10", "2026.10.01", "2026.12.1", "prequel")
+  }
+
+  @Test
+  fun seriesSequenceOrder_sortsYearMonthSeriesPartByPart() {
+    val sequences = listOf("2026.10", "2026.9", "2027.1", "2026.12", "2026.1", "2026").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026", "2026.1", "2026.9", "2026.10", "2026.12", "2027.1")
+  }
+
+  @Test
+  fun seriesSequenceOrder_keepsDecimalOrderWhenAnyDottedSequenceIsNotAYearMonth() {
+    // 2026.13 can't be a month, so these stay decimals: 2026.1 (= 2026.10) < 2026.13 < 2026.9.
+    val sequences = listOf("2026.9", "2026.13", "2026.10").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("2026.10", "2026.13", "2026.9")
+  }
+
+  @Test
+  fun isDatedSeries_spotsDatesButNotDecimals() {
+    fun dated(vararg labels: String) = isDatedSeries(labels.map(::sequence))
+
+    assertThat(dated("2026.10.10", "3")).isEqualTo(true)
+    assertThat(dated("2026.9", "2026.10", "2027")).isEqualTo(true)
+    assertThat(dated("2026.9", "2026.13")).isEqualTo(false)
+    assertThat(dated("1", "1.5", "2")).isEqualTo(false)
+    assertThat(dated("1", "2", "prequel")).isEqualTo(false)
+  }
+
+  @Test
+  fun seriesSequenceOrder_keepsDecimalOrderWithoutMultiPartSequences() {
+    val sequences = listOf("1.5", "1.25", "2", "1.75", "1").map(::sequence)
+
+    val sorted = sequences.sortedWith(seriesSequenceOrder(sequences)).map { it.formattedSequence }
+
+    assertThat(sorted).containsExactly("1", "1.25", "1.5", "1.75", "2")
+  }
+
+  @Test
+  fun sortedBySeriesSequence_switchesToPartOrderForDatedSeries() {
+    fun book(id: String, label: String) = libraryItem(id = id).withSeries(sequence(label))
+    val items = listOf(book("oct", "2026.10.01"), book("sep", "2026.9.30"), book("aug", "2026.08.15"))
+
+    assertThat(items.sortedBySeriesSequence("id").map { it.id }).containsExactly("aug", "sep", "oct")
+  }
+
+  private fun sequence(label: String, seriesId: String = "id") = SeriesSequence(
+    id = seriesId,
+    name = seriesId,
+    sequence = label.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE,
+    label = label,
+  )
+
+  private fun LibraryItem.withMetadata(
+    transform: (Media.Metadata.Book) -> Media.Metadata.Book,
+  ): LibraryItem {
+    val book = media as Media.Book
+    return copy(media = book.copy(metadata = transform(book.metadata as Media.Metadata.Book)))
+  }
+
+  private fun LibraryItem.withSeries(vararg series: SeriesSequence) = withMetadata { it.copy(series = series.toList()) }
+
+  private fun LibraryItem.withTitle(title: String) = withMetadata { it.copy(title = title) }
+
+  @Test
   fun seriesSequenceForSeriesId_picksThatSeriesEntry() {
     val cosmere = SeriesSequence("cosmere", "Cosmere", 12.0)
     val stormlight = SeriesSequence("stormlight", "The Stormlight Archive", 2.0)

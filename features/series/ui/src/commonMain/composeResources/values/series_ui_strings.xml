@@ -12,6 +12,7 @@
 
   <string name="missing_section_title">Missing from your library</string>
   <string name="series_book_position">Book %1$s</string>
+  <string name="series_sequence_position">#%1$s</string>
   <string name="cd_book_cover">%1$s cover</string>
 
   <string name="cd_more_actions">More actions</string>

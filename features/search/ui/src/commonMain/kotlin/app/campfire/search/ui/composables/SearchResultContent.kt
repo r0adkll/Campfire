@@ -42,6 +42,7 @@ import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.search.api.SearchResult
 import campfire.features.search.ui.generated.resources.Res
@@ -199,7 +200,7 @@ private fun SuccessContent(
           name = s.name,
           description = s.description,
           items = s.books
-            ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+            ?.sortedBySeriesSequence(s.id)
             ?: emptyList(),
           itemSize = 100.dp,
           onClick = { onSeriesClick(s) },

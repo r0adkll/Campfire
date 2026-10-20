@@ -88,7 +88,7 @@ LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
   AND mediaProgress.userId = :userId
 WHERE seriesBookJoin.seriesId = :seriesId
-ORDER BY media.metadata_series_sequence ASC;
+ORDER BY seriesBookJoin.position IS NULL, seriesBookJoin.position ASC, media.metadata_series_sequence ASC;
 
 selectForShelf:
 SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem

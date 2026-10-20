@@ -62,3 +62,12 @@ SET metadata_series_id = ?,
     metadata_series_name = ?,
     metadata_series_sequence = ?
 WHERE libraryItemId = ?;
+
+selectSeriesList:
+SELECT metadata_series FROM media
+WHERE libraryItemId = ?;
+
+updateSeriesList:
+UPDATE media
+SET metadata_series = ?
+WHERE libraryItemId = ?;

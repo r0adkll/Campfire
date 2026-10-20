@@ -49,6 +49,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.isDatedSeries
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.series.ui.detail.composables.ConfirmSeriesProgressDialog
 import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
@@ -164,6 +165,10 @@ private fun LoadedState(
   contentPadding: PaddingValues = PaddingValues(),
   gridState: LazyGridState = rememberLazyGridState(),
 ) {
+  // Dated series read "#2026.10.10" rather than "Book 2026.10.10", for every book alike.
+  val bookNumbered = remember(items, seriesId) {
+    !isDatedSeries(items.mapNotNull { it.media.metadata.seriesSequence(seriesId) })
+  }
   LazyVerticalGrid(
     columns = GridCells.Fixed(2),
     state = gridState,
@@ -180,8 +185,9 @@ private fun LoadedState(
         item = item,
         // Same "Book 2 · 2014" line as the missing books, in place of the author.
         subtitle = seriesBookLabel(
-          position = item.media.metadata.seriesSequence(seriesId)?.sequence,
+          position = item.media.metadata.seriesSequence(seriesId)?.formattedSequence,
           year = item.media.metadata.publishedYear,
+          bookNumbered = bookNumbered,
         ),
         sharedTransitionKey = item.id + seriesName,
         sharedTransitionZIndex = (items.size - index) + 1f,

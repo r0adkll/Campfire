@@ -40,6 +40,7 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Series
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
@@ -178,7 +179,7 @@ private fun LoadedState(
             name = series.name,
             description = series.description,
             items = series.books
-              ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+              ?.sortedBySeriesSequence(series.id)
               ?: emptyList(),
             onClick = { onSeriesClick(series) },
             modifier = Modifier
@@ -191,7 +192,7 @@ private fun LoadedState(
             sharedTransitionKey = series.id,
             name = series.name,
             items = series.books
-              ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+              ?.sortedBySeriesSequence(series.id)
               ?: emptyList(),
             onClick = { onSeriesClick(series) },
             modifier = Modifier

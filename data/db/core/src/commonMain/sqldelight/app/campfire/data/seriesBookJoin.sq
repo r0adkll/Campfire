@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS seriesBookJoin (
   seriesId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
+  -- The book's index in the series as the server last listed it, for when the book's own
+  -- sequence in this series isn't known.
+  position INTEGER,
 
   PRIMARY KEY (seriesId, libraryItemId),
   FOREIGN KEY (seriesId) REFERENCES series(id) ON UPDATE NO ACTION ON DELETE CASCADE,
@@ -10,7 +13,7 @@ CREATE TABLE IF NOT EXISTS seriesBookJoin (
 CREATE INDEX IF NOT EXISTS index_series_book_join_libraryItemId ON seriesBookJoin(libraryItemId);
 
 insert:
-INSERT OR IGNORE INTO seriesBookJoin
+INSERT OR REPLACE INTO seriesBookJoin
 VALUES ?;
 
 deleteForSeries:

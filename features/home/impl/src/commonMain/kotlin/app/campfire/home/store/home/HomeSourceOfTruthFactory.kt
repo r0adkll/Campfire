@@ -267,6 +267,7 @@ class HomeSourceOfTruthFactory(
           SeriesBookJoin(
             seriesId = series.id,
             libraryItemId = book.id,
+            position = index.toLong(),
           ),
         )
       }

@@ -6,13 +6,14 @@ package app.campfire.series.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
-import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
+import app.campfire.db.updatePrimarySeriesSequence
 import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.series.store.SeriesStore.Key
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -46,7 +47,7 @@ internal class SeriesSourceOfTruthFactory(
               )
               .awaitAsList()
               .map { it.asDomainModel(urlHydrator) }
-              .sortedBy { it.media.metadata.seriesSequence?.sequence }
+              .sortedBySeriesSequence(dbSeries.id)
 
             dbSeries.asDomainModel(
               books = books,
@@ -71,19 +72,14 @@ internal class SeriesSourceOfTruthFactory(
               db.mediaQueries.insertOrIgnore(media)
 
               // Make sure we keep our item series sequence up to date
-              runIfNotNull(
-                media.metadata_series_id,
-                media.metadata_series_name,
-                media.metadata_series_sequence,
-              ) { id, name, sequence ->
-                db.mediaQueries.updateSeriesSequence(id, name, sequence, book.id)
-              }
+              db.mediaQueries.updatePrimarySeriesSequence(media)
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(
                 SeriesBookJoin(
                   seriesId = series.id,
                   libraryItemId = book.id,
+                  position = index.toLong(),
                 ),
               )
             }

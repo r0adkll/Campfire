@@ -14,6 +14,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -87,6 +88,7 @@ object SeriesSequenceListAdapter : ColumnAdapter<List<SeriesSequence>, String> {
         id = obj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null,
         name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null,
         sequence = obj["sequence"]?.jsonPrimitive?.doubleOrNull ?: SeriesSequence.UNKNOWN_SEQUENCE,
+        label = obj["label"]?.jsonPrimitive?.contentOrNull,
       )
     }
   }
@@ -98,6 +100,7 @@ object SeriesSequenceListAdapter : ColumnAdapter<List<SeriesSequence>, String> {
           put("id", series.id)
           put("name", series.name)
           put("sequence", series.sequence)
+          series.label?.let { put("label", it) }
         }
       }
     }.toString()

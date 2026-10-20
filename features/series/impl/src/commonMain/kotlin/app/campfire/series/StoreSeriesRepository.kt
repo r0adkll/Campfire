@@ -15,20 +15,20 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
-import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
+import app.campfire.core.model.sortedBySeriesSequence
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
+import app.campfire.db.updatePrimarySeriesSequence
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
@@ -111,6 +111,8 @@ class StoreSeriesRepository(
               group = "series",
               value = s.seriesId,
             ),
+            // The server's series order, kept for books whose sequence we can't read.
+            sortMode = "sequence",
           )
         }
 
@@ -159,30 +161,29 @@ class StoreSeriesRepository(
             // them — books removed from the series (or the server) would otherwise linger.
             db.seriesBookJoinQueries.deleteForSeries(s.seriesId)
 
-            // Insert the books
-            networkResult.books.forEach { item ->
-              val libraryItem = item.asDbModel(serverUrl)
-              val media = item.media.asDbModel(item.id)
-              db.libraryItemsQueries.insertOrIgnore(libraryItem)
-              db.mediaQueries.insertOrIgnore(media)
+            // Insert the books in reading order. The server lists them by
+            // CAST(sequence AS FLOAT), which mis-orders dated series, so their join positions
+            // come from our own order instead.
+            networkResult.books
+              .map { item -> item to item.media.asDbModel(item.id) }
+              .sortedBySeriesSequence { (_, media) -> media.metadata_series?.find { it.id == s.seriesId } }
+              .forEachIndexed { index, (item, media) ->
+                val libraryItem = item.asDbModel(serverUrl)
+                db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                db.mediaQueries.insertOrIgnore(media)
 
-              // Make sure we keep our item series sequence up to date
-              runIfNotNull(
-                media.metadata_series_id,
-                media.metadata_series_name,
-                media.metadata_series_sequence,
-              ) { id, name, sequence ->
-                db.mediaQueries.updateSeriesSequence(id, name, sequence, item.id)
+                // Make sure we keep our item series sequence up to date
+                db.mediaQueries.updatePrimarySeriesSequence(media)
+
+                // Insert junction entry
+                db.seriesBookJoinQueries.insert(
+                  SeriesBookJoin(
+                    seriesId = s.seriesId,
+                    libraryItemId = item.id,
+                    position = index.toLong(),
+                  ),
+                )
               }
-
-              // Insert junction entry
-              db.seriesBookJoinQueries.insert(
-                SeriesBookJoin(
-                  seriesId = s.seriesId,
-                  libraryItemId = item.id,
-                ),
-              )
-            }
           }
         }
       },
@@ -279,9 +280,7 @@ class StoreSeriesRepository(
             response.dataOrNull()
           }.mapLatest { items ->
             // A book can sit in several series; order by its position in this one.
-            items.sortedBy {
-              it.media.metadata.seriesSequence(seriesId)?.sequence ?: SeriesSequence.UNKNOWN_SEQUENCE
-            }
+            items.sortedBySeriesSequence(seriesId)
           }.mapLatest { items ->
             val uniqueIds = items.map { it.id }.toSet()
             if (uniqueIds.size != items.size) {
