@@ -81,12 +81,53 @@ class SeriesSlotTest {
     }
 
     onNodeWithText("test_series_one").assertIsDisplayed()
+    onNodeWithText("Book 1").assertIsDisplayed()
     onNodeWithText("test_series_two").assertIsDisplayed()
+    onNodeWithText("Book 3").assertIsDisplayed()
 
     onNodeWithText("test_series_two").performClick()
     assertEquals(
       listOf<LibraryItemUiEvent>(LibraryItemUiEvent.SeriesClick(libraryItem, secondSeries)),
       events,
     )
+  }
+
+  @Test
+  fun fractionalSequenceContentTest() = runComposeUiTest {
+    val series = SeriesSequence(id = "series_1", name = "test_series_name", sequence = 1.5)
+    val slot = SeriesSlot(
+      libraryItem = libraryItem(),
+      series = listOf(SeriesWithBooks(series, listOf(libraryItem()))),
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("Book 1.5").assertIsDisplayed()
+  }
+
+  @Test
+  fun unknownSequenceContentTest() = runComposeUiTest {
+    val series = SeriesSequence(
+      id = "series_1",
+      name = "test_series_name",
+      sequence = SeriesSequence.UNKNOWN_SEQUENCE,
+    )
+    val slot = SeriesSlot(
+      libraryItem = libraryItem(),
+      series = listOf(SeriesWithBooks(series, listOf(libraryItem()))),
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("test_series_name").assertIsDisplayed()
+    onNodeWithText("Book", substring = true).assertDoesNotExist()
   }
 }

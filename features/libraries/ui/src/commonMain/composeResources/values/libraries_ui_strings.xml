@@ -51,6 +51,7 @@
   <string name="book_details_isbn">ISBN</string>
   <string name="book_details_publisher">Publisher</string>
   <string name="book_details_published">Published</string>
+  <string name="series_book_position">Book %1$s</string>
   <string name="by_author_line">By</string>
   <string name="by_narrator_line">Narrated By</string>
 

@@ -30,13 +30,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.rememberDrawSizedRequest
 import app.campfire.core.model.LibraryItem
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.series_book_position
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SeriesMetadata(
   seriesName: String,
   seriesBooks: List<LibraryItem>,
+  sequence: String,
   modifier: Modifier = Modifier,
 ) {
   Row(
@@ -47,10 +51,19 @@ internal fun SeriesMetadata(
       books = seriesBooks,
     )
     Spacer(Modifier.width(16.dp))
-    Text(
-      text = seriesName,
-      style = MaterialTheme.typography.titleSmall,
-    )
+    Column {
+      Text(
+        text = seriesName,
+        style = MaterialTheme.typography.titleSmall,
+      )
+      if (sequence.isNotEmpty()) {
+        Text(
+          text = stringResource(Res.string.series_book_position, sequence),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
   }
 }
 
