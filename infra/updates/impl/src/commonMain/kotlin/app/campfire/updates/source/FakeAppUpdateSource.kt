@@ -5,7 +5,9 @@ package app.campfire.updates.source
 
 import app.campfire.settings.api.DevSettings
 import dev.zacsweers.metro.Inject
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
@@ -29,12 +31,18 @@ class FakeAppUpdateSource(
 
   override val checkInterval: Duration = Duration.ZERO
 
+  override val channel: String = "debug"
+
   override fun changes(): Flow<Unit> = devSettings.observeFakeAppUpdateAvailable()
     .drop(1)
     .map { }
 
   override suspend fun getAvailableUpdate(): AppUpdate? {
-    return if (devSettings.fakeAppUpdateAvailable) FAKE_UPDATE else null
+    return if (devSettings.fakeAppUpdateAvailable) {
+      FAKE_UPDATE.copy(publishedAt = Clock.System.now() - 2.hours)
+    } else {
+      null
+    }
   }
 
   override suspend fun installUpdate(): Flow<AppUpdateProgress> = flow {
@@ -71,6 +79,10 @@ class FakeAppUpdateSource(
     private val FAKE_UPDATE = AppUpdate(
       versionName = "v9.9.9-fake",
       versionCode = 999_999_999L,
+      headline = "A faked release for testing the update flow",
+      sizeBytes = TOTAL_BYTES,
+      channel = "debug",
+      pullRequest = 1234,
       releaseNotes = """
         This is a faked release for testing the app update flow.
 

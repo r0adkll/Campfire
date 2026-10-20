@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="update_card_available">Update available</string>
+  <string name="update_card_channel_ended">Pull request closed</string>
+  <string name="update_card_reinstall">Needs a reinstall</string>
+  <string name="update_card_downloading">Downloading · %1$d%</string>
+  <string name="update_card_ready">Ready to install</string>
+  <string name="update_card_installing">Installing</string>
+  <string name="update_card_failed">Update failed</string>
+  <string name="update_card_version">Version %1$s</string>
+  <string name="update_card_switch_to_main">Switch to Alpha builds to keep getting updates</string>
+  <string name="update_card_pull_request">PR #%1$d · %2$s</string>
+  <string name="update_action_update">Update</string>
+  <string name="update_action_switch">Switch</string>
+  <string name="update_action_reinstall">Reinstall</string>
+  <string name="update_action_install">Install</string>
+  <string name="update_action_retry">Try again</string>
+  <string name="update_action_dismiss">Dismiss update</string>
+
+  <string name="update_sheet_title">Update available</string>
+  <string name="update_sheet_version">%1$s (%2$d)</string>
+  <string name="update_sheet_update_now">Update now</string>
+  <string name="update_sheet_try_again">Try again</string>
+  <string name="update_sheet_queued">Download queued…</string>
+  <string name="update_sheet_downloading">Downloading %1$s of %2$s</string>
+  <string name="update_sheet_downloaded">Download completed!</string>
+  <string name="update_sheet_failed">Update failed!</string>
+  <string name="update_sheet_canceled">Update canceled</string>
+</resources>

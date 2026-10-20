@@ -7,18 +7,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 /**
- * A small, dismissable widget that surfaces app update state on builds that support
- * in-app updates (see [app.campfire.updates.source.AppUpdateSource.isSupported]).
+ * A small, dismissable card that surfaces app update state on builds that support in-app
+ * updates (see [AppUpdates.isSupported]).
  *
- * - If an update is available, a compact card is shown that opens a bottom sheet with
- *   the full release details, download action, and download progress (the source's own
- *   sheet when it has one). Dismissing it hides the card for that release until a
- *   different one becomes available.
+ * - If an update is waiting, the card shows its version and headline with an Update action that
+ *   opens the [AppUpdates.installSheet]. Tapping the card itself calls [onClick], to open the App
+ *   updates settings. Dismissing it hides the card for that release until a different one is
+ *   waiting.
  * - An update already downloading or ready to install stays on screen until installed.
  * - Otherwise, nothing is rendered.
  */
 interface AppUpdateWidget {
 
   @Composable
-  fun Content(modifier: Modifier)
+  fun Content(
+    onClick: () -> Unit,
+    modifier: Modifier,
+  )
 }

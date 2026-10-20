@@ -6,12 +6,16 @@ package app.campfire.updates
 import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.time.FatherTime
+import app.campfire.settings.test.TestAppStateSettings
 import app.campfire.updates.source.AppUpdate
+import app.campfire.updates.source.AppUpdateCheckException
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import kotlin.test.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -49,12 +53,14 @@ private class CountingAppUpdateSource(
 ) : AppUpdateSource {
   val changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
   var available: AppUpdate? = null
+  var failure: AppUpdateCheckException? = null
   var checks = 0
 
   override fun changes(): Flow<Unit> = changes
 
   override suspend fun getAvailableUpdate(): AppUpdate? {
     checks++
+    failure?.let { throw it }
     return available
   }
 
@@ -66,10 +72,14 @@ class AppUpdateCheckerTest {
   private val fatherTime = FakeFatherTime()
   private val lifecycle = FakeAppLifecycleObserver()
 
-  private fun TestScope.checker(source: AppUpdateSource) = AppUpdateChecker(
+  private fun TestScope.checker(
+    source: AppUpdateSource,
+    appStateSettings: TestAppStateSettings = TestAppStateSettings(backgroundScope),
+  ) = AppUpdateChecker(
     appUpdateSource = source,
     appLifecycleObserver = lifecycle,
     fatherTime = fatherTime,
+    appStateSettings = appStateSettings,
     scope = backgroundScope,
   )
 
@@ -196,6 +206,75 @@ class AppUpdateCheckerTest {
 
     assertThat(source.checks).isEqualTo(0)
     assertThat(checker.update.value).isNull()
+  }
+
+  @Test
+  fun `a check records when it finished`() = runTest {
+    fatherTime.nowMillis = 1.hours.inWholeMilliseconds
+    val checker = checker(CountingAppUpdateSource())
+    assertThat(checker.check.value).isEqualTo(AppUpdateCheck())
+
+    foreground()
+
+    assertThat(checker.check.value).isEqualTo(
+      AppUpdateCheck(checkedAt = Instant.fromEpochMilliseconds(1.hours.inWholeMilliseconds)),
+    )
+  }
+
+  @Test
+  fun `a failed check keeps the last update`() = runTest {
+    val source = CountingAppUpdateSource().apply { available = UPDATE }
+    val checker = checker(source)
+    foreground()
+
+    source.failure = AppUpdateCheckException("unreachable")
+    checker.refresh()
+    runCurrent()
+
+    assertThat(checker.update.value).isEqualTo(UPDATE)
+    assertThat(checker.check.value.failed).isTrue()
+    assertThat(checker.check.value.isChecking).isFalse()
+  }
+
+  @Test
+  fun `source changes aren't recorded as checks`() = runTest {
+    val source = CountingAppUpdateSource()
+    val checker = checker(source)
+    foreground()
+    val checked = checker.check.value
+
+    fatherTime.nowMillis += 5.minutes.inWholeMilliseconds
+    source.changes.tryEmit(Unit)
+    runCurrent()
+
+    assertThat(checker.check.value).isEqualTo(checked)
+  }
+
+  @Test
+  fun `a dismissed update leaves only the undismissed update`() = runTest {
+    val source = CountingAppUpdateSource().apply { available = UPDATE }
+    val checker = checker(source)
+    foreground()
+    assertThat(checker.undismissedUpdate.value).isEqualTo(UPDATE)
+
+    checker.dismiss(UPDATE)
+    runCurrent()
+
+    assertThat(checker.update.value).isEqualTo(UPDATE)
+    assertThat(checker.undismissedUpdate.value).isNull()
+  }
+
+  @Test
+  fun `an update under way can't be dismissed`() = runTest {
+    val downloading = UPDATE.copy(status = AppUpdate.Status.Downloading(0.5f))
+    val source = CountingAppUpdateSource().apply { available = downloading }
+    val checker = checker(source)
+    foreground()
+
+    checker.dismiss(downloading)
+    runCurrent()
+
+    assertThat(checker.undismissedUpdate.value).isEqualTo(downloading)
   }
 
   private companion object {
