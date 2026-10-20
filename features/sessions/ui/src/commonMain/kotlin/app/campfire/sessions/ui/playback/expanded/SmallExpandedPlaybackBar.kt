@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -92,6 +91,7 @@ import app.campfire.sessions.ui.playback.expanded.composables.BookTimeProgressIn
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
+import app.campfire.sessions.ui.playback.expanded.composables.PlaybackErrorText
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackQueueSwitcher
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlayerCloseButton
@@ -112,8 +112,6 @@ import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
-import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
-import campfire.features.sessions.ui.generated.resources.playback_error_message
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.runtime.Navigator
@@ -487,18 +485,8 @@ internal fun ItemActions(
     Spacer(Modifier.height(16.dp))
 
     if (playerState.error != null) {
-      Text(
-        text = stringResource(
-          if (playerState.error is PlaybackEngineUnavailableException) {
-            Res.string.playback_engine_unavailable_message
-          } else {
-            Res.string.playback_error_message
-          },
-        ),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.error,
-        fontStyle = FontStyle.Italic,
+      PlaybackErrorText(
+        error = playerState.error,
         modifier = Modifier
           .align(Alignment.CenterHorizontally)
           .padding(horizontal = 64.dp),

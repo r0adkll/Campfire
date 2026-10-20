@@ -15,6 +15,7 @@ import androidx.window.core.layout.WindowSizeClass
 import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.PlaybackFailedException
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.cast.CastDevice
 import app.campfire.audioplayer.cast.CastState
@@ -237,6 +238,22 @@ private fun ExpandedPlaybackBarPlaybackErrorPreview() = ExpandedPlaybackBarPrevi
       copy(
         state = AudioPlayer.State.Paused,
         error = IllegalStateException("Source error"),
+      )
+    },
+  ),
+)
+
+@Preview(name = "Playback network error", widthDp = PhoneWidth, heightDp = PhoneHeight)
+@Composable
+private fun ExpandedPlaybackBarNetworkErrorPreview() = ExpandedPlaybackBarPreview(
+  previewState(
+    player = {
+      copy(
+        state = AudioPlayer.State.Paused,
+        error = PlaybackFailedException(
+          kind = PlaybackFailedException.Kind.Network,
+          code = "IO_NETWORK_CONNECTION_FAILED",
+        ),
       )
     },
   ),

@@ -10,7 +10,12 @@
   <string name="audio_tracks_bottomsheet_title">Audio Tracks</string>
   <string name="chapters_loading_error">Uh-oh! Unable to load the chapters for this item.</string>
   <string name="misaligned_chapters_error_message">This item has misaligned chapter metadata and may not play back as expected</string>
-  <string name="playback_error_message">Unable to play this file. The audio format may not be supported on this device.</string>
+  <string name="playback_error_format">Unable to read this file. It may be damaged, or in an audio format this device can't play.</string>
+  <string name="playback_error_network">Lost the connection to your server while streaming. Check your connection and try again.</string>
+  <string name="playback_error_unauthorized">Your server refused access to this file. Try signing in again.</string>
+  <string name="playback_error_not_found">Your server couldn't find this file. It may have been moved or removed.</string>
+  <string name="playback_error_unknown">Something went wrong playing this item. Try again.</string>
+  <string name="playback_error_code">Error: %1$s</string>
   <string name="playback_engine_unavailable_message">Playback requires VLC media player. Install VLC 3 from videolan.org, then try again.</string>
 
   <string name="speed_bottomsheet_title">Playback speed</string>

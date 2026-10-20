@@ -20,7 +20,9 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
+import app.campfire.audioplayer.impl.StreamingCacheEvictor
 import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
+import app.campfire.audioplayer.impl.networking.TruncationGuardHttpDataSource
 import app.campfire.audioplayer.impl.offline.downloadRequirements
 import app.campfire.core.di.AppScope
 import app.campfire.network.di.AudioPlayerClient
@@ -78,17 +80,26 @@ interface ExoPlayerAppComponent {
     )
   }
 
+  @OptIn(UnstableApi::class)
+  @Provides
+  fun provideStreamingCacheEvictor(
+    @StreamingCache streamingCache: SimpleCache,
+  ): StreamingCacheEvictor = StreamingCacheEvictor { keys ->
+    keys.forEach(streamingCache::removeResource)
+  }
+
   /**
    * Media requests go through the [AudioPlayerClient], which authenticates with the same bearer
    * provider as the user client: it attaches the session user's token and extra headers, and a
-   * 401 refreshes the shared token and retries before the player ever sees it.
+   * 401 refreshes the shared token and retries before the player ever sees it. Responses that end
+   * early fail instead of looking complete, so neither cache stores a truncated file.
    */
   @OptIn(UnstableApi::class)
   @SingleIn(AppScope::class)
   @Provides
   fun provideHttpDataSourceFactory(
     @AudioPlayerClient client: HttpClient,
-  ): HttpDataSource.Factory = KtorDataSource.Factory(client)
+  ): HttpDataSource.Factory = TruncationGuardHttpDataSource.Factory(KtorDataSource.Factory(client))
 
   @OptIn(UnstableApi::class)
   @SingleIn(AppScope::class)
