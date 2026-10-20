@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloaded books and podcasts keep their cover art offline, even after the app's cache is cleared
 - Work offline from the navigation drawer or Connection settings — until you turn it off, for a few hours, or until you're back on Wi-Fi, or whenever you're on mobile data. Campfire stops contacting your server and runs from your downloads, then syncs your progress when you're back online
 - A book's details show its position in each series it belongs to
+- The library's list layout shows what you're sorting or filtering by, such as the publish year, size, date added, time left, or position in the filtered series
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- E-books in list views showing a length of "0s"; they show their file size instead, and podcasts show their episode count
 - Series numbers show exactly as entered in Audiobookshelf, so dates like 2026.10.10 are no longer cut short or shown out of order
 - Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
 - Your server sign-in and custom connection headers being sent to other websites when Campfire loaded cover art and podcast artwork from them, or when your server redirected a request to them
