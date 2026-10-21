@@ -36,6 +36,8 @@ import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemListItem
+import app.campfire.common.compose.widgets.LibraryItemMeta
+import app.campfire.common.compose.widgets.defaultMeta
 import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgroundContent
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
@@ -120,7 +122,7 @@ internal fun PlaylistListItem(
       // playlist row identifies the actual playable unit.
       titleOverride = episode?.title,
       subtitleOverride = episode?.let { item.libraryItem.media.metadata.title },
-      durationOverride = episode?.duration,
+      meta = listOf(episode?.let { LibraryItemMeta.Length(it.duration) } ?: item.libraryItem.defaultMeta),
       supportingText = item.seriesLabel(),
       modifier = Modifier.weight(1f),
       trailingContent = {

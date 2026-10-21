@@ -5,7 +5,6 @@ package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,9 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIfNotNull
-import app.campfire.common.compose.extensions.thresholdReadoutFormat
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -41,7 +36,6 @@ import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import kotlin.time.Duration
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -58,7 +52,8 @@ fun LibraryItemListItem(
   // library item (e.g. a podcast episode within a playlist row).
   titleOverride: String? = null,
   subtitleOverride: String? = null,
-  durationOverride: Duration? = null,
+  // The facts shown on the bottom line, such as the item's length
+  meta: List<LibraryItemMeta> = listOf(libraryItem.defaultMeta),
   // An extra line under the subtitle, such as the series the item belongs to
   supportingText: String? = null,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -195,20 +190,7 @@ fun LibraryItemListItem(
 
         Spacer(Modifier.size(4.dp))
 
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Icon(
-            CampfireIcons.Rounded.Schedule,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-          )
-          Text(
-            text = (durationOverride ?: libraryItem.media.duration).thresholdReadoutFormat(),
-            style = MaterialTheme.typography.labelSmallEmphasized,
-          )
-        }
+        LibraryItemMetaRow(meta = meta)
       }
 
       trailingContent()
