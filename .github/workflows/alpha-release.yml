@@ -9,6 +9,9 @@ on:
     paths:
       - '.github/workflows/alpha-release.yml'
 
+  # Re-runs a push build GitHub never started (dropped push events can't be re-run)
+  workflow_dispatch:
+
 jobs:
   android-release:
     name: Build Android Release
@@ -102,9 +105,10 @@ jobs:
             --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
             --releaseNotesFile="app/android/release-notes.txt"
 
-      # Uploads to the `main` Channel. Pushes only: PRs editing this workflow upload from build.yml.
+      # Uploads to the `main` Channel. Main only (pushes and manual runs): PRs editing this workflow
+      # upload from build.yml.
       - name: Upload APK to Drop
-        if: github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         uses: r0adkll/drop/action@v0
         with:
           server: https://drop.thescavengers.software
