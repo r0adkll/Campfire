@@ -140,11 +140,16 @@ fun PlaylistDetail(
   }
 
   if (showConfirmDownloadDialog) {
-    val downloadConfirmItems = remember(state.playlistItems) {
-      state.playlistItems.map { it.libraryItem }.distinctBy { it.id }
+    // Each entry downloads its own content: an episode, not its whole podcast
+    val downloadTitles = remember(state.playlistItems) {
+      state.playlistItems.map { it.episode?.title ?: it.libraryItem.media.metadata.title.orEmpty() }
+    }
+    val downloadSize = remember(state.playlistItems) {
+      state.playlistItems.sumOf { it.episode?.sizeInBytes ?: it.libraryItem.media.sizeInBytes }
     }
     ConfirmDownloadDialog(
-      downloadConfirmItems,
+      titles = downloadTitles,
+      sizeInBytes = downloadSize,
       onConfirm = { doNotShowAgain ->
         if (postNotificationPermissionState is PermissionState.Granted) {
           state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowAgain))

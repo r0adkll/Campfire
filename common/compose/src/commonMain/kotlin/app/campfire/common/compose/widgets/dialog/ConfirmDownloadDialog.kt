@@ -75,9 +75,11 @@ fun ConfirmDownloadDialog(
   )
 }
 
+/** Asks before downloading several things, [titles] naming each, that together take [sizeInBytes]. */
 @Composable
 fun ConfirmDownloadDialog(
-  items: List<LibraryItem>,
+  titles: List<String>,
+  sizeInBytes: Long,
   onConfirm: (doNotShowAgain: Boolean) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
@@ -88,16 +90,16 @@ fun ConfirmDownloadDialog(
         buildAnnotatedString {
           append("Download ")
           withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-            if (items.size == 1) {
-              append("\"${items.first().media.metadata.title}\"")
+            if (titles.size == 1) {
+              append("\"${titles.first()}\"")
             } else {
-              append("${items.size} items")
+              append("${titles.size} items")
             }
           }
         },
       )
     },
-    sizeInBytes = items.sumOf { it.media.sizeInBytes },
+    sizeInBytes = sizeInBytes,
     onConfirm = onConfirm,
     onDismissRequest = onDismissRequest,
     modifier = modifier,
