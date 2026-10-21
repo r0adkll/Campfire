@@ -10,14 +10,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
@@ -25,6 +23,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
+import app.campfire.offline.Downloads
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -52,7 +51,7 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val dispatcherProvider: DispatcherProvider,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
@@ -123,12 +122,7 @@ class LibraryItemPresenter(
           scope.launch {
             repository.deleteLibraryItem(screen.libraryItemId, event.hardDelete)
               .onSuccess {
-                runCatching {
-                  offlineDownloadManager.delete(item)
-                  (item.media as? Media.Podcast)?.episodes?.forEach { episode ->
-                    offlineDownloadManager.deleteEpisode(item, episode)
-                  }
-                }
+                runCatching { downloads.deleteAll(item.id) }
                   .onFailure { bark(throwable = it) { "Failed to clean up offline downloads after delete" } }
                 navigator.pop()
               }

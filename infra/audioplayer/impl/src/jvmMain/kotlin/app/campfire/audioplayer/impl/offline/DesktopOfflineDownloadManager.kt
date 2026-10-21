@@ -6,8 +6,6 @@ package app.campfire.audioplayer.impl.offline
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.TokenRefresher
 import app.campfire.account.api.UserSessionManager
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.AudioTrack

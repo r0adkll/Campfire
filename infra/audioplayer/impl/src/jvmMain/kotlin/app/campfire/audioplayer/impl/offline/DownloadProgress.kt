@@ -3,8 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload
-
 /** The runtime state of one file of a desktop download. */
 internal data class FileProgress(
   val status: Status,

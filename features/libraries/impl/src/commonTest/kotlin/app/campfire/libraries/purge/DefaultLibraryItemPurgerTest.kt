@@ -3,11 +3,10 @@
 
 package app.campfire.libraries.purge
 
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager.Invocation.DeleteAllForItemId
 import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.network.ApiException
 import app.campfire.network.test.FakeAudioBookShelfApi
+import app.campfire.offline.test.FakeDownloads
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
@@ -17,12 +16,12 @@ import kotlin.test.Test
 class DefaultLibraryItemPurgerTest {
 
   private val api = FakeAudioBookShelfApi()
-  private val downloads = FakeOfflineDownloadManager()
+  private val downloads = FakeDownloads()
 
   private fun kotlinx.coroutines.test.TestScope.purger(database: PurgeTestDatabase) = DefaultLibraryItemPurger(
     db = database.db,
     api = api,
-    offlineDownloadManager = downloads,
+    downloads = lazyOf(downloads),
     cleanups = emptySet(),
     dispatcherProvider = asTestDispatcherProvider(),
   )
@@ -46,7 +45,7 @@ class DefaultLibraryItemPurgerTest {
     assertThat(database.ids("libraryItemPageJoin")).containsExactly("kept")
     assertThat(database.ids("shelfJoin", column = "entityId")).containsExactly("kept")
     assertThat(database.ids("search_books")).containsExactly("kept")
-    assertThat(downloads.invocations).containsExactly(DeleteAllForItemId("removed"))
+    assertThat(downloads.invocations).containsExactly(FakeDownloads.Invocation.DeleteAll("removed"))
   }
 
   @Test

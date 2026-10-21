@@ -3,7 +3,6 @@
 
 package app.campfire.libraries.ui.detail
 
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf
@@ -26,6 +25,8 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.reader.api.EbookContentsEntry
 import app.campfire.reader.api.screen.ReaderScreen
 import app.cash.turbine.ReceiveTurbine
@@ -306,12 +307,12 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     streamingRoutePredictor.canStreamHls = true
     streamingRoutePredictor.wouldStreamHlsFlow.value = true
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
-    offlineDownloadManager.observeForItemFlow.emit(
-      OfflineDownload(
-        libraryItemId = libraryItem.id,
-        state = OfflineDownload.State.Completed,
-        contentLength = 1L,
-        progress = OfflineDownload.Progress(1L, 1f),
+    downloads.downloads.value = listOf(
+      Download(
+        content = DownloadContent.Audiobook(libraryItem.id),
+        state = Download.State.Downloaded,
+        bytes = 1L,
+        totalBytes = 1L,
       ),
     )
 
@@ -331,6 +332,42 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
           firstInstanceOf<ExpressiveControlSlot>()
             .prop(ExpressiveControlSlot::willStreamHls)
             .isEqualTo(false)
+        }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_willStreamHls_NotSuppressedForFailedDownloads() = runTest {
+    val libraryItem = emptyLibraryItem()
+    streamingRoutePredictor.canStreamHls = true
+    streamingRoutePredictor.wouldStreamHlsFlow.value = true
+    libraryItemRepository.libraryItemFlow.emit(libraryItem)
+    downloads.downloads.value = listOf(
+      Download(
+        content = DownloadContent.Audiobook(libraryItem.id),
+        state = Download.State.Failed,
+        bytes = 1L,
+        totalBytes = 1L,
+      ),
+    )
+
+    presenter.test {
+      // Only a finished download plays locally; a failed one still streams
+      assertThat(
+        awaitItemMatching {
+          val control = it.firstExpressiveControl()
+          control != null && control.willStreamHls
+        },
+      )
+        .loadedSlots
+        .all {
+          firstInstanceOf<TitleSlot>()
+            .prop(TitleSlot::showHlsBadge)
+            .isEqualTo(true)
+          firstInstanceOf<ExpressiveControlSlot>()
+            .prop(ExpressiveControlSlot::willStreamHls)
+            .isEqualTo(true)
         }
       cancelAndIgnoreRemainingEvents()
     }

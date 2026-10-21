@@ -21,7 +21,7 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
         implementation(projects.data.crashreporting.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.infra.socket.api)
 
         implementation(libs.androidx.paging.common)
@@ -36,7 +36,7 @@ kotlin {
         implementation(projects.common.test)
         implementation(projects.data.account.test)
         implementation(projects.features.user.test)
-        implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(projects.data.db.test)
         implementation(projects.data.network.test)
         implementation(libs.multiplatformsettings.test)

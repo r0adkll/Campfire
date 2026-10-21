@@ -8,8 +8,6 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadKey
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope

@@ -46,6 +46,7 @@ kotlin {
         implementation(projects.features.settings.test)
         implementation(projects.features.user.test)
         implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(projects.ui.theming.test)
       }
     }

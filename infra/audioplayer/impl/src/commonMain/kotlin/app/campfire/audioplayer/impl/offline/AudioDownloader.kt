@@ -3,8 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope

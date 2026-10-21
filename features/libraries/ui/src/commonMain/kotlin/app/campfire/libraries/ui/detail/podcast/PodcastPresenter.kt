@@ -17,8 +17,6 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
@@ -41,6 +39,10 @@ import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.podcast.episode.showPodcastEpisodeBottomSheet
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
+import app.campfire.offline.download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
@@ -68,7 +70,7 @@ class PodcastPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
@@ -101,7 +103,12 @@ class PodcastPresenter(
     }
 
     val episodeDownloads by remember(libraryItem, podcastEpisodes) {
-      offlineDownloadManager.observeForEpisodes(libraryItem, podcastEpisodes)
+      downloads.observe(podcastEpisodes.map { DownloadContent.Episode(libraryItem.id, it.id) }.toSet())
+        .map { all ->
+          all.values.mapNotNull { download ->
+            (download.content as? DownloadContent.Episode)?.let { it.episodeId to download }
+          }.toMap()
+        }
     }.collectAsState(emptyMap())
 
     val remoteDownloadCount by remember(libraryItem.id) {
@@ -203,17 +210,17 @@ class PodcastPresenter(
             if (!currentUser.canDownload) return@ContentUiState
             analytics.send(ActionEvent("download_episode", Click))
             libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
-            offlineDownloadManager.downloadEpisode(libraryItem, event.episode)
+            downloads.download(DownloadContent.Episode(libraryItem.id, event.episode.id))
           }
 
           is LibraryItemUiEvent.RemoveEpisodeDownloadClick -> {
             analytics.send(ActionEvent("delete_episode_download", Click))
-            offlineDownloadManager.deleteEpisode(libraryItem, event.episode)
+            downloads.delete(DownloadContent.Episode(libraryItem.id, event.episode.id))
           }
 
           is LibraryItemUiEvent.StopEpisodeDownloadClick -> {
             analytics.send(ActionEvent("stop_episode_download", Click))
-            offlineDownloadManager.stopEpisode(libraryItem, event.episode)
+            downloads.stop(DownloadContent.Episode(libraryItem.id, event.episode.id))
           }
 
           else -> Unit
@@ -229,7 +236,7 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   currentSession: Session?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
-  episodeDownloads: Map<PodcastEpisodeId, OfflineDownload>,
+  episodeDownloads: Map<PodcastEpisodeId, Download>,
   remoteDownloadCount: Int,
   showConfirmDownloadDialog: Boolean,
   addToPlaylistDialog: AddToPlaylistDialog,

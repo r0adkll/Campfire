@@ -9,7 +9,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.reader.api.Ebook
 import app.campfire.reader.api.EbookContentsEntry
 import app.campfire.reader.api.EbookContentsRepository
-import app.campfire.reader.api.EbookDownload
 import app.campfire.reader.api.EbookRepository
 import app.campfire.reader.api.ReaderBookSettingsRepository
 import app.campfire.reader.api.screen.ReaderScreen
@@ -312,12 +311,6 @@ class ReaderPresenterTest {
       saved += location to progress
       return Result.success(Unit)
     }
-
-    override fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload> = MutableStateFlow(EbookDownload.None)
-    override fun observeDownloads(): Flow<Set<LibraryItemId>> = MutableStateFlow(emptySet())
-    override fun download(itemId: LibraryItemId) = Unit
-    override fun deleteDownload(itemId: LibraryItemId) = Unit
-    override suspend fun deleteFiles(itemId: LibraryItemId) = Unit
   }
 
   private class FakeEbookContentsRepository : EbookContentsRepository {

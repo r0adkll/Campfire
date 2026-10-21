@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.permission.PermissionState
 import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
@@ -26,13 +25,14 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
+import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import kotlinx.coroutines.launch
 
 class ExpressiveControlSlot(
   private val libraryItem: LibraryItem,
-  private val offlineDownload: OfflineDownload?,
+  private val offlineDownload: Download?,
   private val mediaProgress: MediaProgress?,
   private val isQueued: Boolean,
   private val hasSession: Boolean,

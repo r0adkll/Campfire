@@ -19,13 +19,13 @@ import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.Playlist
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
 import app.campfire.offline.observeByItem
 import app.campfire.playlists.api.PlaylistsRepository
@@ -54,7 +54,6 @@ class PlaylistDetailPresenter(
   private val playbackController: PlaybackController,
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
-  private val downloadManager: OfflineDownloadManager,
   private val downloads: Downloads,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
@@ -232,12 +231,14 @@ class PlaylistDetailPresenter(
           if (!currentUser.canDownload) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "download"))
           libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
-          // Offline downloads are item-scoped, not episode-scoped; de-dupe podcast
-          // entries that share a library item.
-          val uniqueLibraryItems = playlistItems
-            .map { it.libraryItem }
-            .distinctBy { it.id }
-          downloadManager.downloadAll(uniqueLibraryItems)
+          downloads.download(
+            playlistItems
+              .map { item ->
+                item.episodeId?.let { DownloadContent.Episode(item.libraryItemId, it) }
+                  ?: DownloadContent.Audiobook(item.libraryItemId)
+              }
+              .distinct(),
+          )
         }
 
         PlaylistDetailUiEvent.MarkAllFinished -> {

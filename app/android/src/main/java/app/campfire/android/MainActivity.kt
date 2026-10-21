@@ -137,7 +137,6 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     bark { "MainActivity::onStart()" }
-    component.offlineDownloadManager.resumeDownloads()
   }
 
   override fun onDestroy() {

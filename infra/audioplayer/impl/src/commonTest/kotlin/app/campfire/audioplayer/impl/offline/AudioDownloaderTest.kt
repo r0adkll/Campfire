@@ -3,9 +3,7 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager.Invocation
+import app.campfire.audioplayer.impl.offline.FakeOfflineDownloadManager.Invocation
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId

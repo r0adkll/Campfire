@@ -3,10 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadKey
-import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.audioplayer.offline.offlineDownloadUrl
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.LibraryItem

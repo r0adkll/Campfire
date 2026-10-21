@@ -19,8 +19,6 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.ProviderId
@@ -64,12 +62,15 @@ import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
+import app.campfire.offline.download
+import app.campfire.offline.observe
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.reader.api.EbookContentsEntry
 import app.campfire.reader.api.EbookContentsRepository
-import app.campfire.reader.api.EbookRepository
-import app.campfire.reader.api.asOfflineDownload
 import app.campfire.reader.api.entryAt
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.series.api.SeriesRepository
@@ -114,8 +115,7 @@ class BookPresenter(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
-  private val offlineDownloadManager: OfflineDownloadManager,
-  private val ebookRepository: EbookRepository,
+  private val downloads: Downloads,
   private val ebookContentsRepository: EbookContentsRepository,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
@@ -170,13 +170,17 @@ class BookPresenter(
       }
     }.collectAsState(LoadState.Loading)
 
-    val offlineDownloadState by remember {
-      // An ebook is kept by the reader, but shows as any other download
+    // What downloading this item keeps: its ebook if that's all it has, otherwise its audio
+    val downloadContent = remember(libraryItem.id, libraryItem.isEbookOnly) {
       if (libraryItem.isEbookOnly) {
-        ebookRepository.observeDownload(libraryItem.id).map { it.asOfflineDownload(libraryItem.id) }
+        DownloadContent.Ebook(libraryItem.id)
       } else {
-        offlineDownloadManager.observeForItem(libraryItem)
+        DownloadContent.Audiobook(libraryItem.id)
       }
+    }
+
+    val offlineDownloadState by remember(downloadContent) {
+      downloads.observe(downloadContent)
     }.collectAsState(null)
 
     // Only the reader knows an ebook's contents, so they show once the book has been opened here
@@ -278,7 +282,7 @@ class BookPresenter(
       addToPlaylistDialog = addToPlaylistDialog,
       collapseListenedChapters = collapseListenedChapters,
       canStreamHls = canStreamHls,
-      willStreamHls = willStreamHls && offlineDownloadState?.isCompleted != true,
+      willStreamHls = willStreamHls && offlineDownloadState?.isAvailable != true,
     )
 
     return ContentUiState(
@@ -400,28 +404,20 @@ class BookPresenter(
           analytics.send(ActionEvent("download", Click))
           libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
 
-          if (libraryItem.isEbookOnly) {
-            ebookRepository.download(libraryItem.id)
-          } else {
-            offlineDownloadManager.download(libraryItem)
-          }
+          downloads.download(downloadContent)
         }
 
         LibraryItemUiEvent.RemoveDownloadClick -> {
           analytics.send(ActionEvent("delete_download", Click))
 
-          if (libraryItem.isEbookOnly) {
-            ebookRepository.deleteDownload(libraryItem.id)
-          } else {
-            offlineDownloadManager.delete(libraryItem)
-          }
+          downloads.delete(downloadContent)
         }
 
         LibraryItemUiEvent.StopDownloadClick -> {
           // An ebook's single file can't be stopped part way
           if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("stop_download", Click))
-          offlineDownloadManager.stop(libraryItem)
+          downloads.stop(downloadContent)
         }
 
         LibraryItemUiEvent.ReadClick -> {
@@ -476,7 +472,7 @@ private fun buildSlots(
   isPlaying: Boolean,
   playbackSpeed: Float,
   mediaProgressState: LoadState<out MediaProgress?>,
-  offlineDownloadState: OfflineDownload?,
+  offlineDownloadState: Download?,
   seriesContentState: LoadState<out List<SeriesWithBooks>>,
   communityInfoState: CommunityInfoState?,
   ebookContents: List<EbookContentsEntry>,

@@ -14,7 +14,6 @@ kotlin {
         implementation(projects.core)
         implementation(projects.common.screens)
         api(projects.features.settings.api)
-        api(projects.infra.audioplayer.api)
       }
     }
   }

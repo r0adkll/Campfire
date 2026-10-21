@@ -4,7 +4,6 @@
 package app.campfire.libraries.purge
 
 import app.campfire.CampfireDatabase
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
@@ -14,6 +13,7 @@ import app.campfire.libraries.api.PurgedItemCleanup
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.isNotFound
+import app.campfire.offline.Downloads
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
@@ -26,7 +26,8 @@ import kotlinx.coroutines.withContext
 class DefaultLibraryItemPurger(
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  // Lazy: the downloaders look items up through the repository that purges through here
+  private val downloads: Lazy<Downloads>,
   private val cleanups: Set<PurgedItemCleanup>,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryItemPurger {
@@ -46,7 +47,7 @@ class DefaultLibraryItemPurger(
 
     itemIds.forEach { itemId ->
       try {
-        offlineDownloadManager.deleteAllForItemId(itemId)
+        downloads.value.deleteAll(itemId)
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {

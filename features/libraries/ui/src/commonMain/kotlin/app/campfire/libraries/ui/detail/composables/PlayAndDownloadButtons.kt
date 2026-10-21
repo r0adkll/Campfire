@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.Download
@@ -48,6 +47,7 @@ import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.icons.rounded.Sensors
 import app.campfire.core.model.PlayMethod
+import app.campfire.offline.Download
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_direct_play
@@ -63,7 +63,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PlayAndDownloadButtons(
-  offlineDownload: OfflineDownload?,
+  offlineDownload: Download?,
   onPlayClick: (PlayMethod?) -> Unit,
   onDownloadClick: () -> Unit,
   hasProgress: Boolean,
@@ -77,8 +77,7 @@ internal fun PlayAndDownloadButtons(
     modifier = Modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    val hasOfflineDownload = offlineDownload?.state != null &&
-      offlineDownload.state != OfflineDownload.State.None
+    val hasOfflineDownload = offlineDownload != null
 
     // The trailing button is either the play-options menu (HLS-capable servers) or a plain
     // download button. The menu never shows for ebooks and is pointless while this item is
