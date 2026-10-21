@@ -425,7 +425,7 @@ class SqlDelightLibraryItemDao(
       }
 
       book.tracks.forEach { track ->
-        db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId))
+        db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId, urlHydrator))
       }
 
       book.metadata.authors.forEach { authorMeta ->
@@ -476,7 +476,7 @@ class SqlDelightLibraryItemDao(
         }
         episode.audioTrack?.let { track ->
           db.podcastEpisodeAudioTrackQueries.insert(
-            track.asEpisodeDbModel(episodeId = episode.id),
+            track.asEpisodeDbModel(episodeId = episode.id, urlHydrator = urlHydrator),
           )
         }
       }

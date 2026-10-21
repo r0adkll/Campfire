@@ -209,7 +209,7 @@ class PlaylistsSourceOfTruthFactory(
       )
       episode.audioTrack?.let { track ->
         db.podcastEpisodeAudioTrackQueries.insert(
-          track.asEpisodeDbModel(episodeId = episode.id),
+          track.asEpisodeDbModel(episodeId = episode.id, urlHydrator = urlHydrator),
         )
       }
     }

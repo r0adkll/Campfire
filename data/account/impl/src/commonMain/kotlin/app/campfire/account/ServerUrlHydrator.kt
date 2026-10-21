@@ -19,7 +19,14 @@ class ServerUrlHydrator(
 ) : UrlHydrator {
 
   override fun hydrateUrl(absolutePath: String): String {
-    return "${userSession.serverUrl}$absolutePath"
+    val serverUrl = userSession.serverUrl
+    // Tracks saved before dehydrateUrl existed hold a URL already hydrated; don't prefix it twice
+    if (serverUrl != null && absolutePath.startsWith(serverUrl)) return absolutePath
+    return "$serverUrl$absolutePath"
+  }
+
+  override fun dehydrateUrl(url: String): String {
+    return userSession.serverUrl?.let(url::removePrefix) ?: url
   }
 
   override fun hydrateLibraryItem(libraryItemId: LibraryItemId, updatedAtMillis: Long?): String {
