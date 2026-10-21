@@ -26,6 +26,7 @@ import app.campfire.core.reflect.instanceOf
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.ui.navigation.HomeNavigationItemIcon
 import app.campfire.ui.navigation.NavigationComponent
+import app.campfire.ui.navigation.WithDotBadge
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.settings
 import campfire.ui.navigation.ui.generated.resources.settings_content_description
@@ -53,6 +54,7 @@ fun CampfireNavigationRail(
     navigationItems = navigationItems,
     selectedNavigation = selectedNavigation,
     onNavigationSelected = onNavigationSelected,
+    settingsBadged = presenter.presentAppUpdateWaiting(),
     header = {
       ServerIcon(
         onClick = onMenuSelected,
@@ -75,6 +77,7 @@ fun CampfireNavigationRailContent(
   onNavigationSelected: (Screen) -> Unit,
   header: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  settingsBadged: Boolean = false,
 ) {
   NavigationRail(
     modifier = modifier,
@@ -108,10 +111,12 @@ fun CampfireNavigationRailContent(
 
     NavigationRailItem(
       icon = {
-        Icon(
-          imageVector = CampfireIcons.Rounded.Settings,
-          contentDescription = stringResource(Res.string.settings_content_description),
-        )
+        WithDotBadge(settingsBadged) {
+          Icon(
+            imageVector = CampfireIcons.Rounded.Settings,
+            contentDescription = stringResource(Res.string.settings_content_description),
+          )
+        }
       },
       label = { Text(text = stringResource(Res.string.settings)) },
       selected = false,

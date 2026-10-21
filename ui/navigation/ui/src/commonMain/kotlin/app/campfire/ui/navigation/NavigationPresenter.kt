@@ -37,6 +37,7 @@ import app.campfire.ui.navigation.drawer.DrawerUiEvent
 import app.campfire.ui.navigation.drawer.DrawerUiState
 import app.campfire.ui.navigation.rail.WideNavigationRailUiEvent
 import app.campfire.ui.navigation.rail.WideNavigationRailUiState
+import app.campfire.updates.AppUpdates
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_collections_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_collections_label
@@ -66,7 +67,15 @@ class NavigationPresenter(
   private val layoutSettings: LayoutSettings,
   private val themeSettings: ThemeSettings,
   private val workOffline: WorkOffline,
+  private val appUpdates: AppUpdates,
 ) {
+
+  /** Whether an app update is waiting, which badges Settings wherever it's listed. */
+  @Composable
+  fun presentAppUpdateWaiting(): Boolean {
+    val update by remember { appUpdates.update }.collectAsState()
+    return update != null
+  }
 
   /**
    * The primary destinations shown in the bottom navigation bar and the compact navigation rail.
@@ -154,6 +163,7 @@ class NavigationPresenter(
     val currentLibrary by remember {
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
+    val appUpdateWaiting = presentAppUpdateWaiting()
 
     return buildList {
       if (currentLibrary?.mediaType != MediaType.Podcast) {
@@ -205,6 +215,7 @@ class NavigationPresenter(
           contentDescription = stringResource(Res.string.nav_settings_content_description),
           iconImageVector = CampfireIcons.Rounded.Settings,
           selectedImageVector = CampfireIcons.Filled.Settings,
+          badged = appUpdateWaiting,
         ),
       )
     }

@@ -28,6 +28,16 @@
   <string name="duration_remaining">%1$s left</string>
   <string name="duration_finished">Finished</string>
 
+  <string name="item_meta_series_position">Book %1$s</string>
+  <plurals name="item_meta_episode_count">
+    <item quantity="one">%1$d episode</item>
+    <item quantity="other">%1$d episodes</item>
+  </plurals>
+  <plurals name="item_meta_track_count">
+    <item quantity="one">%1$d track</item>
+    <item quantity="other">%1$d tracks</item>
+  </plurals>
+
   <string name="unknown_library_title">Unknown</string>
   <string name="unknown_author_name">Unknown author</string>
 

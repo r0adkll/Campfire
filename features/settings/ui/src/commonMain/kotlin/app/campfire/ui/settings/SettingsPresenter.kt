@@ -4,12 +4,9 @@
 package app.campfire.ui.settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -104,7 +101,7 @@ import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
-import app.campfire.updates.source.AppUpdateSource
+import app.campfire.updates.AppUpdates
 import app.campfire.whatsnew.api.screen.ChangelogScreen
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -149,7 +146,7 @@ class SettingsPresenter(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
-  private val appUpdateSource: AppUpdateSource,
+  private val appUpdates: AppUpdates,
   private val mobileDataSettings: MobileDataSettings,
   private val serverReachability: ServerReachability,
   private val workOffline: WorkOffline,
@@ -283,18 +280,10 @@ class SettingsPresenter(
     val localNetworkMissing by remember { localNetworkPermission.observePermissionMissing() }
       .collectAsState(false)
     var localNetworkDenied by remember { mutableStateOf(false) }
-    // Only sources with their own update UI (Drop) get the About pane's "Check for updates" row.
-    val appUpdateSheet = remember { appUpdateSource.updateSheet?.takeIf { appUpdateSource.isSupported } }
-    var appUpdateInvalidator by remember { mutableIntStateOf(0) }
+    // App updates
+    val appUpdate by remember { appUpdates.update }.collectAsState()
+    val appUpdateCheck by remember { appUpdates.check }.collectAsState()
     var showAppUpdateSheet by remember { mutableStateOf(false) }
-    if (appUpdateSheet != null) {
-      LaunchedEffect(Unit) {
-        appUpdateSource.changes().collect { appUpdateInvalidator++ }
-      }
-    }
-    val appUpdateCheck by produceState<AppUpdateCheck>(AppUpdateCheck.Checking, appUpdateInvalidator) {
-      if (appUpdateSheet != null) value = AppUpdateCheck.Checked(appUpdateSource.getAvailableUpdate())
-    }
 
     // Android Auto Settings
     val androidAutoCategories by remember {
@@ -392,14 +381,20 @@ class SettingsPresenter(
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
-        appUpdate = appUpdateSheet?.let { sheet ->
-          AppUpdateInfo(
-            check = appUpdateCheck,
-            sheet = sheet,
-            showSheet = showAppUpdateSheet,
-          )
-        },
       ),
+      appUpdates = if (appUpdates.isSupported) {
+        AppUpdatesSettingsInfo(
+          update = appUpdate,
+          check = appUpdateCheck,
+          installedVersion = applicationInfo.versionName,
+          installedBuild = applicationInfo.versionCode.toLong(),
+          channel = appUpdates.channel,
+          sheet = appUpdates.installSheet,
+          showSheet = showAppUpdateSheet,
+        )
+      } else {
+        null
+      },
       androidAutoSettings = AndroidAutoSettingsInfo(
         isAndroidAutoAvailable = isAndroidAutoAvailable,
         categories = androidAutoCategories,
@@ -582,16 +577,14 @@ class SettingsPresenter(
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
             privacySettings.crashReportingEnabled = event.enabled
           }
-          SettingsUiEvent.AboutSettingEvent.CheckForUpdatesClick -> {
-            // The sheet shows whatever the check left in the source's state, so check first.
-            scope.launch {
-              appUpdateSource.getAvailableUpdate()
-              showAppUpdateSheet = true
-            }
-          }
-          SettingsUiEvent.AboutSettingEvent.AppUpdateSheetDismissed -> {
+        }
+
+        is SettingsUiEvent.AppUpdatesSettingEvent -> when (event) {
+          SettingsUiEvent.AppUpdatesSettingEvent.CheckNow -> appUpdates.refresh()
+          SettingsUiEvent.AppUpdatesSettingEvent.OpenUpdateSheet -> showAppUpdateSheet = true
+          SettingsUiEvent.AppUpdatesSettingEvent.UpdateSheetDismissed -> {
             showAppUpdateSheet = false
-            appUpdateInvalidator++
+            appUpdates.refresh()
           }
         }
 
@@ -616,7 +609,6 @@ class SettingsPresenter(
             devSettings.fakeAppUpdateFailDownload = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateDismissals -> {
             appStateSettings.appUpdateDismissedVersionCode = 0L
-            appUpdateInvalidator++
           }
         }
 

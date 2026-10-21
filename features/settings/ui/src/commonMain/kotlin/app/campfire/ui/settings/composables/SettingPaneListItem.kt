@@ -32,6 +32,7 @@ fun SettingPaneListItem(
   modifier: Modifier = Modifier,
   selected: Boolean = false,
   shape: Shape = SettingsPaneDefaults.middleShape(),
+  trailing: (@Composable () -> Unit)? = null,
 ) {
   ListItem(
     modifier = modifier
@@ -43,6 +44,7 @@ fun SettingPaneListItem(
       }
     },
     supportingContent = subtitle,
+    trailingContent = trailing,
     leadingContent = {
       Box(
         modifier = Modifier

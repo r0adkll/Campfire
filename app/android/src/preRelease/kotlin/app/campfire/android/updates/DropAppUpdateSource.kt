@@ -6,9 +6,8 @@ package app.campfire.android.updates
 import android.app.Application
 import androidx.compose.runtime.Composable
 import app.campfire.core.di.AppScope
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import app.campfire.updates.source.AppUpdate
+import app.campfire.updates.source.AppUpdateCheckException
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSheet
 import app.campfire.updates.source.AppUpdateSource
@@ -48,11 +47,14 @@ class DropAppUpdateSource(
 
   override val isSupported: Boolean = true
 
+  override val channel: String by lazy {
+    val config = DropManifest.read(application)
+    config.stamp?.channel ?: config.channel
+  }
+
   // Pull request builds are installed to test a change and replaced often, so they check on every
   // foreground; main moves with every merge; beta only moves with a release.
   override val checkInterval: Duration by lazy {
-    val config = DropManifest.read(application)
-    val channel = config.stamp?.channel ?: config.channel
     when {
       channel.startsWith("pr/") -> Duration.ZERO
       channel == "beta" -> 1.hours
@@ -79,9 +81,10 @@ class DropAppUpdateSource(
     val state = drop.state.value
     // A check never interrupts a download or install, so only ask when there's nothing under way.
     if (state is DropState.Idle || state is DropState.UpdateAvailable) {
-      val result = drop.check()
-      if (result is UpdateCheckResult.Failed) {
-        bark(LogPriority.WARN, throwable = result.cause) { "Drop update check failed: ${result.message}" }
+      when (val result = drop.check()) {
+        is UpdateCheckResult.Failed -> throw AppUpdateCheckException(result.message, result.cause)
+        UpdateCheckResult.SignInRequired -> throw AppUpdateCheckException("Drop requires a sign-in")
+        else -> Unit
       }
     }
     return drop.state.value.toAppUpdate()
@@ -110,5 +113,10 @@ private fun Update.toAppUpdate(status: AppUpdate.Status) = AppUpdate(
   versionName = versionName ?: label,
   versionCode = versionCode,
   headline = headline,
+  releaseNotes = whatsNew?.takeIf { it.isNotBlank() },
   status = status,
+  sizeBytes = fileSize,
+  publishedAt = uploadedAt,
+  channel = channel,
+  pullRequest = pullRequest,
 )

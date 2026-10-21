@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -43,6 +44,7 @@ import app.campfire.common.compose.icons.rounded.DeveloperMode
 import app.campfire.common.compose.icons.rounded.DirectionsCar
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.Info
+import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.icons.rounded.NotificationsPaused
 import app.campfire.common.compose.icons.rounded.Palette
 import app.campfire.common.compose.icons.rounded.VolumeUp
@@ -68,6 +70,8 @@ import app.campfire.ui.settings.panes.LocalPaneState
 import app.campfire.ui.settings.panes.PaneState
 import app.campfire.ui.settings.panes.PlaybackPane
 import app.campfire.ui.settings.panes.SleepPane
+import app.campfire.ui.settings.panes.UpdatesPane
+import app.campfire.ui.settings.panes.summary
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_about_subtitle
 import campfire.features.settings.ui.generated.resources.setting_about_title
@@ -89,6 +93,7 @@ import campfire.features.settings.ui.generated.resources.setting_providers_subti
 import campfire.features.settings.ui.generated.resources.setting_providers_title
 import campfire.features.settings.ui.generated.resources.setting_sleep_subtitle
 import campfire.features.settings.ui.generated.resources.setting_sleep_title
+import campfire.features.settings.ui.generated.resources.setting_updates_title
 import campfire.features.settings.ui.generated.resources.settings_title
 import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
@@ -119,6 +124,7 @@ fun SettingsUi(
         SettingsScreen.Page.Playback -> SettingsPane.Playback
         SettingsScreen.Page.Sleep -> SettingsPane.Sleep
         SettingsScreen.Page.AndroidAuto -> SettingsPane.AndroidAuto
+        SettingsScreen.Page.Updates -> SettingsPane.Updates
         SettingsScreen.Page.About -> SettingsPane.About
         SettingsScreen.Page.Developer -> SettingsPane.Developer
       },
@@ -167,6 +173,7 @@ private fun TwoPaneLayout(
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
       showDeveloperPane = state.developerSettings.developerModeEnabled,
       showAndroidAutoPane = state.isAndroidAutoPaneVisible,
+      appUpdates = state.appUpdates,
       modifier = Modifier
         .padding(top = 16.dp)
         .fillMaxHeight()
@@ -225,6 +232,7 @@ private fun OnePaneLayout(
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     showDeveloperPane = state.developerSettings.developerModeEnabled,
     showAndroidAutoPane = state.isAndroidAutoPaneVisible,
+    appUpdates = state.appUpdates,
     modifier = modifier
       .systemBarsPadding()
       .fillMaxSize(),
@@ -259,6 +267,7 @@ private fun SettingsRootPane(
   onBackClick: () -> Unit,
   showDeveloperPane: Boolean,
   showAndroidAutoPane: Boolean,
+  appUpdates: AppUpdatesSettingsInfo?,
   modifier: Modifier = Modifier,
   isTwoPane: Boolean = false,
 ) {
@@ -431,6 +440,30 @@ private fun SettingsRootPane(
 
       Spacer(Modifier.height(8.dp))
 
+      // App updates, for builds that update themselves
+      if (appUpdates != null) {
+        SettingPaneListItem(
+          selected = pane == SettingsPane.Updates && isTwoPane,
+          icon = {
+            Icon(
+              CampfireIcons.Rounded.NewReleases,
+              contentDescription = null,
+            )
+          },
+          title = { Text(stringResource(Res.string.setting_updates_title)) },
+          subtitle = { Text(appUpdates.summary()) },
+          trailing = if (appUpdates.update != null) {
+            { Badge() }
+          } else {
+            null
+          },
+          onClick = {
+            onPaneClick(SettingsPane.Updates)
+          },
+          shape = SettingsPaneDefaults.topShape(),
+        )
+      }
+
       // About
       SettingPaneListItem(
         selected = pane == SettingsPane.About && isTwoPane,
@@ -445,10 +478,11 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.About)
         },
-        shape = if (showDeveloperPane) {
-          SettingsPaneDefaults.topShape()
-        } else {
-          SettingsPaneDefaults.singleShape()
+        shape = when {
+          appUpdates != null && showDeveloperPane -> SettingsPaneDefaults.middleShape()
+          appUpdates != null -> SettingsPaneDefaults.bottomShape()
+          showDeveloperPane -> SettingsPaneDefaults.topShape()
+          else -> SettingsPaneDefaults.singleShape()
         },
       )
 
@@ -519,6 +553,12 @@ private fun SettingPaneContent(
     )
 
     SettingsPane.AndroidAuto -> AndroidAutoPane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.Updates -> UpdatesPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,
