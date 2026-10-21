@@ -104,14 +104,11 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(SettingsScreen::class, UserScope::class)
 @Inject
 class SettingsPresenter(
@@ -198,8 +195,7 @@ class SettingsPresenter(
       .collectAsState()
 
     val downloadEntries by remember {
-      downloads.observeAll()
-        .mapLatest { all -> all.asDownloadEntries(libraryItemRepository::getLibraryItem) }
+      downloads.observeAll().asDownloadEntries(libraryItemRepository::getLibraryItem)
     }.collectAsState(emptyList())
 
     // Sleep Settings
