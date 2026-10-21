@@ -12,12 +12,13 @@ import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.Media
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.ui.settings.DownloadEntry
 import java.io.File
 import kotlin.test.Test
@@ -83,10 +84,10 @@ class DownloadsListRenderTest {
     }
   }
 
-  private fun download(itemId: String, contentLength: Long = -1L) = OfflineDownload(
-    libraryItemId = itemId,
-    state = OfflineDownload.State.Completed,
-    contentLength = contentLength,
+  private fun download(itemId: String, contentLength: Long = -1L) = Download(
+    content = DownloadContent.Audiobook(itemId),
+    state = Download.State.Downloaded,
+    totalBytes = contentLength,
   )
 
   private companion object {

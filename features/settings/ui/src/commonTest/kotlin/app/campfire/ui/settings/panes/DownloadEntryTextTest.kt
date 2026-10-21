@@ -3,7 +3,6 @@
 
 package app.campfire.ui.settings.panes
 
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
@@ -11,6 +10,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.ui.settings.DownloadEntry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -73,10 +74,10 @@ class DownloadEntryTextTest {
     assertThat(listOf(book, ebook).hasMixedMediaTypes).isTrue()
   }
 
-  private fun download(contentLength: Long = -1L) = OfflineDownload(
-    libraryItemId = "item",
-    state = OfflineDownload.State.Completed,
-    contentLength = contentLength,
+  private fun download(contentLength: Long = -1L) = Download(
+    content = DownloadContent.Audiobook("item"),
+    state = Download.State.Downloaded,
+    totalBytes = contentLength,
   )
 
   private fun audiobook(vararg extensions: String): LibraryItem {

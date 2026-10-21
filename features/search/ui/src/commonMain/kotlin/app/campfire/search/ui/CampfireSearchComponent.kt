@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.core.di.UserScope
+import app.campfire.offline.statusOf
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.search.ui.composables.SearchResultContent
@@ -46,7 +46,7 @@ class CampfireSearchComponent(
     SearchResultContent(
       query = state.query,
       results = state.searchResult,
-      offlineStatus = { state.offlineStates[it].asWidgetStatus() },
+      offlineStatus = { state.offlineStates.statusOf(it) },
       onBookClick = { book -> eventSink(SearchUiEvent.OnBookClick(book)) },
       onNarratorClick = { narrator -> eventSink(SearchUiEvent.OnNarratorClick(narrator)) },
       onAuthorClick = { author -> eventSink(SearchUiEvent.OnAuthorClick(author)) },

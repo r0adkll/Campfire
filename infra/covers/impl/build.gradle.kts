@@ -16,8 +16,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.data.network.api)
         implementation(projects.features.libraries.api)
-        implementation(projects.features.reader.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
 
         implementation(libs.ktor.client.core)
         implementation(libs.kotlinx.io.core)
@@ -28,7 +27,7 @@ kotlin {
       dependencies {
         implementation(projects.common.test)
         implementation(projects.features.libraries.test)
-        implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.ktor.client.mock)
         implementation(libs.bundles.test.common)
       }

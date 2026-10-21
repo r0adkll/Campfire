@@ -15,6 +15,7 @@ import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.Playlist
 import app.campfire.home.ui.libraryItem
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.ui.list.FakePlaylistsRepository
 import app.campfire.sessions.test.FakeSessionQueue
@@ -56,6 +57,7 @@ class PlaylistDetailPresenterTest {
     sessionsRepository = sessionsRepository,
     sessionQueue = FakeSessionQueue(),
     downloadManager = FakeOfflineDownloadManager(),
+    downloads = FakeDownloads(),
     userRepository = FakeUserRepository(),
     libraryViewSettings = TestLibraryViewSettings(),
     mediaProgressRepository = mediaProgressRepository,

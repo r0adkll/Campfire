@@ -26,6 +26,8 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.Playlist
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.sessions.api.SessionQueue
@@ -53,6 +55,7 @@ class PlaylistDetailPresenter(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val downloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val mediaProgressRepository: MediaProgressRepository,
@@ -69,8 +72,7 @@ class PlaylistDetailPresenter(
     }.collectAsState(null)
 
     val offlineStates by remember {
-      downloadManager.observeAll()
-        .map { it.associateBy { item -> item.libraryItemId } }
+      downloads.observeByItem()
     }.collectAsState(emptyMap())
 
     val progressStates by remember {

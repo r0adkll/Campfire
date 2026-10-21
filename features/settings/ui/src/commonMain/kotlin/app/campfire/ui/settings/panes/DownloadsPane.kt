@@ -35,13 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownload.State.Completed
-import app.campfire.audioplayer.offline.OfflineDownload.State.Downloading
-import app.campfire.audioplayer.offline.OfflineDownload.State.Failed
-import app.campfire.audioplayer.offline.OfflineDownload.State.None
-import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
-import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.icons.rounded.Dangerous
@@ -60,6 +53,12 @@ import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
+import app.campfire.offline.Download
+import app.campfire.offline.Download.State.Downloaded
+import app.campfire.offline.Download.State.Downloading
+import app.campfire.offline.Download.State.Failed
+import app.campfire.offline.Download.State.Queued
+import app.campfire.offline.Download.State.Stopped
 import app.campfire.ui.settings.DownloadEntry
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
@@ -160,7 +159,7 @@ internal fun DownloadsPane(
 
 @Composable
 private fun ConfirmDeleteListItem(
-  download: OfflineDownload,
+  download: Download,
   onDeleteClick: () -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
@@ -179,9 +178,8 @@ private fun ConfirmDeleteListItem(
         Downloading,
         -> stringResource(Res.string.label_confirm_download_stop)
 
-        Completed,
+        Downloaded,
         Failed,
-        None,
         -> stringResource(Res.string.label_confirm_download_delete)
       },
       style = MaterialTheme.typography.bodyMedium,
@@ -217,9 +215,8 @@ private fun ConfirmDeleteListItem(
           -> CampfireIcons.Rounded.Dangerous
 
           Stopped,
-          Completed,
+          Downloaded,
           Failed,
-          None,
           -> CampfireIcons.Rounded.DeleteForever
         },
         contentDescription = null,
@@ -233,9 +230,8 @@ private fun ConfirmDeleteListItem(
           Downloading,
           -> stringResource(Res.string.action_stop_download)
 
-          Completed,
+          Downloaded,
           Failed,
-          None,
           -> stringResource(Res.string.action_delete_download)
         },
       )
@@ -277,7 +273,7 @@ internal fun DownloadEntry.supportingText(showFormat: Boolean): String = when (t
     if (showFormat && format != null) "$format · $size" else size
   }
   is DownloadEntry.Ebook -> {
-    val size = download.contentLength
+    val size = download.totalBytes
       .takeIf { it > 0L }
       ?.asReadableBytes()
       ?: libraryItem.media.sizeInBytes.asReadableBytes()
@@ -336,9 +332,8 @@ internal fun ItemDownloadListItem(
           Downloading,
           -> Res.string.action_stop_download
 
-          Completed,
+          Downloaded,
           Failed,
-          None,
           -> Res.string.action_delete_download
         },
       )
@@ -357,9 +352,8 @@ internal fun ItemDownloadListItem(
               -> CampfireIcons.Rounded.Dangerous
 
               Stopped,
-              Completed,
+              Downloaded,
               Failed,
-              None,
               -> CampfireIcons.Rounded.Delete
             },
             contentDescription = deleteOrStopLabel,
@@ -375,7 +369,7 @@ internal fun ItemDownloadListItem(
 @Composable
 private fun ItemDownloadImage(
   item: LibraryItem,
-  download: OfflineDownload,
+  download: Download,
   modifier: Modifier = Modifier,
   size: Dp = 56.dp,
 ) {
@@ -393,8 +387,7 @@ private fun ItemDownloadImage(
     )
 
     if (
-      download.state != None &&
-      download.state != Completed
+      download.state != Downloaded
     ) {
       val downloadingColor = MaterialTheme.colorScheme.primaryContainer
         .copy(alpha = 0.75f)
@@ -415,7 +408,7 @@ private fun ItemDownloadImage(
               drawArc(
                 color = downloadingColor,
                 startAngle = -90f,
-                sweepAngle = 360f * download.progress.percent,
+                sweepAngle = 360f * (download.progress ?: 0f),
                 topLeft = Offset(-padding, -padding),
                 size = Size(this.size.width + (padding * 2), this.size.height + (padding * 2)),
                 useCenter = true,
@@ -429,7 +422,6 @@ private fun ItemDownloadImage(
         Icon(
           when (download.state) {
             Stopped,
-            None,
             -> CampfireIcons.Rounded.Download
 
             Queued,
@@ -437,7 +429,7 @@ private fun ItemDownloadImage(
             -> CampfireIcons.Rounded.Downloading
 
             Failed -> CampfireIcons.Rounded.Warning
-            Completed -> CampfireIcons.Rounded.DownloadDone
+            Downloaded -> CampfireIcons.Rounded.DownloadDone
           },
           contentDescription = null,
           tint = when (download.state) {

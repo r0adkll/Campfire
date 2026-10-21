@@ -12,6 +12,7 @@ kotlin {
       dependencies {
         implementation(projects.data.bookinfo.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.features.author.api)
         implementation(projects.features.collections.api)
         implementation(projects.features.libraries.api)

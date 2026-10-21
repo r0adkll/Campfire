@@ -4,12 +4,12 @@
 package app.campfire.playlists.ui.detail
 
 import androidx.compose.runtime.Stable
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.Session
+import app.campfire.offline.ItemDownloads
 import app.campfire.user.api.MediaProgressKey
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -24,7 +24,7 @@ data class PlaylistDetailUiState(
   val playlistState: LoadState<out Playlist>,
   val playlistContentState: LoadState<out List<Playlist.Item.Expanded>>,
   val playlistItems: List<Playlist.Item.Expanded>,
-  val offlineStates: Map<LibraryItemId, OfflineDownload>,
+  val offlineStates: Map<LibraryItemId, ItemDownloads>,
   val progressStates: Map<MediaProgressKey, MediaProgress>,
   /** Items that "Mark all as finished" would change. */
   val unfinishedCount: Int,

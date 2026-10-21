@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A book's details show its position in each series it belongs to
 - The library's list layout shows what you're sorting or filtering by, such as the publish year, size, date added, time left, or position in the filtered series
 - [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
+- Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
 
 ### Changed
 
@@ -43,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "1 hours ago" and similar wording when something happened a single minute, hour, day, month or year ago
 - Short titles in the playback bar showing faded edges as if they were about to scroll
 - Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
+- Podcast episodes in a playlist showing another episode's download status
+- Books whose download failed or was stopped playing as though they were downloaded
 
 ### Other Notes & Contributions
 

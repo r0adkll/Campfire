@@ -11,7 +11,7 @@ kotlin {
       dependencies {
         implementation(projects.features.collections.api)
         implementation(projects.data.crashreporting.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation.api)
 

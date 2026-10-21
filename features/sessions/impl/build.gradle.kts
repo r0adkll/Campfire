@@ -26,6 +26,7 @@ kotlin {
         implementation(projects.features.libraries.api)
         implementation(projects.features.user.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(libs.store)
       }
     }

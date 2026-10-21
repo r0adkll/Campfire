@@ -12,7 +12,7 @@ kotlin {
         implementation(projects.features.author.api)
         implementation(projects.features.filters.api)
         implementation(projects.features.user.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation.api)
 

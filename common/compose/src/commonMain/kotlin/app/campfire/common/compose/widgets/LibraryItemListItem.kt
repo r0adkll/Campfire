@@ -114,17 +114,18 @@ fun LibraryItemListItem(
             .size(ThumbnailSize),
         )
 
-        OfflineStatusIndicator(
-          status = offlineStatus,
-          size = 20.dp,
-          modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(8.dp),
-        )
-
         if (libraryItem.isEbookOnly) {
           EbookFormatBadge(
             format = libraryItem.media.ebookFormat.orEmpty(),
+            offlineStatus = offlineStatus,
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(8.dp),
+          )
+        } else {
+          OfflineStatusIndicator(
+            status = offlineStatus,
+            size = 20.dp,
             modifier = Modifier
               .align(Alignment.TopEnd)
               .padding(8.dp),

@@ -43,7 +43,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.OverlappedNavigationBarInsets
 import app.campfire.common.compose.extensions.plus
@@ -59,10 +58,10 @@ import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.offline.statusOf
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.ui.detail.composables.ConfirmPlaylistProgressDialog
 import app.campfire.playlists.ui.detail.composables.PlaylistFloatingToolbar
@@ -248,7 +247,7 @@ fun PlaylistDetail(
         onReorderStopped = {
           state.eventSink(PlaylistDetailUiEvent.ReorderStopped)
         },
-        offlineStateSelector = { itemId -> state.offlineStates[itemId].asWidgetStatus() },
+        offlineStateSelector = { item -> state.offlineStates.statusOf(item.libraryItemId, item.episodeId) },
         mediaProgressSelector = { item -> state.progressStates[item.progressKey] },
         isPlayingSelector = { item ->
           val session = state.currentSession
@@ -300,7 +299,7 @@ private fun LoadedContent(
   onRemove: (Playlist.Item.Expanded) -> Unit,
   onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
-  offlineStateSelector: (LibraryItemId) -> OfflineStatus,
+  offlineStateSelector: (Playlist.Item.Expanded) -> OfflineStatus,
   mediaProgressSelector: (Playlist.Item.Expanded) -> MediaProgress?,
   isPlayingSelector: (Playlist.Item.Expanded) -> Boolean,
   modifier: Modifier = Modifier,
@@ -335,7 +334,7 @@ private fun LoadedContent(
           item = item,
           sharedTransitionKey = item.key + name,
           sharedTransitionZIndex = (items.size - index) + 1f,
-          offlineStatus = offlineStateSelector(item.libraryItem.id),
+          offlineStatus = offlineStateSelector(item),
           mediaProgress = mediaProgressSelector(item),
           isPlaying = isPlayingSelector(item),
           onClick = {

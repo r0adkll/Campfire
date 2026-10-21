@@ -13,13 +13,14 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.analytics.events.SearchEvent
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.filter.ContentFilter
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.search.api.ui.SearchResultNavEvent
@@ -30,7 +31,6 @@ import dev.zacsweers.metro.AssistedInject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
@@ -49,7 +49,7 @@ class SearchPresenter(
   private val searchRepository: SearchRepository,
   @Assisted private val textFieldState: TextFieldState,
   @Assisted private val onSearchEvent: (SearchResultNavEvent) -> Unit,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val analytics: Analytics,
 ) : Presenter<SearchUiState> {
 
@@ -73,11 +73,7 @@ class SearchPresenter(
     }.collectAsState(SearchResult.Empty)
 
     val offlineDownloads by remember {
-      snapshotFlow { (searchResult as? SearchResult.Success)?.books }
-        .filterNotNull()
-        .flatMapLatest { items ->
-          offlineDownloadManager.observeForItems(items)
-        }
+      downloads.observeByItem()
     }.collectAsState(emptyMap())
 
     return SearchUiState(

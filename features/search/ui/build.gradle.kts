@@ -10,7 +10,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.search.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.ui.appbar)
 
         implementation(libs.compose.components.resources)

@@ -6,7 +6,6 @@ package app.campfire.ui.settings
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import app.campfire.audioplayer.model.PlaybackTimer
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
@@ -17,6 +16,7 @@ import app.campfire.network.reachability.NetworkSnapshot
 import app.campfire.network.reachability.OfflineChoice
 import app.campfire.network.reachability.OfflineState
 import app.campfire.network.reachability.Reachability
+import app.campfire.offline.Download
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.ResumeRewindConfig
@@ -106,23 +106,23 @@ data class DownloadsSettingsInfo(
 @Immutable
 sealed interface DownloadEntry {
   val libraryItem: LibraryItem
-  val download: OfflineDownload
+  val download: Download
 
   data class Book(
     override val libraryItem: LibraryItem,
-    override val download: OfflineDownload,
+    override val download: Download,
   ) : DownloadEntry
 
   data class Episode(
     override val libraryItem: LibraryItem,
     val episode: PodcastEpisode,
-    override val download: OfflineDownload,
+    override val download: Download,
   ) : DownloadEntry
 
   /** An ebook kept by the reader to read offline. */
   data class Ebook(
     override val libraryItem: LibraryItem,
-    override val download: OfflineDownload,
+    override val download: Download,
   ) : DownloadEntry
 }
 

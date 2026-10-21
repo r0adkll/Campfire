@@ -10,14 +10,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.TokenBackup
 import app.campfire.analytics.Analytics
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.SettingsScreen
@@ -40,7 +38,8 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.network.reachability.WorkOffline
-import app.campfire.reader.api.EbookRepository
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.AppStateSettings
@@ -138,8 +137,7 @@ class SettingsPresenter(
   private val androidAutoSettings: AndroidAutoSettings,
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
-  private val ebookRepository: EbookRepository,
+  private val downloads: Downloads,
   private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
   private val tokenBackup: TokenBackup,
@@ -203,42 +201,33 @@ class SettingsPresenter(
     val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
       .collectAsState()
 
-    val downloads by remember {
-      offlineDownloadManager.observeAll()
-    }.collectAsState(emptyList())
-
-    val ebookDownloads by remember {
-      ebookRepository.observeOfflineDownloads()
-    }.collectAsState(emptyList())
-
     val downloadEntries by remember {
-      snapshotFlow { downloads to ebookDownloads }
-        .mapLatest { (items, ebooks) ->
-          (items.map { it to false } + ebooks.map { it to true })
-            .mapNotNull { (download, isEbook) ->
+      downloads.observeAll()
+        .mapLatest { all ->
+          all
+            .mapNotNull { download ->
               // A download whose item can't be resolved (server unreachable with no cached copy,
               // or deleted on the server) shouldn't take the whole settings screen down.
               val libraryItem = try {
-                libraryItemRepository.getLibraryItem(download.libraryItemId)
+                libraryItemRepository.getLibraryItem(download.content.itemId)
               } catch (e: CancellationException) {
                 throw e
               } catch (e: Exception) {
-                bark(throwable = e) { "Unable to resolve library item for download ${download.libraryItemId}" }
+                bark(throwable = e) { "Unable to resolve library item for download ${download.content.itemId}" }
                 return@mapNotNull null
               }
-              val episodeId = download.episodeId
-              if (isEbook) {
-                DownloadEntry.Ebook(libraryItem, download)
-              } else if (episodeId == null) {
-                DownloadEntry.Book(libraryItem, download)
-              } else {
-                val media = libraryItem.media as? Media.Podcast ?: return@mapNotNull null
-                val episode = media.episodes.find { it.id == episodeId }
-                  ?: return@mapNotNull null
-                DownloadEntry.Episode(libraryItem, episode, download)
+              when (val content = download.content) {
+                is DownloadContent.Audiobook -> DownloadEntry.Book(libraryItem, download)
+                is DownloadContent.Ebook -> DownloadEntry.Ebook(libraryItem, download)
+                is DownloadContent.Episode -> {
+                  val media = libraryItem.media as? Media.Podcast ?: return@mapNotNull null
+                  val episode = media.episodes.find { it.id == content.episodeId }
+                    ?: return@mapNotNull null
+                  DownloadEntry.Episode(libraryItem, episode, download)
+                }
               }
             }
-            .sortedByDescending { it.download.updateTimeMs }
+            .sortedByDescending { it.download.updatedAtMs }
         }
     }.collectAsState(emptyList())
 
@@ -495,14 +484,7 @@ class SettingsPresenter(
               episodeId = (event.entry as? DownloadEntry.Episode)?.episode?.id,
             ),
           )
-          is DeleteDownload -> when (val entry = event.entry) {
-            is DownloadEntry.Book -> offlineDownloadManager.delete(entry.libraryItem)
-            is DownloadEntry.Ebook -> ebookRepository.deleteDownload(entry.libraryItem.id)
-            is DownloadEntry.Episode -> offlineDownloadManager.deleteEpisode(
-              entry.libraryItem,
-              entry.episode,
-            )
-          }
+          is DeleteDownload -> downloads.delete(event.entry.download.content)
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
