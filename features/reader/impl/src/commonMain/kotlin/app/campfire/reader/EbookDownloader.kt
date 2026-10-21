@@ -13,13 +13,19 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.offline.Download
+import app.campfire.offline.DownloadConditions
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloader
+import app.campfire.offline.awaitAllowed
+import app.campfire.offline.isAllowed
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -32,7 +38,8 @@ import kotlinx.io.files.Path
 
 /**
  * Keeps ebooks on this device to read offline, in [EbookFiles]' download directory. A book already
- * opened is moved over from the cache rather than fetched again.
+ * opened is moved over from the cache rather than fetched again; any other waits, queued, until
+ * [DownloadConditions] allow downloads.
  *
  * A finished download's file is marked modified when it finished, so the time survives a restart.
  */
@@ -42,6 +49,7 @@ import kotlinx.io.files.Path
 class EbookDownloader(
   private val libraryItemRepository: LibraryItemRepository,
   private val files: EbookFiles,
+  private val conditions: DownloadConditions,
   private val dispatcherProvider: DispatcherProvider,
   private val fatherTime: FatherTime,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
@@ -49,6 +57,9 @@ class EbookDownloader(
 
   /** Downloads started or finished this session; the rest are read from the disk. */
   private val downloads = MutableStateFlow<Map<LibraryItemId, Download>>(emptyMap())
+
+  /** Each download still to finish, to cancel when it's deleted. */
+  private val running = MutableStateFlow<Map<LibraryItemId, Job>>(emptyMap())
 
   override fun handles(content: DownloadContent): Boolean = content is DownloadContent.Ebook
 
@@ -83,37 +94,61 @@ class EbookDownloader(
   }
 
   private fun download(itemId: LibraryItemId) {
-    if (downloads.value[itemId]?.state == Download.State.Downloading) return
-    setDownload(itemId, Download.State.Downloading)
-    coroutineScopeHolder.get().launch {
+    if (downloads.value[itemId]?.isInProgress == true) return
+    setDownload(itemId, Download.State.Queued)
+    val job = coroutineScopeHolder.get().launch(start = CoroutineStart.LAZY) { keep(itemId) }
+    running.update { it + (itemId to job) }
+    job.invokeOnCompletion { running.update { if (it[itemId] == job) it - itemId else it } }
+    job.start()
+  }
+
+  private suspend fun keep(itemId: LibraryItemId) {
+    try {
+      val item = libraryItemRepository.getLibraryItem(itemId)
+      val format = requireNotNull(item.media.ebookFormat) { "Item $itemId has no ebook" }
+      val target = files.downloaded(itemId, format)
+      val cached = files.cached(itemId, format)
+      if (withContext(dispatcherProvider.io) { cached.hasContent() }) {
+        withContext(dispatcherProvider.io) { moveFile(cached, target) }
+      } else {
+        fetchWhenAllowed(itemId, target)
+      }
+      // A moved file still has the time it was opened
+      withContext(dispatcherProvider.io) { target.setModifiedAtMs(fatherTime.nowInEpochMillis()) }
+      downloads.update { it + (itemId to downloaded(itemId, target)) }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(LogPriority.WARN, throwable = e) { "Couldn't download the ebook for $itemId" }
+      setDownload(itemId, Download.State.Failed)
+    }
+  }
+
+  /**
+   * Fetches [itemId]'s ebook to [target] once downloads are allowed. One cut off by working offline
+   * or leaving Wi-Fi goes back to waiting rather than failing.
+   */
+  private suspend fun fetchWhenAllowed(itemId: LibraryItemId, target: Path) {
+    while (true) {
+      conditions.awaitAllowed()
+      setDownload(itemId, Download.State.Downloading)
       try {
-        val item = libraryItemRepository.getLibraryItem(itemId)
-        val format = requireNotNull(item.media.ebookFormat) { "Item $itemId has no ebook" }
-        val target = files.downloaded(itemId, format)
-        val cached = files.cached(itemId, format)
-        withContext(dispatcherProvider.io) {
-          if (cached.hasContent()) {
-            moveFile(cached, target)
-          } else {
-            // About every percent, rather than every chunk
-            var reported = 0L
-            files.fetch(itemId, target) { bytes, total ->
-              val step = if (total > 0) total / 100 else PROGRESS_STEP_UNKNOWN_SIZE
-              if (bytes - reported >= step) {
-                reported = bytes
-                setDownload(itemId, Download.State.Downloading, bytes, total)
-              }
-            }
+        // About every percent, rather than every chunk
+        var reported = 0L
+        files.fetch(itemId, target) { bytes, total ->
+          val step = if (total > 0) total / 100 else PROGRESS_STEP_UNKNOWN_SIZE
+          if (bytes - reported >= step) {
+            reported = bytes
+            setDownload(itemId, Download.State.Downloading, bytes, total)
           }
-          // A moved file still has the time it was opened
-          target.setModifiedAtMs(fatherTime.nowInEpochMillis())
         }
-        downloads.update { it + (itemId to downloaded(itemId, target)) }
+        return
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {
-        bark(LogPriority.WARN, throwable = e) { "Couldn't download the ebook for $itemId" }
-        setDownload(itemId, Download.State.Failed)
+        if (conditions.isAllowed()) throw e
+        bark { "Ebook download for $itemId waits until downloads are allowed again" }
+        setDownload(itemId, Download.State.Queued)
       }
     }
   }
@@ -127,6 +162,7 @@ class EbookDownloader(
    */
   override fun delete(content: DownloadContent) {
     coroutineScopeHolder.get().launch(dispatcherProvider.io) {
+      cancel(content.itemId)
       files.deleteDownloaded(content.itemId)
       downloads.update { it - content.itemId }
     }
@@ -134,11 +170,17 @@ class EbookDownloader(
 
   /** Every copy of the item's ebook, the cached one included, for an item gone from the server. */
   override suspend fun deleteAll(itemId: LibraryItemId) {
+    cancel(itemId)
     withContext(dispatcherProvider.io) {
       files.deleteDownloaded(itemId)
       files.deleteCached(itemId)
     }
     downloads.update { it - itemId }
+  }
+
+  /** Stops [itemId]'s download if it's still to finish, so it can't land after it's deleted. */
+  private suspend fun cancel(itemId: LibraryItemId) {
+    running.value[itemId]?.cancelAndJoin()
   }
 
   private fun setDownload(itemId: LibraryItemId, state: Download.State, bytes: Long = 0L, total: Long = -1L) {

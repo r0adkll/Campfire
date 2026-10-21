@@ -12,6 +12,9 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.infra.offline.api)
+
+        implementation(projects.data.network.api)
+        implementation(projects.features.settings.api)
       }
     }
 
@@ -19,6 +22,7 @@ kotlin {
       dependencies {
         implementation(libs.bundles.test.common)
         implementation(libs.kotlinx.coroutines.test)
+        implementation(projects.features.settings.test)
       }
     }
   }

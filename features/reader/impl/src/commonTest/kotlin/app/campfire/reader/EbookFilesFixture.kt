@@ -16,6 +16,7 @@ import app.campfire.core.time.FatherTime
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.offline.test.FakeDownloadConditions
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.fixtures.user
 import io.ktor.client.HttpClient
@@ -64,9 +65,14 @@ internal class EbookFilesFixture {
     libraryItem = libraryItem(id = ITEM, media = media(ebookFormat = "epub"))
   }
 
+  val conditions = FakeDownloadConditions()
+
   /** What the server answers each request with, in turn; the last one repeats. */
   var responses = listOf(HttpStatusCode.OK)
   val requests = mutableListOf<Map<String, String?>>()
+
+  /** Runs as each request arrives, before it's answered. */
+  var onRequest: () -> Unit = {}
 
   private val engine = MockEngine { request ->
     requests += mapOf(
@@ -74,6 +80,7 @@ internal class EbookFilesFixture {
       "auth" to request.headers[HttpHeaders.Authorization],
       "extra" to request.headers["X-Extra"],
     )
+    onRequest()
     val status = responses[(requests.size - 1).coerceAtMost(responses.lastIndex)]
     respond(BOOK, status, headersOf(HttpHeaders.ContentLength, BOOK.size.toString()))
   }
@@ -97,6 +104,7 @@ internal class EbookFilesFixture {
   fun downloader(files: EbookFiles = files()) = EbookDownloader(
     libraryItemRepository = items,
     files = files,
+    conditions = conditions,
     dispatcherProvider = dispatchers,
     fatherTime = time,
     coroutineScopeHolder = CoroutineScopeHolder { CoroutineScope(Dispatchers.Default) },
