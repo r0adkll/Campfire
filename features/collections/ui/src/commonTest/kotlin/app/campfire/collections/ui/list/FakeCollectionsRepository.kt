@@ -9,6 +9,7 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 
 class FakeCollectionsRepository(
@@ -18,6 +19,10 @@ class FakeCollectionsRepository(
   var refreshCount = 0
     private set
 
+  val collectionItemsFlow = MutableSharedFlow<List<LibraryItem>>(replay = 1)
+  val deletedCollections = mutableListOf<CollectionId>()
+  val removedFromCollections = mutableListOf<Pair<List<LibraryItemId>, CollectionId>>()
+
   override fun observeAllCollections(): Flow<List<Collection>> = emptyFlow()
 
   override suspend fun refreshCollections() {
@@ -25,9 +30,9 @@ class FakeCollectionsRepository(
     onRefreshCollections()
   }
 
-  override fun observeCollection(collectionId: CollectionId): Flow<Collection> = TODO()
+  override fun observeCollection(collectionId: CollectionId): Flow<Collection> = emptyFlow()
 
-  override fun observeCollectionItems(collectionId: CollectionId): Flow<List<LibraryItem>> = TODO()
+  override fun observeCollectionItems(collectionId: CollectionId): Flow<List<LibraryItem>> = collectionItemsFlow
 
   override suspend fun createCollection(
     name: String,
@@ -41,10 +46,15 @@ class FakeCollectionsRepository(
     description: String?,
   ): Result<Unit> = TODO()
 
-  override suspend fun deleteCollection(collectionId: CollectionId): Result<Unit> = TODO()
+  override suspend fun deleteCollection(collectionId: CollectionId): Result<Unit> {
+    deletedCollections += collectionId
+    return Result.success(Unit)
+  }
 
   override suspend fun addToCollection(bookId: LibraryItemId, collectionId: CollectionId): Result<Unit> = TODO()
 
-  override suspend fun removeFromCollection(bookIds: List<LibraryItemId>, collectionId: CollectionId): Result<Unit> =
-    TODO()
+  override suspend fun removeFromCollection(bookIds: List<LibraryItemId>, collectionId: CollectionId): Result<Unit> {
+    removedFromCollections += bookIds to collectionId
+    return Result.success(Unit)
+  }
 }

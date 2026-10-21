@@ -26,8 +26,6 @@ import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.bark
-import app.campfire.core.model.Media
 import app.campfire.core.model.Server
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.session.UserSession
@@ -38,7 +36,6 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.network.reachability.WorkOffline
-import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
@@ -107,7 +104,6 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -203,32 +199,7 @@ class SettingsPresenter(
 
     val downloadEntries by remember {
       downloads.observeAll()
-        .mapLatest { all ->
-          all
-            .mapNotNull { download ->
-              // A download whose item can't be resolved (server unreachable with no cached copy,
-              // or deleted on the server) shouldn't take the whole settings screen down.
-              val libraryItem = try {
-                libraryItemRepository.getLibraryItem(download.content.itemId)
-              } catch (e: CancellationException) {
-                throw e
-              } catch (e: Exception) {
-                bark(throwable = e) { "Unable to resolve library item for download ${download.content.itemId}" }
-                return@mapNotNull null
-              }
-              when (val content = download.content) {
-                is DownloadContent.Audiobook -> DownloadEntry.Book(libraryItem, download)
-                is DownloadContent.Ebook -> DownloadEntry.Ebook(libraryItem, download)
-                is DownloadContent.Episode -> {
-                  val media = libraryItem.media as? Media.Podcast ?: return@mapNotNull null
-                  val episode = media.episodes.find { it.id == content.episodeId }
-                    ?: return@mapNotNull null
-                  DownloadEntry.Episode(libraryItem, episode, download)
-                }
-              }
-            }
-            .sortedByDescending { it.download.updatedAtMs }
-        }
+        .mapLatest { all -> all.asDownloadEntries(libraryItemRepository::getLibraryItem) }
     }.collectAsState(emptyList())
 
     // Sleep Settings
