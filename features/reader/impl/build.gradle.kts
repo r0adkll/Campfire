@@ -19,6 +19,7 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.user.api)
+        implementation(projects.infra.offline.api)
 
         implementation(libs.ktor.client.core)
         implementation(libs.kotlinx.io.core)
