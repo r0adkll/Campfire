@@ -89,6 +89,7 @@ class ExoPlayerAudioPlayer(
   private val castController: CastController,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
   private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
+  private val streamingCacheEvictor: StreamingCacheEvictor = StreamingCacheEvictor { },
 ) : AudioPlayer, Player.Listener, Cork {
 
   override val tag: String = AUDIO_TAG
@@ -106,6 +107,7 @@ class ExoPlayerAudioPlayer(
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
     private val castController: CastController,
+    private val streamingCacheEvictor: StreamingCacheEvictor,
     // Defaults to NoOp when the optional :infra:audioplayer:cast module isn't in this build.
     private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
   ) {
@@ -120,6 +122,7 @@ class ExoPlayerAudioPlayer(
         sleepTimerManagerFactory = sleepTimerManagerFactory,
         castController = castController,
         remotePlayerFactory = remotePlayerFactory,
+        streamingCacheEvictor = streamingCacheEvictor,
       )
     }
   }
@@ -248,6 +251,10 @@ class ExoPlayerAudioPlayer(
   private var singleItemQueue = false
   private var hlsQueueActive = false
   private var hlsFallbackAttempted = false
+
+  // Not reset by prepare(), which the recovery itself calls: one eviction per item, so a file
+  // that's genuinely damaged on the server fails normally instead of re-downloading in a loop
+  private var cacheRecoveryItemId: String? = null
 
   /**
    * How the current queue's media items map onto the book:
@@ -539,6 +546,7 @@ class ExoPlayerAudioPlayer(
     singleItemQueue = false
     hlsQueueActive = false
     hlsFallbackAttempted = false
+    cacheRecoveryItemId = null
     finishedListener = null
     player.stop()
   }
@@ -774,7 +782,37 @@ class ExoPlayerAudioPlayer(
       return
     }
 
-    _error.value = error
+    // Before TruncationGuardHttpDataSource, a stream cut off mid-transfer was cached with the
+    // truncated length as the file's length, failing every later play of that track until the
+    // cache was cleared. Drop the session's streamed entries and replay once.
+    if (
+      !isRemotePlayback &&
+      session != null &&
+      cacheRecoveryItemId != session.libraryItem.id &&
+      error.mayBeCorruptCache()
+    ) {
+      cacheRecoveryItemId = session.libraryItem.id
+      wbark { "Stream unreadable (errorCode=${error.errorCode}); evicting cached media and retrying" }
+      val cacheKeys = (0 until exoPlayer.mediaItemCount).mapNotNullTo(mutableSetOf()) { index ->
+        exoPlayer.getMediaItemAt(index).localConfiguration
+          ?.let { it.customCacheKey ?: it.uri.toString() }
+      }
+      val resumeTime = overallTime.value
+      val wasPlaying = player.playWhenReady
+      val listener = finishedListener ?: { }
+      scope.launch {
+        withContext(Dispatchers.IO) { streamingCacheEvictor.evict(cacheKeys) }
+        prepare(
+          session = session.copy(currentTime = resumeTime),
+          playImmediately = wasPlaying,
+          chapterId = null,
+          onFinished = listener,
+        )
+      }
+      return
+    }
+
+    _error.value = error.asPlaybackFailure()
   }
 
   override fun onPlaybackStateChanged(playbackState: Int) {
