@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] OpenID sign-in failing on servers that need custom connection headers
 - "1 hours ago" and similar wording when something happened a single minute, hour, day, month or year ago
 - Short titles in the playback bar showing faded edges as if they were about to scroll
+- Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
 
 ### Other Notes & Contributions
 
