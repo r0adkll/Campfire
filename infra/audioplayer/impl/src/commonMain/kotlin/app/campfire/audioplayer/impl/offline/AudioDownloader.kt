@@ -20,6 +20,7 @@ import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloader
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -36,8 +37,10 @@ import kotlinx.coroutines.sync.withLock
 
 /**
  * Audiobooks and podcast episodes, kept by this platform's [OfflineDownloadManager]. The manager
- * works from whole items, so each content's item is looked up first.
+ * works from whole items, so each content's item is looked up first. One per user, so every
+ * screen's changes share its order.
  */
+@SingleIn(UserScope::class)
 @ContributesIntoSet(UserScope::class, binding = binding<Downloader>())
 @Inject
 class AudioDownloader(
