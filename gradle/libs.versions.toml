@@ -307,7 +307,7 @@ metro-gradlePlugin = { module = "dev.zacsweers.metro:gradle-plugin", version.ref
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 google-services-gradlePlugin = "com.google.gms:google-services:4.5.0"
 firebase-crashlytics-gradlePlugin = "com.google.firebase:firebase-crashlytics-gradle:3.0.8"
-firebase-appdistribution-gradlePlugin = "com.google.firebase:firebase-appdistribution-gradle:5.3.0"
+firebase-appdistribution-gradlePlugin = "com.google.firebase:firebase-appdistribution-gradle:5.3.1"
 
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
