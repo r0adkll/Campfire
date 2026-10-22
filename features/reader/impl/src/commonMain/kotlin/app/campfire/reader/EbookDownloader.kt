@@ -121,20 +121,24 @@ class EbookDownloader(
   /** An ebook's single file can't be stopped part way. */
   override fun stop(content: DownloadContent) = Unit
 
+  /**
+   * The download shows until its file is gone, so nothing reading the disk meanwhile brings it
+   * back.
+   */
   override fun delete(content: DownloadContent) {
-    downloads.update { it - content.itemId }
     coroutineScopeHolder.get().launch(dispatcherProvider.io) {
       files.deleteDownloaded(content.itemId)
+      downloads.update { it - content.itemId }
     }
   }
 
   /** Every copy of the item's ebook, the cached one included, for an item gone from the server. */
   override suspend fun deleteAll(itemId: LibraryItemId) {
-    downloads.update { it - itemId }
     withContext(dispatcherProvider.io) {
       files.deleteDownloaded(itemId)
       files.deleteCached(itemId)
     }
+    downloads.update { it - itemId }
   }
 
   private fun setDownload(itemId: LibraryItemId, state: Download.State, bytes: Long = 0L, total: Long = -1L) {

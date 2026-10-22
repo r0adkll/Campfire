@@ -84,6 +84,7 @@ class EbookDownloaderTest {
     assertThat(restarted.observeAll().first().map { it.content }).containsExactly(ebook)
 
     restarted.delete(ebook)
+    restarted.observeAll().first { it.isEmpty() }
     assertThat(restarted.observeAll().first()).isEmpty()
   }
 
@@ -141,7 +142,8 @@ class EbookDownloaderTest {
     downloader.awaitState(Download.State.Downloaded)
 
     downloader.delete(ebook)
-    assertThat(downloader.observe(setOf(ebook)).first()).isEmpty()
+    downloader.observe(setOf(ebook)).first { it.isEmpty() }
+    assertThat(SystemFileSystem.exists(fixture.downloaded())).isFalse()
 
     fixture.repository(files).open(ITEM).getOrThrow()
     downloader.deleteAll(ITEM)
