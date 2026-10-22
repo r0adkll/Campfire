@@ -10,6 +10,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
@@ -32,6 +33,8 @@ import kotlinx.io.files.Path
 /**
  * Keeps ebooks on this device to read offline, in [EbookFiles]' download directory. A book already
  * opened is moved over from the cache rather than fetched again.
+ *
+ * A finished download's file is marked modified when it finished, so the time survives a restart.
  */
 @SingleIn(UserScope::class)
 @ContributesIntoSet(UserScope::class, binding = binding<Downloader>())
@@ -40,6 +43,7 @@ class EbookDownloader(
   private val libraryItemRepository: LibraryItemRepository,
   private val files: EbookFiles,
   private val dispatcherProvider: DispatcherProvider,
+  private val fatherTime: FatherTime,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : Downloader {
 
@@ -101,6 +105,8 @@ class EbookDownloader(
               }
             }
           }
+          // A moved file still has the time it was opened
+          target.setModifiedAtMs(fatherTime.nowInEpochMillis())
         }
         downloads.update { it + (itemId to downloaded(itemId, target)) }
       } catch (e: CancellationException) {
@@ -138,6 +144,7 @@ class EbookDownloader(
       bytes = bytes,
       totalBytes = total,
       progress = if (total > 0) bytes.toFloat() / total else null,
+      updatedAtMs = fatherTime.nowInEpochMillis(),
     )
     downloads.update { it + (itemId to download) }
   }
@@ -150,6 +157,7 @@ class EbookDownloader(
       bytes = size,
       totalBytes = size,
       progress = 1f,
+      updatedAtMs = file.modifiedAtMs(),
     )
   }
 }

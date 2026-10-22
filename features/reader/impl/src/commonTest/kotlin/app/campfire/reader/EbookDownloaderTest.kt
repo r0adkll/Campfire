@@ -88,6 +88,32 @@ class EbookDownloaderTest {
   }
 
   @Test
+  fun aDownload_keepsTheTimeItFinished_afterARestart() = runTest {
+    // Opened first, so the download moves a file written today rather than at the clock's time
+    val files = fixture.files()
+    fixture.repository(files).open(ITEM).getOrThrow()
+    fixture.time.nowMillis = FINISHED_AT
+    fixture.downloader(files).apply {
+      download(listOf(ebook))
+      assertThat(awaitState(Download.State.Downloaded).updatedAtMs).isEqualTo(FINISHED_AT)
+    }
+
+    fixture.time.nowMillis = FINISHED_AT + 60_000
+    assertThat(fixture.downloader().observeAll().first().single().updatedAtMs).isEqualTo(FINISHED_AT)
+  }
+
+  @Test
+  fun aFailedDownload_hasTheTimeItFailed() = runTest {
+    fixture.responses = listOf(HttpStatusCode.Forbidden)
+    fixture.time.nowMillis = FINISHED_AT
+    val downloader = fixture.downloader()
+
+    downloader.download(listOf(ebook))
+
+    assertThat(downloader.awaitState(Download.State.Failed).updatedAtMs).isEqualTo(FINISHED_AT)
+  }
+
+  @Test
   fun download_reportsAFailure_onItsItemOnly() = runTest {
     fixture.responses = listOf(HttpStatusCode.Forbidden)
     val downloader = fixture.downloader()
@@ -129,3 +155,6 @@ class EbookDownloaderTest {
     assertThat(fixture.downloader().observe(setOf(DownloadContent.Audiobook(ITEM))).first()).isEmpty()
   }
 }
+
+// Whole seconds, which every file system keeps
+private const val FINISHED_AT = 1_700_000_000_000L

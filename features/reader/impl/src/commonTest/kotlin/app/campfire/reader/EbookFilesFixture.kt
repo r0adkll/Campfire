@@ -12,6 +12,7 @@ import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
+import app.campfire.core.time.FatherTime
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.libraries.test.FakeLibraryItemRepository
@@ -24,10 +25,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlin.random.Random
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -52,6 +58,7 @@ internal class EbookFilesFixture {
     computation = Dispatchers.Default,
     main = Dispatchers.Default,
   )
+  val time = FakeFatherTime()
   val mediaProgress = FakeMediaProgressRepository()
   val items = FakeLibraryItemRepository().apply {
     libraryItem = libraryItem(id = ITEM, media = media(ebookFormat = "epub"))
@@ -91,6 +98,7 @@ internal class EbookFilesFixture {
     libraryItemRepository = items,
     files = files,
     dispatcherProvider = dispatchers,
+    fatherTime = time,
     coroutineScopeHolder = CoroutineScopeHolder { CoroutineScope(Dispatchers.Default) },
   )
 
@@ -132,6 +140,12 @@ internal class EbookFilesFixture {
   private class FakeRefresher : TokenRefresher {
     override suspend fun refresh(userId: UserId, serverUrl: String, staleAccessToken: String?): AbsToken =
       AbsToken("refreshed", "refresh")
+  }
+
+  class FakeFatherTime(var nowMillis: Long = 0L) : FatherTime {
+    override fun now(): LocalDateTime = Instant.fromEpochMilliseconds(nowMillis).toLocalDateTime(TimeZone.UTC)
+    override fun today(): LocalDate = now().date
+    override fun nowInEpochMillis(): Long = nowMillis
   }
 
   companion object {
