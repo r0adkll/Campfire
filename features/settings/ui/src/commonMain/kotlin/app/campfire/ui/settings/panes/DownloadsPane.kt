@@ -57,6 +57,7 @@ import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
 import app.campfire.ui.settings.DownloadEntry
@@ -386,6 +387,7 @@ private fun ItemDownloadImage(
     CoverImage(
       imageUrl = item.media.coverImageUrl,
       contentDescription = item.media.metadata.title,
+      placeholder = placeholderBookPainter(),
       shape = MaterialTheme.shapes.medium,
       size = size,
     )
