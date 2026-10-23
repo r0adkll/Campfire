@@ -16,8 +16,12 @@ import assertk.assertions.isTrue
 import io.ktor.http.HttpStatusCode
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 
@@ -28,6 +32,9 @@ class EbookDownloaderTest {
 
   @AfterTest
   fun cleanUp() = fixture.cleanUp()
+
+  /** Lets the downloads, which run on real threads, get on for a moment. */
+  private suspend fun realDelay() = withContext(Dispatchers.Default) { delay(200.milliseconds) }
 
   private suspend fun EbookDownloader.awaitState(state: Download.State): Download =
     observe(setOf(ebook)).first { it[ebook]?.state == state }.getValue(ebook)
@@ -150,6 +157,65 @@ class EbookDownloaderTest {
 
     assertThat(SystemFileSystem.exists(fixture.cached())).isFalse()
     assertThat(SystemFileSystem.exists(fixture.downloaded())).isFalse()
+  }
+
+  @Test
+  fun download_waitsQueued_untilDownloadsAreAllowed() = runTest {
+    fixture.conditions.allowed.value = false
+    val downloader = fixture.downloader()
+
+    downloader.download(listOf(ebook))
+    downloader.awaitState(Download.State.Queued)
+    realDelay()
+    assertThat(fixture.requests).isEmpty()
+
+    fixture.conditions.allowed.value = true
+    downloader.awaitState(Download.State.Downloaded)
+    assertThat(fixture.requests.size).isEqualTo(1)
+  }
+
+  @Test
+  fun aBookAlreadyOpened_movesOver_withoutWaiting() = runTest {
+    val files = fixture.files()
+    fixture.repository(files).open(ITEM).getOrThrow()
+    fixture.conditions.allowed.value = false
+    val downloader = fixture.downloader(files)
+
+    downloader.download(listOf(ebook))
+
+    assertThat(downloader.awaitState(Download.State.Downloaded).isAvailable).isTrue()
+  }
+
+  @Test
+  fun aFetchCutOffByTheConditions_waitsAndTriesAgain() = runTest {
+    // The connection goes as working offline starts
+    fixture.onRequest = { if (fixture.requests.size == 1) fixture.conditions.allowed.value = false }
+    fixture.responses = listOf(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK)
+    val downloader = fixture.downloader()
+
+    downloader.download(listOf(ebook))
+    // Queued again once the first try is cut off
+    downloader.observe(setOf(ebook))
+      .first { it[ebook]?.state == Download.State.Queued && fixture.requests.isNotEmpty() }
+    fixture.conditions.allowed.value = true
+
+    downloader.awaitState(Download.State.Downloaded)
+    assertThat(fixture.requests.size).isEqualTo(2)
+  }
+
+  @Test
+  fun deletingAQueuedDownload_cancelsIt() = runTest {
+    fixture.conditions.allowed.value = false
+    val downloader = fixture.downloader()
+    downloader.download(listOf(ebook))
+    downloader.awaitState(Download.State.Queued)
+
+    downloader.delete(ebook)
+    fixture.conditions.allowed.value = true
+    realDelay()
+
+    assertThat(fixture.requests).isEmpty()
+    assertThat(downloader.observe(setOf(ebook)).first()).isEmpty()
   }
 
   @Test

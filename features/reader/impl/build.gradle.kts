@@ -32,6 +32,7 @@ kotlin {
         implementation(projects.features.libraries.test)
         implementation(projects.features.user.test)
         implementation(projects.data.db.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.ktor.client.mock)
         implementation(libs.bundles.test.common)
       }
