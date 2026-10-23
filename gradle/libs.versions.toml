@@ -89,7 +89,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 google-services = "com.google.gms.google-services:4.5.0"
 firebase-crashlytics = "com.google.firebase.crashlytics:3.0.8"
-firebase-appdistribution = "com.google.firebase.appdistribution:5.3.0"
+firebase-appdistribution = "com.google.firebase.appdistribution:5.3.1"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 drop = { id = "com.r0adkll.drop", version.ref = "drop" }
