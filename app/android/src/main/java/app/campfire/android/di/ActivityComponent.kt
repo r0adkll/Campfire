@@ -6,7 +6,6 @@ package app.campfire.android.di
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
 import app.campfire.account.api.UserSessionManager
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.root.CampfireContent
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
@@ -21,7 +20,6 @@ import java.util.Locale
 interface ActivityComponent {
   val campfireContent: CampfireContent
   val componentActivityPlugins: Set<ComponentActivityPlugin>
-  val offlineDownloadManager: OfflineDownloadManager
   val userSessionManager: UserSessionManager
   val localNetworkPermission: LocalNetworkPermissionController
 

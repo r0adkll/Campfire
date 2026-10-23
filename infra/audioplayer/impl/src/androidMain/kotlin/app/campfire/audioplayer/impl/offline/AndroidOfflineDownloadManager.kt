@@ -8,10 +8,6 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.audioplayer.offline.OfflineDownloadPayload
-import app.campfire.audioplayer.offline.offlineDownloadUrl
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem

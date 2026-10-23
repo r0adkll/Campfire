@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.rounded.Download
@@ -41,6 +40,7 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
+import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import campfire.features.libraries.ui.generated.resources.Res
@@ -59,7 +59,7 @@ class EpisodeSlot(
   private val episode: PodcastEpisode,
   private val progress: MediaProgress?,
   private val isCurrentSession: Boolean,
-  private val offlineDownload: OfflineDownload?,
+  private val offlineDownload: Download?,
   /** Whether the user may start a download; an existing download stays stoppable and removable. */
   private val canDownload: Boolean,
   private val showConfirmDownloadDialog: Boolean,
@@ -144,10 +144,10 @@ class EpisodeSlot(
         },
         actions = {
           // Without permission the action only remains to stop or remove a download that exists
-          val downloadState = offlineDownload?.state ?: OfflineDownload.State.None
-          val hasActiveOrCompletedDownload = downloadState == OfflineDownload.State.Queued ||
-            downloadState == OfflineDownload.State.Downloading ||
-            downloadState == OfflineDownload.State.Completed
+          val downloadState = offlineDownload?.state
+          val hasActiveOrCompletedDownload = downloadState == Download.State.Queued ||
+            downloadState == Download.State.Downloading ||
+            downloadState == Download.State.Downloaded
           if (episode.audioTrack != null && (canDownload || hasActiveOrCompletedDownload)) {
             DownloadEpisodeAction(
               offlineDownload = offlineDownload,
@@ -240,35 +240,35 @@ class EpisodeSlot(
 
 @Composable
 private fun DownloadEpisodeAction(
-  offlineDownload: OfflineDownload?,
+  offlineDownload: Download?,
   onDownloadClick: () -> Unit,
   onStopClick: () -> Unit,
   onRemoveClick: () -> Unit,
 ) {
-  val state = offlineDownload?.state ?: OfflineDownload.State.None
+  val state = offlineDownload?.state
 
   val label = stringResource(
     when (state) {
-      OfflineDownload.State.Queued -> Res.string.action_episode_download_queued
-      OfflineDownload.State.Downloading -> Res.string.action_episode_download_in_progress
-      OfflineDownload.State.Completed -> Res.string.action_remove_episode_download
-      OfflineDownload.State.None,
-      OfflineDownload.State.Failed,
-      OfflineDownload.State.Stopped,
+      Download.State.Queued -> Res.string.action_episode_download_queued
+      Download.State.Downloading -> Res.string.action_episode_download_in_progress
+      Download.State.Downloaded -> Res.string.action_remove_episode_download
+      null,
+      Download.State.Failed,
+      Download.State.Stopped,
       -> Res.string.action_download_episode
     },
   )
 
   val onClick: () -> Unit = when (state) {
-    OfflineDownload.State.Queued,
-    OfflineDownload.State.Downloading,
+    Download.State.Queued,
+    Download.State.Downloading,
     -> onStopClick
 
-    OfflineDownload.State.Completed -> onRemoveClick
+    Download.State.Downloaded -> onRemoveClick
 
-    OfflineDownload.State.None,
-    OfflineDownload.State.Failed,
-    OfflineDownload.State.Stopped,
+    null,
+    Download.State.Failed,
+    Download.State.Stopped,
     -> onDownloadClick
   }
 
@@ -285,7 +285,7 @@ private fun DownloadEpisodeAction(
     ) {
       val iconSize = IconButtonDefaults.extraSmallIconSize
       when (state) {
-        OfflineDownload.State.Queued -> {
+        Download.State.Queued -> {
           Box(
             modifier = Modifier.size(iconSize),
             contentAlignment = Alignment.Center,
@@ -296,27 +296,27 @@ private fun DownloadEpisodeAction(
             )
           }
         }
-        OfflineDownload.State.Downloading -> {
+        Download.State.Downloading -> {
           val downloadProgress = offlineDownload?.progress
           Box(
             modifier = Modifier.size(iconSize),
             contentAlignment = Alignment.Center,
           ) {
-            if (downloadProgress == null || downloadProgress.indeterminate) {
+            if (downloadProgress == null) {
               CircularProgressIndicator(
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(iconSize),
               )
             } else {
               CircularProgressIndicator(
-                progress = { downloadProgress.percent },
+                progress = { downloadProgress },
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(iconSize),
               )
             }
           }
         }
-        OfflineDownload.State.Completed -> {
+        Download.State.Downloaded -> {
           Icon(
             CampfireIcons.Rounded.DownloadDone,
             contentDescription = label,
@@ -324,9 +324,9 @@ private fun DownloadEpisodeAction(
             modifier = Modifier.size(iconSize),
           )
         }
-        OfflineDownload.State.None,
-        OfflineDownload.State.Failed,
-        OfflineDownload.State.Stopped,
+        null,
+        Download.State.Failed,
+        Download.State.Stopped,
         -> {
           Icon(
             CampfireIcons.Rounded.Download,

@@ -8,7 +8,6 @@ import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
@@ -20,6 +19,7 @@ import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
@@ -56,8 +56,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val playbackController = FakePlaybackController()
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
   internal val audioPlayer = FakeAudioPlayer()
-  internal val offlineDownloadManager = FakeOfflineDownloadManager()
-  internal val ebookRepository = FakeEbookRepository()
+  internal val downloads = FakeDownloads()
   internal val ebookContentsRepository = FakeEbookContentsRepository()
   internal val themeManager = FakeThemeManager()
   internal val themeSettings = TestThemeSettings()
@@ -77,8 +76,7 @@ abstract class BaseLibraryItemPresenterTest {
     playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
     audioPlayerHolder = audioPlayerHolder,
-    offlineDownloadManager = offlineDownloadManager,
-    ebookRepository = ebookRepository,
+    downloads = downloads,
     ebookContentsRepository = ebookContentsRepository,
     userRepository = userRepository,
     libraryViewSettings = libraryViewSettings,
@@ -98,7 +96,7 @@ abstract class BaseLibraryItemPresenterTest {
     mediaProgressRepository = mediaProgressRepository,
     playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
-    offlineDownloadManager = offlineDownloadManager,
+    downloads = downloads,
     libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
@@ -114,7 +112,7 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     dispatcherProvider = dispatcherProvider,
-    offlineDownloadManager = offlineDownloadManager,
+    downloads = downloads,
   )
 }
 

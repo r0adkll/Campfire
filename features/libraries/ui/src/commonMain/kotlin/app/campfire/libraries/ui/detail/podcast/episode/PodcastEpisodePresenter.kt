@@ -16,10 +16,13 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
+import app.campfire.offline.download
+import app.campfire.offline.observe
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -63,7 +66,7 @@ class PodcastEpisodePresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
@@ -131,8 +134,12 @@ class PodcastEpisodePresenter(
       sessionQueue.observeContains(episode.libraryItemId, episode.id)
     }.collectAsState(false)
 
-    val offlineDownload by remember(libraryItem, episode) {
-      offlineDownloadManager.observeForEpisode(libraryItem, episode)
+    val downloadContent = remember(libraryItem.id, episode.id) {
+      DownloadContent.Episode(libraryItem.id, episode.id)
+    }
+
+    val offlineDownload by remember(downloadContent) {
+      downloads.observe(downloadContent)
     }.collectAsState(null)
 
     val showConfirmDownloadDialog by remember {
@@ -261,17 +268,17 @@ class PodcastEpisodePresenter(
           if (!currentUser.canDownload) return@PodcastEpisodeUiState
           analytics.send(ActionEvent("download_episode", Click))
           libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
-          offlineDownloadManager.downloadEpisode(libraryItem, episode)
+          downloads.download(downloadContent)
         }
 
         PodcastEpisodeUiEvent.RemoveDownloadClick -> {
           analytics.send(ActionEvent("delete_episode_download", Click))
-          offlineDownloadManager.deleteEpisode(libraryItem, episode)
+          downloads.delete(downloadContent)
         }
 
         PodcastEpisodeUiEvent.StopDownloadClick -> {
           analytics.send(ActionEvent("stop_episode_download", Click))
-          offlineDownloadManager.stopEpisode(libraryItem, episode)
+          downloads.stop(downloadContent)
         }
       }
     }

@@ -13,13 +13,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.mediaProgress as readingProgress
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.composables.setCampfireContent
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import kotlin.test.Test
 
@@ -143,10 +144,9 @@ class ExpressiveControlSlotTest {
   @Test
   fun indeterminateTest() = runComposeUiTest {
     val libraryItem = libraryItem()
-    val offlineDownload = OfflineDownload(
-      libraryItemId = TestLibraryItemId,
-      state = OfflineDownload.State.Downloading,
-      progress = OfflineDownload.Progress(0L, 0.1f, indeterminate = true),
+    val offlineDownload = Download(
+      content = DownloadContent.Audiobook(TestLibraryItemId),
+      state = Download.State.Downloading,
     )
     val slot = ExpressiveControlSlot(
       libraryItem = libraryItem,
@@ -264,11 +264,11 @@ class ExpressiveControlSlotTest {
     val contentLength = 10L * 1024L * 1024L
     val slot = ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = TestLibraryItemId,
-        state = OfflineDownload.State.Completed,
-        contentLength = contentLength,
-        progress = OfflineDownload.Progress(contentLength, 1f),
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(TestLibraryItemId),
+        state = Download.State.Downloaded,
+        bytes = contentLength,
+        totalBytes = contentLength,
       ),
       mediaProgress = null,
       isCurrentSession = true,
@@ -336,9 +336,9 @@ class ExpressiveControlSlotTest {
   fun withoutDownloadPermissionFailedDownloadCanBeDeletedButNotRetried() = runComposeUiTest {
     val slot = ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = TestLibraryItemId,
-        state = OfflineDownload.State.Failed,
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(TestLibraryItemId),
+        state = Download.State.Failed,
       ),
       mediaProgress = null,
       isCurrentSession = false,
@@ -358,10 +358,9 @@ class ExpressiveControlSlotTest {
     onNodeWithContentDescription("Retry download").assertDoesNotExist()
   }
 
-  private fun downloadingOfflineDownload() = OfflineDownload(
-    libraryItemId = TestLibraryItemId,
-    state = OfflineDownload.State.Downloading,
-    progress = OfflineDownload.Progress(0L, 0.1f, indeterminate = true),
+  private fun downloadingOfflineDownload() = Download(
+    content = DownloadContent.Audiobook(TestLibraryItemId),
+    state = Download.State.Downloading,
   )
 
   @Test
@@ -371,11 +370,12 @@ class ExpressiveControlSlotTest {
     // ExpressiveControlSlot prefers libraryItem.media.sizeInBytes over the offline
     // download's contentLength when present, so align the two for this test.
     val libraryItem = libraryItem(media = media(sizeInBytes = contentLength))
-    val offlineDownload = OfflineDownload(
-      libraryItemId = TestLibraryItemId,
-      state = OfflineDownload.State.Downloading,
-      contentLength = contentLength,
-      progress = OfflineDownload.Progress(progressBytes, 0.1f, indeterminate = false),
+    val offlineDownload = Download(
+      content = DownloadContent.Audiobook(TestLibraryItemId),
+      state = Download.State.Downloading,
+      bytes = progressBytes,
+      totalBytes = contentLength,
+      progress = 0.1f,
     )
     val slot = ExpressiveControlSlot(
       libraryItem = libraryItem,
@@ -404,11 +404,11 @@ class ExpressiveControlSlotTest {
   fun completedTest() = runComposeUiTest {
     val libraryItem = libraryItem()
     val contentLength = 10L * 1024L * 1024L // 10Mb
-    val offlineDownload = OfflineDownload(
-      libraryItemId = TestLibraryItemId,
-      state = OfflineDownload.State.Completed,
-      contentLength = contentLength,
-      progress = OfflineDownload.Progress(contentLength, 1f),
+    val offlineDownload = Download(
+      content = DownloadContent.Audiobook(TestLibraryItemId),
+      state = Download.State.Downloaded,
+      bytes = contentLength,
+      totalBytes = contentLength,
     )
     val slot = ExpressiveControlSlot(
       libraryItem = libraryItem,

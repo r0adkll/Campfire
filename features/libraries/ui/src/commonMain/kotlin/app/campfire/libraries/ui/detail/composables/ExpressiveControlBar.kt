@@ -52,8 +52,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.isNullOrNone
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.rounded.Backspace
@@ -78,6 +76,8 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_add_to_dequeue
@@ -103,7 +103,7 @@ internal fun ExpressiveControlBar(
   hasSession: Boolean,
   isCurrentSession: Boolean,
   mediaProgress: MediaProgress?,
-  offlineDownload: OfflineDownload?,
+  offlineDownload: Download?,
   onPlayClick: (PlayMethod?) -> Unit,
   onDownloadClick: () -> Unit,
   onMarkFinished: () -> Unit,
@@ -165,7 +165,7 @@ internal fun ExpressiveControlBar(
         }
       }
 
-      if (!offlineDownload.isNullOrNone()) {
+      if (offlineDownload != null) {
         Spacer(Modifier.size(8.dp))
 
         OfflineStatus(
@@ -201,7 +201,7 @@ internal fun ExpressiveControlBar(
 
 @Composable
 private fun OfflineStatus(
-  offlineDownload: OfflineDownload,
+  offlineDownload: Download,
   totalSizeInBytes: Long,
   onDeleteClick: () -> Unit,
   onStopClick: () -> Unit,
@@ -222,27 +222,25 @@ private fun OfflineStatus(
       title = {
         Text(
           when (offlineDownload.state) {
-            OfflineDownload.State.None,
-            OfflineDownload.State.Downloading,
-            -> "Downloading"
+            Download.State.Downloading -> "Downloading"
 
-            OfflineDownload.State.Queued -> "Queued"
-            OfflineDownload.State.Stopped -> "Stopped"
-            OfflineDownload.State.Failed -> "Download failed"
-            OfflineDownload.State.Completed -> "Available for offline"
+            Download.State.Queued -> "Queued"
+            Download.State.Stopped -> "Stopped"
+            Download.State.Failed -> "Download failed"
+            Download.State.Downloaded -> "Available for offline"
           },
         )
       },
-      subtitle = if (offlineDownload.state == OfflineDownload.State.Completed) {
+      subtitle = if (offlineDownload.state == Download.State.Downloaded) {
         {
-          Text(offlineDownload.progress.bytes.asReadableBytes())
+          Text(offlineDownload.bytes.asReadableBytes())
         }
       } else {
         null
       },
       trailing = {
         AnimatedContent(
-          targetState = offlineDownload.isActive,
+          targetState = offlineDownload.isInProgress,
         ) { isActive ->
           if (isActive) {
             val stopLabel = stringResource(Res.string.action_stop_downloading)
@@ -268,8 +266,8 @@ private fun OfflineStatus(
               verticalAlignment = Alignment.CenterVertically,
             ) {
               if (
-                offlineDownload.state == OfflineDownload.State.Failed ||
-                offlineDownload.state == OfflineDownload.State.Stopped
+                offlineDownload.state == Download.State.Failed ||
+                offlineDownload.state == Download.State.Stopped
               ) {
                 if (onRetryClick != null) {
                   val retryLabel = stringResource(Res.string.action_retry_download)
@@ -343,20 +341,20 @@ private fun OfflineStatus(
       modifier = Modifier.testTag("offline_status_title"),
     )
 
-    if (!offlineDownload.isCompleted) {
+    if (offlineDownload.isInProgress) {
       val actualProgress = if (totalSizeInBytes > 0L) {
-        (offlineDownload.progress.bytes.toFloat() / totalSizeInBytes.toFloat())
+        (offlineDownload.bytes.toFloat() / totalSizeInBytes.toFloat())
           .coerceIn(0f, 1f)
       } else {
-        offlineDownload.progress.percent
+        offlineDownload.progress ?: 0f
       }
 
       OfflineProgressBar(
         progress = actualProgress,
-        bytesDownloaded = offlineDownload.progress.bytes,
+        bytesDownloaded = offlineDownload.bytes,
         contentLength = totalSizeInBytes.takeIf { it > 0L }
-          ?: offlineDownload.contentLength,
-        isIndeterminate = offlineDownload.progress.indeterminate,
+          ?: offlineDownload.totalBytes,
+        isIndeterminate = offlineDownload.progress == null,
       )
     }
   }
@@ -364,7 +362,7 @@ private fun OfflineStatus(
 
 @Composable
 internal fun OfflineTitleBar(
-  state: OfflineDownload.State,
+  state: Download.State,
   title: @Composable () -> Unit,
   subtitle: (@Composable () -> Unit)?,
   trailing: @Composable () -> Unit,
@@ -376,12 +374,11 @@ internal fun OfflineTitleBar(
   ) {
     Icon(
       when (state) {
-        OfflineDownload.State.None -> CampfireIcons.Rounded.Downloading
-        OfflineDownload.State.Queued -> CampfireIcons.Rounded.Downloading
-        OfflineDownload.State.Downloading -> CampfireIcons.Rounded.Downloading
-        OfflineDownload.State.Stopped -> CampfireIcons.Rounded.StopCircle
-        OfflineDownload.State.Completed -> CampfireIcons.Rounded.DownloadDone
-        OfflineDownload.State.Failed -> CampfireIcons.Rounded.Warning
+        Download.State.Queued -> CampfireIcons.Rounded.Downloading
+        Download.State.Downloading -> CampfireIcons.Rounded.Downloading
+        Download.State.Stopped -> CampfireIcons.Rounded.StopCircle
+        Download.State.Downloaded -> CampfireIcons.Rounded.DownloadDone
+        Download.State.Failed -> CampfireIcons.Rounded.Warning
       },
       contentDescription = null,
       modifier = Modifier
@@ -773,11 +770,10 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Failed,
-        contentLength = 5L * 1024L * 1024L,
-        progress = OfflineDownload.Progress(0L, 0f, true),
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(""),
+        state = Download.State.Failed,
+        totalBytes = 5L * 1024L * 1024L,
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
@@ -788,14 +784,12 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Downloading,
-        contentLength = 5L * 1024L * 1024L,
-        progress = OfflineDownload.Progress(
-          bytes = 2L * 1024L * 1024L,
-          percent = (2f / 5f),
-        ),
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(""),
+        state = Download.State.Downloading,
+        bytes = 2L * 1024L * 1024L,
+        totalBytes = 5L * 1024L * 1024L,
+        progress = 2f / 5f,
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
@@ -806,15 +800,11 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Downloading,
-        contentLength = 5L * 1024L * 1024L,
-        progress = OfflineDownload.Progress(
-          bytes = 2L * 1024L * 1024L,
-          percent = (2f / 5f),
-          indeterminate = true,
-        ),
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(""),
+        state = Download.State.Downloading,
+        bytes = 2L * 1024L * 1024L,
+        totalBytes = 5L * 1024L * 1024L,
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
@@ -825,14 +815,11 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
-      offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Completed,
-        contentLength = 564L * 1024L * 1024L,
-        progress = OfflineDownload.Progress(
-          bytes = 2L * 1024L * 1024L,
-          percent = (2f / 5f),
-        ),
+      offlineDownload = Download(
+        content = DownloadContent.Audiobook(""),
+        state = Download.State.Downloaded,
+        bytes = 2L * 1024L * 1024L,
+        totalBytes = 564L * 1024L * 1024L,
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,

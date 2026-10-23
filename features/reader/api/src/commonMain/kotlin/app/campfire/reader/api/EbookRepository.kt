@@ -3,9 +3,7 @@
 
 package app.campfire.reader.api
 
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.LibraryItemId
-import kotlinx.coroutines.flow.Flow
 
 interface EbookRepository {
 
@@ -24,21 +22,6 @@ interface EbookRepository {
    * @param progress how far through the book, 0..1
    */
   suspend fun saveProgress(itemId: LibraryItemId, location: String, progress: Float): Result<Unit>
-
-  /** Whether [itemId]'s ebook is downloaded to read offline, or on its way. */
-  fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload>
-
-  /** The items whose ebook is downloaded to read offline, or on its way. */
-  fun observeDownloads(): Flow<Set<LibraryItemId>>
-
-  /** Keep [itemId]'s ebook on this device to read offline. */
-  fun download(itemId: LibraryItemId)
-
-  /** Remove [itemId]'s downloaded ebook. */
-  fun deleteDownload(itemId: LibraryItemId)
-
-  /** Remove every copy of [itemId]'s ebook from this device, for an item gone from the server. */
-  suspend fun deleteFiles(itemId: LibraryItemId)
 }
 
 data class Ebook(
@@ -52,33 +35,4 @@ data class Ebook(
   /** The saved position, in the format described on [EbookRepository.saveProgress]. */
   val location: String?,
   val progress: Float?,
-)
-
-data class EbookDownload(
-  val state: State = State.None,
-  val bytes: Long = 0L,
-  /** The file's size, or -1 until it's known. */
-  val totalBytes: Long = -1L,
-) {
-  enum class State { None, Downloading, Downloaded, Failed }
-
-  companion object {
-    val None = EbookDownload()
-  }
-}
-
-/** An ebook download as the download UI shows any other. */
-fun EbookDownload.asOfflineDownload(itemId: LibraryItemId) = OfflineDownload(
-  libraryItemId = itemId,
-  state = when (state) {
-    EbookDownload.State.None -> OfflineDownload.State.None
-    EbookDownload.State.Downloading -> OfflineDownload.State.Downloading
-    EbookDownload.State.Downloaded -> OfflineDownload.State.Completed
-    EbookDownload.State.Failed -> OfflineDownload.State.Failed
-  },
-  contentLength = totalBytes,
-  progress = OfflineDownload.Progress(
-    bytes = bytes,
-    percent = if (totalBytes > 0) bytes.toFloat() / totalBytes else 0f,
-  ),
 )

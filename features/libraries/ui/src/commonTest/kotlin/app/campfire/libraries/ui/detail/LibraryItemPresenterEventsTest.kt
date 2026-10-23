@@ -4,10 +4,8 @@
 package app.campfire.libraries.ui.detail
 
 import app.campfire.analytics.events.AnalyticEvent
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.PlaybackControllerSession
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.test.assert.firstInstanceOf
@@ -19,8 +17,8 @@ import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryScreen
-import app.campfire.reader.api.EbookDownload
-import app.campfire.reader.api.asOfflineDownload
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
@@ -114,7 +112,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun ebookOnlyItem_downloadsAndDeletesThroughTheReader() = runTest {
+  fun ebookOnlyItem_downloadsAndDeletesItsEbook() = runTest {
     val ebookItem = emptyLibraryItem(numTracks = 0, ebookFormat = "epub")
     libraryItemRepository.libraryItemFlow.emit(ebookItem)
 
@@ -126,9 +124,11 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       item.eventSink(LibraryItemUiEvent.StopDownloadClick)
       item.eventSink(LibraryItemUiEvent.RemoveDownloadClick)
 
-      assertThat(ebookRepository.downloaded).containsExactly(ebookItem.id)
-      assertThat(ebookRepository.deleted).containsExactly(ebookItem.id)
-      assertThat(offlineDownloadManager.invocations).isEmpty()
+      // An ebook's single file can't be stopped part way, so stopping is ignored
+      assertThat(downloads.invocations).containsExactly(
+        FakeDownloads.Invocation.Download(listOf(DownloadContent.Ebook(ebookItem.id))),
+        FakeDownloads.Invocation.Delete(DownloadContent.Ebook(ebookItem.id)),
+      )
 
       cancelAndIgnoreRemainingEvents()
     }
@@ -150,18 +150,6 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun ebookDownload_showsAsTheItemsDownload() {
-    val download = EbookDownload(EbookDownload.State.Downloading, bytes = 50, totalBytes = 200)
-      .asOfflineDownload("item")
-
-    assertThat(download.state).isEqualTo(OfflineDownload.State.Downloading)
-    assertThat(download.contentLength).isEqualTo(200L)
-    assertThat(download.progress.percent).isEqualTo(0.25f)
-    assertThat(EbookDownload(EbookDownload.State.Downloaded).asOfflineDownload("item").state)
-      .isEqualTo(OfflineDownload.State.Completed)
-  }
-
-  @Test
   fun downloadClick_withoutDownloadPermission_isIgnored() = runTest {
     val user = userRepository.currentStatefulUserFlow.value
     userRepository.currentStatefulUserFlow.value = user.copy(
@@ -175,7 +163,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
       item.eventSink(LibraryItemUiEvent.DownloadClick())
 
-      assertThat(offlineDownloadManager.invocations).isEmpty()
+      assertThat(downloads.invocations).isEmpty()
       assertThat(analytics.events).isEmpty()
 
       cancelAndIgnoreRemainingEvents()
@@ -516,10 +504,9 @@ private val DownloadClick = EventTest(
       .isEqualTo("download_clicked")
 
     assertThat(libraryViewSettings.showConfirmDownload).isFalse()
-    assertThat(offlineDownloadManager.invocations)
-      .firstInstanceOf<FakeOfflineDownloadManager.Invocation.Download>()
-      .transform { it.item.id }
-      .isEqualTo(TestLibraryItemId)
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Download(listOf(DownloadContent.Audiobook(TestLibraryItemId))),
+    )
   },
 )
 
@@ -531,10 +518,9 @@ private val RemoveDownloadClick = EventTest(
       .prop(AnalyticEvent::eventName)
       .isEqualTo("delete_download_clicked")
 
-    assertThat(offlineDownloadManager.invocations)
-      .firstInstanceOf<FakeOfflineDownloadManager.Invocation.Delete>()
-      .transform { it.item.id }
-      .isEqualTo(TestLibraryItemId)
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Delete(DownloadContent.Audiobook(TestLibraryItemId)),
+    )
   },
 )
 
@@ -546,10 +532,9 @@ private val StopDownloadClick = EventTest(
       .prop(AnalyticEvent::eventName)
       .isEqualTo("stop_download_clicked")
 
-    assertThat(offlineDownloadManager.invocations)
-      .firstInstanceOf<FakeOfflineDownloadManager.Invocation.Stop>()
-      .transform { it.item.id }
-      .isEqualTo(TestLibraryItemId)
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Stop(DownloadContent.Audiobook(TestLibraryItemId)),
+    )
   },
 )
 
@@ -573,10 +558,8 @@ private val DeleteItemClickSoft = EventTest(
       .single()
       .isEqualTo(TestLibraryItemId to false)
 
-    assertThat(offlineDownloadManager.invocations)
-      .firstInstanceOf<FakeOfflineDownloadManager.Invocation.Delete>()
-      .transform { it.item.id }
-      .isEqualTo(TestLibraryItemId)
+    // Everything of the item kept here goes with it
+    assertThat(downloads.invocations).containsExactly(FakeDownloads.Invocation.DeleteAll(TestLibraryItemId))
 
     navigator.awaitPop()
   },

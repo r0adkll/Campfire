@@ -5,8 +5,7 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload.State
-import app.campfire.audioplayer.offline.OfflineDownloadKey
+import app.campfire.audioplayer.impl.offline.OfflineDownload.State
 import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.audioplayer.test.fixtures.track
 import app.campfire.core.model.AudioTrack

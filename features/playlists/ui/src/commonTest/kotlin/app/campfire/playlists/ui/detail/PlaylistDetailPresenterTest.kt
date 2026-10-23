@@ -8,13 +8,13 @@ import app.campfire.audioplayer.history.PlaybackAction
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.common.test.mediaProgress
 import app.campfire.common.test.session
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.Playlist
 import app.campfire.home.ui.libraryItem
+import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.ui.list.FakePlaylistsRepository
@@ -47,6 +47,7 @@ class PlaylistDetailPresenterTest {
   private val sessionsRepository = FakeSessionsRepository()
   private val playbackController = FakePlaybackController()
   private val playbackHistoryRepository = FakePlaybackHistoryRepository()
+  private val downloads = FakeDownloads()
 
   private fun presenter(userScope: CoroutineScope) = PlaylistDetailPresenter(
     screen = screen,
@@ -56,8 +57,7 @@ class PlaylistDetailPresenterTest {
     playbackController = playbackController,
     sessionsRepository = sessionsRepository,
     sessionQueue = FakeSessionQueue(),
-    downloadManager = FakeOfflineDownloadManager(),
-    downloads = FakeDownloads(),
+    downloads = downloads,
     userRepository = FakeUserRepository(),
     libraryViewSettings = TestLibraryViewSettings(),
     mediaProgressRepository = mediaProgressRepository,
@@ -109,6 +109,34 @@ class PlaylistDetailPresenterTest {
         .isEqualTo(PlaybackControllerSession.Stopped(itemId = playing.id, clearQueue = false))
       assertThat(playbackHistoryRepository.history.getValue(FakePlaybackHistoryRepository.HistoryKey(playing.id)))
         .isEmpty()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun downloadAll_downloadsEachBookAndEpisodeOnce() = runTest {
+    playlistsRepository.playlistItemsFlow.value = listOf(
+      item("book", index = 0),
+      item("podcast", index = 1, episodeId = "episode-1"),
+      item("podcast", index = 2, episodeId = "episode-2"),
+      item("podcast", index = 3, episodeId = "episode-1"),
+    )
+
+    presenter.test {
+      val state = awaitItemMatching { it.playlistItems.size == 4 && it.canDownload }
+
+      state.eventSink(PlaylistDetailUiEvent.DownloadAll())
+
+      assertThat(downloads.invocations).containsExactly(
+        FakeDownloads.Invocation.Download(
+          listOf(
+            DownloadContent.Audiobook("book"),
+            DownloadContent.Episode("podcast", "episode-1"),
+            DownloadContent.Episode("podcast", "episode-2"),
+          ),
+        ),
+      )
 
       cancelAndIgnoreRemainingEvents()
     }

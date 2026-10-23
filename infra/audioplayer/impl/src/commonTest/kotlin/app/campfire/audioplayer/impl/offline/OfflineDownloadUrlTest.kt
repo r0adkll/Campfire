@@ -3,7 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.offlineDownloadUrl
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlin.test.Test

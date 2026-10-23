@@ -16,7 +16,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.R as Media3R
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.scheduler.Requirements
-import app.campfire.audioplayer.offline.OfflineDownloadPayload
 import app.campfire.infra.audioplayer.impl.R
 
 /**

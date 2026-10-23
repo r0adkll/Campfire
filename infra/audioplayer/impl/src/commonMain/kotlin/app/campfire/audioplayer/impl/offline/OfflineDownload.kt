@@ -1,28 +1,15 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.offline
+package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload.State.Completed
-import app.campfire.audioplayer.offline.OfflineDownload.State.Downloading
-import app.campfire.audioplayer.offline.OfflineDownload.State.Failed
-import app.campfire.audioplayer.offline.OfflineDownload.State.None
-import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
-import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
+import app.campfire.audioplayer.impl.offline.OfflineDownload.State.Completed
+import app.campfire.audioplayer.impl.offline.OfflineDownload.State.Failed
+import app.campfire.audioplayer.impl.offline.OfflineDownload.State.None
+import app.campfire.audioplayer.impl.offline.OfflineDownload.State.Stopped
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PodcastEpisodeId
-import app.campfire.core.offline.OfflineStatus
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
-
-@OptIn(ExperimentalContracts::class)
-fun OfflineDownload?.isNullOrNone(): Boolean {
-  contract {
-    returns(false) implies (this@isNullOrNone != null)
-  }
-  return this == null || state == None
-}
 
 /**
  * Represents the download state of a [LibraryItem] or a single podcast episode within it.
@@ -87,20 +74,4 @@ data class OfflineDownload(
     val percent: Float,
     val indeterminate: Boolean = false,
   )
-}
-
-/**
- * Converts [OfflineDownload] into a UI friendly model for rendering
- */
-fun OfflineDownload?.asWidgetStatus(): OfflineStatus = when {
-  this == null -> OfflineStatus.None
-  else -> when (state) {
-    None -> OfflineStatus.None
-    Queued -> OfflineStatus.Queued
-    Downloading -> OfflineStatus.Downloading(progress.percent)
-    Completed -> OfflineStatus.Available
-    Stopped,
-    Failed,
-    -> OfflineStatus.Failed
-  }
 }

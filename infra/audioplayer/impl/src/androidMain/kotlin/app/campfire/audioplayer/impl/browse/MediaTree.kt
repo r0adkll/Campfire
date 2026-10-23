@@ -16,8 +16,8 @@ import app.campfire.audioplayer.impl.asPlatformMediaItem
 import app.campfire.audioplayer.impl.content.coverContentUriForAuthor
 import app.campfire.audioplayer.impl.content.coverContentUriForItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.audioplayer.impl.offline.OfflineDownload
+import app.campfire.audioplayer.impl.offline.OfflineDownloadManager
 import app.campfire.author.api.AuthorRepository
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.core.di.UserScope

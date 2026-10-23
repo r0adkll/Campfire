@@ -3,121 +3,160 @@
 
 package app.campfire.reader
 
-import app.campfire.core.model.LibraryItemId
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
-import app.campfire.reader.api.Ebook
-import app.campfire.reader.api.EbookDownload
-import app.campfire.reader.api.EbookRepository
+import app.campfire.reader.EbookFilesFixture.Companion.BOOK
+import app.campfire.reader.EbookFilesFixture.Companion.ITEM
 import assertk.assertThat
 import assertk.assertions.containsExactly
-import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
-import assertk.assertions.isNull
 import assertk.assertions.isTrue
+import io.ktor.http.HttpStatusCode
+import kotlin.test.AfterTest
 import kotlin.test.Test
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.buffered
+import kotlinx.io.files.SystemFileSystem
 
 class EbookDownloaderTest {
 
-  private val repository = FakeEbookRepository()
-  private val downloader = EbookDownloader(repository)
+  private val fixture = EbookFilesFixture()
+  private val ebook = DownloadContent.Ebook(ITEM)
+
+  @AfterTest
+  fun cleanUp() = fixture.cleanUp()
+
+  private suspend fun EbookDownloader.awaitState(state: Download.State): Download =
+    observe(setOf(ebook)).first { it[ebook]?.state == state }.getValue(ebook)
 
   @Test
-  fun `handles ebooks only`() {
-    assertThat(downloader.handles(DownloadContent.Ebook("book"))).isTrue()
-    assertThat(downloader.handles(DownloadContent.Audiobook("book"))).isFalse()
+  fun handles_ebooksOnly() {
+    val downloader = fixture.downloader()
+
+    assertThat(downloader.handles(ebook)).isTrue()
+    assertThat(downloader.handles(DownloadContent.Audiobook(ITEM))).isFalse()
   }
 
   @Test
-  fun `every kept ebook shows as a download`() = runTest {
-    repository.downloads.value = mapOf(
-      "book-1" to EbookDownload(EbookDownload.State.Downloaded, bytes = 100, totalBytes = 100),
-      "book-2" to EbookDownload(EbookDownload.State.Downloading, bytes = 25, totalBytes = 100),
-    )
+  fun download_movesABookAlreadyOpened() = runTest {
+    val files = fixture.files()
+    fixture.repository(files).open(ITEM).getOrThrow()
+    val downloader = fixture.downloader(files)
 
-    val downloads = downloader.observeAll().first()
+    downloader.download(listOf(ebook))
+    val download = downloader.awaitState(Download.State.Downloaded)
 
-    assertThat(downloads.map { it.content to it.state }).containsExactly(
-      DownloadContent.Ebook("book-1") to Download.State.Downloaded,
-      DownloadContent.Ebook("book-2") to Download.State.Downloading,
-    )
-    assertThat(downloads.last().progress).isEqualTo(0.25f)
+    assertThat(download.totalBytes).isEqualTo(BOOK.size.toLong())
+    assertThat(download.progress).isEqualTo(1f)
+    assertThat(fixture.requests.size).isEqualTo(1)
+    assertThat(SystemFileSystem.exists(fixture.cached())).isFalse()
   }
 
   @Test
-  fun `no ebooks kept is empty`() = runTest {
+  fun download_fetchesABookNotOpened_andSurvivesARestart() = runTest {
+    fixture.downloader().apply {
+      download(listOf(ebook))
+      awaitState(Download.State.Downloaded)
+    }
+
+    // A new session reads what's downloaded from the disk
+    val restarted = fixture.downloader().observe(setOf(ebook)).first()
+    assertThat(restarted[ebook]?.state).isEqualTo(Download.State.Downloaded)
+    assertThat(fixture.readFile(fixture.downloaded().toString())).isEqualTo(BOOK.decodeToString())
+  }
+
+  @Test
+  fun observeAll_followsDownloads_andReadsThemFromTheDiskAfterARestart() = runTest {
+    fixture.downloader().apply {
+      assertThat(observeAll().first()).isEmpty()
+      download(listOf(ebook))
+      // On its way counts
+      observeAll().first { all -> all.any { it.content == ebook } }
+      awaitState(Download.State.Downloaded)
+    }
+    // A download cut short isn't one
+    SystemFileSystem.sink(fixture.downloaded("other.epub.part")).buffered().use { it.write(BOOK) }
+
+    val restarted = fixture.downloader()
+    assertThat(restarted.observeAll().first().map { it.content }).containsExactly(ebook)
+
+    restarted.delete(ebook)
+    restarted.observeAll().first { it.isEmpty() }
+    assertThat(restarted.observeAll().first()).isEmpty()
+  }
+
+  @Test
+  fun aDownload_keepsTheTimeItFinished_afterARestart() = runTest {
+    // Opened first, so the download moves a file written today rather than at the clock's time
+    val files = fixture.files()
+    fixture.repository(files).open(ITEM).getOrThrow()
+    fixture.time.nowMillis = FINISHED_AT
+    fixture.downloader(files).apply {
+      download(listOf(ebook))
+      assertThat(awaitState(Download.State.Downloaded).updatedAtMs).isEqualTo(FINISHED_AT)
+    }
+
+    fixture.time.nowMillis = FINISHED_AT + 60_000
+    assertThat(fixture.downloader().observeAll().first().single().updatedAtMs).isEqualTo(FINISHED_AT)
+  }
+
+  @Test
+  fun aFailedDownload_hasTheTimeItFailed() = runTest {
+    fixture.responses = listOf(HttpStatusCode.Forbidden)
+    fixture.time.nowMillis = FINISHED_AT
+    val downloader = fixture.downloader()
+
+    downloader.download(listOf(ebook))
+
+    assertThat(downloader.awaitState(Download.State.Failed).updatedAtMs).isEqualTo(FINISHED_AT)
+  }
+
+  @Test
+  fun download_reportsAFailure_onItsItemOnly() = runTest {
+    fixture.responses = listOf(HttpStatusCode.Forbidden)
+    val downloader = fixture.downloader()
+
+    downloader.download(listOf(ebook))
+
+    assertThat(downloader.awaitState(Download.State.Failed).isAvailable).isFalse()
     assertThat(downloader.observeAll().first()).isEmpty()
   }
 
   @Test
-  fun `observing ebooks leaves out those not downloaded`() = runTest {
-    repository.downloads.value = mapOf("book-1" to EbookDownload(EbookDownload.State.Failed))
+  fun stop_isIgnored() = runTest {
+    val downloader = fixture.downloader()
+    downloader.download(listOf(ebook))
+    downloader.stop(ebook)
 
-    val downloads = downloader.observe(
-      setOf(DownloadContent.Ebook("book-1"), DownloadContent.Ebook("book-2"), DownloadContent.Audiobook("book-1")),
-    ).first()
-
-    assertThat(downloads.mapValues { it.value.state })
-      .containsOnly(DownloadContent.Ebook("book-1") to Download.State.Failed)
-    assertThat(downloader.observe(setOf(DownloadContent.Audiobook("book-1"))).first()).isEmpty()
+    assertThat(downloader.awaitState(Download.State.Downloaded).isAvailable).isTrue()
   }
 
   @Test
-  fun `changes go to the repository`() = runTest {
-    downloader.download(listOf(DownloadContent.Ebook("book-1"), DownloadContent.Ebook("book-2")))
-    downloader.stop(DownloadContent.Ebook("book-1"))
-    downloader.delete(DownloadContent.Ebook("book-1"))
-    downloader.deleteAll("book-2")
+  fun deleting_removesTheDownload_andDeletingTheItemRemovesEveryCopy() = runTest {
+    val files = fixture.files()
+    val downloader = fixture.downloader(files)
+    downloader.download(listOf(ebook))
+    downloader.awaitState(Download.State.Downloaded)
 
-    assertThat(repository.invocations).containsExactly(
-      "download book-1",
-      "download book-2",
-      "deleteDownload book-1",
-      "deleteFiles book-2",
-    )
+    downloader.delete(ebook)
+    downloader.observe(setOf(ebook)).first { it.isEmpty() }
+    assertThat(SystemFileSystem.exists(fixture.downloaded())).isFalse()
+
+    fixture.repository(files).open(ITEM).getOrThrow()
+    downloader.deleteAll(ITEM)
+
+    assertThat(SystemFileSystem.exists(fixture.cached())).isFalse()
+    assertThat(SystemFileSystem.exists(fixture.downloaded())).isFalse()
   }
 
   @Test
-  fun `an ebook of unknown size has no progress`() {
-    val download = EbookDownload(EbookDownload.State.Downloading, bytes = 25).asDownload("book")
-
-    assertThat(download?.progress).isNull()
-    assertThat(EbookDownload.None.asDownload("book")).isNull()
+  fun observing_nothingButEbooks_isEmpty() = runTest {
+    assertThat(fixture.downloader().observe(setOf(DownloadContent.Audiobook(ITEM))).first()).isEmpty()
   }
 }
 
-private class FakeEbookRepository : EbookRepository {
-
-  val downloads = MutableStateFlow<Map<LibraryItemId, EbookDownload>>(emptyMap())
-  val invocations = mutableListOf<String>()
-
-  override suspend fun open(itemId: LibraryItemId): Result<Ebook> =
-    Result.failure(NotImplementedError("Not used by these tests"))
-
-  override suspend fun saveProgress(itemId: LibraryItemId, location: String, progress: Float): Result<Unit> =
-    Result.success(Unit)
-
-  override fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload> =
-    downloads.map { it[itemId] ?: EbookDownload.None }
-
-  override fun observeDownloads(): Flow<Set<LibraryItemId>> = downloads.map { it.keys }
-
-  override fun download(itemId: LibraryItemId) {
-    invocations += "download $itemId"
-  }
-
-  override fun deleteDownload(itemId: LibraryItemId) {
-    invocations += "deleteDownload $itemId"
-  }
-
-  override suspend fun deleteFiles(itemId: LibraryItemId) {
-    invocations += "deleteFiles $itemId"
-  }
-}
+// Whole seconds, which every file system keeps
+private const val FINISHED_AT = 1_700_000_000_000L

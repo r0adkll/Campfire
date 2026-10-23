@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -100,6 +99,8 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesWithBooks
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
@@ -366,10 +367,10 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
     ) {
       val libraryItem = libraryItem()
       val mediaProgress = mediaProgress()
-      val offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Completed,
-        contentLength = 500L * 1024L * 1024L,
+      val offlineDownload = Download(
+        content = DownloadContent.Audiobook(""),
+        state = Download.State.Downloaded,
+        totalBytes = 500L * 1024L * 1024L,
       )
 
       fun user(

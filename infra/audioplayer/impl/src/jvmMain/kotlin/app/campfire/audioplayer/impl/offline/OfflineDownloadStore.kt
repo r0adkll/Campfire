@@ -3,7 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownloadKey
 import app.campfire.core.logging.Cork
 import java.io.File
 import java.io.IOException

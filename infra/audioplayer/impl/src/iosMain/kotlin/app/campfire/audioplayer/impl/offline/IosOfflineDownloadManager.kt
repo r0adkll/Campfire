@@ -3,8 +3,6 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem

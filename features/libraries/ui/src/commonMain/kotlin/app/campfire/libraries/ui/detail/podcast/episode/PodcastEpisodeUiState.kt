@@ -3,11 +3,11 @@
 
 package app.campfire.libraries.ui.detail.podcast.episode
 
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
+import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import com.slack.circuit.runtime.CircuitUiState
 import kotlin.time.Duration
@@ -21,7 +21,7 @@ data class PodcastEpisodeUiState(
   val isQueued: Boolean,
   val hasSession: Boolean,
   val sessionState: SessionUiState,
-  val offlineDownload: OfflineDownload?,
+  val offlineDownload: Download?,
   val canDownload: Boolean,
   val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
