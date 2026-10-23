@@ -88,14 +88,22 @@ class StoreLibraryItemRepository(
 
   /**
    * Whether the cached item carries enough relational data to be played without a refetch.
-   * For books that means item-level audio tracks are present. Podcasts attach tracks per
-   * episode (the item's `media.tracks` is always empty), so we instead check that every
-   * episode has its `audioTrack` hydrated — that's the signal we got the expanded shape
-   * back from the server rather than a basic-shape stub.
+   * For books that means item-level audio tracks are present, or that there's no audio to play
+   * at all, only an ebook. Podcasts attach tracks per episode (the item's `media.tracks` is
+   * always empty), so we instead check that every episode has its `audioTrack` hydrated — that's
+   * the signal we got the expanded shape back from the server rather than a basic-shape stub.
    */
   private val LibraryItem.isHydratedForPlayback: Boolean
     get() = when (val media = media) {
-      is Media.Book -> media.tracks.isNotEmpty()
+      is Media.Book -> media.tracks.isNotEmpty() || media.hasOnlyAnEbook
       is Media.Podcast -> media.episodes.isNotEmpty() && media.episodes.all { it.audioTrack != null }
     }
+
+  /**
+   * An ebook and no audio files. Not [Media.isEbookOnly], which looks for no tracks: the basic
+   * shape (search's books in a series) has an audiobook's files but not its tracks. Every shape
+   * the server sends has one or the other, or their count.
+   */
+  private val Media.Book.hasOnlyAnEbook: Boolean
+    get() = ebookFormat != null && numTracks == 0 && numAudioFiles == 0 && audioFiles.isEmpty()
 }
