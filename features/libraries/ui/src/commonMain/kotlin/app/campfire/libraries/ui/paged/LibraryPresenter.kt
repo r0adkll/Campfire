@@ -17,7 +17,6 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.MediaType
@@ -26,6 +25,8 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import app.campfire.podcasts.api.screen.AddPodcastScreen
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
@@ -48,7 +49,7 @@ class LibraryPresenter(
   private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val repository: LibraryRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<LibraryUiState> {
@@ -105,10 +106,7 @@ class LibraryPresenter(
       .collectAsState()
 
     val offlineDownloads by remember {
-      offlineDownloadManager.observeAll()
-        .map { downloads ->
-          downloads.associateBy { it.libraryItemId }
-        }
+      downloads.observeByItem()
     }.collectAsState(emptyMap())
 
     val canAddPodcasts by remember {

@@ -53,7 +53,7 @@ private val SeriesCardWidth = 300.dp
 @Composable
 fun ShelfContent(
   shelf: UiShelf<ShelfEntity>,
-  offlineStatus: (LibraryItemId) -> OfflineStatus,
+  offlineStatus: (LibraryItemId, PodcastEpisodeId?) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   onViewAllUpcomingClick: () -> Unit,
@@ -128,7 +128,7 @@ private fun ErrorShelfContent(
 private fun LoadedShelfContent(
   shelf: UiShelf<*>,
   entities: List<ShelfEntity>,
-  offlineStatus: (LibraryItemId) -> OfflineStatus,
+  offlineStatus: (LibraryItemId, PodcastEpisodeId?) -> OfflineStatus,
   onViewAllUpcomingClick: () -> Unit,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
@@ -163,7 +163,7 @@ private fun LoadedShelfContent(
           // and can cause the shared transition stuff to glitch out. So lets key it
           // to the specific shelf
           sharedTransitionKey = entity.id + shelf.id,
-          offlineStatus = offlineStatus(entity.id),
+          offlineStatus = offlineStatus(entity.id, null),
           progress = progressStatus(entity.id, null)
             ?: entity.userMediaProgress,
           onClick = { onItemClick(entity) },
@@ -200,7 +200,7 @@ private fun LoadedShelfContent(
           item = entity.libraryItem,
           episode = entity.recentEpisode,
           sharedTransitionKey = entity.transitionKey + shelf.id,
-          offlineStatus = offlineStatus(entity.libraryItem.id),
+          offlineStatus = offlineStatus(entity.libraryItem.id, entity.recentEpisode.id),
           progress = progressStatus(entity.libraryItem.id, entity.recentEpisode.id)
             ?: entity.libraryItem.userMediaProgress,
           onClick = { onItemClick(entity) },

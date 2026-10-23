@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.tracing.TraceEffect
 import app.campfire.common.compose.widgets.CampfireLoadingIndicator
@@ -41,6 +40,7 @@ import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.ui.composables.ShelfListItem
+import app.campfire.offline.statusOf
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.user.api.MediaProgressKey
@@ -112,8 +112,8 @@ fun HomeScreen(
         } else {
           LoadedState(
             shelves = state.homeFeed.data,
-            offlineStatus = { libraryItemId ->
-              state.offlineStates[libraryItemId].asWidgetStatus()
+            offlineStatus = { libraryItemId, podcastEpisodeId ->
+              state.offlineStates.statusOf(libraryItemId, podcastEpisodeId)
             },
             progressStatus = { libraryItemId, podcastEpisodeId ->
               state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
@@ -154,7 +154,7 @@ fun HomeScreen(
 @Composable
 private fun LoadedState(
   shelves: List<UiShelf<ShelfEntity>>,
-  offlineStatus: (LibraryItemId) -> OfflineStatus,
+  offlineStatus: (LibraryItemId, PodcastEpisodeId?) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (UiShelf<*>, Any) -> Unit,
   onViewAllUpcomingClick: () -> Unit,

@@ -161,6 +161,7 @@ fun LibraryItemCard(
               // Render the ebook format decoration
               EbookFormatDecorator(
                 format = item.media.ebookFormat.orEmpty(),
+                offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
               )
             } else {
@@ -380,6 +381,7 @@ private fun BoxScope.PodcastEpisodeDecorator(
 @Composable
 private fun BoxScope.EbookFormatDecorator(
   format: String,
+  offlineStatus: OfflineStatus,
   isTransitioning: Boolean,
 ) {
   AnimatedVisibility(
@@ -393,19 +395,23 @@ private fun BoxScope.EbookFormatDecorator(
         top = 8.dp,
       ),
   ) {
-    EbookFormatBadge(format = format)
+    EbookFormatBadge(
+      format = format,
+      offlineStatus = offlineStatus,
+    )
   }
 }
 
+/**
+ * An ebook's [format], led by its [offlineStatus] once it's downloaded or on its way.
+ */
 @Composable
 fun EbookFormatBadge(
   format: String,
   modifier: Modifier = Modifier,
+  offlineStatus: OfflineStatus = OfflineStatus.None,
 ) {
-  Text(
-    text = format.uppercase(),
-    style = MaterialTheme.typography.labelSmall,
-    color = Color.White,
+  Row(
     modifier = modifier
       .clip(CircleShape)
       .background(
@@ -415,7 +421,19 @@ fun EbookFormatBadge(
         horizontal = 8.dp,
         vertical = 4.dp,
       ),
-  )
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(4.dp),
+  ) {
+    if (offlineStatus != OfflineStatus.None) {
+      OfflineStatusIndicator(offlineStatus)
+    }
+
+    Text(
+      text = format.uppercase(),
+      style = MaterialTheme.typography.labelSmall,
+      color = Color.White,
+    )
+  }
 }
 
 @Composable

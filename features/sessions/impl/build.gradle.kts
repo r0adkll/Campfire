@@ -26,12 +26,18 @@ kotlin {
         implementation(projects.features.libraries.api)
         implementation(projects.features.user.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(libs.store)
       }
     }
 
     commonTest {
       dependencies {
+        implementation(projects.common.test)
+        implementation(projects.features.sessions.test)
+        implementation(projects.features.user.test)
+        implementation(projects.infra.offline.test)
+
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
       }

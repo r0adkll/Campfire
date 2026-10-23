@@ -38,8 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.OverlappedNavigationBarInsets
 import app.campfire.common.compose.extensions.plus
@@ -67,6 +65,8 @@ import app.campfire.filters.ContentFilterResult
 import app.campfire.filters.ContentFilterUi
 import app.campfire.filters.SortModeUi
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.offline.ItemDownloads
+import app.campfire.offline.statusOf
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
@@ -188,7 +188,7 @@ fun LibraryUi(
 private fun LoadedContent(
   totalCount: Int,
   lazyPagingItems: LazyPagingItems<LibraryItem>,
-  offlineStates: Map<LibraryItemId, OfflineDownload>,
+  offlineStates: Map<LibraryItemId, ItemDownloads>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -253,7 +253,7 @@ private fun LoadedContent(
 private fun ContentPagingScaffoldScope.LibraryGrid(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
-  offlineStates: Map<LibraryItemId, OfflineDownload>,
+  offlineStates: Map<LibraryItemId, ItemDownloads>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -310,10 +310,10 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
       if (item == null) {
         PlaceholderItem()
       } else {
-        val offlineStatus = offlineStates[item.id]
+        val offlineStatus = offlineStates.statusOf(item.id)
         LibraryItemCard(
           item = item,
-          offlineStatus = offlineStatus.asWidgetStatus(),
+          offlineStatus = offlineStatus,
           onClick = { onItemClick(item) },
           modifier = Modifier.animateItem(),
           showInformation = itemDisplayState != ItemDisplayState.GridDense,
@@ -333,7 +333,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
 private fun ContentPagingScaffoldScope.LibraryList(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
-  offlineStates: Map<LibraryItemId, OfflineDownload>,
+  offlineStates: Map<LibraryItemId, ItemDownloads>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -383,7 +383,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
       if (item == null) {
         PlaceholderItem()
       } else {
-        val offlineStatus = offlineStates[item.id].asWidgetStatus()
+        val offlineStatus = offlineStates.statusOf(item.id)
         LibraryItemListItem(
           libraryItem = item,
           onClick = {

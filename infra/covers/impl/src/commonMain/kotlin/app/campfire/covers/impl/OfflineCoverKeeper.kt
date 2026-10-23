@@ -3,8 +3,6 @@
 
 package app.campfire.covers.impl
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.UserScope
@@ -14,7 +12,8 @@ import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.network.di.UserClient
-import app.campfire.reader.api.EbookRepository
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
@@ -27,7 +26,6 @@ import io.ktor.http.isSuccess
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -41,8 +39,7 @@ import kotlinx.coroutines.launch
 @ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class OfflineCoverKeeper(
-  private val offlineDownloadManager: OfflineDownloadManager,
-  private val ebookRepository: EbookRepository,
+  private val downloads: Downloads,
   private val libraryItemRepository: LibraryItemRepository,
   private val covers: FileOfflineCovers,
   @UserClient private val client: HttpClient,
@@ -56,15 +53,11 @@ class OfflineCoverKeeper(
   }
 
   /**
-   * Every item with something downloaded. Waits for both kinds of download to be read from the
-   * disk, so it never looks empty at startup and lets every cover go.
+   * Every item with something downloaded. [Downloads] waits for every kind of download to be read
+   * from the disk, so this never looks empty at startup and lets every cover go.
    */
-  private fun downloadedItemIds(): Flow<Set<LibraryItemId>> = combine(
-    offlineDownloadManager.observeAll().map { downloads ->
-      downloads.filter { it.state != OfflineDownload.State.None }.mapTo(HashSet()) { it.libraryItemId }
-    },
-    ebookRepository.observeDownloads(),
-  ) { audio, ebooks -> audio + ebooks }
+  private fun downloadedItemIds(): Flow<Set<LibraryItemId>> = downloads.observeByItem()
+    .map { it.keys }
     .distinctUntilChanged()
 
   suspend fun reconcile(itemIds: Set<LibraryItemId>) {

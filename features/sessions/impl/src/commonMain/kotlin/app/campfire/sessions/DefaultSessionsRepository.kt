@@ -3,14 +3,15 @@
 
 package app.campfire.sessions
 
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
-import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
+import app.campfire.offline.observe
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.sessions.db.SessionDataSource
@@ -21,15 +22,15 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultSessionsRepository(
   private val fatherTime: FatherTime,
-  private val libraryItemRepository: LibraryItemRepository,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val dataSource: SessionDataSource,
   private val serverSessionAttacher: ServerSessionAttacher,
   private val streamingRoutePredictor: StreamingRoutePredictor,
@@ -52,10 +53,12 @@ class DefaultSessionsRepository(
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
   ): Session {
-    val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     // Podcast sessions resume against the episode's progress row; books read item-level.
     val progress = mediaProgressRepository.getProgress(libraryItemId, episodeId)
-    val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
+    // Only a book's finished download plays from the device. A downloaded podcast episode streams
+    // as it always has.
+    val isDownloaded = episodeId == null &&
+      downloads.observe(DownloadContent.Audiobook(libraryItemId)).firstOrNull()?.isAvailable == true
 
     // The delivery method is chosen per listening session, not re-derived from settings on
     // every start: a session that was streaming over HLS resumes over HLS — surviving app
@@ -71,7 +74,7 @@ class DefaultSessionsRepository(
 
     val session = dataSource.createOrStartSession(
       libraryItemId = libraryItemId,
-      playMethod = if (offlineDownload.isCompleted) {
+      playMethod = if (isDownloaded) {
         PlayMethod.Local
       } else {
         PlayMethod.DirectPlay

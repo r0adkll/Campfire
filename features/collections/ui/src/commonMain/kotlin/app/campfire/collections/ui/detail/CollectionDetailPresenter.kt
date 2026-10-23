@@ -8,12 +8,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.coroutines.LoadState
@@ -22,14 +20,14 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.user
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -40,7 +38,7 @@ class CollectionDetailPresenter(
   private val navigator: Navigator,
   private val currentSession: UserSession,
   private val collectionsRepository: CollectionsRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val analytics: Analytics,
 ) : NonPausablePresenter<CollectionDetailUiState> {
 
@@ -64,11 +62,7 @@ class CollectionDetailPresenter(
     }.collectAsState(LoadState.Loading)
 
     val offlineDownloads by remember {
-      snapshotFlow { collectionContentState.dataOrNull }
-        .filterNotNull()
-        .flatMapLatest { items ->
-          offlineDownloadManager.observeForItems(items)
-        }
+      downloads.observeByItem()
     }.collectAsState(emptyMap())
 
     return CollectionDetailUiState(

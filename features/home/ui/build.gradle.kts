@@ -12,7 +12,7 @@ kotlin {
         api(projects.features.home.api)
         api(projects.features.libraries.api)
         api(projects.features.user.api)
-        api(projects.infra.audioplayer.api)
+        api(projects.infra.offline.api)
         api(projects.ui.appbar)
         api(projects.ui.navigation.api)
 
@@ -30,7 +30,7 @@ kotlin {
         implementation(projects.data.analytics.test)
         implementation(projects.data.bookinfo.test)
         implementation(projects.features.user.test)
-        implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.ui)
       }

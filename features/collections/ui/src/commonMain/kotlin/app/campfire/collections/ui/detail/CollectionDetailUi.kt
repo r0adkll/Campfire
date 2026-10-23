@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSheet
 import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
 import app.campfire.collections.ui.detail.composables.EditingTopAppBar
@@ -70,6 +69,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.offline.statusOf
 import campfire.features.collections.ui.generated.resources.Res
 import campfire.features.collections.ui.generated.resources.action_delete_selected_items
 import campfire.features.collections.ui.generated.resources.action_edit_collection
@@ -221,7 +221,7 @@ fun CollectionDetail(
         isEditing = isItemEditing,
         selectedItems = selectedItems,
         items = state.collectionContentState.data,
-        offlineStatus = { state.offlineStates[it].asWidgetStatus() },
+        offlineStatus = { state.offlineStates.statusOf(it) },
         onLibraryItemClick = { item ->
           if (isItemEditing) {
             if (selectedItems.contains(item)) {

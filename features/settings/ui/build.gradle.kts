@@ -19,9 +19,9 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.libraries.api)
-        implementation(projects.features.reader.api)
         implementation(projects.infra.whatsNew.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.infra.updates.api)
         implementation(projects.infra.shake)
         implementation(projects.ui.theming.api)
@@ -35,7 +35,9 @@ kotlin {
 
     commonTest {
       dependencies {
+        implementation(projects.common.test)
         implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
       }
     }
 

@@ -3,17 +3,15 @@
 
 package app.campfire.covers.impl
 
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.reader.api.Ebook
-import app.campfire.reader.api.EbookDownload
-import app.campfire.reader.api.EbookRepository
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.test.FakeDownloads
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsExactlyInAnyOrder
@@ -33,9 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -44,8 +40,7 @@ class OfflineCoverKeeperTest {
 
   private val root = tempCoverDirectory()
   private val covers = FileOfflineCovers(storage = { root.toString() }, dispatcherProvider = testDispatchers)
-  private val downloads = FakeOfflineDownloadManager()
-  private val ebooks = FakeEbookRepository()
+  private val downloads = FakeDownloads()
   private val items = MapLibraryItemRepository()
 
   private var serverUp = true
@@ -56,8 +51,7 @@ class OfflineCoverKeeperTest {
   }
 
   private fun keeper(scope: CoroutineScope = CoroutineScope(testDispatchers.io)) = OfflineCoverKeeper(
-    offlineDownloadManager = downloads,
-    ebookRepository = ebooks,
+    downloads = downloads,
     libraryItemRepository = items,
     covers = covers,
     client = HttpClient(engine),
@@ -135,28 +129,21 @@ class OfflineCoverKeeperTest {
   }
 
   @Test
-  fun audioAndEbookDownloads_areFollowed_onceBothAreKnown() = runTest {
+  fun everyItemWithADownload_isFollowed() = runTest {
     items += item("li_audio", ts = 1)
     items += item("li_ebook", ts = 1)
     items += item("li_episode", ts = 1)
     val scope = CoroutineScope(testDispatchers.io)
     keeper(scope).onCreate()
 
-    // Audio downloads aren't known yet, so nothing is reconciled
-    ebooks.downloads.value = setOf("li_ebook")
-    withContext(testDispatchers.io) { delay(100.milliseconds) }
-    assertThat(requests).isEmpty()
-
-    downloads.observeAllFlow.emit(
-      listOf(
-        OfflineDownload("li_audio", state = OfflineDownload.State.Completed),
-        OfflineDownload("li_episode", state = OfflineDownload.State.Downloading, episodeId = "ep_1"),
-        OfflineDownload("li_none"),
-      ),
+    downloads.downloads.value = listOf(
+      Download(DownloadContent.Audiobook("li_audio"), Download.State.Downloaded),
+      Download(DownloadContent.Ebook("li_ebook"), Download.State.Downloading),
+      Download(DownloadContent.Episode("li_episode", "ep_1"), Download.State.Queued),
     )
     awaitKept("li_audio", "li_ebook", "li_episode")
 
-    ebooks.downloads.value = emptySet()
+    downloads.downloads.value = downloads.downloads.value.filter { it.content.itemId != "li_ebook" }
     awaitKept("li_audio", "li_episode")
     scope.cancel()
   }
@@ -186,20 +173,6 @@ class OfflineCoverKeeperTest {
       items[itemId] ?: throw NoSuchElementException(itemId)
 
     override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean) = Result.success(Unit)
-  }
-
-  private class FakeEbookRepository : EbookRepository {
-    /** Null until the downloads are read from the disk. */
-    val downloads = MutableStateFlow<Set<LibraryItemId>?>(null)
-
-    override fun observeDownloads(): Flow<Set<LibraryItemId>> = downloads.filterNotNull()
-
-    override suspend fun open(itemId: LibraryItemId): Result<Ebook> = Result.failure(UnsupportedOperationException())
-    override suspend fun saveProgress(itemId: LibraryItemId, location: String, progress: Float) = Result.success(Unit)
-    override fun observeDownload(itemId: LibraryItemId): Flow<EbookDownload> = emptyFlow()
-    override fun download(itemId: LibraryItemId) = Unit
-    override fun deleteDownload(itemId: LibraryItemId) = Unit
-    override suspend fun deleteFiles(itemId: LibraryItemId) = Unit
   }
 
   private companion object {

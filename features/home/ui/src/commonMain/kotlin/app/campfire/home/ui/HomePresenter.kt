@@ -15,7 +15,6 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.screens.AuthorDetailScreen
@@ -32,6 +31,8 @@ import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -57,7 +58,7 @@ class HomePresenter(
   private val navigator: Navigator,
   private val homeRepository: HomeRepository,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val bookInfoRegistry: BookInfoRegistry,
   private val analytics: Analytics,
 ) : NonPausablePresenter<HomeUiState> {
@@ -131,17 +132,8 @@ class HomePresenter(
     }.collectAsState(persistentMapOf())
 
     val offlineDownloads by remember {
-      snapshotFlow { shelfEntities.values }
-        .map { responses ->
-          responses
-            .mapNotNull { it.dataOrNull }
-            .flatten()
-            .filterIsInstance<LibraryItem>()
-        }
-        .flatMapLatest { libraryItems ->
-          offlineDownloadManager.observeForItems(libraryItems)
-            .map { it.toPersistentMap() }
-        }
+      downloads.observeByItem()
+        .map { it.toPersistentMap() }
     }.collectAsState(persistentMapOf())
 
     return HomeUiState(

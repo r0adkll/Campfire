@@ -7,7 +7,6 @@ import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.api.SeriesEntry
@@ -22,6 +21,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
@@ -51,7 +51,7 @@ class SeriesDetailPresenterTest {
     screen = screen,
     navigator = navigator,
     repository = repository,
-    offlineDownloadManager = FakeOfflineDownloadManager(),
+    downloads = FakeDownloads(),
     bookInfoRegistry = registry,
     bookInfoSettings = settings,
     mediaProgressRepository = mediaProgressRepository,

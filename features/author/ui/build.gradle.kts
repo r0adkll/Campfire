@@ -12,13 +12,23 @@ kotlin {
         implementation(projects.features.author.api)
         implementation(projects.features.filters.api)
         implementation(projects.features.user.api)
-        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation.api)
 
         implementation(libs.compose.components.resources)
         implementation(libs.androidx.paging.compose)
         implementation(libs.circuitx.overlays)
+      }
+    }
+
+    commonTest {
+      dependencies {
+        implementation(projects.common.test)
+        implementation(projects.data.analytics.test)
+        implementation(projects.infra.offline.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.ui)
       }
     }
   }

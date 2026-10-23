@@ -5,8 +5,6 @@ package app.campfire.home.ui
 
 import app.campfire.analytics.events.AnalyticEvent
 import app.campfire.analytics.test.FakeAnalytics
-import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.api.UpcomingRelease
@@ -20,10 +18,16 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
+import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.ItemDownloads
+import app.campfire.offline.statusOf
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.test.FakeMediaProgressRepository
 import assertk.Assert
@@ -54,7 +58,7 @@ class HomePresenterTest {
 
   val navigator = FakeNavigator(HomeScreen)
   val analytics = FakeAnalytics()
-  val offlineDownloadManager = FakeOfflineDownloadManager()
+  val downloads = FakeDownloads()
   val mediaProgressRepository = FakeMediaProgressRepository()
 
   @Test
@@ -68,7 +72,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -98,7 +102,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -164,7 +168,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = registry,
       analytics = analytics,
     )
@@ -226,7 +230,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = registry,
       analytics = analytics,
     )
@@ -265,7 +269,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -339,7 +343,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -361,17 +365,18 @@ class HomePresenterTest {
   }
 
   @Test
-  fun present_OfflineDownloads_mapsToLoadedItems() = runTest {
+  fun present_OfflineDownloads_markItemsAndEpisodes() = runTest {
     val shelves = listOf(
       shelf("one", "Shelf 1", 5),
       shelf("two", "Shelf 2", 3),
     )
     val shelfOneEntities = List(2) { libraryItem(id = "one_$it") }
     val shelfTwoEntities = List(3) { libraryItem(id = "two_$it") }
-    val offlineDownloads =
-      List(2) { OfflineDownload(libraryItemId = "one_$it") }.associateBy { it.libraryItemId } +
-        List(3) { OfflineDownload(libraryItemId = "two_$it") }.associateBy { it.libraryItemId }
-    offlineDownloadManager.observeForItemsFlow.emit(offlineDownloads)
+    downloads.downloads.value = listOf(
+      Download(DownloadContent.Audiobook("one_0"), Download.State.Downloaded),
+      Download(DownloadContent.Ebook("two_1"), Download.State.Downloading, progress = 0.5f),
+      Download(DownloadContent.Episode("podcast", "episode"), Download.State.Downloaded),
+    )
     val repository = FakeHomeRepository(
       homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
       mediaProgressFlowFactory = { emptyFlow() },
@@ -387,7 +392,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -396,15 +401,12 @@ class HomePresenterTest {
       // Pull Loading State
       awaitItem()
 
-      assertThat(awaitItem()).all {
-        offlineStates.all {
-          key("one_0").isNotNull()
-          key("one_1").isNotNull()
-          key("two_0").isNotNull()
-          key("two_1").isNotNull()
-          key("two_2").isNotNull()
-        }
-      }
+      val offlineStates = awaitItem().offlineStates
+      assertThat(offlineStates.statusOf("one_0")).isEqualTo(OfflineStatus.Available)
+      assertThat(offlineStates.statusOf("one_1")).isEqualTo(OfflineStatus.None)
+      assertThat(offlineStates.statusOf("two_1")).isEqualTo(OfflineStatus.Downloading(0.5f))
+      assertThat(offlineStates.statusOf("podcast", "episode")).isEqualTo(OfflineStatus.Available)
+      assertThat(offlineStates.statusOf("podcast", "other")).isEqualTo(OfflineStatus.None)
     }
   }
 
@@ -419,7 +421,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -448,7 +450,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -477,7 +479,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -508,7 +510,7 @@ class HomePresenterTest {
       navigator = navigator,
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
-      offlineDownloadManager = offlineDownloadManager,
+      downloads = downloads,
       bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
@@ -544,7 +546,7 @@ typealias AssertHomeFeedResponse = Assert<FeedResponse<out PersistentList<UiShel
 private val Assert<HomeUiState>.homeFeed: AssertHomeFeedResponse
   get() = prop(HomeUiState::homeFeed)
 
-private val Assert<HomeUiState>.offlineStates: Assert<ImmutableMap<LibraryItemId, OfflineDownload>>
+private val Assert<HomeUiState>.offlineStates: Assert<ImmutableMap<LibraryItemId, ItemDownloads>>
   get() = prop(HomeUiState::offlineStates)
 
 private val Assert<HomeUiState>.progressStates: Assert<ImmutableMap<MediaProgressKey, MediaProgress>>

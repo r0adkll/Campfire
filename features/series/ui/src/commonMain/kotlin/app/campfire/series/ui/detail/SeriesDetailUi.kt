@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -51,6 +50,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.isDatedSeries
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.offline.statusOf
 import app.campfire.series.ui.detail.composables.ConfirmSeriesProgressDialog
 import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
 import app.campfire.series.ui.detail.composables.SeriesProgressAction
@@ -123,7 +123,7 @@ fun SeriesDetail(
         seriesName = screen.seriesName,
         items = state.seriesContentState.data,
         missingSection = state.missingSection,
-        offlineStatus = { state.offlineStates[it].asWidgetStatus() },
+        offlineStatus = { state.offlineStates.statusOf(it) },
         onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
         onMissingBookClick = { url -> state.eventSink(SeriesDetailUiEvent.MissingBookClick(url)) },
         contentPadding = paddingValues,

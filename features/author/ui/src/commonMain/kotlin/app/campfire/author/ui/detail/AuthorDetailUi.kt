@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.author.ui.detail.composables.AuthorDetailHeader
 import app.campfire.author.ui.detail.composables.AuthorHeader
 import app.campfire.common.compose.CampfireWindowInsets
@@ -45,6 +44,7 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.offline.statusOf
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.author_books_empty_message
 import campfire.features.author.ui.generated.resources.author_books_header
@@ -96,7 +96,7 @@ fun AuthorDetail(
 
       is LoadState.Loaded -> LoadedState(
         author = state.authorContentState.data,
-        offlineStatus = { state.offlineStates[it].asWidgetStatus() },
+        offlineStatus = { state.offlineStates.statusOf(it) },
         contentPadding = paddingValues,
         onLibraryItemClick = { state.eventSink(AuthorDetailUiEvent.LibraryItemClick(it)) },
       )

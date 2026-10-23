@@ -13,6 +13,7 @@ kotlin {
         implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation.api)
 
@@ -29,6 +30,7 @@ kotlin {
         implementation(projects.features.settings.test)
         implementation(projects.features.user.test)
         implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.ui)
       }

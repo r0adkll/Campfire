@@ -18,7 +18,6 @@ import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.SeriesEntry
@@ -33,6 +32,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Downloads
+import app.campfire.offline.observeByItem
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
@@ -55,7 +56,7 @@ class SeriesDetailPresenter(
   private val screen: SeriesDetailScreen,
   private val navigator: Navigator,
   private val repository: SeriesRepository,
-  private val offlineDownloadManager: OfflineDownloadManager,
+  private val downloads: Downloads,
   private val bookInfoRegistry: BookInfoRegistry,
   private val bookInfoSettings: BookInfoProviderSettings,
   private val mediaProgressRepository: MediaProgressRepository,
@@ -94,11 +95,7 @@ class SeriesDetailPresenter(
     }
 
     val offlineDownloads by remember {
-      snapshotFlow { seriesContentState.dataOrNull }
-        .filterNotNull()
-        .flatMapLatest { items ->
-          offlineDownloadManager.observeForItems(items)
-        }
+      downloads.observeByItem()
     }.collectAsState(emptyMap())
 
     // Checks the provider automatically — served from the registry's series

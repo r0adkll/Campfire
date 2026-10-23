@@ -16,7 +16,7 @@ import app.campfire.home.ui.UiShelf
 @Composable
 fun ShelfListItem(
   shelf: UiShelf<ShelfEntity>,
-  offlineStatus: (LibraryItemId) -> OfflineStatus,
+  offlineStatus: (LibraryItemId, PodcastEpisodeId?) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   onViewAllUpcomingClick: () -> Unit,
