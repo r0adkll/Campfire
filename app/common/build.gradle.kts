@@ -32,6 +32,7 @@ kotlin {
         // Infra Modules
         api(projects.infra.audioplayer.impl)
         api(projects.infra.covers.impl)
+        api(projects.infra.offline.impl)
         api(projects.infra.audioplayer.publicUi)
         api(projects.infra.updates.impl)
         api(projects.infra.whatsNew.impl)

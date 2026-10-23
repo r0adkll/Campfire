@@ -53,6 +53,7 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.data.crashreporting.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
       }
@@ -62,6 +63,7 @@ kotlin {
       dependencies {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
+        implementation(projects.common.test)
         implementation(projects.infra.audioplayer.test)
         implementation(projects.features.settings.test)
       }
