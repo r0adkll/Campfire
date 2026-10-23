@@ -34,6 +34,7 @@ kotlin {
       dependencies {
         implementation(projects.features.libraries.test)
         implementation(projects.common.test)
+        implementation(projects.data.account.test)
         implementation(projects.features.user.test)
         implementation(projects.infra.audioplayer.test)
         implementation(projects.data.db.test)
