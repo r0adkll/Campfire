@@ -180,6 +180,8 @@
   <string name="item_rescan_nothing">Your server couldn't find this to rescan it</string>
   <string name="item_rescan_not_allowed">Your account isn't allowed to rescan this. Ask your server's admin.</string>
   <string name="item_rescan_failed">Couldn't rescan this. Check your connection and try again.</string>
+  <string name="item_removed">Removed %1$s from your library</string>
+  <string name="item_deleted_files">Deleted %1$s and its files</string>
   <string name="item_delete_not_allowed">Your account isn't allowed to delete this. Ask your server's admin.</string>
   <string name="item_delete_failed">Couldn't delete this. Check your connection and try again.</string>
   <string name="dialog_delete_item_title">Delete %1$s?</string>

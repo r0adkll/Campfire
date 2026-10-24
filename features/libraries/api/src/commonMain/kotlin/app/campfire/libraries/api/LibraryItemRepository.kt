@@ -18,8 +18,8 @@ interface LibraryItemRepository {
    * server also removes the item's files from disk; otherwise only the DB
    * row + cascading server-side data is removed.
    *
-   * On success the local cache for this item is cleared. Cleanup of any
-   * locally-downloaded audio files is the caller's responsibility.
+   * On success the item is purged here too, from every list it was in and with its
+   * downloads, as [LibraryItemPurger] does for an item the server reports removed.
    *
    * @return a failure, an [ItemChangeNotAllowedException] when the account may not delete items
    */
