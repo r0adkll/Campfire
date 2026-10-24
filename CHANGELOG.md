@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcast episodes in a playlist showing another episode's download status
 - Books whose download failed or was stopped playing as though they were downloaded
 - Downloading a playlist skipping its podcast episodes
+- Podcast episodes in a playlist failing to play until their podcast's page had been opened
 
 ### Other Notes & Contributions
 

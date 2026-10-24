@@ -41,19 +41,19 @@ fun NetworkAudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
   )
 }
 
-fun AudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
+fun AudioTrack.asDbModel(mediaId: String, urlHydrator: UrlHydrator): MediaAudioTracks {
   return MediaAudioTracks(
     mediaId = mediaId,
     mediaIndex = index,
     startOffset = startOffset.toDouble(),
     duration = duration.toDouble(),
     title = title,
-    contentUrl = contentUrl,
+    contentUrl = urlHydrator.dehydrateUrl(contentUrl),
     mimeType = mimeType,
     codec = codec,
     metadata_filename = metadata.filename,
     metadata_ext = metadata.ext,
-    metadata_path = metadata.path,
+    metadata_path = urlHydrator.dehydrateUrl(metadata.path),
     metadata_relPath = metadata.relPath,
     metadata_size = metadata.size,
     metadata_mtimeMs = metadata.mtimeMs,
@@ -99,19 +99,19 @@ fun NetworkAudioTrack.asEpisodeDbModel(episodeId: PodcastEpisodeId): DbPodcastEp
   )
 }
 
-fun AudioTrack.asEpisodeDbModel(episodeId: PodcastEpisodeId): DbPodcastEpisodeAudioTrack {
+fun AudioTrack.asEpisodeDbModel(episodeId: PodcastEpisodeId, urlHydrator: UrlHydrator): DbPodcastEpisodeAudioTrack {
   return DbPodcastEpisodeAudioTrack(
     episodeId = episodeId,
     trackIndex = index,
     startOffset = startOffset.toDouble(),
     duration = duration.toDouble(),
     title = title,
-    contentUrl = contentUrl,
+    contentUrl = urlHydrator.dehydrateUrl(contentUrl),
     mimeType = mimeType,
     codec = codec,
     metadata_filename = metadata.filename,
     metadata_ext = metadata.ext,
-    metadata_path = metadata.path,
+    metadata_path = urlHydrator.dehydrateUrl(metadata.path),
     metadata_relPath = metadata.relPath,
     metadata_size = metadata.size,
     metadata_mtimeMs = metadata.mtimeMs,

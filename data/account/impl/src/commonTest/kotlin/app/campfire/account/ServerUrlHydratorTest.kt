@@ -22,6 +22,24 @@ class ServerUrlHydratorTest {
   }
 
   @Test
+  fun hydrateUrl_leaves_a_url_already_hydrated() {
+    assertThat(hydrator.hydrateUrl("https://abs.example.com/api/items/li_1/file/2"))
+      .isEqualTo("https://abs.example.com/api/items/li_1/file/2")
+  }
+
+  @Test
+  fun dehydrateUrl_undoes_hydrateUrl() {
+    assertThat(hydrator.dehydrateUrl(hydrator.hydrateUrl("/api/items/li_1/file/2")))
+      .isEqualTo("/api/items/li_1/file/2")
+  }
+
+  @Test
+  fun dehydrateUrl_leaves_a_path_or_another_servers_url() {
+    assertThat(hydrator.dehydrateUrl("/api/items/li_1/file/2")).isEqualTo("/api/items/li_1/file/2")
+    assertThat(hydrator.dehydrateUrl("https://other.example.com/a.mp3")).isEqualTo("https://other.example.com/a.mp3")
+  }
+
+  @Test
   fun library_item_cover_without_timestamp() {
     assertThat(hydrator.hydrateLibraryItem("li_1"))
       .isEqualTo("https://abs.example.com/api/items/li_1/cover")

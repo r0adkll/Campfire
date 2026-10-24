@@ -11,6 +11,12 @@ interface UrlHydrator {
   fun hydrateUrl(absolutePath: String): String
 
   /**
+   * The absolute path [hydrateUrl] made [url] from. Store this rather than a hydrated URL, which
+   * reading it back would hydrate again.
+   */
+  fun dehydrateUrl(url: String): String
+
+  /**
    * Absolute URL for a library item's cover. When [updatedAtMillis] is known it is appended as a `ts`
    * query parameter (mirroring the Audiobookshelf web client) so image caches refresh after the server
    * reports a change instead of serving a stale cover indefinitely.
