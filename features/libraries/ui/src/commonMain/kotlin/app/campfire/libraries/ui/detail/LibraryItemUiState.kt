@@ -38,8 +38,8 @@ data class LibraryItemUiState(
 @Immutable
 data class ContentUiState(
   val slots: List<ContentSlot>,
-  /** A failure to tell the user about, cleared by [LibraryItemUiEvent.ClearError]. */
-  val errorMessage: String? = null,
+  /** Something to tell the user, such as how a change went, cleared by [LibraryItemUiEvent.ClearError]. */
+  val message: String? = null,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -74,8 +74,17 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   /** Put the listening date being picked away unchanged. */
   data object DismissListeningDate : LibraryItemUiEvent
 
-  /** Save [day] as the new day of the item's listening [date]. */
+  /**
+   * Save [day] as the new day of the item's listening [date]. A new start waits on
+   * [ConfirmStartedDate], as changing it recreates the progress.
+   */
   data class ChangeListeningDate(val date: ListeningDate, val day: LocalDate) : LibraryItemUiEvent
+
+  /** Go ahead with recreating the progress to change when it started. */
+  data object ConfirmStartedDate : LibraryItemUiEvent
+
+  /** Try again at putting back the progress a changed start left off the server. */
+  data object RestoreProgress : LibraryItemUiEvent
   data class MarkEpisodeFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class MarkEpisodeNotFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class AuthorClick(val item: LibraryItem, val author: String) : LibraryItemUiEvent

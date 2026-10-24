@@ -19,8 +19,10 @@ import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.models.MediaProgress as NetworkMediaProgress
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.StartedAtNotChanged
 import app.campfire.user.mediaprogress.EbookProgressUploader
 import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
@@ -32,11 +34,13 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -405,6 +409,99 @@ class StoreMediaProgressRepository(
     }
   }
 
+  override suspend fun setStartedAt(
+    libraryItemId: LibraryItemId,
+    startedAt: Long,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    // The server's copy, rather than this device's, is what gets created again
+    val original = api.getMediaProgress(libraryItemId, episodeId)
+      .getOrElse { return Result.failure(StartedAtNotChanged.Unchanged(it)) }
+    api.deleteMediaProgress(original.id)
+      .onFailure { return Result.failure(StartedAtNotChanged.Unchanged(it)) }
+
+    api.updateMediaProgress(libraryItemId, original.asCreation(createdAt = startedAt), episodeId)
+      .onFailure { error ->
+        MediaProgressStore.ebark(throwable = error) { "Couldn't create the progress of $libraryItemId again" }
+        val restored = createWithRetries(libraryItemId, original.asCreation(createdAt = original.startedAt), episodeId)
+        return Result.failure(
+          if (restored.isSuccess) {
+            storeServerCopy(libraryItemId, episodeId)
+            StartedAtNotChanged.Restored(error)
+          } else {
+            StartedAtNotChanged.NotRestored(error)
+          },
+        )
+      }
+
+    val recreated = storeServerCopy(libraryItemId, episodeId)
+    if (recreated == null) {
+      // Created, but not fetched back, so the new start stands in until the server's copy is
+      withContext(dispatcherProvider.databaseWrite) {
+        val userId = userSession.requiredUserId
+        db.mediaProgressQueries.transaction {
+          db.mediaProgressQueries
+            .selectForEpisode(userId, libraryItemId, episodeId.orEmpty())
+            .awaitAsOneOrNull()
+            ?.let { db.mediaProgressQueries.insert(it.copy(id = MediaProgress.UNKNOWN_ID, startedAt = startedAt)) }
+        }
+      }
+      return Result.success(Unit)
+    }
+
+    return if (recreated.startedAt == startedAt) {
+      Result.success(Unit)
+    } else {
+      Result.failure(StartedAtNotChanged.ServerKept())
+    }
+  }
+
+  override suspend fun restoreProgress(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    val local = withContext(dispatcherProvider.databaseRead) {
+      db.mediaProgressQueries
+        .selectForEpisode(userSession.requiredUserId, libraryItemId, episodeId.orEmpty())
+        .awaitAsOneOrNull()
+    } ?: return Result.failure(IllegalStateException("No progress for $libraryItemId to restore"))
+
+    return createWithRetries(libraryItemId, local.asDomainModel().asCreation(), episodeId)
+      .onSuccess { storeServerCopy(libraryItemId, episodeId) }
+  }
+
+  /**
+   * Create a progress on the server, trying again a couple of times, as the progress has already
+   * been deleted from the server by the time this is needed.
+   */
+  private suspend fun createWithRetries(
+    libraryItemId: LibraryItemId,
+    creation: MediaProgressUpdatePayload,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    var result = api.updateMediaProgress(libraryItemId, creation, episodeId)
+    for (wait in RestoreRetryWaits) {
+      if (result.isSuccess) break
+      delay(wait)
+      result = api.updateMediaProgress(libraryItemId, creation, episodeId)
+    }
+    return result.onFailure {
+      MediaProgressStore.ebark(throwable = it) { "Couldn't put the progress of $libraryItemId back" }
+    }
+  }
+
+  /** Fetch the server's copy of a progress into the database, which takes up its new id. */
+  private suspend fun storeServerCopy(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): NetworkMediaProgress? {
+    val serverCopy = api.getMediaProgress(libraryItemId, episodeId).getOrNull() ?: return null
+    withContext(dispatcherProvider.databaseWrite) {
+      db.mediaProgressQueries.insert(serverCopy.asDbModel())
+    }
+    return serverCopy
+  }
+
   override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
     if (keys.isEmpty()) return
     val finishedAt = fatherTime.nowInEpochMillis()
@@ -466,6 +563,33 @@ class StoreMediaProgressRepository(
     }
   }
 
+  /** Everything the server needs to create this progress again, starting at [createdAt]. */
+  private fun NetworkMediaProgress.asCreation(createdAt: Long) = MediaProgressUpdatePayload(
+    episodeId = episodeId,
+    duration = duration,
+    progress = progress,
+    currentTime = currentTime,
+    isFinished = isFinished,
+    hideFromContinueListening = hideFromContinueListening,
+    finishedAt = finishedAt,
+    ebookLocation = ebookLocation,
+    ebookProgress = ebookProgress,
+    createdAt = createdAt,
+  )
+
+  private fun MediaProgress.asCreation() = MediaProgressUpdatePayload(
+    episodeId = episodeId,
+    duration = duration,
+    progress = progress,
+    currentTime = currentTime,
+    isFinished = isFinished,
+    hideFromContinueListening = hideFromContinueListening,
+    finishedAt = finishedAt,
+    ebookLocation = ebookLocation,
+    ebookProgress = ebookProgress,
+    createdAt = startedAt,
+  )
+
   private suspend fun deleteLocalProgress(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId?,
@@ -478,3 +602,6 @@ class StoreMediaProgressRepository(
     )
   }
 }
+
+/** How long to wait before each further try at putting a deleted progress back. */
+private val RestoreRetryWaits = listOf(1.seconds, 3.seconds)

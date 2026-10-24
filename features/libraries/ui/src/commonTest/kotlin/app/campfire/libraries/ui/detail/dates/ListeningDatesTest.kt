@@ -86,6 +86,50 @@ class ListeningDatesTest {
     assertThat(finishedAt).isEqualTo(now)
   }
 
+  @Test
+  fun keepsTheTimeOfDayItStartedAt() {
+    val startedAt = startedAtOn(
+      date = LocalDate(2026, 1, 12),
+      previously = at(2026, 3, 3, 8, 45),
+      finishedAt = at(2026, 4, 1, 21, 15),
+      now = at(2026, 5, 1, 12, 0),
+      timeZone = zone,
+    )
+
+    assertThat(startedAt).isEqualTo(at(2026, 1, 12, 8, 45))
+  }
+
+  @Test
+  fun neverStartsAfterItFinished() {
+    val finishedAt = at(2026, 4, 1, 7, 0)
+
+    val startedAt = startedAtOn(
+      date = LocalDate(2026, 4, 1),
+      previously = at(2026, 3, 3, 20, 0),
+      finishedAt = finishedAt,
+      now = at(2026, 5, 1, 12, 0),
+      timeZone = zone,
+    )
+
+    assertThat(startedAt).isEqualTo(finishedAt)
+  }
+
+  @Test
+  fun withoutAFinish_neverStartsInTheFuture() {
+    val now = at(2026, 5, 1, 9, 0)
+
+    val startedAt = startedAtOn(
+      date = LocalDate(2026, 5, 1),
+      previously = 0L,
+      finishedAt = null,
+      now = now,
+      timeZone = zone,
+    )
+
+    // No earlier start to take the time of day from, so noon, which is still to come
+    assertThat(startedAt).isEqualTo(now)
+  }
+
   private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
     LocalDateTime(year, month, day, hour, minute).toInstant(zone).toEpochMilliseconds()
 }

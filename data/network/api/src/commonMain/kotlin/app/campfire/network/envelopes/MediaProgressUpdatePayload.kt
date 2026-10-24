@@ -15,7 +15,10 @@ data class MediaProgressUpdatePayload(
   val isFinished: Boolean? = null,
   val hideFromContinueListening: Boolean? = null,
   val finishedAt: Long? = null,
+  /** Ignored by the server, which takes a progress's start from [createdAt] instead. */
   val startedAt: Long? = null,
+  /** When the progress started, honored only when this update creates the progress. */
+  val createdAt: Long? = null,
   val ebookLocation: String? = null,
   val ebookProgress: Float? = null,
 )
