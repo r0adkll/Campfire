@@ -476,7 +476,7 @@ class BookPresenter(
           }
         }
 
-        LibraryItemUiEvent.ClearError -> {
+        LibraryItemUiEvent.ClearMessage -> {
           message = null
         }
 

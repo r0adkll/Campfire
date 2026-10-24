@@ -169,15 +169,26 @@
   <string name="action_episode_download_in_progress">Episode downloading</string>
 
   <string name="cd_more_actions">More actions</string>
-  <string name="menu_item_delete_podcast">Delete podcast</string>
-  <string name="dialog_delete_podcast_title">Delete this podcast?</string>
-  <string name="dialog_delete_podcast_message">This will permanently remove the podcast and all listening progress from your server. This cannot be undone.</string>
-  <string name="dialog_delete_podcast_hard_label">Also delete files from server</string>
-  <string name="dialog_delete_podcast_hard_description">Permanently removes the podcast folder and all audio files from disk. The library item is removed either way.</string>
-  <string name="dialog_delete_podcast_action_confirm">Delete</string>
-  <string name="dialog_delete_podcast_action_confirm_hard">Delete &amp; remove files</string>
-  <string name="dialog_delete_podcast_action_cancel">Cancel</string>
-  <string name="error_delete_podcast">Couldn't delete podcast. Try again.</string>
+  <string name="menu_item_rescan">Rescan files</string>
+  <string name="menu_item_delete_from_server">Delete from server…</string>
+  <string name="item_rescan_updated">Rescanned, and updated from its files</string>
+  <string name="item_rescan_up_to_date">Rescanned. It already matched its files.</string>
+  <string name="item_rescan_nothing">Your server couldn't find this to rescan it</string>
+  <string name="item_rescan_not_allowed">Your account isn't allowed to rescan this. Ask your server's admin.</string>
+  <string name="item_rescan_failed">Couldn't rescan this. Check your connection and try again.</string>
+  <string name="item_delete_not_allowed">Your account isn't allowed to delete this. Ask your server's admin.</string>
+  <string name="item_delete_failed">Couldn't delete this. Check your connection and try again.</string>
+  <string name="dialog_delete_item_title">Delete %1$s?</string>
+  <string name="dialog_delete_item_remove">Remove from library</string>
+  <string name="dialog_delete_item_remove_description">Its files stay on your server, so a library scan adds it back.</string>
+  <string name="dialog_delete_item_hard">Delete its files from the server</string>
+  <string name="dialog_delete_item_hard_description">Permanently deletes its folder or file from your server's disk. This can't be undone.</string>
+  <string name="dialog_delete_item_progress">Removes everyone's listening progress for it</string>
+  <string name="dialog_delete_item_lists">Removes it from collections and playlists</string>
+  <string name="dialog_delete_item_action_remove">Remove</string>
+  <string name="dialog_delete_item_action_hard">Delete files</string>
+  <string name="dialog_delete_item_action_hard_again">Press again to delete files</string>
+  <string name="dialog_delete_item_action_cancel">Cancel</string>
 
   <string name="podcast_downloads_banner_one">%1$d episode downloading on server</string>
   <string name="podcast_downloads_banner_other">%1$d episodes downloading on server</string>

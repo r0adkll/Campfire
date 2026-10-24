@@ -260,8 +260,24 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
+  val deletedLibraryItems = mutableListOf<Pair<String, Boolean>>()
+  var deleteLibraryItemResult: suspend (itemId: String) -> Result<Unit> = {
+    Result.failure(NotImplementedError("Set deleteLibraryItemResult on the fake"))
+  }
+
   override suspend fun deleteLibraryItem(itemId: String, hard: Boolean): Result<Unit> {
-    TODO("Not yet implemented")
+    deletedLibraryItems += itemId to hard
+    return deleteLibraryItemResult(itemId)
+  }
+
+  val scannedLibraryItems = mutableListOf<String>()
+  var scanLibraryItemResult: suspend (itemId: String) -> Result<String> = {
+    Result.failure(NotImplementedError("Set scanLibraryItemResult on the fake"))
+  }
+
+  override suspend fun scanLibraryItem(itemId: String): Result<String> {
+    scannedLibraryItems += itemId
+    return scanLibraryItemResult(itemId)
   }
 
   override suspend fun createPlaylist(
