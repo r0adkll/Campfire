@@ -121,6 +121,31 @@ class ReaderPresenterTest {
   }
 
   @Test
+  fun `the position names the chapter and the part it is in`() = runTest {
+    presenter.test {
+      val state = awaitLoaded()
+      state.bridge.onMessage(
+        """
+          {"type":"relocate","location":"x","progress":0.4,
+          "part":"Part One","chapter":"Chapter Two","chapterHref":"ch2.xhtml","pagesLeft":3}
+        """.trimIndent(),
+      )
+
+      val moved = awaitUntil { it.position.progress == 0.4f }
+      assertThat(moved.position).isEqualTo(
+        ReaderPosition(
+          part = "Part One",
+          chapter = "Chapter Two",
+          chapterHref = "ch2.xhtml",
+          progress = 0.4f,
+          pagesLeftInChapter = 3,
+        ),
+      )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `a tap shows and hides the bars, and back closes the book`() = runTest {
     presenter.test {
       val state = awaitLoaded()

@@ -167,8 +167,8 @@ const fractionOf = href => {
   }
 }
 
-// Each item of the table of contents to the one it's nested in, to name a chapter's part with its
-// chapter ("A Scandal in Bohemia · I")
+// Each item of the table of contents to the one it's nested in, to name the part a chapter is in
+// ("A Scandal in Bohemia" over "I")
 const tocParents = new WeakMap()
 
 const flattenToc = (items, depth = 0, out = [], parent = null) => {
@@ -181,12 +181,10 @@ const flattenToc = (items, depth = 0, out = [], parent = null) => {
   return out
 }
 
-const chapterTitle = tocItem => {
-  const label = tocItem?.label?.trim()
-  if (!label) return null
-  const parent = tocParents.get(tocItem)?.label?.trim()
-  return parent ? `${parent} · ${label}` : label
-}
+const chapterTitle = tocItem => tocItem?.label?.trim() || null
+
+// Only alongside the chapter's own title
+const partTitle = tocItem => (chapterTitle(tocItem) && tocParents.get(tocItem)?.label?.trim()) || null
 
 // Pages after this one in the current chapter, for the reflowable layout. The paginator counts a
 // blank page before and after each section's text.
@@ -318,6 +316,7 @@ globalThis.campfire = {
           type: 'relocate',
           location,
           progress,
+          part: partTitle(detail.tocItem),
           chapter: chapterTitle(detail.tocItem),
           chapterHref: detail.tocItem?.href ?? null,
           pagesLeft: pagesLeftInSection(),

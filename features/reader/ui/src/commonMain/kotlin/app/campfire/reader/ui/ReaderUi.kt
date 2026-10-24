@@ -437,13 +437,28 @@ private fun ReaderBottomBar(
         .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
       Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-          text = position.chapter.orEmpty(),
-          style = MaterialTheme.typography.labelLarge,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.weight(1f),
-        )
+        // The part over its chapter, each wrapping rather than cut off
+        Column(
+          modifier = Modifier
+            .weight(1f)
+            .alignByBaseline(),
+        ) {
+          position.part?.let { part ->
+            Text(
+              text = part,
+              style = MaterialTheme.typography.labelMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = LabelMaxLines,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+          Text(
+            text = position.chapter.orEmpty(),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = LabelMaxLines,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
         position.pagesLeftInChapter?.let { pagesLeft ->
           Spacer(Modifier.padding(horizontal = 4.dp))
           Text(
@@ -451,6 +466,7 @@ private fun ReaderBottomBar(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
+            modifier = Modifier.alignByBaseline(),
           )
         }
       }
@@ -632,5 +648,6 @@ private fun ContentsList(
 }
 
 private val FooterHeight = 28.dp
+private const val LabelMaxLines = 2
 
 private val SupportedFormats = setOf("epub", "cbz", "mobi", "azw3", "fb2")

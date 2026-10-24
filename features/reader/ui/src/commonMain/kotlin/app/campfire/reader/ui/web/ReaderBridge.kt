@@ -113,6 +113,7 @@ sealed interface ReaderMessage {
    *
    * @param location in the Audiobookshelf `ebookLocation` format for this book's type
    * @param progress how far through the book, 0..1
+   * @param part the title of the contents entry [chapter] is nested in
    * @param pagesLeft pages after this one in the chapter, where the book reflows into pages
    * @param atEnd whether this is the book's last page
    * @param save whether the reader moved here (a page turn, a jump), rather than laying out the
@@ -123,6 +124,7 @@ sealed interface ReaderMessage {
   data class Relocate(
     val location: String? = null,
     val progress: Float? = null,
+    val part: String? = null,
     val chapter: String? = null,
     val chapterHref: String? = null,
     val pagesLeft: Int? = null,

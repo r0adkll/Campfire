@@ -144,6 +144,7 @@ class ReaderPresenter(
 
           is ReaderMessage.Relocate -> {
             position = ReaderPosition(
+              part = message.part,
               chapter = message.chapter,
               chapterHref = message.chapterHref,
               progress = message.progress ?: position.progress,
