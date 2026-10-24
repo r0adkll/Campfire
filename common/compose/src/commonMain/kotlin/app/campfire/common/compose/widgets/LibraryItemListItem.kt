@@ -66,8 +66,8 @@ fun LibraryItemListItem(
   // An extra line under the subtitle, such as the series the item belongs to
   supportingText: String? = null,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-  // Whether a long press or a right click offers the item's actions, for rows that don't use
-  // those presses for something of their own, such as reordering
+  // Whether a long press or a right click offers the item's actions, for rows that stand for the
+  // item itself rather than, say, a playlist's entry, which may be one of a podcast's episodes
   offersActions: Boolean = false,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)

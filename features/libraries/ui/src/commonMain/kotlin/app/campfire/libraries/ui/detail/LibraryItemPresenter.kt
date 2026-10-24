@@ -24,7 +24,6 @@ import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
-import app.campfire.offline.Downloads
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -60,7 +59,6 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val dispatcherProvider: DispatcherProvider,
-  private val downloads: Downloads,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
@@ -127,14 +125,11 @@ class LibraryItemPresenter(
         }
 
         is LibraryItemUiEvent.DeleteItemClick -> {
-          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          if (libraryItemContentState.dataOrNull == null) return@LibraryItemUiState
           scope.launch {
+            // The repository purges the item and its downloads
             repository.deleteLibraryItem(screen.libraryItemId, event.hardDelete)
-              .onSuccess {
-                runCatching { downloads.deleteAll(item.id) }
-                  .onFailure { bark(throwable = it) { "Failed to clean up offline downloads after delete" } }
-                navigator.pop()
-              }
+              .onSuccess { navigator.pop() }
               .onFailure { error ->
                 bark(throwable = error) { "Failed to delete library item ${screen.libraryItemId}" }
                 snackbarHost.showSnackbar(
