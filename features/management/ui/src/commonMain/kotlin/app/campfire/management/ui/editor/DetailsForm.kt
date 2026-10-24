@@ -87,8 +87,9 @@ internal fun DetailsForm(
     contentAlignment = Alignment.TopCenter,
     modifier = modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .imePadding(),
+      // Before scrolling, so the keyboard shrinks what scrolls and a focused field scrolls into view
+      .imePadding()
+      .verticalScroll(rememberScrollState()),
   ) {
     Column(
       verticalArrangement = Arrangement.spacedBy(GroupSpacing),
@@ -162,7 +163,7 @@ private fun IdentityFields(
       changed = draft.isChanged(BookDetail.Title),
       enabled = enabled,
       error = Res.string.error_title_required.takeIf { draft.isTitleMissing },
-      capitalization = KeyboardCapitalization.Words,
+      capitalization = KeyboardCapitalization.Sentences,
       modifier = Modifier.fillMaxWidth().testTag("field_title"),
     )
     TextDetailField(
@@ -171,7 +172,7 @@ private fun IdentityFields(
       changed = draft.isChanged(BookDetail.Subtitle),
       enabled = enabled,
       placeholder = Res.string.placeholder_optional,
-      capitalization = KeyboardCapitalization.Words,
+      capitalization = KeyboardCapitalization.Sentences,
       modifier = Modifier.fillMaxWidth().testTag("field_subtitle"),
     )
   }
@@ -215,7 +216,7 @@ private fun PublishingFields(
       label = Res.string.label_publisher,
       changed = draft.isChanged(BookDetail.Publisher),
       enabled = enabled,
-      capitalization = KeyboardCapitalization.Words,
+      capitalization = KeyboardCapitalization.Sentences,
       modifier = Modifier.fillMaxWidth().testTag("field_publisher"),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -233,7 +234,7 @@ private fun PublishingFields(
         label = Res.string.label_language,
         changed = draft.isChanged(BookDetail.Language),
         enabled = enabled,
-        capitalization = KeyboardCapitalization.Words,
+        capitalization = KeyboardCapitalization.Sentences,
         modifier = Modifier.weight(1f).testTag("field_language"),
       )
     }

@@ -50,7 +50,7 @@ class BookDetailsDraft(val base: Media.Metadata) {
   }
 
   // What the editor makes of the description as it came, which an untouched one still matches
-  private val baseDescriptionHtml = description.toHtml()
+  private val baseDescriptionHtml = descriptionHtml()
 
   /** The details that differ from [base]. */
   val changes: Set<BookDetail>
@@ -69,7 +69,7 @@ class BookDetailsDraft(val base: Media.Metadata) {
   fun isChanged(detail: BookDetail): Boolean = when (detail) {
     BookDetail.Title -> title.isChangedFrom(base.title)
     BookDetail.Subtitle -> subtitle.isChangedFrom(base.subtitle)
-    BookDetail.Description -> description.toHtml() != baseDescriptionHtml
+    BookDetail.Description -> descriptionHtml() != baseDescriptionHtml
     BookDetail.Publisher -> publisher.isChangedFrom(base.publisher)
     BookDetail.PublishedYear -> publishedYear.isChangedFrom(base.publishedYear)
     BookDetail.Language -> language.isChangedFrom(base.language)
@@ -86,9 +86,7 @@ class BookDetailsDraft(val base: Media.Metadata) {
     return BookDetailsUpdate(
       title = title.ifChanged(BookDetail.Title),
       subtitle = subtitle.ifChanged(BookDetail.Subtitle),
-      description = description.takeIf { BookDetail.Description in changes }?.let {
-        if (it.annotatedString.text.isBlank()) "" else it.toHtml()
-      },
+      description = descriptionHtml().takeIf { BookDetail.Description in changes },
       publisher = publisher.ifChanged(BookDetail.Publisher),
       publishedYear = publishedYear.ifChanged(BookDetail.PublishedYear),
       language = language.ifChanged(BookDetail.Language),
@@ -112,6 +110,14 @@ class BookDetailsDraft(val base: Media.Metadata) {
     explicit = update.explicit?.let { base.isExplicit },
     abridged = update.abridged?.let { base.isAbridged },
   )
+
+  /**
+   * The description as HTML, or empty text once it's cleared. Typing changes the editor's
+   * paragraphs in place, out of sight of whatever reads this in a snapshot; its text is state, so
+   * reading that first has them read this again.
+   */
+  private fun descriptionHtml(): String =
+    if (description.annotatedString.text.isBlank()) "" else description.toHtml()
 
   private fun TextFieldState.isChangedFrom(value: String?): Boolean =
     text.toString().trim() != value.orEmpty().trim()

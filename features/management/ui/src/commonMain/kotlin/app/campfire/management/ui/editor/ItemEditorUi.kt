@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -135,7 +136,10 @@ fun ItemEditorUi(
           onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
           onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
           twoColumns = maxWidth >= TwoColumnWidth,
-          modifier = Modifier.padding(padding),
+          // The keyboard's padding includes the navigation bar the scaffold's already does
+          modifier = Modifier
+            .padding(padding)
+            .consumeWindowInsets(padding),
         )
 
         state.item is LoadState.Loading -> Box(

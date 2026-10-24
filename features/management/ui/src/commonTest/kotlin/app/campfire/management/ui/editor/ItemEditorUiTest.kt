@@ -9,9 +9,11 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.Dp
@@ -52,6 +54,17 @@ class ItemEditorUiTest {
     onNodeWithTag("editor_save").assertIsEnabled().performClick()
     onNodeWithTag("editor_change_count", useUnmergedTree = true).assertExists()
     events.assertEvents(ItemEditorUiEvent.Save)
+  }
+
+  @Test
+  fun aDescriptionEditOnItsOwnCanBeSaved() = runComposeUiTest {
+    setEditor()
+
+    onNodeWithTag("field_description").performClick()
+    onNodeWithTag("field_description").performTextInput(" More.")
+
+    onNodeWithTag("editor_save").assertIsEnabled()
+    onNodeWithContentDescription("Changed", useUnmergedTree = true).assertExists()
   }
 
   @Test
