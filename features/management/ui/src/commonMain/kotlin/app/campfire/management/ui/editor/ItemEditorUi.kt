@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -40,6 +43,8 @@ import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -50,6 +55,7 @@ import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.management.api.screen.ItemEditorScreen
@@ -87,6 +93,7 @@ fun ItemEditorUi(
     onBack = { if (!state.isSaving) state.eventSink(ItemEditorUiEvent.Close) },
   )
 
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   val snackbarHost = remember { SnackbarHostState() }
   LaunchedEffect(state.message) {
     val message = state.message ?: return@LaunchedEffect
@@ -115,6 +122,17 @@ fun ItemEditorUi(
       },
   ) {
     val isWide = maxWidth >= WideWidth
+
+    // A short window, such as a phone on its side, has little room left under the top bar once the
+    // keyboard is up, so the bar gives way while typing there and comes back once that stops, as
+    // when the keyboard closes or the window turns tall; scrolling back down brings it back too
+    val isTyping = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    val isShort = maxHeight < ShortHeight
+    val barGivesWay = isTyping && isShort
+    LaunchedEffect(barGivesWay) {
+      scrollBehavior.state.heightOffset = if (barGivesWay) scrollBehavior.state.heightOffsetLimit else 0f
+    }
+
     Scaffold(
       topBar = {
         EditorTopBar(
@@ -122,8 +140,10 @@ fun ItemEditorUi(
           changeCount = changes.size,
           canSave = canSave,
           isWide = isWide,
+          scrollBehavior = scrollBehavior,
         )
       },
+      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       snackbarHost = { SnackbarHost(snackbarHost) },
     ) { padding ->
       when {
@@ -177,9 +197,11 @@ private fun EditorTopBar(
   changeCount: Int,
   canSave: Boolean,
   isWide: Boolean,
+  scrollBehavior: TopAppBarScrollBehavior,
   modifier: Modifier = Modifier,
 ) {
   TopAppBar(
+    scrollBehavior = scrollBehavior,
     navigationIcon = {
       val closeLabel = stringResource(Res.string.action_close_editor)
       IconButtonTooltip(text = closeLabel) {
@@ -315,6 +337,9 @@ private fun DiscardChangesDialog(
 
 /** Wide enough to spell out the change count and offer to discard beside Save */
 private val WideWidth: Dp = 600.dp
+
+/** Short enough that the keyboard leaves little room under the top bar */
+private val ShortHeight: Dp = 480.dp
 
 /** Wide enough for the form's two columns */
 private val TwoColumnWidth: Dp = 720.dp
