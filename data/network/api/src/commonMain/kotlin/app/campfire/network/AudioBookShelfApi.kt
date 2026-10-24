@@ -6,6 +6,7 @@ package app.campfire.network
 import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -273,6 +274,14 @@ interface AudioBookShelfApi {
    * @return the server's name for what it found: `UPDATED`, `UPTODATE`, or `NOTHING`
    */
   suspend fun scanLibraryItem(itemId: String): Result<String>
+
+  /**
+   * Change a library item's media, `PATCH /api/items/:id/media`, with only what [request] sets.
+   * Accounts need the update permission.
+   *
+   * @return whether the server changed anything
+   */
+  suspend fun updateLibraryItemMedia(itemId: String, request: UpdateMediaRequest): Result<Boolean>
 
   //endregion
 

@@ -119,6 +119,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   /** Have the server scan the item's files again. */
   data object RescanClick : LibraryItemUiEvent
+
+  /** Open the editor for the item's details. */
+  data object EditClick : LibraryItemUiEvent
   data object ClearMessage : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent

@@ -44,6 +44,7 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteForever
+import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
@@ -55,6 +56,7 @@ import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
+import campfire.features.libraries.ui.generated.resources.menu_item_edit_details
 import campfire.features.libraries.ui.generated.resources.menu_item_rescan
 import com.slack.circuit.overlay.Overlay
 import com.slack.circuit.overlay.OverlayHost
@@ -176,7 +178,7 @@ private fun ActionRow(
   modifier: Modifier = Modifier,
 ) {
   val color = when (action) {
-    ItemAction.Rescan -> MaterialTheme.colorScheme.onSurface
+    ItemAction.Edit, ItemAction.Rescan -> MaterialTheme.colorScheme.onSurface
     ItemAction.Delete -> MaterialTheme.colorScheme.error
   }
   ListItem(
@@ -184,6 +186,7 @@ private fun ActionRow(
       Text(
         text = stringResource(
           when (action) {
+            ItemAction.Edit -> Res.string.menu_item_edit_details
             ItemAction.Rescan -> Res.string.menu_item_rescan
             ItemAction.Delete -> Res.string.menu_item_delete_from_server
           },
@@ -194,6 +197,7 @@ private fun ActionRow(
     leadingContent = {
       Icon(
         when (action) {
+          ItemAction.Edit -> CampfireIcons.Rounded.EditSquare
           ItemAction.Rescan -> CampfireIcons.Rounded.Refresh
           ItemAction.Delete -> CampfireIcons.Rounded.DeleteForever
         },
@@ -207,6 +211,7 @@ private fun ActionRow(
       .padding(start = 8.dp)
       .testTag(
         when (action) {
+          ItemAction.Edit -> "item_action_edit"
           ItemAction.Rescan -> "item_action_rescan"
           ItemAction.Delete -> "item_action_delete"
         },

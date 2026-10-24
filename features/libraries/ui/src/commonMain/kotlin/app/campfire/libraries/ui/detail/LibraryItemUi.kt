@@ -53,6 +53,7 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.LibraryAdd
 import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.layout.ContentLayout
@@ -103,6 +104,7 @@ import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
+import campfire.features.libraries.ui.generated.resources.cd_edit_details
 import campfire.features.libraries.ui.generated.resources.cd_more_actions
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.genres_title
@@ -212,6 +214,21 @@ fun LibraryItemContent(
             }
           }
 
+          if (ItemAction.Edit in itemActions) {
+            val editLabel = stringResource(Res.string.cd_edit_details)
+            IconButtonTooltip(text = editLabel) {
+              IconButton(
+                onClick = { state.eventSink(LibraryItemUiEvent.EditClick) },
+                modifier = Modifier.testTag("item_edit_button"),
+              ) {
+                Icon(
+                  CampfireIcons.Rounded.EditSquare,
+                  contentDescription = editLabel,
+                )
+              }
+            }
+          }
+
           if (itemActions.isNotEmpty()) {
             // Anchors the menu under its button
             Box {
@@ -233,6 +250,7 @@ fun LibraryItemContent(
                 onAction = { action ->
                   showOverflowMenu = false
                   when (action) {
+                    ItemAction.Edit -> state.eventSink(LibraryItemUiEvent.EditClick)
                     ItemAction.Rescan -> {
                       Analytics.send(ActionEvent("rescan_item", Click))
                       state.eventSink(LibraryItemUiEvent.RescanClick)

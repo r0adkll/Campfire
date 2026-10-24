@@ -194,6 +194,20 @@ abstract class WindowScreen(name: String) : BaseScreen(name) {
 }
 
 /**
+ * Screens that extend this are somewhere to work on something, such as editing an item, and take
+ * the app's main area wherever they're opened from, a detail screen in the supporting pane
+ * included. On windows wide enough for that pane, it shows their [preview] beside them meanwhile.
+ */
+abstract class WorkspaceScreen(name: String) : BaseScreen(name) {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true, hidePlaybackBar = true)
+
+  /** What the supporting pane shows while this is open, such as the item being edited */
+  open val preview: DetailScreen?
+    get() = null
+}
+
+/**
  * The Root screen class that all other screen definitions will use as the underlying screen
  * data type
  */
