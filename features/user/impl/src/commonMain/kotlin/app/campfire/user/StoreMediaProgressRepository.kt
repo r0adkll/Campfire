@@ -362,6 +362,49 @@ class StoreMediaProgressRepository(
     }
   }
 
+  override suspend fun setFinishedAt(
+    libraryItemId: LibraryItemId,
+    finishedAt: Long,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    val userId = userSession.requiredUserId
+    val existing = withContext(dispatcherProvider.databaseRead) {
+      // Empty string is the DB sentinel for "no episode" (book-level progress)
+      db.mediaProgressQueries.selectForEpisode(userId, libraryItemId, episodeId.orEmpty()).awaitAsOneOrNull()
+    }
+    if (existing == null || !existing.isFinished) {
+      return Result.failure(IllegalStateException("No finished progress for $libraryItemId to change"))
+    }
+
+    withContext(dispatcherProvider.databaseWrite) {
+      db.mediaProgressQueries.insert(existing.copy(finishedAt = finishedAt))
+    }
+
+    // Only the finish fields: a position would let the server decide the item isn't finished
+    return api.updateMediaProgress(
+      libraryItemId = libraryItemId,
+      episodeId = episodeId,
+      update = MediaProgressUpdatePayload(
+        episodeId = episodeId,
+        isFinished = true,
+        finishedAt = finishedAt,
+      ),
+    ).onFailure { error ->
+      MediaProgressStore.ebark(throwable = error) { "Error changing the finish date of $libraryItemId" }
+      withContext(dispatcherProvider.databaseWrite) {
+        db.mediaProgressQueries.transaction {
+          val current = db.mediaProgressQueries
+            .selectForEpisode(userId, libraryItemId, episodeId.orEmpty())
+            .awaitAsOneOrNull()
+          // Put the old date back, unless something newer has replaced the row since
+          if (current != null && current.finishedAt == finishedAt) {
+            db.mediaProgressQueries.insert(current.copy(finishedAt = existing.finishedAt))
+          }
+        }
+      }
+    }
+  }
+
   override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
     if (keys.isEmpty()) return
     val finishedAt = fatherTime.nowInEpochMillis()

@@ -34,6 +34,7 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
+import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -62,6 +63,8 @@ import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.finishedAtOn
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
@@ -86,7 +89,9 @@ import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
 import campfire.features.libraries.ui.generated.resources.genres_title
+import campfire.features.libraries.ui.generated.resources.listening_dates_save_failed
 import campfire.features.libraries.ui.generated.resources.tags_title
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,6 +104,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 @Suppress("UNCHECKED_CAST")
@@ -123,6 +129,7 @@ class BookPresenter(
   private val themeManager: ThemeManager,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val dispatcherProvider: DispatcherProvider,
+  private val fatherTime: FatherTime,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -255,6 +262,10 @@ class BookPresenter(
 
     var collapseListenedChapters by remember { mutableStateOf(true) }
 
+    // Retained so a date being picked survives the screen being recreated, a rotation say
+    var editingDate by rememberRetained { mutableStateOf<ListeningDate?>(null) }
+    var errorMessage by rememberRetained { mutableStateOf<String?>(null) }
+
     val canStreamHls = remember(libraryItem) {
       streamingRoutePredictor.canStreamHls(libraryItem)
     }
@@ -283,10 +294,12 @@ class BookPresenter(
       collapseListenedChapters = collapseListenedChapters,
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls && offlineDownloadState?.isAvailable != true,
+      editingDate = editingDate,
     )
 
     return ContentUiState(
       slots = slots,
+      errorMessage = errorMessage,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.AddToQueue -> {
@@ -365,6 +378,39 @@ class BookPresenter(
           scope.launch {
             mediaProgressRepository.markNotFinished(event.item.id)
           }
+        }
+
+        is LibraryItemUiEvent.EditListeningDate -> {
+          // Only finished progress has dates to change; "Set date" can beat marking it finished
+          if (event.date == ListeningDate.Finished && mediaProgressState.dataOrNull?.isFinished == true) {
+            analytics.send(ActionEvent("edit_listening_date", Click, extras = mapOf("date" to "finished")))
+            editingDate = event.date
+          }
+        }
+
+        LibraryItemUiEvent.DismissListeningDate -> {
+          editingDate = null
+        }
+
+        is LibraryItemUiEvent.ChangeListeningDate -> {
+          editingDate = null
+          val progress = mediaProgressState.dataOrNull?.takeIf { it.isFinished } ?: return@ContentUiState
+          if (event.date != ListeningDate.Finished) return@ContentUiState
+          analytics.send(ActionEvent("change_listening_date", Click, extras = mapOf("date" to "finished")))
+          val finishedAt = finishedAtOn(
+            date = event.day,
+            previously = progress.finishedAt,
+            startedAt = progress.startedAt,
+            now = fatherTime.nowInEpochMillis(),
+          )
+          scope.launch {
+            mediaProgressRepository.setFinishedAt(libraryItem.id, finishedAt)
+              .onFailure { errorMessage = getString(Res.string.listening_dates_save_failed) }
+          }
+        }
+
+        LibraryItemUiEvent.ClearError -> {
+          errorMessage = null
         }
 
         is LibraryItemUiEvent.ChapterClick -> {
@@ -486,6 +532,7 @@ private fun buildSlots(
   collapseListenedChapters: Boolean,
   canStreamHls: Boolean,
   willStreamHls: Boolean,
+  editingDate: ListeningDate?,
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
@@ -577,6 +624,8 @@ private fun buildSlots(
           mediaProgress = mediaProgress,
           libraryItem = libraryItem,
           chapter = ebookContents.entryAt(mediaProgress.actualProgress)?.label,
+          canEditDates = mediaProgress.isFinished,
+          editingDate = editingDate,
         )
         this += SpacerSlot.small("progress_spacer_after")
       }

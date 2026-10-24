@@ -71,6 +71,16 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     invocations += Invocation.MarkNotFinished(libraryItemId, episodeId)
   }
 
+  var setFinishedAtResult: Result<Unit> = Result.success(Unit)
+  override suspend fun setFinishedAt(
+    libraryItemId: LibraryItemId,
+    finishedAt: Long,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    invocations += Invocation.SetFinishedAt(libraryItemId, finishedAt, episodeId)
+    return setFinishedAtResult
+  }
+
   override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
     invocations += Invocation.MarkAllFinished(keys)
   }
@@ -108,6 +118,11 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     ) : Invocation
     data class MarkNotFinished(
       val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
+    data class SetFinishedAt(
+      val libraryItemId: LibraryItemId,
+      val finishedAt: Long,
       val episodeId: PodcastEpisodeId? = null,
     ) : Invocation
     data class MarkAllFinished(val keys: List<MediaProgressKey>) : Invocation

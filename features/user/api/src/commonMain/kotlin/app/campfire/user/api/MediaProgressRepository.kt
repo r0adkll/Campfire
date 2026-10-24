@@ -80,6 +80,20 @@ interface MediaProgressRepository {
   )
 
   /**
+   * Change when the finished progress of [libraryItemId], or of its [episodeId], was finished.
+   * The local row takes the new date first, so a sync from playback carries it rather than the
+   * old one, and goes back to the old date if the server doesn't take it.
+   *
+   * @param finishedAt the new finish time, in epoch milliseconds
+   * @return a failure when there is no finished progress to change or the server refused it
+   */
+  suspend fun setFinishedAt(
+    libraryItemId: LibraryItemId,
+    finishedAt: Long,
+    episodeId: PodcastEpisodeId? = null,
+  ): Result<Unit>
+
+  /**
    * Mark every item in [keys] finished with a single request to the server.
    */
   suspend fun markAllFinished(keys: List<MediaProgressKey>)
