@@ -42,6 +42,8 @@ data class ReaderUiState(
 
 @Immutable
 data class ReaderPosition(
+  /** The part [chapter] is in, where the contents nest chapters in parts. */
+  val part: String? = null,
   val chapter: String? = null,
   /** The [TocEntry.href] of the chapter. */
   val chapterHref: String? = null,
