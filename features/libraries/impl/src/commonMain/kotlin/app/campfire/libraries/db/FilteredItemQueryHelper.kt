@@ -125,6 +125,7 @@ class FilteredItemQueryHelper(
       metadata_series_sequence: Double?,
       libraryItemId: String,
       metadata_series: List<SeriesSequence>?,
+      metadata_narrators: List<String>?,
     ) -> T,
   ): T {
     return mapper(
@@ -181,6 +182,7 @@ class FilteredItemQueryHelper(
       cursor.getDouble(50),
       cursor.getString(51)!!,
       cursor.getString(52)?.let { adapters.mediaAdapter.metadata_seriesAdapter.decode(it) },
+      cursor.getString(53)?.let { adapters.mediaAdapter.metadata_narratorsAdapter.decode(it) },
     )
   }
 

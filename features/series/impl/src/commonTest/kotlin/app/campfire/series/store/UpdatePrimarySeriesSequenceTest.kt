@@ -100,6 +100,7 @@ class UpdatePrimarySeriesSequenceTest {
     metadata_series_sequence = primary?.sequence,
     libraryItemId = LIBRARY_ITEM_ID,
     metadata_series = series,
+    metadata_narrators = null,
   )
 
   private companion object {
