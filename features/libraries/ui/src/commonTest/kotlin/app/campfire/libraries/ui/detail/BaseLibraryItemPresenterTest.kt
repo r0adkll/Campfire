@@ -120,7 +120,6 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     dispatcherProvider = dispatcherProvider,
-    downloads = downloads,
   )
 }
 

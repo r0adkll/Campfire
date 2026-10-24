@@ -620,9 +620,6 @@ private val DeleteItemClickSoft = EventTest(
       .single()
       .isEqualTo(TestLibraryItemId to false)
 
-    // Everything of the item kept here goes with it
-    assertThat(downloads.invocations).containsExactly(FakeDownloads.Invocation.DeleteAll(TestLibraryItemId))
-
     navigator.awaitPop()
   },
 )
