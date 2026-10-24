@@ -105,4 +105,6 @@
     <item quantity="other">%1$d unfinished episodes</item>
   </plurals>
   <string name="unfinished_episodes_capped">%1$d+</string>
+  <string name="date_picker_dialog_confirm">Save</string>
+  <string name="date_picker_dialog_dismiss">Cancel</string>
 </resources>

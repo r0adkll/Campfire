@@ -14,6 +14,7 @@ import app.campfire.common.test.user
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
@@ -33,10 +34,15 @@ import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import com.slack.circuit.test.FakeNavigator
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 internal const val TestLibraryItemId = "item_id"
 
@@ -64,6 +70,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
   internal val bookInfoRegistry = FakeBookInfoRegistry()
+  internal val fatherTime = FixedFatherTime(TestNow)
 
   internal val bookPresenter = BookPresenter(
     validator = libraryItemValidator,
@@ -84,6 +91,7 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     dispatcherProvider = dispatcherProvider,
+    fatherTime = fatherTime,
   )
 
   internal val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker =
@@ -137,6 +145,15 @@ internal fun emptyLibraryItem(
   numTracks = numTracks,
   ebookFormat = ebookFormat,
 )
+
+/** Noon UTC on 1 May 2026, when the presenter tests take "now" to be. */
+internal const val TestNow = 1_777_636_800_000L
+
+internal class FixedFatherTime(private val nowMillis: Long) : FatherTime {
+  override fun now(): LocalDateTime = Instant.fromEpochMilliseconds(nowMillis).toLocalDateTime(TimeZone.UTC)
+  override fun today(): LocalDate = now().date
+  override fun nowInEpochMillis(): Long = nowMillis
+}
 
 /**
  * A no-op tracker used by tests that don't care about the remote download queue. Always reports

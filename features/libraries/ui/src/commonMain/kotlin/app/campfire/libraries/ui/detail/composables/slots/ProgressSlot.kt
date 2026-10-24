@@ -6,16 +6,30 @@ package app.campfire.libraries.ui.detail.composables.slots
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Headphones
 import app.campfire.common.compose.icons.rounded.MenuBook
+import app.campfire.common.compose.widgets.dialog.CampfireDatePickerDialog
+import app.campfire.core.extensions.asDate
+import app.campfire.core.extensions.readableFormat
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
+import app.campfire.libraries.ui.detail.composables.EditableInset
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
+import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.showListeningDatesSheet
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.listening_dates_finished_picker_earliest
+import campfire.features.libraries.ui.generated.resources.listening_dates_finished_picker_title
+import com.slack.circuit.overlay.LocalOverlayHost
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 class ProgressSlot(
   val isPlaying: Boolean,
@@ -25,6 +39,10 @@ class ProgressSlot(
   /** The chapter of an ebook being read, where its contents are known. */
   @get:VisibleForTesting val chapter: String? = null,
   @get:VisibleForTesting val kind: Kind = Kind.Item,
+  /** Whether tapping the bar opens the progress's listening dates, for finished progress. */
+  @get:VisibleForTesting val canEditDates: Boolean = false,
+  /** The listening date being picked, if any. */
+  @get:VisibleForTesting val editingDate: ListeningDate? = null,
 ) : ContentSlot {
 
   /**
@@ -49,7 +67,8 @@ class ProgressSlot(
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
-    val barModifier = modifier.padding(horizontal = 20.dp)
+    // An editable bar's touch target reaches past it, so it's inset less to keep the bar in place
+    val barModifier = modifier.padding(horizontal = if (canEditDates) BarInset - EditableInset else BarInset)
     when (kind) {
       Kind.Item -> MediaProgressBar(
         isPlaying = isPlaying,
@@ -57,6 +76,7 @@ class ProgressSlot(
         progress = mediaProgress,
         totalDuration = libraryItem.media.duration,
         chapter = chapter,
+        onEditDates = if (canEditDates) rememberEditDates(eventSink) else null,
         modifier = barModifier,
       )
 
@@ -80,5 +100,40 @@ class ProgressSlot(
         modifier = barModifier,
       )
     }
+
+    if (canEditDates && editingDate == ListeningDate.Finished) {
+      FinishedDatePicker(eventSink)
+    }
+  }
+
+  @Composable
+  private fun rememberEditDates(eventSink: (LibraryItemUiEvent) -> Unit): () -> Unit {
+    val overlayHost = LocalOverlayHost.current
+    val scope = rememberCoroutineScope()
+    return {
+      scope.launch {
+        overlayHost.showListeningDatesSheet(libraryItem.media.metadata.title, mediaProgress)
+          ?.let { eventSink(LibraryItemUiEvent.EditListeningDate(it)) }
+      }
+    }
+  }
+
+  @Composable
+  private fun FinishedDatePicker(eventSink: (LibraryItemUiEvent) -> Unit) {
+    val today = Clock.System.now().toEpochMilliseconds().asDate()
+    val startedOn = mediaProgress.startedAt.takeIf { it > 0L }?.asDate()?.takeIf { it <= today }
+    CampfireDatePickerDialog(
+      title = stringResource(Res.string.listening_dates_finished_picker_title),
+      initialDate = mediaProgress.finishedAt?.asDate() ?: today,
+      earliest = startedOn,
+      latest = today,
+      supportingText = startedOn?.let {
+        stringResource(Res.string.listening_dates_finished_picker_earliest, it.readableFormat)
+      },
+      onConfirm = { eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Finished, it)) },
+      onDismissRequest = { eventSink(LibraryItemUiEvent.DismissListeningDate) },
+    )
   }
 }
+
+private val BarInset = 20.dp

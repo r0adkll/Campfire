@@ -167,6 +167,59 @@ class StoreMediaProgressRepositoryTest {
   }
 
   @Test
+  fun setFinishedAt_changesTheRowAndSendsOnlyTheFinishFields() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", isFinished = true, finishedAt = NOW))
+
+    val result = repository(db).setFinishedAt(BOOK_A, finishedAt = EARLIER)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(db.progressFor(BOOK_A)).isNotNull().given { progress ->
+      assertThat(progress.finishedAt).isEqualTo(EARLIER)
+      assertThat(progress.isFinished).isTrue()
+      assertThat(progress.id).isEqualTo("progress-a")
+    }
+    assertThat(api.mediaProgressUpdates).containsExactly(
+      MediaProgressUpdatePayload(isFinished = true, finishedAt = EARLIER),
+    )
+  }
+
+  @Test
+  fun setFinishedAt_ofAnEpisode_changesOnlyThatEpisode() = testDb { db ->
+    db.insertProgress(progress(PODCAST, episodeId = EPISODE, id = "progress-ep", isFinished = true, finishedAt = NOW))
+
+    repository(db).setFinishedAt(PODCAST, finishedAt = EARLIER, episodeId = EPISODE)
+
+    assertThat(db.progressFor(PODCAST, EPISODE)).isNotNull().prop(MediaProgress::finishedAt).isEqualTo(EARLIER)
+    assertThat(api.mediaProgressUpdates).containsExactly(
+      MediaProgressUpdatePayload(episodeId = EPISODE, isFinished = true, finishedAt = EARLIER),
+    )
+  }
+
+  @Test
+  fun setFinishedAt_whenTheServerRefuses_putsTheOldDateBack() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", isFinished = true, finishedAt = NOW))
+    api.updateMediaProgressResult = { Result.failure(IllegalStateException("offline")) }
+
+    val result = repository(db).setFinishedAt(BOOK_A, finishedAt = EARLIER)
+
+    assertThat(result.isFailure).isTrue()
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::finishedAt).isEqualTo(NOW)
+  }
+
+  @Test
+  fun setFinishedAt_withoutFinishedProgress_leavesTheServerAlone() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", currentTime = 50f))
+
+    val unfinished = repository(db).setFinishedAt(BOOK_A, finishedAt = EARLIER)
+    val missing = repository(db).setFinishedAt(BOOK_B, finishedAt = EARLIER)
+
+    assertThat(unfinished.isFailure).isTrue()
+    assertThat(missing.isFailure).isTrue()
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::finishedAt).isNull()
+    assertThat(api.mediaProgressUpdates).isEmpty()
+  }
+
+  @Test
   fun updateEbookProgress_keepsTheListeningProgressOfAnExistingRow() = testDb { db ->
     db.mediaProgressQueries.insert(playbackRow(id = "server-progress-id"))
 
@@ -229,6 +282,7 @@ class StoreMediaProgressRepositoryTest {
     episodeId: String? = null,
     currentTime: Float = 0f,
     isFinished: Boolean = false,
+    finishedAt: Long? = null,
   ) = MediaProgress(
     id = id,
     userId = USER_ID,
@@ -243,6 +297,7 @@ class StoreMediaProgressRepositoryTest {
     hideFromContinueListening = false,
     lastUpdate = NOW - 1_000L,
     startedAt = 0L,
+    finishedAt = finishedAt,
     source = MediaProgress.Source.Remote,
   )
 
@@ -279,6 +334,7 @@ class StoreMediaProgressRepositoryTest {
     const val PODCAST = "podcast"
     const val EPISODE = "episode-1"
     const val NOW = 1_700_000_000_000L
+    const val EARLIER = NOW - 86_400_000L
   }
 }
 
