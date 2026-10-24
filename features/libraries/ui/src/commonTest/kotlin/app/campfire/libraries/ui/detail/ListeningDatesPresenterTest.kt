@@ -112,14 +112,14 @@ class ListeningDatesPresenterTest : BaseLibraryItemPresenterTest() {
       latest.eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Finished, LocalDate(2026, 4, 20)))
 
       var withError = awaitItem()
-      while (withError.errorMessage == null) {
+      while (withError.message == null) {
         withError = awaitItem()
       }
-      assertThat(withError.errorMessage).isNotNull()
+      assertThat(withError.message).isNotNull()
 
-      withError.eventSink(LibraryItemUiEvent.ClearError)
+      withError.eventSink(LibraryItemUiEvent.ClearMessage)
       var cleared = awaitItem()
-      while (cleared.errorMessage != null) {
+      while (cleared.message != null) {
         cleared = awaitItem()
       }
 
@@ -165,8 +165,8 @@ class ListeningDatesPresenterTest : BaseLibraryItemPresenterTest() {
       assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.SetStartedAt>()).isEmpty()
 
       latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
-      val confirmed = awaitUntil { it.errorMessage != null }
-      assertThat(confirmed.errorMessage).isEqualTo("Start date changed")
+      val confirmed = awaitUntil { it.message != null }
+      assertThat(confirmed.message).isEqualTo("Start date changed")
 
       assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.SetStartedAt>())
         .single()
@@ -239,7 +239,7 @@ class ListeningDatesPresenterTest : BaseLibraryItemPresenterTest() {
 
       val notRestored = awaitProgressSlot { it.progressNotRestored }
       // The row under the bar says so, rather than a snackbar too
-      assertThat(latest.errorMessage).isNull()
+      assertThat(latest.message).isNull()
       assertThat(notRestored.canEditDates).isTrue()
 
       latest.eventSink(LibraryItemUiEvent.RestoreProgress)
@@ -266,8 +266,8 @@ class ListeningDatesPresenterTest : BaseLibraryItemPresenterTest() {
       awaitProgressSlot { it.confirmingStartedOn != null }
       latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
 
-      val explained = awaitUntil { it.errorMessage != null }
-      assertThat(explained.errorMessage).isEqualTo(
+      val explained = awaitUntil { it.message != null }
+      assertThat(explained.message).isEqualTo(
         "Couldn't change the start date, so your progress was put back as it was.",
       )
 

@@ -27,6 +27,7 @@ import app.campfire.network.envelopes.PlayItemRequest
 import app.campfire.network.envelopes.PlaylistsResponse
 import app.campfire.network.envelopes.PodcastFeedRequest
 import app.campfire.network.envelopes.PodcastFeedResponse
+import app.campfire.network.envelopes.ScanItemResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncPlaybackSessionRequest
@@ -428,6 +429,14 @@ class KtorAudioBookShelfApi(
       hydratedClientRequest("/api/items/$itemId") {
         method = HttpMethod.Delete
         if (hard) parameter("hard", "1")
+      }
+    }
+  }
+
+  override suspend fun scanLibraryItem(itemId: String): Result<String> {
+    return trySendRequest({ it.body<ScanItemResponse>().result }) {
+      hydratedClientRequest("/api/items/$itemId/scan") {
+        method = HttpMethod.Post
       }
     }
   }

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -26,6 +27,7 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.User
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.ContentUiState
@@ -187,6 +189,69 @@ class LibraryItemUiTest {
     onNodeWithContentDescription("Add to collection").performClick()
     onNodeWithTag("add_to_collection_dialog").assertExists()
   }
+
+  @Test
+  fun anAccountThatCanManageItems_rescansFromTheMenu() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_rescan").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.RescanClick)
+  }
+
+  @Test
+  fun deletingFiles_takesASecondPress() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_option_hard").performClick()
+    onNodeWithTag("delete_confirm").assertTextEquals("Delete files").performClick()
+
+    // The first press only asks again
+    events.assertNoEvents()
+    onNodeWithTag("delete_confirm").assertTextEquals("Press again to delete files").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.DeleteItemClick(hardDelete = true))
+  }
+
+  @Test
+  fun removingFromTheLibrary_isTheDefaultAndTakesOnePress() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_confirm").assertTextEquals("Remove").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
+  }
+
+  @Test
+  fun anAccountThatCantManageItems_hasNoMenu() = runComposeUiTest {
+    val listener = user(
+      id = "listener",
+      type = User.Type.User,
+      permissions = user.permissions.copy(update = false, delete = false),
+    )
+
+    setContent { TestLibraryItem(loadedState(listener)) }
+
+    onNodeWithTag("item_actions_button").assertDoesNotExist()
+  }
+
+  private fun loadedState(user: User) = LibraryItemUiState(
+    user = user,
+    // A folder, as a single file can't be rescanned
+    libraryItem = libraryItem().copy(isFile = false),
+    contentState = LoadState.Loaded(
+      data = ContentUiState(
+        slots = listOf(TestContentSlot("slot")),
+        eventSink = events::invoke,
+      ),
+    ),
+    eventSink = events::invoke,
+  )
 
   @Composable
   private fun TestLibraryItem(
