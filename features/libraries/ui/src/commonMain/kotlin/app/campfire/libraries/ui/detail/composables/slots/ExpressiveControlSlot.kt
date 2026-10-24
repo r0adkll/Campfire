@@ -5,6 +5,7 @@ package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,10 +26,15 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
+import app.campfire.libraries.ui.detail.dates.ListeningDate
 import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.mark_finished_snackbar
+import campfire.features.libraries.ui.generated.resources.mark_finished_snackbar_set_date
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 class ExpressiveControlSlot(
   private val libraryItem: LibraryItem,
@@ -60,6 +66,8 @@ class ExpressiveControlSlot(
 
     val scope = rememberCoroutineScope()
     val snackBarHost = LocalSnackBarHost.current
+    val markedFinishedMessage = stringResource(Res.string.mark_finished_snackbar)
+    val setDateLabel = stringResource(Res.string.mark_finished_snackbar_set_date)
     var showAddToPlaylistDialog by remember { mutableStateOf(false) }
     if (showAddToPlaylistDialog) {
       addToPlaylistDialog.Content(
@@ -114,6 +122,17 @@ class ExpressiveControlSlot(
       },
       onMarkFinished = {
         eventSink(LibraryItemUiEvent.MarkFinished(libraryItem))
+        // Marked by hand, the finish date is today's, which is seldom when it was really finished
+        scope.launch {
+          val result = snackBarHost.showSnackbar(
+            message = markedFinishedMessage,
+            actionLabel = setDateLabel,
+            duration = SnackbarDuration.Long,
+          )
+          if (result == SnackbarResult.ActionPerformed) {
+            eventSink(LibraryItemUiEvent.EditListeningDate(ListeningDate.Finished))
+          }
+        }
       },
       onMarkNotFinished = {
         eventSink(LibraryItemUiEvent.MarkNotFinished(libraryItem))

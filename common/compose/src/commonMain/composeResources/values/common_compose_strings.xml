@@ -100,4 +100,6 @@
   <string name="work_offline_go_online">Go online now</string>
   <string name="work_offline_go_online_until_wifi">Go online until next Wi-Fi</string>
   <string name="work_offline_back_online">Back online</string>
+  <string name="date_picker_dialog_confirm">Save</string>
+  <string name="date_picker_dialog_dismiss">Cancel</string>
 </resources>

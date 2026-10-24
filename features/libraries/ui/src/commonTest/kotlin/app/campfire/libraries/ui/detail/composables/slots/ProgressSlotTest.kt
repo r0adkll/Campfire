@@ -4,17 +4,33 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.window.core.layout.WindowSizeClass
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.test.mediaProgress
+import app.campfire.core.extensions.asDate
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
+import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.TestLibraryItemId
+import app.campfire.libraries.ui.detail.dates.ListeningDate
+import assertk.assertThat
+import assertk.assertions.containsExactly
+import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
+import kotlin.time.Clock
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
 class ProgressSlotTest {
@@ -151,5 +167,101 @@ class ProgressSlotTest {
     onNodeWithTag("icon_finished_check").assertExists()
     onNodeWithText("Finished on", substring = true).assertExists()
     onNodeWithText("100%").assertExists()
+    // Without the dates to change, the bar is only a bar
+    onNodeWithTag("progress_edit_dates").assertDoesNotExist()
+  }
+
+  @Test
+  fun finishedWithoutAFinishDateTest() = runComposeUiTest {
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 100f,
+      duration = 100f,
+      isFinished = true,
+      finishedAt = null,
+    )
+    val slot = ProgressSlot(false, 1f, mediaProgress, libraryItem())
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithText("Finished").assertExists()
+  }
+
+  @Test
+  fun editableBarOpensTheListeningDatesTest() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val slot = ProgressSlot(false, 1f, finishedProgress(), libraryItem(), canEditDates = true)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 400, minHeightDp = 800)) {
+          ContentWithOverlays {
+            slot.Content(Modifier) { events += it }
+          }
+        }
+      }
+    }
+
+    // The bar and the line under it are one button
+    onNodeWithTag("progress_edit_dates")
+      .assertHasClickAction()
+      .assert(hasText("Finished on", substring = true))
+      .performClick()
+
+    waitUntil { onAllNodesWithText("Listening dates").fetchSemanticsNodes().isNotEmpty() }
+    onNodeWithTag("listening_date_started").assertHasNoClickAction()
+    onNodeWithTag("listening_date_finished").performClick()
+
+    waitUntil { events.isNotEmpty() }
+    assertThat(events).containsExactly(LibraryItemUiEvent.EditListeningDate(ListeningDate.Finished))
+  }
+
+  @Test
+  fun pickingTheFinishedDateTest() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val progress = finishedProgress()
+    val slot = ProgressSlot(
+      isPlaying = false,
+      playbackSpeed = 1f,
+      mediaProgress = progress,
+      libraryItem = libraryItem(),
+      canEditDates = true,
+      editingDate = ListeningDate.Finished,
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 400, minHeightDp = 800)) {
+          ContentWithOverlays {
+            slot.Content(Modifier) { events += it }
+          }
+        }
+      }
+    }
+
+    onNodeWithText("Finished on").assertExists()
+    onNodeWithText("earlier days can't be picked", substring = true).assertExists()
+    onNodeWithTag("date_picker_confirm").performClick()
+
+    assertThat(events).containsExactly(
+      LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Finished, progress.finishedAt!!.asDate()),
+    )
+  }
+
+  private fun finishedProgress() = mediaProgress(
+    libraryItemId = TestLibraryItemId,
+    currentTime = 100f,
+    duration = 100f,
+    isFinished = true,
+    startedAt = Clock.System.now().toEpochMilliseconds() - 20L * DAY,
+    finishedAt = Clock.System.now().toEpochMilliseconds() - 2L * DAY,
+  )
+
+  private companion object {
+    const val DAY = 86_400_000L
   }
 }
