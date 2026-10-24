@@ -23,6 +23,16 @@ class FakeLibraryItemRepository : LibraryItemRepository {
     return libraryItem
   }
 
+  val fetchInvocations = mutableListOf<LibraryItemId>()
+
+  /** What a fetch returns; when it's not set, the item [libraryItemFlow] last had */
+  var fetchResult: Result<LibraryItem>? = null
+  override suspend fun fetchLibraryItem(itemId: LibraryItemId): Result<LibraryItem> {
+    fetchInvocations += itemId
+    return fetchResult ?: libraryItemFlow.replayCache.lastOrNull()?.let { Result.success(it) }
+      ?: Result.failure(NoSuchElementException(itemId))
+  }
+
   val deleteInvocations = mutableListOf<Pair<LibraryItemId, Boolean>>()
   var deleteResult: Result<Unit> = Result.success(Unit)
   override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {

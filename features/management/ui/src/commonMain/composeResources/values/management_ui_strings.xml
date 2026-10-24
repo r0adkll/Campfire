@@ -22,12 +22,27 @@
   <string name="label_explicit">Explicit</string>
   <string name="label_abridged">Abridged</string>
   <string name="cd_changed">Changed</string>
+  <string name="label_authors">Authors</string>
+  <string name="label_narrators">Narrators</string>
+  <string name="label_series_name">Series</string>
+  <string name="label_series_sequence">Number</string>
+  <string name="label_genres">Genres</string>
+  <string name="label_tags">Tags</string>
+  <string name="action_add_series">Add series</string>
+  <string name="cd_remove_series">Remove series</string>
+  <string name="cd_remove">Remove</string>
+  <string name="suggestion_add">Add “%1$s”</string>
 
+  <string name="section_people">People</string>
+  <string name="section_series">Series</string>
   <string name="section_publishing">Publishing</string>
+  <string name="section_classification">Genres and tags</string>
   <string name="section_identifiers">Identifiers</string>
 
   <string name="error_title_required">A book needs a title</string>
   <string name="error_year_invalid">Use four digits, like 2019</string>
+  <string name="error_series_name_missing">Name the series, or remove it</string>
+  <string name="error_series_duplicate">This series is already listed</string>
   <string name="warning_explicit_hidden">Your account can't see explicit books, so you won't see this one once it's saved</string>
   <string name="editor_footer">Changes are saved to the book on your server and kept when it's rescanned. A detail you clear can come back with a scan if the book's files have it.</string>
 
@@ -42,6 +57,7 @@
   <string name="dialog_discard_cancel">Keep editing</string>
 
   <string name="editor_load_failed">Couldn't load this book's details</string>
+  <string name="action_retry">Try again</string>
   <string name="editor_save_not_allowed">Your account isn't allowed to change this. Ask your server's admin.</string>
   <string name="editor_save_failed">Couldn't save. Check your connection and try again.</string>
   <string name="editor_saved">Saved the details of %1$s</string>

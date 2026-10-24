@@ -71,6 +71,7 @@ class DatabaseFactory(
       propertySizeAdapter = IntColumnAdapter,
       metadata_genresAdapter = StringListAdapter,
       metadata_seriesAdapter = SeriesSequenceListAdapter,
+      metadata_narratorsAdapter = StringListAdapter,
     )
 
   fun build(): CampfireDatabase = CampfireDatabase(

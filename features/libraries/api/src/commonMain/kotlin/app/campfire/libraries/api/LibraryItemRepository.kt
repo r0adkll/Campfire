@@ -14,6 +14,14 @@ interface LibraryItemRepository {
   suspend fun getLibraryItem(itemId: LibraryItemId): LibraryItem
 
   /**
+   * The item as the server has it now, which is cached too. A cached copy can be one a list
+   * fetched, which has a book's authors, narrators and series only as names to show.
+   *
+   * @return a failure when the server can't be reached or no longer has the item
+   */
+  suspend fun fetchLibraryItem(itemId: LibraryItemId): Result<LibraryItem>
+
+  /**
    * Delete a library item from the server. When [hardDelete] is true the
    * server also removes the item's files from disk; otherwise only the DB
    * row + cascading server-side data is removed.
