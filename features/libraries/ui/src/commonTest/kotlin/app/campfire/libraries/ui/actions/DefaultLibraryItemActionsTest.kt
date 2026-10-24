@@ -21,13 +21,17 @@ import app.campfire.core.model.User
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.RescanResult
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.user.test.FakeUserRepository
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.test.FakeNavigator
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +49,10 @@ class DefaultLibraryItemActionsTest {
   private val snackbarHost = SnackbarHostState()
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
 
+  private val navigator = FakeNavigator(LibraryItemScreen("elsewhere"))
+
   private val actions = DefaultLibraryItemActions(
+    navigator = navigator,
     userRepository = userRepository,
     libraryItemRepository = libraryItemRepository,
     coroutineScopeHolder = CoroutineScopeHolder { scope },
@@ -93,6 +100,26 @@ class DefaultLibraryItemActionsTest {
 
     onNodeWithTag("item_action_rescan").assertDoesNotExist()
     onNodeWithTag("item_action_delete").assertDoesNotExist()
+  }
+
+  @Test
+  fun anAccountThatCanUpdateItemsIsOfferedToEditABook() = runComposeUiTest {
+    signIn(User.Type.User, delete = false, update = true)
+    showActions()
+
+    onNodeWithTag("item_action_edit").assertExists()
+    onNodeWithTag("item_action_rescan").assertDoesNotExist()
+  }
+
+  @Test
+  fun editingOpensTheEditor() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    showActions()
+
+    onNodeWithTag("item_action_edit").performClick()
+    waitForIdle()
+
+    assertThat(navigator.awaitNextScreen()).isEqualTo(ItemEditorScreen(item.id))
   }
 
   @Test

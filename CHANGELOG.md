@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
 - Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
 - Add a podcast episode to the queue, or take it back out, by swiping it to the right in Latest or on a show's page, or with its new queue button, with an Undo either way
+- Edit a book's details on your server, such as its title, description and year, when your account is allowed to
 
 ### Changed
 

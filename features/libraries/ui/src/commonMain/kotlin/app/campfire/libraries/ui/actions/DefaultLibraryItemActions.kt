@@ -12,6 +12,7 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.common.compose.widgets.LibraryItemActions
+import app.campfire.common.compose.widgets.LibraryItemActionsFactory
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
@@ -22,6 +23,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.itemActions
+import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.item_delete_failed
@@ -34,24 +36,39 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_nothing
 import campfire.features.libraries.ui.generated.resources.item_rescan_up_to_date
 import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.slack.circuit.overlay.OverlayHost
+import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+
+/** Makes [DefaultLibraryItemActions] for the app's navigator. */
+@ContributesBinding(UserScope::class)
+@Inject
+class DefaultLibraryItemActionsFactory(
+  private val userRepository: UserRepository,
+  private val libraryItemRepository: LibraryItemRepository,
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
+) : LibraryItemActionsFactory {
+
+  override fun create(navigator: Navigator): LibraryItemActions = DefaultLibraryItemActions(
+    navigator = navigator,
+    userRepository = userRepository,
+    libraryItemRepository = libraryItemRepository,
+    coroutineScopeHolder = coroutineScopeHolder,
+  )
+}
 
 /**
  * The actions a library item's card offers on a long press or a right click: the ones the server
  * would take from the signed-in account, as the detail screen's menu has. The work runs on past
  * the card, which a delete takes out of its list.
  */
-@ContributesBinding(UserScope::class)
-@SingleIn(UserScope::class)
-@Inject
 class DefaultLibraryItemActions(
+  private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
-  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
+  private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActions {
 
   @Composable
@@ -76,6 +93,11 @@ class DefaultLibraryItemActions(
     } ?: return
 
     when (action) {
+      ItemAction.Edit -> {
+        Analytics.send(ActionEvent("edit_item", Click))
+        navigator.goTo(ItemEditorScreen(item.id))
+      }
+
       ItemAction.Rescan -> {
         Analytics.send(ActionEvent("rescan_item", Click))
         coroutineScopeHolder.get().launch {
