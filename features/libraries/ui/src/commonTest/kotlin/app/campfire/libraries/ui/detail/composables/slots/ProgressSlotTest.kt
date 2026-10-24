@@ -10,6 +10,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -31,6 +32,7 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
 import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
 class ProgressSlotTest {
@@ -250,6 +252,109 @@ class ProgressSlotTest {
     assertThat(events).containsExactly(
       LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Finished, progress.finishedAt!!.asDate()),
     )
+  }
+
+  @Test
+  fun theStartCanBeChangedFromTheListeningDatesTest() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val slot = ProgressSlot(
+      isPlaying = false,
+      playbackSpeed = 1f,
+      mediaProgress = finishedProgress(),
+      libraryItem = libraryItem(),
+      canEditDates = true,
+      canChangeStarted = true,
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 400, minHeightDp = 800)) {
+          ContentWithOverlays {
+            slot.Content(Modifier) { events += it }
+          }
+        }
+      }
+    }
+
+    onNodeWithTag("progress_edit_dates").performClick()
+    waitUntil { onAllNodesWithText("Changing it recreates your progress").fetchSemanticsNodes().isNotEmpty() }
+    onNodeWithTag("listening_date_started").performClick()
+
+    waitUntil { events.isNotEmpty() }
+    assertThat(events).containsExactly(LibraryItemUiEvent.EditListeningDate(ListeningDate.Started))
+  }
+
+  @Test
+  fun whilePlayingTheStartSaysToPauseTest() = runComposeUiTest {
+    val slot = ProgressSlot(false, 1f, finishedProgress(), libraryItem(), canEditDates = true, canChangeStarted = false)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 400, minHeightDp = 800)) {
+          ContentWithOverlays {
+            slot.Content(Modifier) {}
+          }
+        }
+      }
+    }
+
+    onNodeWithTag("progress_edit_dates").performClick()
+    waitUntil { onAllNodesWithText("Pause this book to change it").fetchSemanticsNodes().isNotEmpty() }
+    onNodeWithTag("listening_date_started").assertHasNoClickAction()
+  }
+
+  @Test
+  fun aNewStartAsksFirstTest() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val slot = ProgressSlot(
+      isPlaying = false,
+      playbackSpeed = 1f,
+      mediaProgress = finishedProgress(),
+      libraryItem = libraryItem(),
+      canEditDates = true,
+      canChangeStarted = true,
+      confirmingStartedOn = LocalDate(2026, 1, 12),
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        ContentWithOverlays {
+          slot.Content(Modifier) { events += it }
+        }
+      }
+    }
+
+    onNodeWithText("Change the start date?").assertExists()
+    onNodeWithTag("recreate_progress_new_start").assertTextEquals("January 12, 2026")
+    onNodeWithTag("recreate_progress_confirm").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.ConfirmStartedDate)
+  }
+
+  @Test
+  fun aProgressLeftOffTheServerOffersToPutItBackTest() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val slot = ProgressSlot(
+      isPlaying = false,
+      playbackSpeed = 1f,
+      mediaProgress = finishedProgress(),
+      libraryItem = libraryItem(),
+      canEditDates = true,
+      progressNotRestored = true,
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        ContentWithOverlays {
+          slot.Content(Modifier) { events += it }
+        }
+      }
+    }
+
+    onNodeWithTag("progress_not_restored").assertExists()
+    onNodeWithText("Try again").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.RestoreProgress)
   }
 
   private fun finishedProgress() = mediaProgress(

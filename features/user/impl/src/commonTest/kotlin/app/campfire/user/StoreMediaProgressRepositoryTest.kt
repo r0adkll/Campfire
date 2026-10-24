@@ -19,6 +19,7 @@ import app.campfire.network.models.MediaProgress as NetworkMediaProgress
 import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.test.FakeAudioBookShelfApi
 import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.api.StartedAtNotChanged
 import app.campfire.user.mediaprogress.EbookProgressUploader
 import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
@@ -28,13 +29,16 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsExactlyInAnyOrder
+import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import assertk.assertions.prop
+import assertk.assertions.single
 import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.LocalDate
@@ -220,6 +224,130 @@ class StoreMediaProgressRepositoryTest {
   }
 
   @Test
+  fun setStartedAt_createsTheProgressAgainFromTheServersCopy() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", isFinished = true, finishedAt = NOW))
+    val original = startedProgress(id = "progress-a", startedAt = EARLIER)
+    val serverCopies = mutableListOf(original, original.copy(id = "progress-a2", startedAt = EARLIEST))
+    api.mediaProgressResult = { _, _ -> Result.success(serverCopies.removeFirst()) }
+    api.deleteMediaProgressResult = { Result.success(Unit) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(api.deletedMediaProgressIds).containsExactly("progress-a")
+    assertThat(api.mediaProgressUpdates).containsExactly(original.creation(createdAt = EARLIEST))
+    assertThat(db.progressFor(BOOK_A)).isNotNull().given { progress ->
+      assertThat(progress.id).isEqualTo("progress-a2")
+      assertThat(progress.startedAt).isEqualTo(EARLIEST)
+      assertThat(progress.isFinished).isTrue()
+      assertThat(progress.finishedAt).isEqualTo(NOW)
+    }
+  }
+
+  @Test
+  fun setStartedAt_whenTheServerCantBeReached_changesNothing() = testDb { db ->
+    api.mediaProgressResult = { _, _ -> Result.failure(IllegalStateException("offline")) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<StartedAtNotChanged.Unchanged>()
+    assertThat(api.deletedMediaProgressIds).isEmpty()
+    assertThat(api.mediaProgressUpdates).isEmpty()
+  }
+
+  @Test
+  fun setStartedAt_whenTheDeleteIsRefused_createsNothing() = testDb { db ->
+    api.mediaProgressResult = { _, _ -> Result.success(startedProgress(id = "progress-a", startedAt = EARLIER)) }
+    api.deleteMediaProgressResult = { Result.failure(IllegalStateException("offline")) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<StartedAtNotChanged.Unchanged>()
+    assertThat(api.mediaProgressUpdates).isEmpty()
+  }
+
+  @Test
+  fun setStartedAt_whenCreatingAgainFails_putsTheOriginalBack() = testDb { db ->
+    val original = startedProgress(id = "progress-a", startedAt = EARLIER)
+    api.mediaProgressResult = { _, _ -> Result.success(original) }
+    api.deleteMediaProgressResult = { Result.success(Unit) }
+    var creates = 0
+    api.updateMediaProgressResult = {
+      if (creates++ == 0) Result.failure(IllegalStateException("bad request")) else Result.success(Unit)
+    }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<StartedAtNotChanged.Restored>()
+    assertThat(api.mediaProgressUpdates).containsExactly(
+      original.creation(createdAt = EARLIEST),
+      original.creation(createdAt = EARLIER),
+    )
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::startedAt).isEqualTo(EARLIER)
+  }
+
+  @Test
+  fun setStartedAt_whenTheOriginalCantBePutBack_keepsItHereToRestoreLater() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", isFinished = true, finishedAt = NOW, startedAt = EARLIER))
+    api.mediaProgressResult = { _, _ -> Result.success(startedProgress(id = "progress-a", startedAt = EARLIER)) }
+    api.deleteMediaProgressResult = { Result.success(Unit) }
+    api.updateMediaProgressResult = { Result.failure(IllegalStateException("offline")) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<StartedAtNotChanged.NotRestored>()
+    // One create, then three tries at putting it back
+    assertThat(api.mediaProgressUpdates).hasSize(4)
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::id).isEqualTo("progress-a")
+
+    // Back online, this device's copy goes back up
+    api.mediaProgressUpdates.clear()
+    api.updateMediaProgressResult = { Result.success(Unit) }
+    api.mediaProgressResult = { _, _ -> Result.success(startedProgress(id = "progress-a3", startedAt = EARLIER)) }
+
+    val restored = repository(db).restoreProgress(BOOK_A)
+
+    assertThat(restored.isSuccess).isTrue()
+    assertThat(api.mediaProgressUpdates).single().given { creation ->
+      assertThat(creation.createdAt).isEqualTo(EARLIER)
+      assertThat(creation.isFinished).isEqualTo(true)
+      assertThat(creation.finishedAt).isEqualTo(NOW)
+    }
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::id).isEqualTo("progress-a3")
+  }
+
+  @Test
+  fun setStartedAt_whenTheServerKeepsItsOwnStart_saysSo() = testDb { db ->
+    val original = startedProgress(id = "progress-a", startedAt = EARLIER)
+    val serverCopies = mutableListOf(original, original.copy(id = "progress-a2", startedAt = NOW))
+    api.mediaProgressResult = { _, _ -> Result.success(serverCopies.removeFirst()) }
+    api.deleteMediaProgressResult = { Result.success(Unit) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<StartedAtNotChanged.ServerKept>()
+    assertThat(db.progressFor(BOOK_A)).isNotNull().prop(MediaProgress::id).isEqualTo("progress-a2")
+  }
+
+  @Test
+  fun setStartedAt_whenTheNewProgressCantBeFetched_holdsTheNewStartUntilItIs() = testDb { db ->
+    db.insertProgress(progress(BOOK_A, id = "progress-a", isFinished = true, finishedAt = NOW, startedAt = EARLIER))
+    val serverCopies = mutableListOf(Result.success(startedProgress(id = "progress-a", startedAt = EARLIER)))
+    api.mediaProgressResult = { _, _ ->
+      serverCopies.removeFirstOrNull() ?: Result.failure(IllegalStateException("offline"))
+    }
+    api.deleteMediaProgressResult = { Result.success(Unit) }
+
+    val result = repository(db).setStartedAt(BOOK_A, startedAt = EARLIEST)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(db.progressFor(BOOK_A)).isNotNull().given { progress ->
+      assertThat(progress.id).isEqualTo(MediaProgress.UNKNOWN_ID)
+      assertThat(progress.startedAt).isEqualTo(EARLIEST)
+    }
+  }
+
+  @Test
   fun updateEbookProgress_keepsTheListeningProgressOfAnExistingRow() = testDb { db ->
     db.mediaProgressQueries.insert(playbackRow(id = "server-progress-id"))
 
@@ -283,6 +411,7 @@ class StoreMediaProgressRepositoryTest {
     currentTime: Float = 0f,
     isFinished: Boolean = false,
     finishedAt: Long? = null,
+    startedAt: Long = 0L,
   ) = MediaProgress(
     id = id,
     userId = USER_ID,
@@ -296,7 +425,7 @@ class StoreMediaProgressRepositoryTest {
     isFinished = isFinished,
     hideFromContinueListening = false,
     lastUpdate = NOW - 1_000L,
-    startedAt = 0L,
+    startedAt = startedAt,
     finishedAt = finishedAt,
     source = MediaProgress.Source.Remote,
   )
@@ -321,6 +450,37 @@ class StoreMediaProgressRepositoryTest {
     finishedAt = NOW,
   )
 
+  /** A finished book's progress as the server has it, read in an ebook too so every field carries over. */
+  private fun startedProgress(id: String, startedAt: Long) = NetworkMediaProgress(
+    id = id,
+    userId = USER_ID,
+    libraryItemId = BOOK_A,
+    mediaItemId = "media-$BOOK_A",
+    mediaItemType = NetworkMediaType.Book,
+    duration = 3_600f,
+    progress = 1f,
+    currentTime = 3_590f,
+    isFinished = true,
+    hideFromContinueListening = true,
+    ebookLocation = "epubcfi(/6/4!/4/2/1:0)",
+    ebookProgress = 0.4f,
+    lastUpdate = NOW,
+    startedAt = startedAt,
+    finishedAt = NOW,
+  )
+
+  private fun NetworkMediaProgress.creation(createdAt: Long) = MediaProgressUpdatePayload(
+    duration = duration,
+    progress = progress,
+    currentTime = currentTime,
+    isFinished = isFinished,
+    hideFromContinueListening = hideFromContinueListening,
+    finishedAt = finishedAt,
+    ebookLocation = ebookLocation,
+    ebookProgress = ebookProgress,
+    createdAt = createdAt,
+  )
+
   private object FixedFatherTime : FatherTime {
     override fun now(): LocalDateTime = error("not used in tests")
     override fun today(): LocalDate = error("not used in tests")
@@ -335,6 +495,7 @@ class StoreMediaProgressRepositoryTest {
     const val EPISODE = "episode-1"
     const val NOW = 1_700_000_000_000L
     const val EARLIER = NOW - 86_400_000L
+    const val EARLIEST = NOW - 10 * 86_400_000L
   }
 }
 

@@ -3,19 +3,24 @@
 
 package app.campfire.libraries.ui.detail
 
+import app.campfire.audioplayer.AudioPlayer
 import app.campfire.common.test.mediaProgress
+import app.campfire.common.test.session
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.extensions.asDateTime
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.user.api.StartedAtNotChanged
 import app.campfire.user.test.FakeMediaProgressRepository.Invocation
 import assertk.assertThat
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
+import assertk.assertions.prop
 import assertk.assertions.single
 import com.slack.circuit.test.CircuitReceiveTurbine
 import com.slack.circuit.test.test
@@ -140,6 +145,144 @@ class ListeningDatesPresenterTest : BaseLibraryItemPresenterTest() {
         .given { assertThat(it.finishedAt).isEqualTo(startedAt.toEpochMilliseconds()) }
 
       cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun aNewStart_waitsOnConfirmationBeforeRecreatingTheProgress() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    val startedAt = LocalDateTime(2026, 4, 2, 8, 45).toInstant(TimeZone.currentSystemDefault())
+    mediaProgressRepository.progressFlow.value = finishedProgress(startedAt = startedAt.toEpochMilliseconds())
+
+    presenter.test {
+      assertThat(awaitProgressSlot { true }.canChangeStarted).isTrue()
+
+      latest.eventSink(LibraryItemUiEvent.EditListeningDate(ListeningDate.Started))
+      awaitProgressSlot { it.editingDate == ListeningDate.Started }
+
+      latest.eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Started, LocalDate(2026, 3, 20)))
+      awaitProgressSlot { it.confirmingStartedOn == LocalDate(2026, 3, 20) && it.editingDate == null }
+      assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.SetStartedAt>()).isEmpty()
+
+      latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
+      val confirmed = awaitUntil { it.errorMessage != null }
+      assertThat(confirmed.errorMessage).isEqualTo("Start date changed")
+
+      assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.SetStartedAt>())
+        .single()
+        .given { invocation ->
+          val saved = invocation.startedAt.asDateTime()
+          assertThat(saved.date).isEqualTo(LocalDate(2026, 3, 20))
+          assertThat(saved.hour).isEqualTo(8)
+          assertThat(saved.minute).isEqualTo(45)
+        }
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun backingOutOfTheConfirmation_changesNothing() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    mediaProgressRepository.progressFlow.value = finishedProgress()
+
+    presenter.test {
+      awaitProgressSlot { true }
+      latest.eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Started, LocalDate(2026, 3, 20)))
+      awaitProgressSlot { it.confirmingStartedOn != null }
+
+      latest.eventSink(LibraryItemUiEvent.DismissListeningDate)
+      awaitProgressSlot { it.confirmingStartedOn == null }
+      latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
+
+      assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.SetStartedAt>()).isEmpty()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun whilePlaying_theStartCantBeChanged() = runTest {
+    val item = emptyLibraryItem()
+    libraryItemRepository.libraryItemFlow.emit(item)
+    mediaProgressRepository.progressFlow.value = finishedProgress()
+    audioPlayer.preparedSession = session(libraryItem = item)
+    audioPlayer.state.value = AudioPlayer.State.Playing
+    audioPlayerHolder.currentPlayer.value = audioPlayer
+
+    presenter.test {
+      val playing = awaitProgressSlot { !it.canChangeStarted }
+
+      latest.eventSink(LibraryItemUiEvent.EditListeningDate(ListeningDate.Started))
+      audioPlayer.state.value = AudioPlayer.State.Paused
+
+      // Paused again, the start can change, but the tap made while playing opened nothing
+      val paused = awaitProgressSlot { it.canChangeStarted }
+      assertThat(paused.editingDate).isNull()
+      assertThat(playing.canEditDates).isTrue()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun aProgressLeftOffTheServer_canBePutBack() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    mediaProgressRepository.progressFlow.value = finishedProgress()
+    mediaProgressRepository.setStartedAtResult = Result.failure(StartedAtNotChanged.NotRestored())
+
+    presenter.test {
+      awaitProgressSlot { true }
+      latest.eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Started, LocalDate(2026, 3, 20)))
+      awaitProgressSlot { it.confirmingStartedOn != null }
+      latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
+
+      val notRestored = awaitProgressSlot { it.progressNotRestored }
+      // The row under the bar says so, rather than a snackbar too
+      assertThat(latest.errorMessage).isNull()
+      assertThat(notRestored.canEditDates).isTrue()
+
+      latest.eventSink(LibraryItemUiEvent.RestoreProgress)
+      awaitProgressSlot { !it.progressNotRestored }
+
+      assertThat(mediaProgressRepository.invocations.filterIsInstance<Invocation.RestoreProgress>())
+        .single()
+        .prop(Invocation.RestoreProgress::libraryItemId)
+        .isEqualTo(TestLibraryItemId)
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun aStartPutBackAsItWas_isExplained() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    mediaProgressRepository.progressFlow.value = finishedProgress()
+    mediaProgressRepository.setStartedAtResult = Result.failure(StartedAtNotChanged.Restored())
+
+    presenter.test {
+      awaitProgressSlot { true }
+      latest.eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Started, LocalDate(2026, 3, 20)))
+      awaitProgressSlot { it.confirmingStartedOn != null }
+      latest.eventSink(LibraryItemUiEvent.ConfirmStartedDate)
+
+      val explained = awaitUntil { it.errorMessage != null }
+      assertThat(explained.errorMessage).isEqualTo(
+        "Couldn't change the start date, so your progress was put back as it was.",
+      )
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  /** Waits for a state matching [predicate], and keeps it as [latest]. */
+  private suspend fun CircuitReceiveTurbine<LibraryItemUiState>.awaitUntil(
+    predicate: (LibraryItemUiState) -> Boolean,
+  ): LibraryItemUiState {
+    while (true) {
+      val state = awaitItem()
+      latest = state
+      if (predicate(state)) return state
     }
   }
 

@@ -94,6 +94,32 @@ interface MediaProgressRepository {
   ): Result<Unit>
 
   /**
+   * Change when the progress of [libraryItemId], or of its [episodeId], was started.
+   *
+   * Audiobookshelf only sets a progress's start when it creates the progress, so this deletes the
+   * server's copy and creates it again with everything else it held, then checks the start took.
+   * The progress gets a new id, and the server counts it as just updated. Don't call this while
+   * the item is playing here, or a sync from playback can create the progress in between.
+   *
+   * @param startedAt the new start time, in epoch milliseconds
+   * @return a failure, a [StartedAtNotChanged] where the server was reached, saying how far it got
+   */
+  suspend fun setStartedAt(
+    libraryItemId: LibraryItemId,
+    startedAt: Long,
+    episodeId: PodcastEpisodeId? = null,
+  ): Result<Unit>
+
+  /**
+   * Put this device's copy of the progress of [libraryItemId], or of its [episodeId], back on the
+   * server, for when [setStartedAt] couldn't.
+   */
+  suspend fun restoreProgress(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
+  ): Result<Unit>
+
+  /**
    * Mark every item in [keys] finished with a single request to the server.
    */
   suspend fun markAllFinished(keys: List<MediaProgressKey>)

@@ -103,7 +103,7 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = contentState,
-      errorMessage = errorMessage ?: contentState.dataOrNull?.errorMessage,
+      errorMessage = errorMessage ?: contentState.dataOrNull?.message,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()

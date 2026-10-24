@@ -64,7 +64,9 @@ import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.analyticsName
 import app.campfire.libraries.ui.detail.dates.finishedAtOn
+import app.campfire.libraries.ui.detail.dates.startedAtOn
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
@@ -84,12 +86,18 @@ import app.campfire.sessions.api.observeContains
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.StartedAtNotChanged
 import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
 import campfire.features.libraries.ui.generated.resources.genres_title
+import campfire.features.libraries.ui.generated.resources.listening_dates_restored
 import campfire.features.libraries.ui.generated.resources.listening_dates_save_failed
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_changed
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_failed
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_restored
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_server_kept
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
@@ -104,6 +112,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
@@ -264,7 +273,12 @@ class BookPresenter(
 
     // Retained so a date being picked survives the screen being recreated, a rotation say
     var editingDate by rememberRetained { mutableStateOf<ListeningDate?>(null) }
-    var errorMessage by rememberRetained { mutableStateOf<String?>(null) }
+    var confirmingStartedOn by rememberRetained { mutableStateOf<LocalDate?>(null) }
+    var isChangingStart by rememberRetained { mutableStateOf(false) }
+    var progressNotRestored by rememberRetained { mutableStateOf(false) }
+    var message by rememberRetained { mutableStateOf<String?>(null) }
+    // A sync from playback could create the progress while it's being created again
+    val canChangeStarted = !isPlaying
 
     val canStreamHls = remember(libraryItem) {
       streamingRoutePredictor.canStreamHls(libraryItem)
@@ -294,12 +308,17 @@ class BookPresenter(
       collapseListenedChapters = collapseListenedChapters,
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls && offlineDownloadState?.isAvailable != true,
-      editingDate = editingDate,
+      listeningDates = ListeningDatesSlotState(
+        editingDate = editingDate,
+        canChangeStarted = canChangeStarted,
+        confirmingStartedOn = confirmingStartedOn,
+        progressNotRestored = progressNotRestored,
+      ),
     )
 
     return ContentUiState(
       slots = slots,
-      errorMessage = errorMessage,
+      message = message,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.AddToQueue -> {
@@ -382,35 +401,83 @@ class BookPresenter(
 
         is LibraryItemUiEvent.EditListeningDate -> {
           // Only finished progress has dates to change; "Set date" can beat marking it finished
-          if (event.date == ListeningDate.Finished && mediaProgressState.dataOrNull?.isFinished == true) {
-            analytics.send(ActionEvent("edit_listening_date", Click, extras = mapOf("date" to "finished")))
-            editingDate = event.date
-          }
+          if (mediaProgressState.dataOrNull?.isFinished != true) return@ContentUiState
+          if (event.date == ListeningDate.Started && !canChangeStarted) return@ContentUiState
+          analytics.send(ActionEvent("edit_listening_date", Click, extras = mapOf("date" to event.date.analyticsName)))
+          editingDate = event.date
         }
 
         LibraryItemUiEvent.DismissListeningDate -> {
           editingDate = null
+          confirmingStartedOn = null
         }
 
         is LibraryItemUiEvent.ChangeListeningDate -> {
           editingDate = null
           val progress = mediaProgressState.dataOrNull?.takeIf { it.isFinished } ?: return@ContentUiState
-          if (event.date != ListeningDate.Finished) return@ContentUiState
-          analytics.send(ActionEvent("change_listening_date", Click, extras = mapOf("date" to "finished")))
-          val finishedAt = finishedAtOn(
-            date = event.day,
-            previously = progress.finishedAt,
-            startedAt = progress.startedAt,
+          when (event.date) {
+            // Waits on the user agreeing to recreate the progress
+            ListeningDate.Started -> confirmingStartedOn = event.day
+            ListeningDate.Finished -> {
+              analytics.send(ActionEvent("change_listening_date", Click, extras = mapOf("date" to "finished")))
+              val finishedAt = finishedAtOn(
+                date = event.day,
+                previously = progress.finishedAt,
+                startedAt = progress.startedAt,
+                now = fatherTime.nowInEpochMillis(),
+              )
+              scope.launch {
+                mediaProgressRepository.setFinishedAt(libraryItem.id, finishedAt)
+                  .onFailure { message = getString(Res.string.listening_dates_save_failed) }
+              }
+            }
+          }
+        }
+
+        LibraryItemUiEvent.ConfirmStartedDate -> {
+          val day = confirmingStartedOn ?: return@ContentUiState
+          confirmingStartedOn = null
+          val progress = mediaProgressState.dataOrNull?.takeIf { it.isFinished } ?: return@ContentUiState
+          if (!canChangeStarted || isChangingStart) return@ContentUiState
+          analytics.send(ActionEvent("change_listening_date", Click, extras = mapOf("date" to "started")))
+          val startedAt = startedAtOn(
+            date = day,
+            previously = progress.startedAt,
+            finishedAt = progress.finishedAt,
             now = fatherTime.nowInEpochMillis(),
           )
+          isChangingStart = true
           scope.launch {
-            mediaProgressRepository.setFinishedAt(libraryItem.id, finishedAt)
-              .onFailure { errorMessage = getString(Res.string.listening_dates_save_failed) }
+            val result = mediaProgressRepository.setStartedAt(libraryItem.id, startedAt)
+            isChangingStart = false
+            progressNotRestored = result.exceptionOrNull() is StartedAtNotChanged.NotRestored
+            message = getString(
+              when (result.exceptionOrNull()) {
+                null -> Res.string.listening_dates_started_changed
+                is StartedAtNotChanged.Restored -> Res.string.listening_dates_started_restored
+                is StartedAtNotChanged.ServerKept -> Res.string.listening_dates_started_server_kept
+                // Said by the row under the bar, with its way to try again
+                is StartedAtNotChanged.NotRestored -> return@launch
+                else -> Res.string.listening_dates_started_failed
+              },
+            )
+          }
+        }
+
+        LibraryItemUiEvent.RestoreProgress -> {
+          analytics.send(ActionEvent("restore_progress", Click))
+          scope.launch {
+            mediaProgressRepository.restoreProgress(libraryItem.id)
+              .onSuccess {
+                progressNotRestored = false
+                message = getString(Res.string.listening_dates_restored)
+              }
+              .onFailure { message = getString(Res.string.listening_dates_save_failed) }
           }
         }
 
         LibraryItemUiEvent.ClearError -> {
-          errorMessage = null
+          message = null
         }
 
         is LibraryItemUiEvent.ChapterClick -> {
@@ -532,7 +599,7 @@ private fun buildSlots(
   collapseListenedChapters: Boolean,
   canStreamHls: Boolean,
   willStreamHls: Boolean,
-  editingDate: ListeningDate?,
+  listeningDates: ListeningDatesSlotState,
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
@@ -625,7 +692,10 @@ private fun buildSlots(
           libraryItem = libraryItem,
           chapter = ebookContents.entryAt(mediaProgress.actualProgress)?.label,
           canEditDates = mediaProgress.isFinished,
-          editingDate = editingDate,
+          editingDate = listeningDates.editingDate,
+          canChangeStarted = listeningDates.canChangeStarted,
+          confirmingStartedOn = listeningDates.confirmingStartedOn,
+          progressNotRestored = listeningDates.progressNotRestored,
         )
         this += SpacerSlot.small("progress_spacer_after")
       }
@@ -795,3 +865,11 @@ private fun buildSlots(
     }
   }
 }
+
+/** How far along changing the item's listening dates is, for its progress bar. */
+private class ListeningDatesSlotState(
+  val editingDate: ListeningDate?,
+  val canChangeStarted: Boolean,
+  val confirmingStartedOn: LocalDate?,
+  val progressNotRestored: Boolean,
+)
