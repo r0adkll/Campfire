@@ -391,6 +391,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
           },
           offlineStatus = offlineStatus,
           meta = item.listMeta(sortMode, filter),
+          offersActions = true,
           modifier = Modifier
             .padding(
               horizontal = 16.dp,

@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
 - Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
 - Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
-- Delete a book or podcast from your server, or have your server rescan its files, from its menu, when your account is allowed to
+- Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
 
 ### Changed
 
