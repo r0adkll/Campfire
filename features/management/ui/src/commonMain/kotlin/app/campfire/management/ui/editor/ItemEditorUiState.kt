@@ -19,11 +19,15 @@ data class ItemEditorUiState(
   val canEdit: Boolean,
   /** Whether the account may see explicit items, which marking this one explicit would hide */
   val canSeeExplicit: Boolean,
+  /** Names the book's library already has, to suggest while typing */
+  val suggestions: DetailSuggestions,
   val isSaving: Boolean,
   /** The server's details changed since editing started, and the draft hasn't caught up */
   val isBehindServer: Boolean,
   /** Closing with changes waits on whether to throw them away */
   val isConfirmingDiscard: Boolean,
+  /** The server's copy of the details couldn't be fetched, so there's nothing to edit */
+  val isLoadFailed: Boolean,
   val eventSink: (ItemEditorUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -42,4 +46,7 @@ sealed interface ItemEditorUiEvent : CircuitUiEvent {
 
   /** Keep the changes despite the server's details having changed meanwhile */
   data object KeepChanges : ItemEditorUiEvent
+
+  /** Try fetching the details to edit again */
+  data object RetryLoad : ItemEditorUiEvent
 }

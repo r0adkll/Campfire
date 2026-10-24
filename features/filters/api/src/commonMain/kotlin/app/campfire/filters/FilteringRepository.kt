@@ -4,6 +4,7 @@
 package app.campfire.filters
 
 import app.campfire.core.model.FilterData
+import app.campfire.core.model.LibraryId
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -11,5 +12,9 @@ import kotlinx.coroutines.flow.Flow
  * UI.
  */
 interface FilteringRepository {
+  /** The filter data of the library the user has selected */
   fun observeFilterData(): Flow<FilterData>
+
+  /** The filter data of [libraryId], such as every author, series and genre in it */
+  fun observeFilterData(libraryId: LibraryId): Flow<FilterData>
 }
