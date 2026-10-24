@@ -30,8 +30,27 @@ data class User(
   val canEditCollections: Boolean
     get() = type == Type.Admin || type == Type.Root
 
+  /** Mirrors the server's `User.isAdminOrUp`. */
+  val isAdminOrUp: Boolean
+    get() = type == Type.Admin || type == Type.Root
+
+  /**
+   * Mirrors the server's `User.canDelete`, which any account can be given: an admin doesn't have
+   * it unless granted, and a regular user can be.
+   */
   val canDeleteItems: Boolean
-    get() = permissions.delete && (type == Type.Admin || type == Type.Root)
+    get() = permissions.delete && isActive
+
+  /** Mirrors the server's `User.canUpdate`, needed to change an item. */
+  val canUpdateItems: Boolean
+    get() = permissions.update && isActive
+
+  /**
+   * Whether the server will scan an item's files again for this account: an admin route that the
+   * item routes also hold to the update permission.
+   */
+  val canRescanItems: Boolean
+    get() = isAdminOrUp && canUpdateItems
 
   /** Mirrors the server's `User.canDownload`, which also refuses downloads to a deactivated user. */
   val canDownload: Boolean
