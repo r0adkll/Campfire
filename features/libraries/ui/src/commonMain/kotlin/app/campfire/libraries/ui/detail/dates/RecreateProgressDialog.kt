@@ -5,6 +5,7 @@ package app.campfire.libraries.ui.detail.dates
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -76,31 +77,37 @@ internal fun RecreateProgressDialog(
               .fillMaxWidth()
               .padding(horizontal = 16.dp, vertical = 14.dp),
           ) {
-            Row(
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
-              verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
               Text(
                 text = stringResource(Res.string.listening_dates_started),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
-              Text(
-                text = from?.readableFormat ?: stringResource(Res.string.listening_dates_unknown),
-                style = MaterialTheme.typography.bodyMedium,
-                textDecoration = TextDecoration.LineThrough,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-              Icon(
-                CampfireIcons.Rounded.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-              )
-              Text(
-                text = to.readableFormat,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.testTag("recreate_progress_new_start"),
-              )
+              // Two long dates don't fit a dialog's width side by side, so each wraps whole
+              FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                  text = from?.readableFormat ?: stringResource(Res.string.listening_dates_unknown),
+                  style = MaterialTheme.typography.bodyMedium,
+                  textDecoration = TextDecoration.LineThrough,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  softWrap = false,
+                )
+                Icon(
+                  CampfireIcons.Rounded.ArrowForward,
+                  contentDescription = null,
+                  modifier = Modifier.size(16.dp),
+                )
+                Text(
+                  text = to.readableFormat,
+                  style = MaterialTheme.typography.labelLarge,
+                  softWrap = false,
+                  modifier = Modifier.testTag("recreate_progress_new_start"),
+                )
+              }
             }
             HorizontalDivider()
             Row(
