@@ -14,16 +14,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteForever
+import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Media
 import app.campfire.core.model.User
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
+import campfire.features.libraries.ui.generated.resources.menu_item_edit_details
 import campfire.features.libraries.ui.generated.resources.menu_item_rescan
 import org.jetbrains.compose.resources.stringResource
 
 /** Something an account can do to an item on the server, rather than to its own listening. */
 enum class ItemAction {
+  /** Change the item's details, such as its title and description. */
+  Edit,
+
   /** Scan the item's files again. */
   Rescan,
 
@@ -36,6 +42,8 @@ enum class ItemAction {
  * them. Offering only these keeps the server from refusing an action the app offered.
  */
 fun User.itemActions(item: LibraryItem): List<ItemAction> = buildList {
+  // Only a book's details can be edited so far
+  if (canUpdateItems && item.media is Media.Book) add(ItemAction.Edit)
   // The server can't scan an item that is a single file on its own
   if (canRescanItems && !item.isFile) add(ItemAction.Rescan)
   if (canDeleteItems) add(ItemAction.Delete)
@@ -58,6 +66,13 @@ internal fun ItemActionsMenu(
   ) {
     actions.forEachIndexed { index, action ->
       when (action) {
+        ItemAction.Edit -> DropdownMenuItem(
+          text = { Text(stringResource(Res.string.menu_item_edit_details)) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.EditSquare, contentDescription = null) },
+          onClick = { onAction(action) },
+          modifier = Modifier.testTag("item_action_edit"),
+        )
+
         ItemAction.Rescan -> DropdownMenuItem(
           text = { Text(stringResource(Res.string.menu_item_rescan)) },
           leadingIcon = { Icon(CampfireIcons.Rounded.Refresh, contentDescription = null) },

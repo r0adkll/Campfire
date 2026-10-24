@@ -8,6 +8,7 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
+import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.LibraryItemRepository
@@ -15,6 +16,8 @@ import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.envelopes.UpdateBookMetadataRequest
+import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.isNotFound
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -102,18 +105,42 @@ class StoreLibraryItemRepository(
       }
       .onSuccess { result ->
         // The server tells sockets about the change too, but they can be turned off
-        if (result == RescanResult.Updated) {
-          try {
-            itemStore.fresh(itemId)
-          } catch (e: CancellationException) {
-            throw e
-          } catch (e: Exception) {
-            bark(throwable = e) { "Failed to fetch library item $itemId after rescanning it" }
-          }
-        }
+        if (result == RescanResult.Updated) refresh(itemId, "rescanning it")
       }
       .explainRefusal()
   }
+
+  override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate): Result<Boolean> {
+    return api.updateLibraryItemMedia(itemId, UpdateMediaRequest(metadata = update.asRequest()))
+      .onSuccess { updated ->
+        // The server tells sockets about the change too, but they can be turned off
+        if (updated) refresh(itemId, "updating its details")
+      }
+      .explainRefusal()
+  }
+
+  private suspend fun refresh(itemId: LibraryItemId, after: String) {
+    try {
+      itemStore.fresh(itemId)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(throwable = e) { "Failed to fetch library item $itemId after $after" }
+    }
+  }
+
+  private fun BookDetailsUpdate.asRequest() = UpdateBookMetadataRequest(
+    title = title,
+    subtitle = subtitle,
+    description = description,
+    publisher = publisher,
+    publishedYear = publishedYear,
+    language = language,
+    isbn = isbn,
+    asin = asin,
+    explicit = explicit,
+    abridged = abridged,
+  )
 
   private fun <T> Result<T>.explainRefusal(): Result<T> {
     val error = exceptionOrNull()
