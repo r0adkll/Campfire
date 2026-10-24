@@ -102,4 +102,5 @@
   <string name="work_offline_back_online">Back online</string>
   <string name="date_picker_dialog_confirm">Save</string>
   <string name="date_picker_dialog_dismiss">Cancel</string>
+  <string name="item_actions_label">More actions</string>
 </resources>

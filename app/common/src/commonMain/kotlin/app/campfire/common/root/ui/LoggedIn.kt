@@ -50,6 +50,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
@@ -61,6 +62,7 @@ import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
+import app.campfire.common.compose.widgets.LocalLibraryItemActions
 import app.campfire.common.compose.window.LocalWindowScreenLauncher
 import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
@@ -195,6 +197,7 @@ internal fun LoggedInWindow(
         LocalPlaybackSession provides currentSession,
         LocalThemeDispatcher provides themeManagerDispatcher,
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
+        LocalLibraryItemActions provides userComponent.libraryItemActions,
       ) {
         // A half-open foldable on a table gives the app only the region above the hinge, and
         // the player the region below. Everything under here — navigation type, pane routing,
@@ -585,28 +588,32 @@ private fun LoggedInUi(
     )
   }
 
-  if (tabletopSplit != null) {
-    TabletopSplitLayout(
-      split = tabletopSplit,
-      bottomContent = {
-        DedicatedPlayer(
-          onItemClick = { session ->
-            homeNavigator.goTo(
-              LibraryItemScreen(
-                libraryItemId = session.libraryItem.id,
-                episodeId = session.episodeId,
-              ),
-            )
-          },
-          modifier = Modifier.fillMaxSize(),
-        )
-      },
-      modifier = modifier,
-    ) {
-      adaptiveLayout(Modifier.fillMaxSize())
+  // The app's own snackbar, for what's said from anywhere that has none of its own, such as
+  // the outcome of an action picked from a list's long press
+  CompositionLocalProvider(LocalSnackBarHost provides snackbarHostState) {
+    if (tabletopSplit != null) {
+      TabletopSplitLayout(
+        split = tabletopSplit,
+        bottomContent = {
+          DedicatedPlayer(
+            onItemClick = { session ->
+              homeNavigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = session.libraryItem.id,
+                  episodeId = session.episodeId,
+                ),
+              )
+            },
+            modifier = Modifier.fillMaxSize(),
+          )
+        },
+        modifier = modifier,
+      ) {
+        adaptiveLayout(Modifier.fillMaxSize())
+      }
+    } else {
+      adaptiveLayout(modifier)
     }
-  } else {
-    adaptiveLayout(modifier)
   }
 }
 

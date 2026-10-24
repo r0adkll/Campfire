@@ -86,7 +86,11 @@ class StoreLibraryItemRepository(
 
   override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
     return api.deleteLibraryItem(itemId, hardDelete)
-      .onSuccess { itemStore.clear(itemId) }
+      .onSuccess {
+        itemStore.clear(itemId)
+        // Gone from every list now, rather than once a socket says so, as sockets can be off
+        purger.purge(listOf(itemId))
+      }
       .explainRefusal()
   }
 
