@@ -9,6 +9,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        implementation(projects.features.filters.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.management.api)
         implementation(projects.features.user.api)
@@ -20,6 +21,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.data.analytics.test)
+        implementation(projects.features.filters.test)
         implementation(projects.features.libraries.test)
         implementation(projects.features.user.test)
       }
