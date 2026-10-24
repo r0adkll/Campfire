@@ -383,6 +383,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
           offlineStatus = offlineStatus,
           unfinishedEpisodes = unfinishedEpisodes[item.id] ?: 0,
           meta = item.listMeta(sortMode, filter),
+          offersActions = true,
           modifier = Modifier
             .padding(
               horizontal = 16.dp,

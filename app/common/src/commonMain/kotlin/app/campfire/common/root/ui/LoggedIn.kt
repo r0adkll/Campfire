@@ -62,6 +62,7 @@ import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
+import app.campfire.common.compose.widgets.LocalLibraryItemActions
 import app.campfire.common.compose.window.LocalWindowScreenLauncher
 import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
@@ -199,6 +200,7 @@ internal fun LoggedInWindow(
         LocalPlaybackSession provides currentSession,
         LocalThemeDispatcher provides themeManagerDispatcher,
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
+        LocalLibraryItemActions provides userComponent.libraryItemActions,
       ) {
         // A half-open foldable on a table gives the app only the region above the hinge, and
         // the player the region below. Everything under here — navigation type, pane routing,

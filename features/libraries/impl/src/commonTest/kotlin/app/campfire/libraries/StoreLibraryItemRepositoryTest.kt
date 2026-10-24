@@ -45,6 +45,7 @@ import kotlinx.coroutines.test.runTest
 class StoreLibraryItemRepositoryTest {
 
   private val api = FakeAudioBookShelfApi()
+  private val purger = RecordingPurger()
   private lateinit var db: CampfireDatabase
 
   @Test
@@ -155,6 +156,16 @@ class StoreLibraryItemRepositoryTest {
   }
 
   @Test
+  fun `a deleted item is purged here straight away`() = repositoryTest {
+    api.deleteLibraryItemResult = { Result.success(Unit) }
+
+    val delete = repository().deleteLibraryItem(ITEM, hardDelete = false)
+
+    assertThat(delete.isSuccess).isEqualTo(true)
+    assertThat(purger.purged).containsExactly(ITEM)
+  }
+
+  @Test
   fun `other failures come back as they were`() = repositoryTest {
     api.deleteLibraryItemResult = { Result.failure(ApiException(500)) }
 
@@ -162,6 +173,7 @@ class StoreLibraryItemRepositoryTest {
 
     assertThat(delete.exceptionOrNull()).isNotNull().isInstanceOf<ApiException>()
     assertThat(api.deletedLibraryItems).containsExactly(ITEM to true)
+    assertThat(purger.purged).isEmpty()
   }
 
   private fun TestScope.dao() = SqlDelightLibraryItemDao(
@@ -177,10 +189,10 @@ class StoreLibraryItemRepositoryTest {
       db = db,
       libraryItemDao = dao(),
       dispatcherProvider = asTestDispatcherProvider(),
-      purger = NoPurger,
+      purger = purger,
     ),
     api = api,
-    purger = NoPurger,
+    purger = purger,
   )
 
   /** Caches [item] the way a library page does: never over a fuller copy. */
@@ -202,8 +214,11 @@ class StoreLibraryItemRepositoryTest {
     }
   }
 
-  private object NoPurger : LibraryItemPurger {
-    override suspend fun purge(itemIds: Collection<LibraryItemId>) = Unit
+  private class RecordingPurger : LibraryItemPurger {
+    val purged = mutableListOf<LibraryItemId>()
+    override suspend fun purge(itemIds: Collection<LibraryItemId>) {
+      purged += itemIds
+    }
     override suspend fun purgeIfRemoved(candidates: Collection<LibraryItemId>) = emptySet<LibraryItemId>()
   }
 
