@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.Refresh
@@ -22,6 +23,7 @@ import app.campfire.core.model.User
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
 import campfire.features.libraries.ui.generated.resources.menu_item_edit_details
+import campfire.features.libraries.ui.generated.resources.menu_item_quick_match
 import campfire.features.libraries.ui.generated.resources.menu_item_rescan
 import org.jetbrains.compose.resources.stringResource
 
@@ -29,6 +31,9 @@ import org.jetbrains.compose.resources.stringResource
 enum class ItemAction {
   /** Change the item's details, such as its title and description. */
   Edit,
+
+  /** Have the server fill in the item's details from the first result its source finds. */
+  QuickMatch,
 
   /** Scan the item's files again. */
   Rescan,
@@ -43,7 +48,10 @@ enum class ItemAction {
  */
 fun User.itemActions(item: LibraryItem): List<ItemAction> = buildList {
   // Only a book's details can be edited so far
-  if (canUpdateItems && item.media is Media.Book) add(ItemAction.Edit)
+  if (canUpdateItems && item.media is Media.Book) {
+    add(ItemAction.Edit)
+    add(ItemAction.QuickMatch)
+  }
   // The server can't scan an item that is a single file on its own
   if (canRescanItems && !item.isFile) add(ItemAction.Rescan)
   if (canDeleteItems) add(ItemAction.Delete)
@@ -71,6 +79,13 @@ internal fun ItemActionsMenu(
           leadingIcon = { Icon(CampfireIcons.Rounded.EditSquare, contentDescription = null) },
           onClick = { onAction(action) },
           modifier = Modifier.testTag("item_action_edit"),
+        )
+
+        ItemAction.QuickMatch -> DropdownMenuItem(
+          text = { Text(stringResource(Res.string.menu_item_quick_match)) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.AutoAwesome, contentDescription = null) },
+          onClick = { onAction(action) },
+          modifier = Modifier.testTag("item_action_quick_match"),
         )
 
         ItemAction.Rescan -> DropdownMenuItem(

@@ -4,6 +4,8 @@
 package app.campfire.management.api.match
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.libraries.api.BookDetailsUpdate
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.SeriesEntry
 import kotlin.time.Duration
 
@@ -29,6 +31,44 @@ interface MetadataMatchRepository {
 
   /** The source searched last, to start from the next time */
   var lastProvider: String?
+
+  /**
+   * Have the server match the book [itemId] against the first result [provider] finds for it, by
+   * the book's own title, author, ISBN and ASIN. It fills in what the book is missing, and a cover
+   * when it has none; [replaceDetails] and [replaceCover] let it replace what the book has. A
+   * changed book is fetched again here.
+   *
+   * @return a failure, an [ItemChangeNotAllowedException] when the account may not change items
+   */
+  suspend fun quickMatchBook(
+    itemId: LibraryItemId,
+    provider: String,
+    replaceDetails: Boolean,
+    replaceCover: Boolean,
+  ): Result<QuickMatchResult>
+}
+
+/** What a quick match did to a book. */
+sealed interface QuickMatchResult {
+
+  /** The source found nothing for the book. */
+  data object NoMatch : QuickMatchResult
+
+  /** The source's first result had nothing for the book that it was allowed to change. */
+  data object NothingChanged : QuickMatchResult
+
+  /**
+   * The server changed the book.
+   *
+   * @property undo What puts back the details the match changed, one field for each; null when the
+   * changed book couldn't be fetched to see what they were.
+   * @property coverChanged Whether the cover surely changed: the book had none, or nothing else
+   * changed. A replaced cover keeps its file's name, so beside changed details it can't be told.
+   */
+  data class Updated(
+    val undo: BookDetailsUpdate?,
+    val coverChanged: Boolean,
+  ) : QuickMatchResult
 }
 
 /** A source the server searches for a book's details, like Audible or Google Books */
