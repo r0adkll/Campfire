@@ -213,6 +213,16 @@ class StoreLibraryItemRepositoryTest {
   }
 
   @Test
+  fun `a new cover is sent for the server to download`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+
+    repository().updateBookDetails(ITEM, BookDetailsUpdate(coverUrl = "https://m.media-amazon.com/images/I/cover.jpg"))
+
+    assertThat(api.mediaUpdates)
+      .containsExactly(ITEM to UpdateMediaRequest(url = "https://m.media-amazon.com/images/I/cover.jpg"))
+  }
+
+  @Test
   fun `fetching an item asks the server even with a copy cached`() = repositoryTest { cache ->
     cache(audiobook(title = "Cached"))
     api.libraryItemResult = { Result.success(audiobook(title = "Fetched")) }

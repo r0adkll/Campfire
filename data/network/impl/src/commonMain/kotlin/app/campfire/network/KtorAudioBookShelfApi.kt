@@ -38,6 +38,7 @@ import app.campfire.network.envelopes.UpdateMediaResponse
 import app.campfire.network.envelopes.UpdatePlaylistRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
+import app.campfire.network.models.BookMatchResult
 import app.campfire.network.models.Collection
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
@@ -57,6 +58,7 @@ import app.campfire.network.models.PodcastFeed
 import app.campfire.network.models.PodcastMetadata
 import app.campfire.network.models.PodcastSearchResultDto
 import app.campfire.network.models.RssPodcastEpisode
+import app.campfire.network.models.SearchProvidersResponse
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -66,6 +68,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -458,6 +461,38 @@ class KtorAudioBookShelfApi(
     }
   }
 
+  override suspend fun getSearchProviders(): Result<SearchProvidersResponse> {
+    return trySendRequest {
+      hydratedClientRequest("api/search/providers")
+    }
+  }
+
+  override suspend fun searchBooks(
+    provider: String,
+    title: String,
+    author: String?,
+    libraryItemId: String?,
+  ): Result<List<BookMatchResult>> {
+    return trySendRequest {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "search", "books")
+          parameters.append("provider", provider)
+          parameters.append("title", title)
+          author?.let { parameters.append("author", it) }
+          libraryItemId?.let { parameters.append("id", it) }
+        },
+      ) {
+        // The server gives each source 10 seconds and tries again with looser terms when nothing
+        // turns up, so a search can take far longer than the usual request
+        timeout {
+          requestTimeoutMillis = BookSearchTimeoutMillis
+          socketTimeoutMillis = BookSearchTimeoutMillis
+        }
+      }
+    }
+  }
+
   override suspend fun createPlaylist(
     libraryId: String,
     name: String,
@@ -807,3 +842,5 @@ internal fun cleanServerUrl(url: String): String {
     "https://${url.withoutFinalSlash()}"
   }
 }
+
+private const val BookSearchTimeoutMillis = 90_000L
