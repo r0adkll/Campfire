@@ -10,13 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,12 +32,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -54,6 +54,7 @@ import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.coverImageShape
 import app.campfire.common.compose.widgets.placeholderBookPainter
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.management.api.match.BookMatch
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_retry
@@ -64,81 +65,70 @@ import campfire.features.management.ui.generated.resources.match_book_length
 import campfire.features.management.ui.generated.resources.match_confidence
 import campfire.features.management.ui.generated.resources.match_empty
 import campfire.features.management.ui.generated.resources.match_failed
-import campfire.features.management.ui.generated.resources.match_pick
 import campfire.features.management.ui.generated.resources.match_results
 import campfire.features.management.ui.generated.resources.match_same_asin
 import campfire.features.management.ui.generated.resources.match_same_length
 import campfire.features.management.ui.generated.resources.match_source
 import campfire.features.management.ui.generated.resources.match_sources_failed
 import campfire.features.management.ui.generated.resources.match_title
+import com.slack.circuit.overlay.LocalOverlayHost
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.flow.filter
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Matching the book against a source: a search and its results and, once one is picked, the
- * review of what it would change. With [twoPanes] the review sits beside the results; otherwise
- * it takes their place until it's closed.
+ * review of what it would change, in a sheet over them.
  */
 @Composable
 internal fun MatchSection(
   state: MatchUiState,
   enabled: Boolean,
-  twoPanes: Boolean,
   modifier: Modifier = Modifier,
 ) {
-  val review = state.review
-  if (twoPanes) {
-    Row(modifier = modifier.fillMaxSize()) {
-      MatchSearchPane(
-        state = state,
-        enabled = enabled,
-        modifier = Modifier
-          .width(SearchPaneWidth)
-          .fillMaxHeight(),
-      )
-      VerticalDivider()
-      if (review != null) {
-        MatchReviewPane(
-          review = review,
-          enabled = enabled,
-          onBack = null,
-          eventSink = state.eventSink,
-          modifier = Modifier.weight(1f),
+  MatchSearchPane(
+    state = state,
+    enabled = enabled,
+    modifier = modifier.fillMaxSize(),
+  )
+  ReviewSheet(state = state, enabled = enabled)
+}
+
+/**
+ * Shows the review in a sheet while there is one: at the bottom where the window has the height,
+ * at the side where it doesn't. Applying closes it from the presenter's side; back, the scrim or a
+ * swipe close it from here.
+ */
+@Composable
+private fun ReviewSheet(
+  state: MatchUiState,
+  enabled: Boolean,
+) {
+  val overlayHost = LocalOverlayHost.current
+  val latestState by rememberUpdatedState(state)
+  val latestEnabled by rememberUpdatedState(enabled)
+  LaunchedEffect(overlayHost) {
+    snapshotFlow { latestState.review != null }
+      .filter { it }
+      .collect {
+        overlayHost.show(
+          AdaptiveSheetOverlay(model = Unit, onDismiss = {}, skipPartiallyExpanded = true) { _, navigator ->
+            val review = latestState.review
+            // The review shown last stays while the sheet slides away
+            val shown = remember { arrayOfNulls<MatchReviewState>(1) }
+            if (review != null) shown[0] = review
+            LaunchedEffect(review == null) {
+              if (review == null) navigator.finish(Unit)
+            }
+            shown[0]?.let { MatchReviewSheet(review = it, enabled = latestEnabled, eventSink = latestState.eventSink) }
+          },
         )
-      } else {
-        Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .padding(24.dp),
-        ) {
-          Text(
-            text = stringResource(Res.string.match_pick),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
+        latestState.eventSink(MatchUiEvent.CloseReview)
       }
-    }
-  } else if (review != null) {
-    MatchReviewPane(
-      review = review,
-      enabled = enabled,
-      onBack = { state.eventSink(MatchUiEvent.CloseReview) },
-      eventSink = state.eventSink,
-      modifier = modifier.fillMaxSize(),
-    )
-  } else {
-    MatchSearchPane(
-      state = state,
-      enabled = enabled,
-      modifier = modifier.fillMaxSize(),
-    )
   }
 }
 
@@ -149,47 +139,55 @@ private fun MatchSearchPane(
   modifier: Modifier = Modifier,
 ) {
   val search = state.search
-  Column(modifier = modifier.imePadding()) {
-    SearchHeader(
-      state = state,
-      enabled = enabled,
-      modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
-    )
-    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-      if (search == MatchSearch.Searching) {
-        LinearProgressIndicator(Modifier.fillMaxWidth().testTag("match_searching"))
+  // The search scrolls away with the results, which a short window, like a phone on its side,
+  // has little room for under the top bar
+  LazyColumn(modifier = modifier.imePadding().testTag("match_results")) {
+    item(key = "search") {
+      SearchHeader(
+        state = state,
+        enabled = enabled,
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+      )
+    }
+    item(key = "progress") {
+      Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        if (search == MatchSearch.Searching) {
+          LinearProgressIndicator(Modifier.fillMaxWidth().testTag("match_searching"))
+        }
       }
     }
 
     when (search) {
       is MatchSearch.Found -> if (search.matches.isEmpty()) {
-        Notice(text = stringResource(Res.string.match_empty, search.provider.name))
+        item(key = "empty") {
+          Notice(text = stringResource(Res.string.match_empty, search.provider.name))
+        }
       } else {
-        LazyColumn(modifier = Modifier.fillMaxSize().testTag("match_results")) {
-          item {
-            ResultsHeader(
-              count = search.matches.size,
-              bookDuration = state.bookDuration,
-              modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-          }
-          items(search.matches) { match ->
-            MatchCandidate(
-              match = match,
-              bookDuration = state.bookDuration,
-              bookAsin = state.bookAsin,
-              selected = match == state.review?.match,
-              onClick = { state.eventSink(MatchUiEvent.Review(match)) },
-            )
-          }
+        item(key = "count") {
+          ResultsHeader(
+            count = search.matches.size,
+            bookDuration = state.bookDuration,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+          )
+        }
+        items(search.matches) { match ->
+          MatchCandidate(
+            match = match,
+            bookDuration = state.bookDuration,
+            bookAsin = state.bookAsin,
+            selected = match == state.review?.match,
+            onClick = { state.eventSink(MatchUiEvent.Review(match)) },
+          )
         }
       }
 
-      is MatchSearch.Failed -> Notice(
-        text = search.provider?.let { stringResource(Res.string.match_failed, it.name) }
-          ?: stringResource(Res.string.match_sources_failed),
-        onRetry = { state.eventSink(MatchUiEvent.Search) },
-      )
+      is MatchSearch.Failed -> item(key = "failed") {
+        Notice(
+          text = search.provider?.let { stringResource(Res.string.match_failed, it.name) }
+            ?: stringResource(Res.string.match_sources_failed),
+          onRetry = { state.eventSink(MatchUiEvent.Search) },
+        )
+      }
 
       MatchSearch.NotSearched, MatchSearch.Searching -> Unit
     }

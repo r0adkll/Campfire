@@ -4,6 +4,10 @@
 package app.campfire.management.ui.match
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -15,19 +19,23 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.home.ui.mediaMetadata
 import app.campfire.management.api.match.BookMatch
+import app.campfire.management.api.match.ImageSize
 import app.campfire.management.ui.editor.BookDetailsDraft
 import app.campfire.management.ui.match.FakeMetadataMatchRepository.Companion.Audible
 import app.campfire.management.ui.match.FakeMetadataMatchRepository.Companion.Google
+import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+/** The search, its results, and the review a picked result opens in its sheet. */
 @OptIn(ExperimentalTestApi::class)
 class MatchSectionUiTest {
 
@@ -100,8 +108,28 @@ class MatchSectionUiTest {
   }
 
   @Test
+  fun aPickedResultsReviewOpensInASheetThatClosesWithIt() = runComposeUiTest {
+    var reviewing by mutableStateOf<MatchReviewState?>(review())
+    setContent {
+      // A short window, which takes the sheet at the side, drawn in the composition
+      CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 900, minHeightDp = 400)) {
+        ContentWithOverlays(Modifier.size(width = 900.dp, height = 400.dp)) {
+          MatchSection(state = matchUiState(review = reviewing, eventSink = events), enabled = true)
+        }
+      }
+    }
+
+    onNodeWithTag("match_review").assertExists()
+
+    reviewing = null
+
+    onNodeWithTag("match_review").assertDoesNotExist()
+    events.assertEvents(MatchUiEvent.CloseReview)
+  }
+
+  @Test
   fun aReviewListsWhatWouldChangeAndHidesWhatWouldnt() = runComposeUiTest {
-    setSection(review = review())
+    setReview(review())
 
     onNodeWithTag("review_row_Subtitle").assertExists()
     onNodeWithTag("review_row_Title").assertDoesNotExist()
@@ -114,9 +142,9 @@ class MatchSectionUiTest {
 
   @Test
   fun aRowTakesOrLeavesItsDetail() = runComposeUiTest {
-    setSection(review = review())
+    setReview(review())
 
-    onNodeWithTag("review_row_Subtitle").performClick()
+    scrollTo("review_row_Subtitle").performClick()
     scrollTo("review_merge_Add").performClick()
 
     events.assertEvents(
@@ -126,8 +154,28 @@ class MatchSectionUiTest {
   }
 
   @Test
+  fun theCoversCompareSideBySideWithTheirSizes() = runComposeUiTest {
+    setReview(review(currentSize = ImageSize(500, 500), newSize = ImageSize(2400, 2400)))
+
+    onNodeWithText("Current").assertExists()
+    onNodeWithText("500 × 500").assertExists()
+    onNodeWithText("2400 × 2400").assertExists()
+    onNodeWithText("larger").assertExists()
+    onNodeWithTag("review_row_Cover").performClick()
+
+    events.assertEvents(MatchUiEvent.Toggle(MatchField.Cover))
+  }
+
+  @Test
+  fun aBookWithoutACoverSaysSo() = runComposeUiTest {
+    setReview(review(bookCover = null))
+
+    onNodeWithText("No cover").assertExists()
+  }
+
+  @Test
   fun theCoverCantBeTakenWithoutTheUploadPermission() = runComposeUiTest {
-    setSection(review = review(canChangeCover = false), canChangeCover = false)
+    setReview(review(canChangeCover = false))
 
     onNodeWithTag("review_row_Cover").assertIsNotEnabled()
     onNodeWithText("Changing the cover takes the upload permission").assertExists()
@@ -135,7 +183,7 @@ class MatchSectionUiTest {
 
   @Test
   fun theChosenDetailsApplyToTheFormOrSave() = runComposeUiTest {
-    setSection(review = review())
+    setReview(review())
 
     onNodeWithTag("review_apply_form").performClick()
     onNodeWithTag("review_apply_save").performClick()
@@ -145,34 +193,10 @@ class MatchSectionUiTest {
 
   @Test
   fun nothingChosenCantBeApplied() = runComposeUiTest {
-    setSection(review = review(selected = emptySet()))
+    setReview(review(selected = emptySet()))
 
     onNodeWithTag("review_apply_form").assertIsNotEnabled()
     onNodeWithTag("review_apply_save").assertIsNotEnabled()
-  }
-
-  @Test
-  fun aNarrowReviewTakesTheResultsPlaceUntilClosed() = runComposeUiTest {
-    setSection(search = MatchSearch.Found(Audible, listOf(match)), review = review())
-
-    onNodeWithTag("match_results").assertDoesNotExist()
-    onNodeWithTag("review_back").performClick()
-
-    events.assertEvents(MatchUiEvent.CloseReview)
-  }
-
-  @Test
-  fun aWideReviewSitsBesideTheResults() = runComposeUiTest {
-    setSection(
-      search = MatchSearch.Found(Audible, listOf(match)),
-      review = review(),
-      twoPanes = true,
-      width = 1000.dp,
-    )
-
-    onNodeWithTag("match_results").assertExists()
-    onNodeWithTag("match_review").assertExists()
-    onNodeWithTag("review_back").assertDoesNotExist()
   }
 
   /** Scrolls the review to the node tagged [tag], which can be past the window's edge */
@@ -184,8 +208,11 @@ class MatchSectionUiTest {
   private fun review(
     canChangeCover: Boolean = true,
     selected: Set<MatchField>? = null,
+    bookCover: String? = "https://abs.example/api/items/book/cover",
+    currentSize: ImageSize? = null,
+    newSize: ImageSize? = null,
   ): MatchReviewState {
-    val rows = reviewRows(match, draft, coverUrl = "https://abs.example/api/items/book/cover")
+    val rows = reviewRows(match, draft, coverUrl = bookCover)
     return MatchReviewState(
       match = match,
       providerName = Audible.name,
@@ -193,32 +220,40 @@ class MatchSectionUiTest {
       selected = selected ?: rows.selectedBy(SelectionMode.All, canChangeCover),
       merges = emptyMap(),
       canChangeCover = canChangeCover,
+      currentCoverSize = currentSize,
+      newCoverSize = newSize,
     )
+  }
+
+  private fun ComposeUiTest.setReview(review: MatchReviewState) {
+    setContent {
+      MatchReviewSheet(
+        review = review,
+        enabled = true,
+        eventSink = events,
+        modifier = Modifier.size(width = 400.dp, height = 1600.dp),
+      )
+    }
   }
 
   private fun ComposeUiTest.setSection(
     search: MatchSearch = MatchSearch.NotSearched,
-    review: MatchReviewState? = null,
     bookDuration: Duration? = null,
     bookAsin: String? = null,
-    canChangeCover: Boolean = true,
-    twoPanes: Boolean = false,
-    width: Dp = 400.dp,
   ) {
     setContent {
-      MatchSection(
-        state = matchUiState(
-          search = search,
-          review = review,
-          bookDuration = bookDuration,
-          bookAsin = bookAsin,
-          canChangeCover = canChangeCover,
-          eventSink = events,
-        ),
-        enabled = true,
-        twoPanes = twoPanes,
-        modifier = Modifier.size(width = width, height = 1600.dp),
-      )
+      ContentWithOverlays {
+        MatchSection(
+          state = matchUiState(
+            search = search,
+            bookDuration = bookDuration,
+            bookAsin = bookAsin,
+            eventSink = events,
+          ),
+          enabled = true,
+          modifier = Modifier.size(width = 400.dp, height = 1600.dp),
+        )
+      }
     }
   }
 }

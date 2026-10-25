@@ -21,6 +21,7 @@ import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.match.FakeCoverSizeReader
 import app.campfire.management.ui.match.FakeMetadataMatchRepository
 import app.campfire.management.ui.match.MatchField
 import app.campfire.management.ui.match.MatchPresenter
@@ -416,7 +417,7 @@ class ItemEditorPresenterTest {
       libraryItemRepository = libraryItemRepository,
       userRepository = userRepository,
       filteringRepository = filteringRepository,
-      matchPresenter = MatchPresenter(matchRepository),
+      matchPresenter = MatchPresenter(matchRepository, FakeCoverSizeReader()),
       userScope = CoroutineScopeHolder { backgroundScope },
     )
     return object : Presenter<ItemEditorUiState> {

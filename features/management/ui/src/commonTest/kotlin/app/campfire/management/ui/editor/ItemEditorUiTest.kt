@@ -45,6 +45,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
+import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
 
@@ -405,32 +406,34 @@ class ItemEditorUiTest {
   ) {
     draft = if (withDraft) BookDetailsDraft(details, book.media.tags).apply { this.newCoverUrl = newCoverUrl } else null
     setContent {
-      // The app provides these around every screen; the top bar reads them
-      CompositionLocalProvider(
-        LocalContentLayout provides ContentLayout.Root,
-        LocalWindowSizeClass provides WindowSizeClass(
-          minWidthDp = width.value.toInt(),
-          minHeightDp = height.value.toInt(),
-        ),
-      ) {
-        ItemEditorUi(
-          state = ItemEditorUiState(
-            item = item,
-            draft = draft,
-            section = section,
-            match = match,
-            filledFrom = filledFrom,
-            canEdit = canEdit,
-            canSeeExplicit = canSeeExplicit,
-            suggestions = suggestions,
-            isSaving = false,
-            isBehindServer = isBehindServer,
-            isConfirmingDiscard = isConfirmingDiscard,
-            isLoadFailed = isLoadFailed,
-            eventSink = events,
+      ContentWithOverlays {
+        // The app provides these around every screen; the top bar reads them
+        CompositionLocalProvider(
+          LocalContentLayout provides ContentLayout.Root,
+          LocalWindowSizeClass provides WindowSizeClass(
+            minWidthDp = width.value.toInt(),
+            minHeightDp = height.value.toInt(),
           ),
-          modifier = Modifier.size(width = width, height = height),
-        )
+        ) {
+          ItemEditorUi(
+            state = ItemEditorUiState(
+              item = item,
+              draft = draft,
+              section = section,
+              match = match,
+              filledFrom = filledFrom,
+              canEdit = canEdit,
+              canSeeExplicit = canSeeExplicit,
+              suggestions = suggestions,
+              isSaving = false,
+              isBehindServer = isBehindServer,
+              isConfirmingDiscard = isConfirmingDiscard,
+              isLoadFailed = isLoadFailed,
+              eventSink = events,
+            ),
+            modifier = Modifier.size(width = width, height = height),
+          )
+        }
       }
     }
   }

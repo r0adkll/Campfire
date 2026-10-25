@@ -16,6 +16,8 @@ import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.management.api.match.BookMatch
+import app.campfire.management.api.match.CoverSizeReader
+import app.campfire.management.api.match.ImageSize
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.match.MetadataMatchRepository
 import app.campfire.management.ui.editor.BookDetailsDraft
@@ -43,6 +45,7 @@ fun interface MatchApplier {
 @Inject
 class MatchPresenter(
   private val repository: MetadataMatchRepository,
+  private val coverSizes: CoverSizeReader,
 ) {
 
   @Composable
@@ -67,6 +70,8 @@ class MatchPresenter(
     var reviewing by rememberRetained { mutableStateOf<BookMatch?>(null) }
     var selected by rememberRetained { mutableStateOf(emptySet<MatchField>()) }
     var merges by rememberRetained { mutableStateOf(emptyMap<MatchField, ListMerge>()) }
+    // Covers' sizes by address, read from their files as reviews show them
+    var sizes by rememberRetained { mutableStateOf(emptyMap<String, ImageSize>()) }
 
     val provider = providers.firstOrNull { it.id == providerId }
     val coverUrl = item?.media?.takeIf { it.coverPath != null }?.coverImageUrl
@@ -88,6 +93,15 @@ class MatchPresenter(
     }
 
     fun isPrefilled() = prefilled == null || prefilled == (title.text.toString() to author.text.toString())
+
+    fun measure(url: String) {
+      if (url in sizes) return
+      scope.launch {
+        coverSizes.sizeOf(url)
+          .onSuccess { sizes = sizes + (url to it) }
+          .onFailure { error -> bark(throwable = error) { "Couldn't tell how big the cover at $url is" } }
+      }
+    }
 
     fun runSearch(source: MatchProvider) {
       val itemId = item?.id ?: return
@@ -143,6 +157,8 @@ class MatchPresenter(
           selected = selected,
           merges = merges,
           canChangeCover = canChangeCover,
+          currentCoverSize = coverUrl?.let(sizes::get),
+          newCoverSize = match.coverUrl?.let(sizes::get),
         )
       }
     }
@@ -183,6 +199,10 @@ class MatchPresenter(
           merges = emptyMap()
           // Last, so the review shows with its choices already made
           reviewing = event.match
+          event.match.coverUrl?.let { new ->
+            measure(new)
+            coverUrl?.let(::measure)
+          }
         }
 
         MatchUiEvent.CloseReview -> reviewing = null
