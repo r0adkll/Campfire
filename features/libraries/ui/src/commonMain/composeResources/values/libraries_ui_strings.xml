@@ -192,6 +192,33 @@
   <string name="dialog_delete_item_action_hard">Delete files</string>
   <string name="dialog_delete_item_action_hard_again">Press again to delete files</string>
   <string name="dialog_delete_item_action_cancel">Cancel</string>
+  <string name="menu_item_quick_match">Quick match</string>
+  <string name="dialog_quick_match_title">Quick match</string>
+  <string name="dialog_quick_match_message">Fills in what %1$s is missing from the first %2$s result, and gives it a cover if it has none.</string>
+  <string name="dialog_quick_match_replace_details">Replace details already set</string>
+  <string name="dialog_quick_match_replace_cover">Replace the cover</string>
+  <string name="dialog_quick_match_cover_no_undo">A replaced cover can't be undone</string>
+  <string name="dialog_quick_match_no_review">This can't be reviewed first. For that, use Edit details › Match.</string>
+  <string name="dialog_quick_match_confirm">Match</string>
+  <string name="dialog_quick_match_cancel">Cancel</string>
+  <string name="quick_match_working">Matching %1$s on %2$s…</string>
+  <plurals name="quick_match_changed">
+    <item quantity="one">Changed %1$d detail of %2$s from %3$s</item>
+    <item quantity="other">Changed %1$d details of %2$s from %3$s</item>
+  </plurals>
+  <plurals name="quick_match_changed_and_cover">
+    <item quantity="one">Changed %1$d detail and the cover of %2$s from %3$s</item>
+    <item quantity="other">Changed %1$d details and the cover of %2$s from %3$s</item>
+  </plurals>
+  <string name="quick_match_changed_cover">Changed the cover of %1$s from %2$s</string>
+  <string name="quick_match_updated">Matched %1$s with %2$s</string>
+  <string name="quick_match_nothing">%1$s had nothing new for %2$s</string>
+  <string name="quick_match_no_match">No match for %1$s on %2$s</string>
+  <string name="quick_match_not_allowed">Your account isn't allowed to change this. Ask your server's admin.</string>
+  <string name="quick_match_failed">Couldn't match %1$s. Check your connection and try again.</string>
+  <string name="quick_match_undo">Undo</string>
+  <string name="quick_match_undone">Put back the details of %1$s</string>
+  <string name="quick_match_undo_failed">Couldn't put the details back. Check your connection and try again.</string>
 
   <string name="podcast_downloads_banner_one">%1$d episode downloading on server</string>
   <string name="podcast_downloads_banner_other">%1$d episodes downloading on server</string>

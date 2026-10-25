@@ -18,6 +18,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -33,6 +34,8 @@ data class LibraryItemUiState(
   val contentState: LoadState<out ContentUiState>,
   /** Something to tell the user in a snackbar, cleared by [LibraryItemUiEvent.ClearMessage]. */
   val message: String? = null,
+  /** The source a quick match would ask, by name, while asking whether to go ahead */
+  val quickMatchSource: String? = null,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -122,6 +125,15 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   /** Open the editor for the item's details. */
   data object EditClick : LibraryItemUiEvent
+
+  /** Ask whether to quick match the item against its library's source. */
+  data object QuickMatchClick : LibraryItemUiEvent
+
+  /** Quick match the item, replacing what [choice] lets it. */
+  data class QuickMatch(val choice: QuickMatchChoice) : LibraryItemUiEvent
+
+  /** Back out of quick matching the item. */
+  data object DismissQuickMatch : LibraryItemUiEvent
   data object ClearMessage : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent

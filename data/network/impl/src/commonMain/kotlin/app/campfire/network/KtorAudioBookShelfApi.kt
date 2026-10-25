@@ -27,6 +27,8 @@ import app.campfire.network.envelopes.PlayItemRequest
 import app.campfire.network.envelopes.PlaylistsResponse
 import app.campfire.network.envelopes.PodcastFeedRequest
 import app.campfire.network.envelopes.PodcastFeedResponse
+import app.campfire.network.envelopes.QuickMatchRequest
+import app.campfire.network.envelopes.QuickMatchResponse
 import app.campfire.network.envelopes.ScanItemResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
@@ -480,6 +482,23 @@ class KtorAudioBookShelfApi(
       ) {
         // The server gives each source 10 seconds and tries again with looser terms when nothing
         // turns up, so a search can take far longer than the usual request
+        timeout {
+          requestTimeoutMillis = BookSearchTimeoutMillis
+          socketTimeoutMillis = BookSearchTimeoutMillis
+        }
+      }
+    }
+  }
+
+  override suspend fun quickMatchLibraryItem(
+    itemId: String,
+    request: QuickMatchRequest,
+  ): Result<QuickMatchResponse> {
+    return trySendRequest {
+      hydratedClientRequest("/api/items/$itemId/match") {
+        method = HttpMethod.Post
+        setBody(request)
+        // A search behind it, with looser retries, then the cover to download
         timeout {
           requestTimeoutMillis = BookSearchTimeoutMillis
           socketTimeoutMillis = BookSearchTimeoutMillis

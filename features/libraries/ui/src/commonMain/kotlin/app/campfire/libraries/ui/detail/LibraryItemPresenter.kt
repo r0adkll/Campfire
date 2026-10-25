@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
@@ -27,7 +28,9 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
+import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
@@ -60,6 +63,7 @@ class LibraryItemPresenter(
   private val navigator: Navigator,
   private val userSession: UserSession,
   private val repository: LibraryItemRepository,
+  private val quickMatcher: QuickMatcher,
   private val bookPresenter: BookPresenter,
   private val podcastPresenter: PodcastPresenter,
   private val themeManager: ThemeManager,
@@ -109,6 +113,9 @@ class LibraryItemPresenter(
     }.collectAsState(null)
 
     var message by rememberRetained { mutableStateOf<String?>(null) }
+    var quickMatchSource by rememberRetained { mutableStateOf<MatchProvider?>(null) }
+    // The app's own, which outlasts this screen to offer undoing a quick match
+    val snackbarHost = LocalSnackBarHost.current
 
     return LibraryItemUiState(
       user = userSession.requiredUser,
@@ -117,6 +124,7 @@ class LibraryItemPresenter(
       swatch = swatch,
       contentState = contentState,
       message = message ?: contentState.dataOrNull?.message,
+      quickMatchSource = quickMatchSource?.name,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -153,6 +161,20 @@ class LibraryItemPresenter(
           Analytics.send(ActionEvent("edit_item", Click))
           navigator.goTo(ItemEditorScreen(screen.libraryItemId))
         }
+
+        LibraryItemUiEvent.QuickMatchClick -> {
+          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          scope.launch { quickMatchSource = quickMatcher.sourceFor(item) }
+        }
+
+        is LibraryItemUiEvent.QuickMatch -> {
+          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          val source = quickMatchSource ?: return@LibraryItemUiState
+          quickMatchSource = null
+          quickMatcher.start(item, source, event.choice, snackbarHost)
+        }
+
+        LibraryItemUiEvent.DismissQuickMatch -> quickMatchSource = null
 
         LibraryItemUiEvent.RescanClick -> {
           scope.launch {

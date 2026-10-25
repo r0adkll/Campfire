@@ -14,12 +14,12 @@ import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
-import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.AuthorNameRequest
 import app.campfire.network.envelopes.SeriesSequenceRequest
 import app.campfire.network.envelopes.UpdateBookMetadataRequest
 import app.campfire.network.envelopes.UpdateMediaRequest
+import app.campfire.network.isForbidden
 import app.campfire.network.isNotFound
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -166,7 +166,7 @@ class StoreLibraryItemRepository(
 
   private fun <T> Result<T>.explainRefusal(): Result<T> {
     val error = exceptionOrNull()
-    return if (error is ApiException && error.statusCode == HttpForbidden) {
+    return if (error?.isForbidden == true) {
       Result.failure(ItemChangeNotAllowedException(error))
     } else {
       this
@@ -194,5 +194,3 @@ class StoreLibraryItemRepository(
   private val Media.Book.hasOnlyAnEbook: Boolean
     get() = ebookFormat != null && numTracks == 0 && numAudioFiles == 0 && audioFiles.isEmpty()
 }
-
-private const val HttpForbidden = 403

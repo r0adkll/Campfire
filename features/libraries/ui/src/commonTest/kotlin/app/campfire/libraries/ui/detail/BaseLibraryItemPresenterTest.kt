@@ -19,6 +19,9 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.FakeLibraryRepository
+import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.quickMatcher
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -35,6 +38,9 @@ import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import com.slack.circuit.test.FakeNavigator
 import kotlin.time.Instant
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -110,11 +116,18 @@ abstract class BaseLibraryItemPresenterTest {
     remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
   )
 
+  internal val libraryRepository = FakeLibraryRepository()
+  internal val matchRepository = FakeQuickMatchRepository()
+
+  // Quick matches run on past the screen, in the user's scope
+  internal val userScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
   internal val presenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),
     screen = screen,
     navigator = navigator,
     repository = libraryItemRepository,
+    quickMatcher = quickMatcher(libraryRepository, matchRepository, libraryItemRepository, userScope),
     bookPresenter = bookPresenter,
     podcastPresenter = podcastPresenter,
     themeManager = themeManager,

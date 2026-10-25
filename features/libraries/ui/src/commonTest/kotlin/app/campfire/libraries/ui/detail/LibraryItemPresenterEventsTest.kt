@@ -19,6 +19,9 @@ import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
+import app.campfire.libraries.ui.detail.manage.library
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
@@ -247,6 +250,55 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
       cancelAndIgnoreRemainingEvents()
     }
+  }
+
+  @Test
+  fun quickMatchClick_asksAboutTheLibrarysSourceThenMatches() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    libraryRepository.libraries.value = listOf(library("preview_library_id", provider = "audible"))
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.QuickMatchClick)
+
+      val asking = awaitQuickMatchSource()
+      assertThat(asking.quickMatchSource).isEqualTo("Audible.com")
+      assertThat(matchRepository.quickMatches).isEmpty()
+
+      asking.eventSink(LibraryItemUiEvent.QuickMatch(QuickMatchChoice(replaceDetails = true)))
+
+      assertThat(awaitItem().quickMatchSource).isNull()
+      assertThat(matchRepository.quickMatches).containsExactly(
+        FakeQuickMatchRepository.QuickMatch(TestLibraryItemId, "audible", replaceDetails = true, replaceCover = false),
+      )
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun dismissQuickMatch_matchesNothing() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.QuickMatchClick)
+      awaitQuickMatchSource().eventSink(LibraryItemUiEvent.DismissQuickMatch)
+
+      assertThat(awaitItem().quickMatchSource).isNull()
+      assertThat(matchRepository.quickMatches).isEmpty()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  /** Drains states until the source a quick match would ask is known. */
+  private suspend fun CircuitReceiveTurbine<LibraryItemUiState>.awaitQuickMatchSource(): LibraryItemUiState {
+    var state = awaitItem()
+    while (state.quickMatchSource == null) {
+      state = awaitItem()
+    }
+    return state
   }
 
   /** Drains states until the launched work has written a message. */
