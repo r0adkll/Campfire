@@ -5,6 +5,8 @@ package app.campfire.network
 
 import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.envelopes.QuickMatchRequest
+import app.campfire.network.envelopes.QuickMatchResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
@@ -301,6 +303,13 @@ interface AudioBookShelfApi {
     author: String?,
     libraryItemId: String?,
   ): Result<List<BookMatchResult>>
+
+  /**
+   * Have the server match a library item against the first result its source finds and apply it,
+   * `POST /api/items/:id/match`. Accounts need the update permission; a cover it downloads takes
+   * nothing more.
+   */
+  suspend fun quickMatchLibraryItem(itemId: String, request: QuickMatchRequest): Result<QuickMatchResponse>
 
   //endregion
 

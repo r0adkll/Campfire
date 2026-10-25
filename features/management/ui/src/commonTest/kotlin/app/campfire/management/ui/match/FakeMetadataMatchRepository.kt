@@ -7,6 +7,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.match.MetadataMatchRepository
+import app.campfire.management.api.match.QuickMatchResult
 
 class FakeMetadataMatchRepository : MetadataMatchRepository {
 
@@ -41,6 +42,13 @@ class FakeMetadataMatchRepository : MetadataMatchRepository {
     lastProvider = provider
     return searchResult(search)
   }
+
+  override suspend fun quickMatchBook(
+    itemId: LibraryItemId,
+    provider: String,
+    replaceDetails: Boolean,
+    replaceCover: Boolean,
+  ): Result<QuickMatchResult> = Result.failure(NotImplementedError("The editor doesn't quick match"))
 
   companion object {
     val Audible = MatchProvider("audible", "Audible.com")
