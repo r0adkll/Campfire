@@ -31,7 +31,12 @@ interface CircuitComponent {
     .addPresenterFactories(presenterFactories)
     .build()
 
+  /**
+   * One list per user: the root reads it whenever it recomposes, and a navigator built from it is
+   * rebuilt whenever the list is a new one, along with the presenter and UI of the screen it shows.
+   */
   @Provides
+  @SingleIn(UserScope::class)
   fun provideNavigationEventListeners(): ImmutableList<NavigationEventListener> = persistentListOf(
     LoggingNavigationEventListener,
     AnalyticsNavigationEventListener(
