@@ -7,10 +7,12 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.mediaMetadata
 import app.campfire.libraries.api.BookDetailsUpdate
+import app.campfire.libraries.api.CoverUpdate
 import app.campfire.libraries.api.SeriesEntry
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.ui.editor.BookDetail
 import app.campfire.management.ui.editor.BookDetailsDraft
+import app.campfire.management.ui.editor.StagedCover
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
@@ -173,8 +175,8 @@ class MatchReviewTest {
       BookDetail.Explicit,
     )
     assertThat(draft.description.annotatedString.text).isEqualTo("New words")
-    assertThat(draft.newCoverUrl).isEqualTo(NewCover)
-    assertThat(draft.update().coverUrl).isEqualTo(NewCover)
+    assertThat(draft.newCover).isEqualTo(StagedCover.fromUrl(NewCover))
+    assertThat(draft.update().cover).isEqualTo(CoverUpdate.FromUrl(NewCover))
     assertThat(draft.update().publisher).isNull()
   }
 

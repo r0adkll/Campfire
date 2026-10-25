@@ -64,3 +64,9 @@ data class BookMatchSeries(
   val series: String? = null,
   val sequence: String? = null,
 )
+
+/** The body of `GET /api/search/covers`: the covers' addresses, on each source's own host */
+@Serializable
+data class CoverSearchResponse(
+  val results: List<String> = emptyList(),
+)
