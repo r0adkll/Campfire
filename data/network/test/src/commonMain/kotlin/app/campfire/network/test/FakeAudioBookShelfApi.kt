@@ -11,6 +11,7 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
+import app.campfire.network.models.BookMatchResult
 import app.campfire.network.models.Collection
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
@@ -30,6 +31,7 @@ import app.campfire.network.models.PodcastFeed
 import app.campfire.network.models.PodcastMetadata
 import app.campfire.network.models.PodcastSearchResultDto
 import app.campfire.network.models.RssPodcastEpisode
+import app.campfire.network.models.SearchProvidersResponse
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -289,6 +291,30 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   override suspend fun updateLibraryItemMedia(itemId: String, request: UpdateMediaRequest): Result<Boolean> {
     mediaUpdates += itemId to request
     return updateLibraryItemMediaResult(itemId, request)
+  }
+
+  var searchProvidersResult: suspend () -> Result<SearchProvidersResponse> = {
+    Result.failure(NotImplementedError("Set searchProvidersResult on the fake"))
+  }
+
+  override suspend fun getSearchProviders(): Result<SearchProvidersResponse> = searchProvidersResult()
+
+  data class BookSearch(val provider: String, val title: String, val author: String?, val libraryItemId: String?)
+
+  val bookSearches = mutableListOf<BookSearch>()
+  var searchBooksResult: suspend (BookSearch) -> Result<List<BookMatchResult>> = {
+    Result.failure(NotImplementedError("Set searchBooksResult on the fake"))
+  }
+
+  override suspend fun searchBooks(
+    provider: String,
+    title: String,
+    author: String?,
+    libraryItemId: String?,
+  ): Result<List<BookMatchResult>> {
+    val search = BookSearch(provider, title, author, libraryItemId)
+    bookSearches += search
+    return searchBooksResult(search)
   }
 
   override suspend fun createPlaylist(
