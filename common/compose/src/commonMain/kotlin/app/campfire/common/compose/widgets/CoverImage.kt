@@ -45,6 +45,9 @@ val CoverImageSize = 256.dp
 val CoverImageCornerRadius = 32.dp
 val CoverImageShape = RoundedCornerShape(CoverImageCornerRadius)
 
+/** A cover's corners at [size], rounded in the same proportion as a full-size cover's */
+fun coverImageShape(size: Dp): Shape = RoundedCornerShape(CoverImageCornerRadius * (size / CoverImageSize))
+
 /**
  * The standard book cover placeholder for covers that are missing or fail to
  * load — the generated resource class is internal to this module, so consumers

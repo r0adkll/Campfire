@@ -45,6 +45,10 @@ data class User(
   val canUpdateItems: Boolean
     get() = permissions.update && isActive
 
+  /** Mirrors the server's `User.canUpload`, which giving an item a cover from an address takes too. */
+  val canUploadFiles: Boolean
+    get() = permissions.upload && isActive
+
   /**
    * Whether the server will scan an item's files again for this account: an admin route that the
    * item routes also hold to the update permission.

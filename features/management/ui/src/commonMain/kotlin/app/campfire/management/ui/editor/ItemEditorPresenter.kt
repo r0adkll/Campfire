@@ -32,6 +32,8 @@ import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.match.MatchPresenter
+import app.campfire.management.ui.match.fillFrom
 import app.campfire.user.api.UserRepository
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_undo
@@ -61,6 +63,7 @@ class ItemEditorPresenter(
   private val libraryItemRepository: LibraryItemRepository,
   private val userRepository: UserRepository,
   private val filteringRepository: FilteringRepository,
+  private val matchPresenter: MatchPresenter,
   @ForScope(UserScope::class) private val userScope: CoroutineScopeHolder,
 ) : Presenter<ItemEditorUiState> {
 
@@ -87,6 +90,8 @@ class ItemEditorPresenter(
     var loadAttempt by rememberRetained { mutableIntStateOf(0) }
     // When the server last changed the item editing started from
     var editingSince by rememberRetained { mutableLongStateOf(0L) }
+    var section by rememberRetained { mutableStateOf(EditorSection.Details) }
+    var filledFrom by rememberRetained { mutableStateOf<String?>(null) }
 
     // Editing starts from the server's own copy. A cached one can be a list's, with no authors,
     // narrators or series to edit, and saving a list replaces the server's whole list.
@@ -120,9 +125,56 @@ class ItemEditorPresenter(
         current.isBehind(latest.metadata, latest.tags)
     }
 
+    fun save() {
+      val current = draft ?: return
+      val update = current.update()
+      if (isSaving || !current.isValid || update.isEmpty) return
+
+      isSaving = true
+      val title = current.title.text.toString().trim()
+      scope.launch {
+        libraryItemRepository.updateBookDetails(screen.libraryItemId, update)
+          .onSuccess { changed ->
+            Analytics.send(ActionEvent("edit_item", "saved", update.analyticsFields()))
+            navigator.pop()
+            // On past this screen, which is gone once the save is told
+            userScope.get().launch {
+              tellSaved(snackbarHost, title, changed, undo = current.undoOf(update))
+            }
+          }
+          .onFailure { error ->
+            bark(throwable = error) { "Failed to save the details of ${screen.libraryItemId}" }
+            isSaving = false
+            message = getString(
+              if (error is ItemChangeNotAllowedException) {
+                Res.string.editor_save_not_allowed
+              } else {
+                Res.string.editor_save_failed
+              },
+            )
+          }
+      }
+    }
+
+    val match = matchPresenter.present(
+      item = latestItem,
+      draft = draft,
+      isActive = section == EditorSection.Match,
+      canChangeCover = user.canUploadFiles,
+    ) { result, fields, merges, providerName, andSave ->
+      section = EditorSection.Details
+      draft?.fillFrom(result, fields, merges)
+      // Once the form's filled, to say where from
+      filledFrom = providerName
+      if (andSave) save()
+    }
+
     return ItemEditorUiState(
       item = item,
       draft = draft,
+      section = section,
+      match = match,
+      filledFrom = filledFrom,
       canEdit = user.canUpdateItems,
       canSeeExplicit = user.permissions.accessExplicitContent,
       suggestions = suggestions,
@@ -133,36 +185,7 @@ class ItemEditorPresenter(
       message = message,
     ) { event ->
       when (event) {
-        ItemEditorUiEvent.Save -> {
-          val current = draft ?: return@ItemEditorUiState
-          val update = current.update()
-          if (isSaving || !current.isValid || update.isEmpty) return@ItemEditorUiState
-
-          isSaving = true
-          val title = current.title.text.toString().trim()
-          scope.launch {
-            libraryItemRepository.updateBookDetails(screen.libraryItemId, update)
-              .onSuccess { changed ->
-                Analytics.send(ActionEvent("edit_item", "saved", update.analyticsFields()))
-                navigator.pop()
-                // On past this screen, which is gone once the save is told
-                userScope.get().launch {
-                  tellSaved(snackbarHost, title, changed, undo = current.undoOf(update))
-                }
-              }
-              .onFailure { error ->
-                bark(throwable = error) { "Failed to save the details of ${screen.libraryItemId}" }
-                isSaving = false
-                message = getString(
-                  if (error is ItemChangeNotAllowedException) {
-                    Res.string.editor_save_not_allowed
-                  } else {
-                    Res.string.editor_save_failed
-                  },
-                )
-              }
-          }
-        }
+        ItemEditorUiEvent.Save -> save()
 
         ItemEditorUiEvent.Close -> {
           if (draft?.changes.isNullOrEmpty()) {
@@ -186,6 +209,7 @@ class ItemEditorPresenter(
           // From the server's own copy again, as editing started, not however the cache has it
           draft = null
           keptChangesOver = null
+          filledFrom = null
           loadAttempt++
         }
 
@@ -194,6 +218,13 @@ class ItemEditorPresenter(
         ItemEditorUiEvent.ClearMessage -> message = null
 
         ItemEditorUiEvent.RetryLoad -> loadAttempt++
+
+        is ItemEditorUiEvent.ShowSection -> {
+          if (event.section == EditorSection.Match && !user.canUpdateItems) return@ItemEditorUiState
+          section = event.section
+        }
+
+        ItemEditorUiEvent.DismissFilledFrom -> filledFrom = null
       }
     }
   }
@@ -225,6 +256,11 @@ class ItemEditorPresenter(
   ) {
     if (!changed) {
       snackbarHost.showSnackbar(getString(Res.string.editor_already_saved))
+      return
+    }
+    // Only a new cover changed, which can't be put back
+    if (undo.isEmpty) {
+      snackbarHost.showSnackbar(getString(Res.string.editor_saved, title))
       return
     }
 
@@ -262,6 +298,7 @@ private fun BookDetailsUpdate.analyticsFields(): String = listOfNotNull(
   series?.let { "series" },
   genres?.let { "genres" },
   tags?.let { "tags" },
+  coverUrl?.let { "cover" },
 ).joinToString(",")
 
 private fun Media.Book.asDraft() = BookDetailsDraft(metadata, tags)

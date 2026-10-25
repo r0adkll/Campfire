@@ -14,6 +14,11 @@ data class UpdateMediaRequest(
   val metadata: UpdateBookMetadataRequest? = null,
   /** Tags sit beside the metadata, not in it */
   val tags: List<String>? = null,
+  /**
+   * A cover for the server to download and use. Without the upload permission the server refuses
+   * the whole request, not only the cover.
+   */
+  val url: String? = null,
 )
 
 /**

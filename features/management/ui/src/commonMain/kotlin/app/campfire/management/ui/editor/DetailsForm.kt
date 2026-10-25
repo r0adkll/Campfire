@@ -57,14 +57,21 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Add
 import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.coverImageShape
+import app.campfire.common.compose.widgets.placeholderBookPainter
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_add_series
+import campfire.features.management.ui.generated.resources.action_keep_cover
 import campfire.features.management.ui.generated.resources.action_keep_mine
 import campfire.features.management.ui.generated.resources.action_reload
 import campfire.features.management.ui.generated.resources.banner_behind_server
 import campfire.features.management.ui.generated.resources.banner_cant_edit
+import campfire.features.management.ui.generated.resources.banner_filled_from
 import campfire.features.management.ui.generated.resources.cd_changed
+import campfire.features.management.ui.generated.resources.cd_dismiss
+import campfire.features.management.ui.generated.resources.cd_new_cover
 import campfire.features.management.ui.generated.resources.cd_remove_series
 import campfire.features.management.ui.generated.resources.editor_footer
 import campfire.features.management.ui.generated.resources.error_series_duplicate
@@ -87,6 +94,8 @@ import campfire.features.management.ui.generated.resources.label_series_sequence
 import campfire.features.management.ui.generated.resources.label_subtitle
 import campfire.features.management.ui.generated.resources.label_tags
 import campfire.features.management.ui.generated.resources.label_title
+import campfire.features.management.ui.generated.resources.new_cover_message
+import campfire.features.management.ui.generated.resources.new_cover_title
 import campfire.features.management.ui.generated.resources.placeholder_optional
 import campfire.features.management.ui.generated.resources.section_classification
 import campfire.features.management.ui.generated.resources.section_identifiers
@@ -110,8 +119,10 @@ internal fun DetailsForm(
   canSeeExplicit: Boolean,
   suggestions: DetailSuggestions,
   isBehindServer: Boolean,
+  filledFrom: String?,
   onReload: () -> Unit,
   onKeepMine: () -> Unit,
+  onDismissFilledFrom: () -> Unit,
   twoColumns: Boolean,
   inlineSuggestions: Boolean,
   modifier: Modifier = Modifier,
@@ -151,6 +162,21 @@ internal fun DetailsForm(
             Text(stringResource(Res.string.action_reload))
           }
         }
+      }
+
+      if (filledFrom != null) {
+        Banner(text = stringResource(Res.string.banner_filled_from, filledFrom)) {
+          TextButton(onClick = onDismissFilledFrom, modifier = Modifier.testTag("editor_dismiss_filled")) {
+            Text(stringResource(Res.string.cd_dismiss))
+          }
+        }
+      }
+      draft.newCoverUrl?.let { url ->
+        NewCover(
+          url = url,
+          enabled = enabled,
+          onKeepCurrent = { draft.newCoverUrl = null },
+        )
       }
 
       if (twoColumns) {
@@ -222,6 +248,47 @@ private fun IdentityFields(
       capitalization = KeyboardCapitalization.Sentences,
       modifier = Modifier.fillMaxWidth().testTag("field_subtitle"),
     )
+  }
+}
+
+/** A cover a match chose, which takes the book's cover's place once it's saved */
+@Composable
+private fun NewCover(
+  url: String,
+  enabled: Boolean,
+  onKeepCurrent: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(16.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier
+      .fillMaxWidth()
+      .testTag("editor_new_cover"),
+  ) {
+    CoverImage(
+      imageUrl = url,
+      contentDescription = stringResource(Res.string.cd_new_cover),
+      size = NewCoverSize,
+      placeholder = placeholderBookPainter(),
+      shape = coverImageShape(NewCoverSize),
+      modifier = Modifier.size(NewCoverSize),
+    )
+    Column(modifier = Modifier.weight(1f)) {
+      FieldLabel(text = stringResource(Res.string.new_cover_title), changed = true)
+      Text(
+        text = stringResource(Res.string.new_cover_message),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      TextButton(
+        onClick = onKeepCurrent,
+        enabled = enabled,
+        modifier = Modifier.testTag("editor_keep_cover"),
+      ) {
+        Text(stringResource(Res.string.action_keep_cover))
+      }
+    }
   }
 }
 
@@ -706,6 +773,7 @@ private val GroupSpacing = 20.dp
 private val FieldSpacing = 12.dp
 private val YearFieldWidth = 112.dp
 private val SequenceFieldWidth = 96.dp
+private val NewCoverSize = 72.dp
 
 // Puts the button level with the field beside it, whose label sits above its outline
 private val RemoveButtonTopPadding = 8.dp
