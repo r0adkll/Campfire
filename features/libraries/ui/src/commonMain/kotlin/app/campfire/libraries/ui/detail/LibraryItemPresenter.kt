@@ -6,8 +6,10 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
@@ -26,7 +28,9 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
+import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
@@ -42,6 +46,7 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +63,7 @@ class LibraryItemPresenter(
   private val navigator: Navigator,
   private val userSession: UserSession,
   private val repository: LibraryItemRepository,
+  private val quickMatcher: QuickMatcher,
   private val bookPresenter: BookPresenter,
   private val podcastPresenter: PodcastPresenter,
   private val themeManager: ThemeManager,
@@ -106,7 +112,9 @@ class LibraryItemPresenter(
       } else themeManager.observeSwatchFor(screen.libraryItemId)
     }.collectAsState(null)
 
-    // The app's own, so what a change did is told without passing it through the screen's state
+    var quickMatchSource by rememberRetained { mutableStateOf<MatchProvider?>(null) }
+    // The app's own, so what a change did is told without passing it through the screen's state,
+    // and which outlasts this screen to offer undoing a quick match
     val snackbarHost = LocalSnackBarHost.current
 
     return LibraryItemUiState(
@@ -115,6 +123,7 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = contentState,
+      quickMatchSource = quickMatchSource?.name,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -153,6 +162,20 @@ class LibraryItemPresenter(
           Analytics.send(ActionEvent("edit_item", Click))
           navigator.goTo(ItemEditorScreen(screen.libraryItemId))
         }
+
+        LibraryItemUiEvent.QuickMatchClick -> {
+          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          scope.launch { quickMatchSource = quickMatcher.sourceFor(item) }
+        }
+
+        is LibraryItemUiEvent.QuickMatch -> {
+          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          val source = quickMatchSource ?: return@LibraryItemUiState
+          quickMatchSource = null
+          quickMatcher.start(item, source, event.choice, snackbarHost)
+        }
+
+        LibraryItemUiEvent.DismissQuickMatch -> quickMatchSource = null
 
         LibraryItemUiEvent.RescanClick -> {
           scope.launch {
