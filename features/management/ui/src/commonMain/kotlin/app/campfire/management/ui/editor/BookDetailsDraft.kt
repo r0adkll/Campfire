@@ -82,8 +82,8 @@ class BookDetailsDraft(
     base.series.forEach { add(SeriesRowState(it.name, it.formattedSequence)) }
   }
 
-  /** A cover for the server to download in place of the book's own, as a match offers */
-  var newCoverUrl by mutableStateOf<String?>(null)
+  /** A cover to take the place of the book's own, or none, as a match or the Cover tab chose */
+  var newCover by mutableStateOf<StagedCover?>(null)
 
   /** Edited with its formatting, which the server keeps as HTML */
   val description = RichTextState().apply {
@@ -128,7 +128,7 @@ class BookDetailsDraft(
   }
 
   fun isChanged(detail: BookDetail): Boolean = when (detail) {
-    BookDetail.Cover -> newCoverUrl != null
+    BookDetail.Cover -> newCover != null
     BookDetail.Title -> title.isChangedFrom(base.title)
     BookDetail.Subtitle -> subtitle.isChangedFrom(base.subtitle)
     // The server matches authors by name ignoring case, in an order of its own
@@ -167,7 +167,7 @@ class BookDetailsDraft(
       series = seriesEntries().takeIf { BookDetail.Series in changes },
       genres = genres.values.takeIf { BookDetail.Genres in changes },
       tags = tags.values.takeIf { BookDetail.Tags in changes },
-      coverUrl = newCoverUrl,
+      cover = newCover?.update,
     )
   }
 

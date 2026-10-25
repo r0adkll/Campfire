@@ -31,6 +31,7 @@ import app.campfire.network.envelopes.QuickMatchRequest
 import app.campfire.network.envelopes.QuickMatchResponse
 import app.campfire.network.envelopes.ScanItemResponse
 import app.campfire.network.envelopes.SeriesResponse
+import app.campfire.network.envelopes.SetCoverRequest
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncPlaybackSessionRequest
 import app.campfire.network.envelopes.SyncSessionRequest
@@ -42,6 +43,7 @@ import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.BookMatchResult
 import app.campfire.network.models.Collection
+import app.campfire.network.models.CoverSearchResponse
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
@@ -503,6 +505,46 @@ class KtorAudioBookShelfApi(
           requestTimeoutMillis = BookSearchTimeoutMillis
           socketTimeoutMillis = BookSearchTimeoutMillis
         }
+      }
+    }
+  }
+
+  override suspend fun searchCovers(
+    provider: String,
+    title: String,
+    author: String?,
+  ): Result<List<String>> {
+    return trySendRequest({ it.body<CoverSearchResponse>().results }) {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "search", "covers")
+          parameters.append("provider", provider)
+          parameters.append("title", title)
+          author?.let { parameters.append("author", it) }
+        },
+      ) {
+        // Searched as a book search is, with looser retries
+        timeout {
+          requestTimeoutMillis = BookSearchTimeoutMillis
+          socketTimeoutMillis = BookSearchTimeoutMillis
+        }
+      }
+    }
+  }
+
+  override suspend fun setLibraryItemCover(itemId: String, path: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/items/$itemId/cover") {
+        method = HttpMethod.Patch
+        setBody(SetCoverRequest(path))
+      }
+    }
+  }
+
+  override suspend fun removeLibraryItemCover(itemId: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/items/$itemId/cover") {
+        method = HttpMethod.Delete
       }
     }
   }

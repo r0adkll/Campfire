@@ -311,6 +311,25 @@ interface AudioBookShelfApi {
    */
   suspend fun quickMatchLibraryItem(itemId: String, request: QuickMatchRequest): Result<QuickMatchResponse>
 
+  /**
+   * Search [provider] for a book's covers by [title] and [author], `GET /api/search/covers`.
+   *
+   * @return the covers' addresses, on each source's own host
+   */
+  suspend fun searchCovers(provider: String, title: String, author: String?): Result<List<String>>
+
+  /**
+   * Use the image at [path] on the server, such as one of the item's own files, as a library
+   * item's cover, `PATCH /api/items/:id/cover`. Accounts need the update permission.
+   */
+  suspend fun setLibraryItemCover(itemId: String, path: String): Result<Unit>
+
+  /**
+   * Take a library item's cover away, `DELETE /api/items/:id/cover`. Like every DELETE on an
+   * item, it takes the delete permission, not only the update one.
+   */
+  suspend fun removeLibraryItemCover(itemId: String): Result<Unit>
+
   //endregion
 
   //region Playlists

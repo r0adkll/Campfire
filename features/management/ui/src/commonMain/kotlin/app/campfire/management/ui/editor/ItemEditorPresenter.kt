@@ -32,6 +32,7 @@ import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.cover.CoverPresenter
 import app.campfire.management.ui.match.MatchPresenter
 import app.campfire.management.ui.match.fillFrom
 import app.campfire.user.api.UserRepository
@@ -63,6 +64,7 @@ class ItemEditorPresenter(
   private val libraryItemRepository: LibraryItemRepository,
   private val userRepository: UserRepository,
   private val filteringRepository: FilteringRepository,
+  private val coverPresenter: CoverPresenter,
   private val matchPresenter: MatchPresenter,
   @ForScope(UserScope::class) private val userScope: CoroutineScopeHolder,
 ) : Presenter<ItemEditorUiState> {
@@ -156,6 +158,14 @@ class ItemEditorPresenter(
       }
     }
 
+    val cover = coverPresenter.present(
+      item = latestItem,
+      draft = draft,
+      isActive = section == EditorSection.Cover,
+      canUseAddresses = user.canUploadFiles,
+      canRemove = user.canDeleteItems,
+    )
+
     val match = matchPresenter.present(
       item = latestItem,
       draft = draft,
@@ -173,6 +183,7 @@ class ItemEditorPresenter(
       item = item,
       draft = draft,
       section = section,
+      cover = cover,
       match = match,
       filledFrom = filledFrom,
       canEdit = user.canUpdateItems,
@@ -220,7 +231,7 @@ class ItemEditorPresenter(
         ItemEditorUiEvent.RetryLoad -> loadAttempt++
 
         is ItemEditorUiEvent.ShowSection -> {
-          if (event.section == EditorSection.Match && !user.canUpdateItems) return@ItemEditorUiState
+          if (event.section != EditorSection.Details && !user.canUpdateItems) return@ItemEditorUiState
           section = event.section
         }
 
@@ -298,7 +309,7 @@ private fun BookDetailsUpdate.analyticsFields(): String = listOfNotNull(
   series?.let { "series" },
   genres?.let { "genres" },
   tags?.let { "tags" },
-  coverUrl?.let { "cover" },
+  cover?.let { "cover" },
 ).joinToString(",")
 
 private fun Media.Book.asDraft() = BookDetailsDraft(metadata, tags)

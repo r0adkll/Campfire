@@ -63,6 +63,7 @@ import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.cover.CoverSection
 import app.campfire.management.ui.match.MatchSection
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_close_editor
@@ -77,6 +78,7 @@ import campfire.features.management.ui.generated.resources.editor_changes
 import campfire.features.management.ui.generated.resources.editor_load_failed
 import campfire.features.management.ui.generated.resources.editor_subtitle
 import campfire.features.management.ui.generated.resources.editor_title
+import campfire.features.management.ui.generated.resources.tab_cover
 import campfire.features.management.ui.generated.resources.tab_details
 import campfire.features.management.ui.generated.resources.tab_match
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -167,6 +169,14 @@ fun ItemEditorUi(
       snackbarHost = { SnackbarHost(snackbarHost) },
     ) { padding ->
       when {
+        draft != null && state.section == EditorSection.Cover -> CoverSection(
+          state = state.cover,
+          enabled = state.canEdit && !state.isSaving,
+          modifier = Modifier
+            .padding(padding)
+            .consumeWindowInsets(padding),
+        )
+
         draft != null && state.section == EditorSection.Match -> MatchSection(
           state = state.match,
           enabled = state.canEdit && !state.isSaving,
@@ -250,6 +260,7 @@ private fun EditorTabs(
             stringResource(
               when (entry) {
                 EditorSection.Details -> Res.string.tab_details
+                EditorSection.Cover -> Res.string.tab_cover
                 EditorSection.Match -> Res.string.tab_match
               },
             ),
