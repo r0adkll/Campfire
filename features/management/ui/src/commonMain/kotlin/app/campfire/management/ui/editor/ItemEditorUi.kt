@@ -22,8 +22,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -59,6 +61,7 @@ import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.match.MatchSection
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_close_editor
 import campfire.features.management.ui.generated.resources.action_discard
@@ -72,6 +75,8 @@ import campfire.features.management.ui.generated.resources.editor_changes
 import campfire.features.management.ui.generated.resources.editor_load_failed
 import campfire.features.management.ui.generated.resources.editor_subtitle
 import campfire.features.management.ui.generated.resources.editor_title
+import campfire.features.management.ui.generated.resources.tab_details
+import campfire.features.management.ui.generated.resources.tab_match
 import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -118,6 +123,8 @@ fun ItemEditorUi(
       },
   ) {
     val isWide = maxWidth >= WideWidth
+    val twoColumns = maxWidth >= TwoColumnWidth
+    val twoPanes = maxWidth >= MatchTwoPaneWidth
 
     // A short window, such as a phone on its side, has little room left under the top bar once the
     // keyboard is up, so the bar gives way while typing there and comes back once that stops, as
@@ -132,17 +139,35 @@ fun ItemEditorUi(
 
     Scaffold(
       topBar = {
-        EditorTopBar(
-          state = state,
-          changeCount = changes.size,
-          canSave = canSave,
-          isWide = isWide,
-          scrollBehavior = scrollBehavior,
-        )
+        Column {
+          EditorTopBar(
+            state = state,
+            changeCount = changes.size,
+            canSave = canSave,
+            isWide = isWide,
+            scrollBehavior = scrollBehavior,
+          )
+          // The tabs give way to the keyboard along with the top bar
+          if (draft != null && state.canEdit && !barGivesWay) {
+            EditorTabs(
+              section = state.section,
+              onSelect = { state.eventSink(ItemEditorUiEvent.ShowSection(it)) },
+            )
+          }
+        }
       },
       modifier = if (barGivesWay) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
       when {
+        draft != null && state.section == EditorSection.Match -> MatchSection(
+          state = state.match,
+          enabled = state.canEdit && !state.isSaving,
+          twoPanes = twoPanes,
+          modifier = Modifier
+            .padding(padding)
+            .consumeWindowInsets(padding),
+        )
+
         draft != null -> DetailsForm(
           draft = draft,
           enabled = state.canEdit && !state.isSaving,
@@ -150,9 +175,11 @@ fun ItemEditorUi(
           canSeeExplicit = state.canSeeExplicit,
           suggestions = state.suggestions,
           isBehindServer = state.isBehindServer,
+          filledFrom = state.filledFrom,
           onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
           onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
-          twoColumns = maxWidth >= TwoColumnWidth,
+          onDismissFilledFrom = { state.eventSink(ItemEditorUiEvent.DismissFilledFrom) },
+          twoColumns = twoColumns,
           inlineSuggestions = isShort,
           // The keyboard's padding includes the navigation bar the scaffold's already does
           modifier = Modifier
@@ -193,6 +220,36 @@ fun ItemEditorUi(
       onDiscard = { state.eventSink(ItemEditorUiEvent.ConfirmDiscard) },
       onKeepEditing = { state.eventSink(ItemEditorUiEvent.CancelDiscard) },
     )
+  }
+}
+
+@Composable
+private fun EditorTabs(
+  section: EditorSection,
+  onSelect: (EditorSection) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  PrimaryTabRow(
+    selectedTabIndex = section.ordinal,
+    modifier = modifier,
+  ) {
+    EditorSection.entries.forEach { entry ->
+      Tab(
+        selected = entry == section,
+        onClick = { onSelect(entry) },
+        text = {
+          Text(
+            stringResource(
+              when (entry) {
+                EditorSection.Details -> Res.string.tab_details
+                EditorSection.Match -> Res.string.tab_match
+              },
+            ),
+          )
+        },
+        modifier = Modifier.testTag("tab_${entry.name}"),
+      )
+    }
   }
 }
 
@@ -350,6 +407,9 @@ private val WideWidth: Dp = 600.dp
 
 /** Short enough that the keyboard leaves little room under the top bar */
 private val ShortHeight: Dp = 480.dp
+
+/** From here, the results of a match and the review of one sit side by side */
+private val MatchTwoPaneWidth: Dp = 840.dp
 
 /** Wide enough for the form's two columns */
 private val TwoColumnWidth: Dp = 720.dp

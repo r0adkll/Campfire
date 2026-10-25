@@ -65,4 +65,59 @@
   <string name="action_undo">Undo</string>
   <string name="editor_undone">Put the details of %1$s back</string>
   <string name="editor_undo_failed">Couldn't undo. Check your connection and try again.</string>
+  <string name="tab_details">Details</string>
+  <string name="tab_match">Match</string>
+
+  <string name="match_source">Source</string>
+  <string name="match_title">Title or ASIN</string>
+  <string name="match_author">Author</string>
+  <string name="action_search">Search</string>
+  <plurals name="match_results">
+    <item quantity="one">%1$d result</item>
+    <item quantity="other">%1$d results</item>
+  </plurals>
+  <string name="match_book_length">Your book is %1$s</string>
+  <string name="match_same_length">Same length</string>
+  <string name="match_confidence">%1$d% match</string>
+  <string name="match_same_asin">Same ASIN</string>
+  <string name="match_empty">Nothing found on %1$s. Try another source, or fewer words.</string>
+  <string name="match_failed">Couldn't search %1$s. Try again in a moment.</string>
+  <string name="match_sources_failed">Couldn't load the sources to search. Check your connection.</string>
+  <string name="match_pick">Pick a result to compare it with your book</string>
+  <string name="cd_match_cover">Cover of %1$s</string>
+
+  <string name="review_title">Review changes</string>
+  <string name="review_from">From %1$s</string>
+  <string name="review_from_confidence">From %1$s · %2$d% match</string>
+  <string name="review_all">All</string>
+  <string name="review_empty_only">Missing</string>
+  <string name="review_none">None</string>
+  <string name="review_selected">%1$d of %2$d selected</string>
+  <string name="review_currently">Currently: %1$s</string>
+  <string name="review_currently_none">Currently: none</string>
+  <string name="review_current_cover">Current</string>
+  <plurals name="review_unchanged">
+    <item quantity="one">%1$d detail is the same</item>
+    <item quantity="other">%1$d details are the same</item>
+  </plurals>
+  <string name="review_replace">Replace</string>
+  <string name="review_add">Add</string>
+  <plurals name="review_apply_save">
+    <item quantity="one">Apply %1$d change and save</item>
+    <item quantity="other">Apply %1$d changes and save</item>
+  </plurals>
+  <string name="review_apply_form">Apply to form</string>
+  <string name="review_cover_needs_upload">Changing the cover takes the upload permission</string>
+  <string name="review_cover_no_undo">A new cover can't be undone</string>
+  <string name="cd_back_to_results">Back to results</string>
+  <string name="label_cover">Cover</string>
+  <string name="value_yes">Yes</string>
+  <string name="value_no">No</string>
+
+  <string name="banner_filled_from">Filled in from %1$s. Look over the details and save.</string>
+  <string name="cd_dismiss">Dismiss</string>
+  <string name="new_cover_title">New cover</string>
+  <string name="new_cover_message">Takes the place of the book's cover when you save. This can't be undone.</string>
+  <string name="cd_new_cover">The new cover</string>
+  <string name="action_keep_cover">Keep the current cover</string>
 </resources>

@@ -59,6 +59,7 @@ kotlin {
         api(projects.features.collections.impl)
         api(projects.features.collections.ui)
 
+        api(projects.features.management.impl)
         api(projects.features.management.ui)
 
         api(projects.features.author.impl)
