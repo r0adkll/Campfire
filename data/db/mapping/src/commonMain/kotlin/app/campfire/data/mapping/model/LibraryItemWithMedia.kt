@@ -71,6 +71,7 @@ data class LibraryItemWithMedia(
   val metadata_series_sequence: Double?,
   val libraryItemId: String,
   val metadata_series: List<SeriesSequence>?,
+  val metadata_narrators: List<String>?,
   val userMediaProgress: LibraryItemProgress? = null,
 )
 
@@ -148,6 +149,7 @@ fun mapToLibraryItem(
   metadata_series_sequence: Double?,
   libraryItemId: String,
   metadata_series: List<SeriesSequence>?,
+  metadata_narrators: List<String>?,
 ): LibraryItemWithMedia = LibraryItemWithMedia(
   id = id,
   ino = ino,
@@ -202,6 +204,7 @@ fun mapToLibraryItem(
   metadata_series_sequence = metadata_series_sequence,
   libraryItemId = libraryItemId,
   metadata_series = metadata_series,
+  metadata_narrators = metadata_narrators,
 )
 
 fun mapToLibraryItemWithProgress(
@@ -258,6 +261,7 @@ fun mapToLibraryItemWithProgress(
   metadata_series_sequence: Double?,
   libraryItemId: String,
   metadata_series: List<SeriesSequence>?,
+  metadata_narrators: List<String>?,
   id_: String?,
   libraryItemId_: String?,
   userId: String?,
@@ -329,6 +333,7 @@ fun mapToLibraryItemWithProgress(
   metadata_series_sequence = metadata_series_sequence,
   libraryItemId = libraryItemId,
   metadata_series = metadata_series,
+  metadata_narrators = metadata_narrators,
   userMediaProgress = createIfNotNull(
     id_,
     libraryItemId_,

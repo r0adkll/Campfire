@@ -27,3 +27,6 @@ CREATE TABLE IF NOT EXISTS ebookContents (
 
 -- The server-listed position of each book in a series (see seriesBookJoin.sq)
 ALTER TABLE seriesBookJoin ADD COLUMN position INTEGER;
+
+-- Each narrator of a book, as an expanded item lists them (see media.sq)
+ALTER TABLE media ADD COLUMN metadata_narrators TEXT;

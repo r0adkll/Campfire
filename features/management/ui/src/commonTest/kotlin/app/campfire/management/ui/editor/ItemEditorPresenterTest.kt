@@ -9,6 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.withCompositionLocal
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.model.FilterData
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Media
+import app.campfire.filters.test.FakeFilteringRepository
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
@@ -63,6 +67,7 @@ class ItemEditorPresenterTest {
 
   private val libraryItemRepository = FakeLibraryItemRepository()
   private val userRepository = FakeUserRepository()
+  private val filteringRepository = FakeFilteringRepository()
   private val navigator = FakeNavigator(ItemEditorScreen(BookId))
   private val snackbarHost = SnackbarHostState()
 
@@ -76,6 +81,66 @@ class ItemEditorPresenterTest {
       assertThat(state.draft?.base).isEqualTo(details)
       assertThat(state.canEdit).isTrue()
       assertThat(state.draft?.changes.orEmpty()).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `editing starts from the server's copy of the book, not a cached one`() = runTest {
+    // As a list caches a book: its authors only as a name to show, with no list to edit
+    val cached = book.copy(media = media(metadata = details.copy(authors = emptyList(), narrators = emptyList())))
+    val fetched = book.copy(media = media(metadata = details, tags = listOf("Book club")))
+    libraryItemRepository.libraryItemFlow.emit(cached)
+    libraryItemRepository.fetchResult = Result.success(fetched)
+
+    presenter().test {
+      val state = awaitDraft()
+
+      assertThat(libraryItemRepository.fetchInvocations).containsExactly(BookId)
+      assertThat(state.draft?.base).isEqualTo(details)
+      assertThat(state.draft?.baseTags).isEqualTo(listOf("Book club"))
+      // How the cached copy differed isn't the server changing while editing
+      assertThat(state.isBehindServer).isFalse()
+
+      libraryItemRepository.libraryItemFlow.emit(fetched)
+      assertThat(awaitState { it.item.dataOrNull == fetched }.isBehindServer).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a book that couldn't be fetched can be tried again`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+    libraryItemRepository.fetchResult = Result.failure(IllegalStateException("Offline"))
+
+    presenter().test {
+      val failed = awaitState { it.isLoadFailed }
+      assertThat(failed.draft).isEqualTo(null)
+
+      libraryItemRepository.fetchResult = Result.success(book)
+      failed.eventSink(ItemEditorUiEvent.RetryLoad)
+
+      val loaded = awaitDraft()
+      assertThat(loaded.isLoadFailed).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `names to suggest come from the book's own library`() = runTest {
+    filteringRepository.filterData.value = mapOf(
+      "other" to FilterData(authors = listOf(FilterData.Entity("author-1", "Adrian Tchaikovsky"))),
+      "selected" to FilterData(genres = listOf("Not this library's")),
+    )
+    filteringRepository.selectedLibraryId = "selected"
+    libraryItemRepository.libraryItemFlow.emit(book.copy(libraryId = "other"))
+
+    presenter().test {
+      val state = awaitState { it.suggestions.authors.isNotEmpty() }
+
+      assertThat(state.suggestions.authors).containsExactly("Adrian Tchaikovsky")
+      assertThat(state.suggestions.genres).isEmpty()
+      assertThat(filteringRepository.observedLibraries).containsOnly("other")
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -199,7 +264,7 @@ class ItemEditorPresenterTest {
       state.draft!!.title.setTextAndPlaceCursorAtEnd("Children of Memory")
 
       val changedOnServer = details.copy(publisher = "Orbit")
-      libraryItemRepository.libraryItemFlow.emit(book.copy(media = media(metadata = changedOnServer)))
+      libraryItemRepository.libraryItemFlow.emit(book.changedOnServer(changedOnServer))
 
       awaitState { it.isBehindServer }.eventSink(ItemEditorUiEvent.KeepChanges)
       val kept = awaitState { !it.isBehindServer }
@@ -218,12 +283,14 @@ class ItemEditorPresenterTest {
       state.draft!!.title.setTextAndPlaceCursorAtEnd("Children of Memory")
 
       val changedOnServer = details.copy(publisher = "Orbit")
-      libraryItemRepository.libraryItemFlow.emit(book.copy(media = media(metadata = changedOnServer)))
+      libraryItemRepository.libraryItemFlow.emit(book.changedOnServer(changedOnServer))
 
       awaitState { it.isBehindServer }.eventSink(ItemEditorUiEvent.ResetChanges)
       val reloaded = awaitState { it.draft?.base == changedOnServer }
       assertThat(reloaded.isBehindServer).isFalse()
       assertThat(reloaded.draft?.changes.orEmpty()).isEmpty()
+      // Fetched again, not taken from the cache, which can lack lists like the narrators
+      assertThat(libraryItemRepository.fetchInvocations).containsExactly(BookId, BookId)
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -247,6 +314,7 @@ class ItemEditorPresenterTest {
       navigator = navigator,
       libraryItemRepository = libraryItemRepository,
       userRepository = userRepository,
+      filteringRepository = filteringRepository,
       userScope = CoroutineScopeHolder { backgroundScope },
     )
     return object : Presenter<ItemEditorUiState> {
@@ -256,6 +324,10 @@ class ItemEditorPresenterTest {
       }
     }
   }
+
+  /** The book as the server has it after someone else changed its details to [metadata] */
+  private fun LibraryItem.changedOnServer(metadata: Media.Metadata.Book) =
+    copy(media = media(metadata = metadata), updatedAtMillis = updatedAtMillis + 1_000)
 
   private suspend fun ReceiveTurbine<ItemEditorUiState>.awaitDraft(): ItemEditorUiState =
     awaitState { it.draft != null }
