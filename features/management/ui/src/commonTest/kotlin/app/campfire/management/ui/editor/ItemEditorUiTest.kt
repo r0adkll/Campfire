@@ -34,6 +34,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
+import app.campfire.management.ui.cover.coverUiState
 import app.campfire.management.ui.match.MatchUiState
 import app.campfire.management.ui.match.matchUiState
 import assertk.assertThat
@@ -380,7 +381,7 @@ class ItemEditorUiTest {
     onNodeWithTag("editor_keep_cover").performClick()
 
     onNodeWithTag("editor_new_cover").assertDoesNotExist()
-    assertThat(draft!!.newCoverUrl).isEqualTo(null)
+    assertThat(draft!!.newCover).isEqualTo(null)
   }
 
   private fun ComposeUiTest.setEditor(
@@ -399,7 +400,13 @@ class ItemEditorUiTest {
     width: Dp = 400.dp,
     height: Dp = 1600.dp,
   ) {
-    draft = if (withDraft) BookDetailsDraft(details, book.media.tags).apply { this.newCoverUrl = newCoverUrl } else null
+    draft = if (withDraft) {
+      BookDetailsDraft(details, book.media.tags).apply {
+        this.newCover = newCoverUrl?.let(StagedCover::fromUrl)
+      }
+    } else {
+      null
+    }
     setContent {
       ContentWithOverlays {
         ItemEditorUi(
@@ -407,6 +414,7 @@ class ItemEditorUiTest {
             item = item,
             draft = draft,
             section = section,
+            cover = coverUiState(),
             match = match,
             filledFrom = filledFrom,
             canEdit = canEdit,

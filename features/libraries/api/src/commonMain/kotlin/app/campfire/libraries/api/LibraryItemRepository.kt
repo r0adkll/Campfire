@@ -42,8 +42,9 @@ interface LibraryItemRepository {
   suspend fun rescanLibraryItem(itemId: LibraryItemId): Result<RescanResult>
 
   /**
-   * Change a book's details on the server, only those [update] sets. A changed item is fetched
-   * again here.
+   * Change a book's details on the server, only those [update] sets. A cover other than one from
+   * an address changes first, on its own, so a refused one leaves the details as they were. A
+   * changed item is fetched again here.
    *
    * @return whether the server changed anything, or a failure, an [ItemChangeNotAllowedException]
    * when the account may not change items

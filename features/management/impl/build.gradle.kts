@@ -13,6 +13,7 @@ kotlin {
         api(projects.features.management.api)
 
         implementation(projects.core)
+        implementation(projects.data.account.api)
         implementation(projects.data.network.api)
         implementation(projects.features.libraries.api)
 
@@ -24,6 +25,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.common.test)
+        implementation(projects.data.account.test)
         implementation(projects.data.network.test)
         implementation(projects.features.libraries.test)
         implementation(libs.bundles.test.common)
