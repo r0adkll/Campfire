@@ -95,6 +95,8 @@ import app.campfire.ui.navigation.rail.CampfireWideNavigationRail
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.api.colorScheme
+import app.campfire.updates.AppUpdates
+import app.campfire.updates.OpenedBuildSheet
 import campfire.app.common.generated.resources.Res
 import campfire.app.common.generated.resources.empty_supporting_pane_message
 import com.slack.circuit.backstack.SaveableBackStack
@@ -126,6 +128,7 @@ internal fun LoggedInWindow(
   layoutSettings: LayoutSettings,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
+  appUpdates: AppUpdates,
   modifier: Modifier = Modifier,
 ) {
   val backStack = key(userComponent.currentUserSession) {
@@ -223,6 +226,8 @@ internal fun LoggedInWindow(
           }
         }
       }
+
+      OpenedBuildSheet(appUpdates)
     }
   }
 }

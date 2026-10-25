@@ -74,6 +74,7 @@ android {
       it.name == "alphaRelease" || it.name == "betaRelease"
     }.configureEach {
       kotlin.directories.add("src/preRelease/kotlin")
+      manifest.srcFile("src/preRelease/AndroidManifest.xml")
     }
   }
 

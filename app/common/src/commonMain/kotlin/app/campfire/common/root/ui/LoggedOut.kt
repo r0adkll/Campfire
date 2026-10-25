@@ -30,6 +30,8 @@ import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.colorScheme
+import app.campfire.updates.AppUpdates
+import app.campfire.updates.OpenedBuildSheet
 import com.slack.circuit.backstack.SaveableBackStack
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -51,6 +53,7 @@ internal fun LoggedOutWindow(
   windowInsets: WindowInsets,
   themeSettings: ThemeSettings,
   libraryViewSettings: LibraryViewSettings,
+  appUpdates: AppUpdates,
   modifier: Modifier = Modifier,
 ) {
   val backStack = key(userComponent.currentUserSession) {
@@ -87,6 +90,8 @@ internal fun LoggedOutWindow(
           modifier = modifier,
         )
       }
+
+      OpenedBuildSheet(appUpdates)
     }
   }
 }

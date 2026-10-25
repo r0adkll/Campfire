@@ -70,6 +70,16 @@ sealed interface DeepLink {
   ) : DeepLink
 
   /**
+   * A Drop build page's Open in App ([OpenBuildLink]): offer the build [buildId] for install,
+   * whatever release channel this build follows. Release-safe, since installing still asks the
+   * user. [nonce] makes opening the same build again distinct, so each one is offered.
+   */
+  data class OpenBuild(
+    val buildId: String,
+    val nonce: Long,
+  ) : DeepLink
+
+  /**
    * Debug-only: sign in to [serverUrl] with the given credentials, mark first-run prompts as
    * seen, and optionally select a library by name and apply a theme. The app ends up on Home
    * in a fully configured state.

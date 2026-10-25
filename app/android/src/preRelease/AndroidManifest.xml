@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Merged into the Drop-distributed variants (alphaRelease, betaRelease) only; see build.gradle.kts. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <application>
+    <activity android:name=".MainActivity">
+      <!--
+        A Drop build page's Open in App: campfireaudiobooks://drop/<build id>, from the upload's
+        open-in-app input (.github/workflows). The page opens it as an intent: URL aimed at this
+        package alone, so it needs BROWSABLE; store and F-Droid builds, which can't install Drop
+        builds, never declare it.
+      -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="campfireaudiobooks" />
+        <data android:host="drop" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

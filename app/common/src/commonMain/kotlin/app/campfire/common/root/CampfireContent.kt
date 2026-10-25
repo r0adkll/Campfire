@@ -25,6 +25,7 @@ import app.campfire.settings.api.LayoutSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
+import app.campfire.updates.AppUpdates
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
 import dev.zacsweers.metro.Inject
@@ -38,6 +39,7 @@ class CampfireContentWithInsets(
   private val themeManager: ThemeManager,
   private val themeRepository: AppThemeRepository,
   private val automationDeepLinks: AutomationDeepLinks,
+  private val appUpdates: AppUpdates,
 ) {
   @Composable
   operator fun invoke(
@@ -55,6 +57,7 @@ class CampfireContentWithInsets(
     themeManager = themeManager,
     themeRepository = themeRepository,
     automationDeepLinks = automationDeepLinks,
+    appUpdates = appUpdates,
     modifier = modifier,
   )
 }
@@ -68,6 +71,7 @@ class CampfireContent(
   private val themeManager: ThemeManager,
   private val themeRepository: AppThemeRepository,
   private val automationDeepLinks: AutomationDeepLinks,
+  private val appUpdates: AppUpdates,
 ) {
   @Composable
   operator fun invoke(
@@ -86,6 +90,7 @@ class CampfireContent(
     themeManager = themeManager,
     themeRepository = themeRepository,
     automationDeepLinks = automationDeepLinks,
+    appUpdates = appUpdates,
     modifier = modifier,
   )
 }
@@ -101,6 +106,7 @@ private fun CampfireRoot(
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
   automationDeepLinks: AutomationDeepLinks,
+  appUpdates: AppUpdates,
   modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
@@ -108,6 +114,12 @@ private fun CampfireRoot(
     LocalWindowChromeInsets provides windowInsets,
     LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
   ) {
+    // Out here, so the build a build page's Open in App asked for is offered once, whoever is
+    // signed in. The windows show the sheet it's offered in.
+    LaunchedEffect(deepLink) {
+      if (deepLink is DeepLink.OpenBuild) appUpdates.openBuild(deepLink.buildId)
+    }
+
     UserComponentContent(userSessionManager) { userComponent ->
       val session = userComponent.currentUserSession
       if (deepLink is DeepLink.Setup && session != UserSession.Loading) {
@@ -129,6 +141,7 @@ private fun CampfireRoot(
           windowInsets = windowInsets,
           themeSettings = themeSettings,
           libraryViewSettings = userComponent.libraryViewSettings,
+          appUpdates = appUpdates,
         )
 
         is UserSession.LoggedIn -> LoggedInWindow(
@@ -140,6 +153,7 @@ private fun CampfireRoot(
           layoutSettings = layoutSettings,
           themeManager = themeManager,
           themeRepository = themeRepository,
+          appUpdates = appUpdates,
         )
 
         UserSession.Loading -> Unit

@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in
+- [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
 - [Android] Check for app updates when you come back to Campfire, not only when it starts
 - [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update
 - E-book reading progress shows to a tenth of a percent

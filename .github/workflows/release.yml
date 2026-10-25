@@ -116,6 +116,7 @@ jobs:
         with:
           server: https://drop.thescavengers.software
           apk: app/android/build/outputs/apk/beta/release/android-beta-release.apk
+          open-in-app: campfireaudiobooks://drop/{build}
           notes: ${{ steps.drop_notes.outputs.notes }}
 
       - name: Upload build outputs

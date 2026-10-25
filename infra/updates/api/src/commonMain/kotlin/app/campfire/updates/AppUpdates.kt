@@ -31,11 +31,32 @@ interface AppUpdates {
   /** The sheet that downloads and installs [update]: the source's own, or Campfire's. */
   val installSheet: AppUpdateSheet
 
+  /** What came of the last [openBuild], until [closeOpenedBuild]; null when nothing was opened. */
+  val openedBuild: StateFlow<OpenedBuild?>
+
   /** Check again now, regardless of the interval, e.g. after the update sheet closes. */
   fun refresh()
 
   /** Hides the drawer card for [update] until a different build is waiting. */
   fun dismiss(update: AppUpdate)
+
+  /**
+   * Offers the build [buildId], from a build page's Open in App, in the [installSheet], whatever
+   * channel this build follows. Builds that don't update themselves ignore it.
+   */
+  fun openBuild(buildId: String)
+
+  /** Closes what [openBuild] opened, and checks again so the build's own channel shows. */
+  fun closeOpenedBuild()
+}
+
+/** What came of [AppUpdates.openBuild]. */
+enum class OpenedBuild {
+  /** The build is offered in the [AppUpdates.installSheet]. */
+  Offered,
+
+  /** The update source couldn't be asked about the build. */
+  Failed,
 }
 
 /** The last update check: whether one is running, when one last finished and if it failed. */
