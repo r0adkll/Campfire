@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import app.campfire.management.api.match.BookMatch
+import app.campfire.management.api.match.ImageSize
 import app.campfire.management.api.match.MatchProvider
 import com.slack.circuit.runtime.CircuitUiEvent
 import kotlin.time.Duration
@@ -49,9 +50,19 @@ data class MatchReviewState(
   val selected: Set<MatchField>,
   val merges: Map<MatchField, ListMerge>,
   val canChangeCover: Boolean,
+  /** How big the book's cover is, once its file says */
+  val currentCoverSize: ImageSize? = null,
+  /** How big the result's cover is, once its file says */
+  val newCoverSize: ImageSize? = null,
 ) {
   /** The details the result would change */
   val changing: List<MatchRow> = rows.filterNot { it.isSame }
+
+  /** The result's cover beside the book's, if it has one, which the review shows apart */
+  val cover: MatchRow? = changing.firstOrNull { it.field == MatchField.Cover }
+
+  /** The details the result would change, but the cover */
+  val details: List<MatchRow> = changing.filterNot { it.field == MatchField.Cover }
 
   /** The details the book already has as the result does */
   val unchanged: List<MatchRow> = rows.filter { it.isSame }

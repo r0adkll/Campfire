@@ -55,6 +55,19 @@ object CoverUrls {
     return "$base${separator}width=$width$fragment"
   }
 
+  /**
+   * Returns [url] asking for the image as the server keeps it rather than a resized copy, or [url]
+   * unchanged when it is not a server image URL.
+   */
+  fun original(url: String): String {
+    if (!isServerImageUrl(url)) return url
+    val fragmentIndex = url.indexOf('#')
+    val base = if (fragmentIndex >= 0) url.substring(0, fragmentIndex) else url
+    val fragment = if (fragmentIndex >= 0) url.substring(fragmentIndex) else ""
+    val params = queryParams(base).filter { it.isNotEmpty() && it.substringBefore('=') !in SIZE_PARAMS }
+    return "${base.substringBefore('?')}?${(params + "raw=1").joinToString("&")}$fragment"
+  }
+
   private fun hasSizeParam(url: String): Boolean = queryParams(url).any { it.substringBefore('=') in SIZE_PARAMS }
 
   private fun queryParams(url: String): List<String> {

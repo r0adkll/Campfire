@@ -40,6 +40,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
+import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
 
@@ -400,25 +401,27 @@ class ItemEditorUiTest {
   ) {
     draft = if (withDraft) BookDetailsDraft(details, book.media.tags).apply { this.newCoverUrl = newCoverUrl } else null
     setContent {
-      ItemEditorUi(
-        state = ItemEditorUiState(
-          item = item,
-          draft = draft,
-          section = section,
-          match = match,
-          filledFrom = filledFrom,
-          canEdit = canEdit,
-          canSeeExplicit = canSeeExplicit,
-          suggestions = suggestions,
-          isSaving = false,
-          isBehindServer = isBehindServer,
-          isConfirmingDiscard = isConfirmingDiscard,
-          isLoadFailed = isLoadFailed,
-          message = null,
-          eventSink = events,
-        ),
-        modifier = Modifier.size(width = width, height = height),
-      )
+      ContentWithOverlays {
+        ItemEditorUi(
+          state = ItemEditorUiState(
+            item = item,
+            draft = draft,
+            section = section,
+            match = match,
+            filledFrom = filledFrom,
+            canEdit = canEdit,
+            canSeeExplicit = canSeeExplicit,
+            suggestions = suggestions,
+            isSaving = false,
+            isBehindServer = isBehindServer,
+            isConfirmingDiscard = isConfirmingDiscard,
+            isLoadFailed = isLoadFailed,
+            message = null,
+            eventSink = events,
+          ),
+          modifier = Modifier.size(width = width, height = height),
+        )
+      }
     }
   }
 }

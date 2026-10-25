@@ -17,6 +17,7 @@ kotlin {
         implementation(projects.features.libraries.api)
 
         implementation(libs.kotlinx.serialization.json)
+        implementation(libs.ktor.client.core)
       }
     }
 
@@ -25,6 +26,7 @@ kotlin {
         implementation(projects.data.network.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
+        implementation(libs.ktor.client.mock)
       }
     }
   }

@@ -132,7 +132,6 @@ fun ItemEditorUi(
   ) {
     val isWide = maxWidth >= WideWidth
     val twoColumns = maxWidth >= TwoColumnWidth
-    val twoPanes = maxWidth >= MatchTwoPaneWidth
 
     // A short window, such as a phone on its side, has little room left under the top bar once the
     // keyboard is up, so the bar gives way while typing there and comes back once that stops, as
@@ -171,7 +170,6 @@ fun ItemEditorUi(
         draft != null && state.section == EditorSection.Match -> MatchSection(
           state = state.match,
           enabled = state.canEdit && !state.isSaving,
-          twoPanes = twoPanes,
           modifier = Modifier
             .padding(padding)
             .consumeWindowInsets(padding),
@@ -185,6 +183,7 @@ fun ItemEditorUi(
           suggestions = state.suggestions,
           isBehindServer = state.isBehindServer,
           filledFrom = state.filledFrom,
+          currentCoverUrl = state.item.dataOrNull?.media?.takeIf { it.coverPath != null }?.coverImageUrl,
           onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
           onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
           onDismissFilledFrom = { state.eventSink(ItemEditorUiEvent.DismissFilledFrom) },
@@ -416,9 +415,6 @@ private val WideWidth: Dp = 600.dp
 
 /** Short enough that the keyboard leaves little room under the top bar */
 private val ShortHeight: Dp = 480.dp
-
-/** From here, the results of a match and the review of one sit side by side */
-private val MatchTwoPaneWidth: Dp = 840.dp
 
 /** Wide enough for the form's two columns */
 private val TwoColumnWidth: Dp = 720.dp
