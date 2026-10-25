@@ -39,11 +39,16 @@ import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
-/** Makes [DefaultLibraryItemActions] for the app's navigator. */
+/**
+ * Makes [DefaultLibraryItemActions] for the app's navigator. One per user, so the actions the root
+ * makes from it, and provides to everything under it, stay the same while the root recomposes.
+ */
 @ContributesBinding(UserScope::class)
+@SingleIn(UserScope::class)
 @Inject
 class DefaultLibraryItemActionsFactory(
   private val userRepository: UserRepository,
