@@ -101,4 +101,11 @@ class CoverUrlsTest {
     assertThat(CoverUrls.timestamp(itemCover)).isNull()
     assertThat(CoverUrls.timestamp("$itemCover?ts=abc")).isNull()
   }
+
+  @Test
+  fun original_asks_for_the_unresized_server_image() {
+    assertThat(CoverUrls.original(itemCover)).isEqualTo("$itemCover?raw=1")
+    assertThat(CoverUrls.original("$itemCover?ts=42&width=400#frag")).isEqualTo("$itemCover?ts=42&raw=1#frag")
+    assertThat(CoverUrls.original("https://cdn.example.com/cover.jpg")).isEqualTo("https://cdn.example.com/cover.jpg")
+  }
 }
