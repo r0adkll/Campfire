@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
 - Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
 - Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
-- Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, reviewing each change or in one tap with Quick match, when your account is allowed to
+- Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, reviewing each change or in one tap with Quick match, or choose a new cover from those sources, a web address or the book's own images, when your account is allowed to
 
 ### Changed
 
