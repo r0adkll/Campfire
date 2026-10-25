@@ -7,6 +7,7 @@ import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
+import app.campfire.common.screens.WorkspaceScreen
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.navigation.NavStackList
 import com.slack.circuit.runtime.popUntil
@@ -23,11 +24,20 @@ class HomeNavigator(
 
   override fun goTo(screen: Screen): Boolean {
     return if (isSupportingPaneEnabled && screen is DetailScreen) {
-      detailNavigator.popUntil { it is EmptyScreen }
-      detailNavigator.goTo(screen)
+      showInPane(screen)
     } else {
+      if (isSupportingPaneEnabled && screen is WorkspaceScreen) {
+        screen.preview?.let(::showInPane)
+      }
       rootNavigator.goTo(screen)
     }
+  }
+
+  private fun showInPane(screen: DetailScreen): Boolean {
+    // Already showing, as a workspace's preview usually is when it's opened from the pane
+    if (detailNavigator.peek() == screen) return true
+    detailNavigator.popUntil { it is EmptyScreen }
+    return detailNavigator.goTo(screen)
   }
 
   override fun forward(): Boolean {

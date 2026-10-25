@@ -5,6 +5,7 @@ package app.campfire.libraries.test
 
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import kotlinx.coroutines.flow.Flow
@@ -34,5 +35,12 @@ class FakeLibraryItemRepository : LibraryItemRepository {
   override suspend fun rescanLibraryItem(itemId: LibraryItemId): Result<RescanResult> {
     rescanInvocations += itemId
     return rescanResult
+  }
+
+  val detailUpdates = mutableListOf<Pair<LibraryItemId, BookDetailsUpdate>>()
+  var updateBookDetailsResult: Result<Boolean> = Result.success(true)
+  override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate): Result<Boolean> {
+    detailUpdates += itemId to update
+    return updateBookDetailsResult
   }
 }

@@ -32,4 +32,13 @@ interface LibraryItemRepository {
    * @return a failure, an [ItemChangeNotAllowedException] when the account may not rescan items
    */
   suspend fun rescanLibraryItem(itemId: LibraryItemId): Result<RescanResult>
+
+  /**
+   * Change a book's details on the server, only those [update] sets. A changed item is fetched
+   * again here.
+   *
+   * @return whether the server changed anything, or a failure, an [ItemChangeNotAllowedException]
+   * when the account may not change items
+   */
+  suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate): Result<Boolean>
 }

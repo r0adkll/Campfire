@@ -21,3 +21,24 @@ enum class RescanResult {
  */
 class ItemChangeNotAllowedException(cause: Throwable? = null) :
   Exception("This account isn't allowed to change the item", cause)
+
+/**
+ * Changes to a book's details on the server. A null field stays as it is; an empty text clears
+ * the field, which the server stores as no value.
+ */
+data class BookDetailsUpdate(
+  val title: String? = null,
+  val subtitle: String? = null,
+  /** HTML, as the server keeps descriptions */
+  val description: String? = null,
+  val publisher: String? = null,
+  val publishedYear: String? = null,
+  val language: String? = null,
+  val isbn: String? = null,
+  val asin: String? = null,
+  val explicit: Boolean? = null,
+  val abridged: Boolean? = null,
+) {
+  val isEmpty: Boolean
+    get() = this == BookDetailsUpdate()
+}
