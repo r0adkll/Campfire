@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Checks the [AppUpdateSource] for an update each time the app comes to the foreground, at most
@@ -49,7 +50,7 @@ class AppUpdateChecker(
   private val appLifecycleObserver: AppLifecycleObserver,
   private val fatherTime: FatherTime,
   private val appStateSettings: AppStateSettings,
-  @ForScope(AppScope::class) scope: CoroutineScope,
+  @ForScope(AppScope::class) private val scope: CoroutineScope,
 ) : AppUpdates {
 
   private val refreshes = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -89,12 +90,34 @@ class AppUpdateChecker(
   override val installSheet: AppUpdateSheet = appUpdateSource.updateSheet
     ?: CampfireAppUpdateSheet(appUpdateSource, update)
 
+  private val _openedBuild = MutableStateFlow<OpenedBuild?>(null)
+  override val openedBuild: StateFlow<OpenedBuild?> = _openedBuild.asStateFlow()
+
   override fun refresh() {
     refreshes.tryEmit(Unit)
   }
 
   override fun dismiss(update: AppUpdate) {
     appStateSettings.appUpdateDismissedVersionCode = update.versionCode
+  }
+
+  override fun openBuild(buildId: String) {
+    if (!appUpdateSource.isSupported) return
+    scope.launch {
+      val opened = try {
+        if (appUpdateSource.openBuild(buildId)) OpenedBuild.Offered else null
+      } catch (e: AppUpdateCheckException) {
+        bark(LogPriority.WARN, throwable = e) { "Couldn't open build $buildId: ${e.message}" }
+        OpenedBuild.Failed
+      }
+      opened?.let { _openedBuild.value = it }
+    }
+  }
+
+  override fun closeOpenedBuild() {
+    appUpdateSource.closeOpenedBuild()
+    _openedBuild.value = null
+    refresh()
   }
 
   private suspend fun check(trigger: Trigger): AppUpdate? {

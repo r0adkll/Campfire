@@ -12,6 +12,8 @@ import app.campfire.updates.source.AppUpdateCheckException
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
 import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
@@ -55,6 +57,9 @@ private class CountingAppUpdateSource(
   var available: AppUpdate? = null
   var failure: AppUpdateCheckException? = null
   var checks = 0
+  var opensBuilds = true
+  val openedBuilds = mutableListOf<String>()
+  var closedBuilds = 0
 
   override fun changes(): Flow<Unit> = changes
 
@@ -62,6 +67,16 @@ private class CountingAppUpdateSource(
     checks++
     failure?.let { throw it }
     return available
+  }
+
+  override suspend fun openBuild(buildId: String): Boolean {
+    openedBuilds += buildId
+    failure?.let { throw it }
+    return opensBuilds
+  }
+
+  override fun closeOpenedBuild() {
+    closedBuilds++
   }
 
   override suspend fun installUpdate(): Flow<AppUpdateProgress> = emptyFlow()
@@ -277,7 +292,70 @@ class AppUpdateCheckerTest {
     assertThat(checker.undismissedUpdate.value).isEqualTo(downloading)
   }
 
+  @Test
+  fun `an opened build is offered in the install sheet`() = runTest {
+    val source = CountingAppUpdateSource()
+    val checker = checker(source)
+
+    checker.openBuild(BUILD_ID)
+    runCurrent()
+
+    assertThat(source.openedBuilds).containsExactly(BUILD_ID)
+    assertThat(checker.openedBuild.value).isEqualTo(OpenedBuild.Offered)
+  }
+
+  @Test
+  fun `closing an opened build lets the source check again`() = runTest {
+    val source = CountingAppUpdateSource()
+    val checker = checker(source)
+    foreground()
+    checker.openBuild(BUILD_ID)
+    runCurrent()
+
+    checker.closeOpenedBuild()
+    runCurrent()
+
+    assertThat(checker.openedBuild.value).isNull()
+    assertThat(source.closedBuilds).isEqualTo(1)
+    assertThat(source.checks).isEqualTo(2)
+  }
+
+  @Test
+  fun `a build the source couldn't be asked about fails`() = runTest {
+    val source = CountingAppUpdateSource().apply { failure = AppUpdateCheckException("unreachable") }
+    val checker = checker(source)
+
+    checker.openBuild(BUILD_ID)
+    runCurrent()
+
+    assertThat(checker.openedBuild.value).isEqualTo(OpenedBuild.Failed)
+  }
+
+  @Test
+  fun `a source without builds to open offers nothing`() = runTest {
+    val source = CountingAppUpdateSource().apply { opensBuilds = false }
+    val checker = checker(source)
+
+    checker.openBuild(BUILD_ID)
+    runCurrent()
+
+    assertThat(checker.openedBuild.value).isNull()
+  }
+
+  @Test
+  fun `unsupported sources aren't asked to open builds`() = runTest {
+    val source = CountingAppUpdateSource(isSupported = false)
+    val checker = checker(source)
+
+    checker.openBuild(BUILD_ID)
+    runCurrent()
+
+    assertThat(source.openedBuilds).isEmpty()
+    assertThat(checker.openedBuild.value).isNull()
+  }
+
   private companion object {
     val UPDATE = AppUpdate(versionName = "1.3.0", versionCode = 1_003_099L)
+    const val BUILD_ID = "aB3dE6gH"
   }
 }

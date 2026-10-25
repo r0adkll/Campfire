@@ -55,6 +55,18 @@ interface AppUpdateSource {
   suspend fun getAvailableUpdate(): AppUpdate?
 
   /**
+   * Offers the build [buildId], which a build page's Open in App asked for, in the update sheet,
+   * whatever channel this build follows. The offer stands until [closeOpenedBuild], so update
+   * checks in the meantime don't replace it. False where the source has no builds to open.
+   *
+   * @throws AppUpdateCheckException when the source couldn't be asked about the build.
+   */
+  suspend fun openBuild(buildId: String): Boolean = false
+
+  /** Lets update checks replace the build [openBuild] offered again, once its sheet closes. */
+  fun closeOpenedBuild() = Unit
+
+  /**
    * Kick of the update installation process
    */
   suspend fun installUpdate(): Flow<AppUpdateProgress>

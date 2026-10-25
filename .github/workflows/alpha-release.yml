@@ -113,6 +113,7 @@ jobs:
         with:
           server: https://drop.thescavengers.software
           apk: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
+          open-in-app: campfireaudiobooks://drop/{build}
 
       - name: Upload build outputs
         if: always()

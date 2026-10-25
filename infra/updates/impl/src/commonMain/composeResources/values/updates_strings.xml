@@ -16,6 +16,7 @@
   <string name="update_action_install">Install</string>
   <string name="update_action_retry">Try again</string>
   <string name="update_action_dismiss">Dismiss update</string>
+  <string name="update_open_build_failed">Couldn't open that build. Check your connection and try again.</string>
 
   <string name="update_sheet_title">Update available</string>
   <string name="update_sheet_version">%1$s (%2$d)</string>

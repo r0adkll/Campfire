@@ -11,15 +11,17 @@ import app.campfire.core.navigation.ConnectLink
 import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
+import app.campfire.core.navigation.OpenBuildLink
 
 /**
  * Translate an [Intent] into a [DeepLink].
  *
  * A setup link (the App Link `https://thescavengers.software/campfire/connect#…`, or its
  * `campfireaudiobooks://connect?…` fallback) is always honored: it only opens a confirmation, and
- * nothing in it is saved until the user agrees. It is ignored when
- * [isRedelivery] (the activity being recreated, or relaunched from Recents with its original
- * intent), so an old link doesn't ask again.
+ * nothing in it is saved until the user agrees. So is a Drop build page's Open in App link
+ * (`campfireaudiobooks://drop/<build id>`), which only offers the build for install. Both are
+ * ignored when [isRedelivery] (the activity being recreated, or relaunched from Recents with its
+ * original intent), so an old link doesn't ask again.
  *
  * `library_item_id` and `campfire_upcoming` are always honored (widgets / notifications use
  * them). The automation actions
@@ -32,11 +34,11 @@ internal fun Intent.toDeepLink(
   nonce: Long,
   isRedelivery: Boolean = false,
 ): DeepLink {
-  val connectLink = connectLink()
-  if (connectLink != null) {
+  val link = connectLink()?.let { DeepLink.Connect(it, nonce) }
+    ?: openedBuildId()?.let { DeepLink.OpenBuild(it, nonce) }
+  if (link != null) {
     val launchedFromHistory = flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
-    if (isRedelivery || launchedFromHistory) return DeepLink.None
-    return DeepLink.Connect(connectLink, nonce)
+    return if (isRedelivery || launchedFromHistory) DeepLink.None else link
   }
 
   val extras = extras ?: return DeepLink.None
@@ -67,6 +69,12 @@ internal fun Intent.toDeepLink(
 private fun Intent.connectLink(): ConnectLinkResult? {
   if (action != Intent.ACTION_VIEW) return null
   return ConnectLink.parseUrl(dataString ?: return null)
+}
+
+/** The build ID in a Drop build page's Open in App link, or `null` when this intent isn't one. */
+private fun Intent.openedBuildId(): String? {
+  if (action != Intent.ACTION_VIEW) return null
+  return OpenBuildLink.parseBuildId(dataString ?: return null)
 }
 
 private fun parseAutomation(
