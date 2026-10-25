@@ -13,6 +13,7 @@ import app.campfire.data.mapping.dao.SqlDelightLibraryItemDao
 import app.campfire.db.DatabaseFactory
 import app.campfire.db.test.createDriver
 import app.campfire.libraries.api.BookDetailsUpdate
+import app.campfire.libraries.api.CoverUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.RescanResult
@@ -44,6 +45,7 @@ import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
+import assertk.assertions.isNull
 import kotlin.test.Test
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -216,10 +218,49 @@ class StoreLibraryItemRepositoryTest {
   fun `a new cover is sent for the server to download`() = repositoryTest {
     api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
 
-    repository().updateBookDetails(ITEM, BookDetailsUpdate(coverUrl = "https://m.media-amazon.com/images/I/cover.jpg"))
+    repository().updateBookDetails(
+      ITEM,
+      BookDetailsUpdate(cover = CoverUpdate.FromUrl("https://m.media-amazon.com/images/I/cover.jpg")),
+    )
 
     assertThat(api.mediaUpdates)
       .containsExactly(ITEM to UpdateMediaRequest(url = "https://m.media-amazon.com/images/I/cover.jpg"))
+  }
+
+  @Test
+  fun `a cover from the book's own files changes on its own, before the details`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+    api.libraryItemResult = { Result.success(audiobook(title = "Dune")) }
+
+    val changed = repository().updateBookDetails(
+      ITEM,
+      BookDetailsUpdate(title = "Dune", cover = CoverUpdate.FromServerFile("/audiobooks/Dune/folder.jpg")),
+    )
+
+    assertThat(api.coversSet).containsExactly(ITEM to "/audiobooks/Dune/folder.jpg")
+    assertThat(api.mediaUpdates.single().second.url).isNull()
+    // The server said the details were already so, but the cover changed
+    assertThat(changed.getOrNull()).isEqualTo(true)
+  }
+
+  @Test
+  fun `a removed cover alone sends no details`() = repositoryTest {
+    api.libraryItemResult = { Result.success(audiobook(title = "Dune")) }
+    val changed = repository().updateBookDetails(ITEM, BookDetailsUpdate(cover = CoverUpdate.Remove))
+
+    assertThat(api.coversRemoved).containsExactly(ITEM)
+    assertThat(api.mediaUpdates).isEmpty()
+    assertThat(changed.getOrNull()).isEqualTo(true)
+  }
+
+  @Test
+  fun `a refused cover leaves the details unsent`() = repositoryTest {
+    api.removeLibraryItemCoverResult = Result.failure(ApiException(403))
+
+    val result = repository().updateBookDetails(ITEM, BookDetailsUpdate(title = "Dune", cover = CoverUpdate.Remove))
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
+    assertThat(api.mediaUpdates).isEmpty()
   }
 
   @Test

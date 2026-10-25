@@ -9,6 +9,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.libraries.api.BookDetailsUpdate
+import app.campfire.libraries.api.CoverUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.LibraryItemRepository
@@ -124,12 +125,27 @@ class StoreLibraryItemRepository(
   }
 
   override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate): Result<Boolean> {
+    // Covers that aren't from an address have routes of their own
+    val coverChanged = when (val cover = update.cover) {
+      is CoverUpdate.FromServerFile -> api.setLibraryItemCover(itemId, cover.path)
+      CoverUpdate.Remove -> api.removeLibraryItemCover(itemId)
+      is CoverUpdate.FromUrl, null -> null
+    }?.let { result ->
+      result.explainRefusal().getOrElse { return Result.failure(it) }
+      true
+    } ?: false
+
     val request = UpdateMediaRequest(
       metadata = update.asRequest().takeUnless { it == UpdateBookMetadataRequest() },
       tags = update.tags,
-      url = update.coverUrl,
+      url = (update.cover as? CoverUpdate.FromUrl)?.url,
     )
+    if (request == UpdateMediaRequest()) {
+      if (coverChanged) refresh(itemId, "changing its cover")
+      return Result.success(coverChanged)
+    }
     return api.updateLibraryItemMedia(itemId, request)
+      .map { updated -> updated || coverChanged }
       .onSuccess { updated ->
         // The server tells sockets about the change too, but they can be turned off
         if (updated) refresh(itemId, "updating its details")
