@@ -83,7 +83,6 @@
   <string name="match_empty">Nothing found on %1$s. Try another source, or fewer words.</string>
   <string name="match_failed">Couldn't search %1$s. Try again in a moment.</string>
   <string name="match_sources_failed">Couldn't load the sources to search. Check your connection.</string>
-  <string name="match_pick">Pick a result to compare it with your book</string>
   <string name="cd_match_cover">Cover of %1$s</string>
 
   <string name="review_title">Review changes</string>
@@ -96,6 +95,12 @@
   <string name="review_currently">Currently: %1$s</string>
   <string name="review_currently_none">Currently: none</string>
   <string name="review_current_cover">Current</string>
+  <string name="review_new_cover">New</string>
+  <string name="review_cover_none">No cover</string>
+  <string name="review_cover_size">%1$d × %2$d</string>
+  <string name="review_cover_larger">larger</string>
+  <string name="review_cover_smaller">smaller</string>
+  <string name="review_use_new_cover">Use the new cover</string>
   <plurals name="review_unchanged">
     <item quantity="one">%1$d detail is the same</item>
     <item quantity="other">%1$d details are the same</item>
@@ -109,7 +114,6 @@
   <string name="review_apply_form">Apply to form</string>
   <string name="review_cover_needs_upload">Changing the cover takes the upload permission</string>
   <string name="review_cover_no_undo">A new cover can't be undone</string>
-  <string name="cd_back_to_results">Back to results</string>
   <string name="label_cover">Cover</string>
   <string name="value_yes">Yes</string>
   <string name="value_no">No</string>
@@ -119,5 +123,6 @@
   <string name="new_cover_title">New cover</string>
   <string name="new_cover_message">Takes the place of the book's cover when you save. This can't be undone.</string>
   <string name="cd_new_cover">The new cover</string>
+  <string name="cd_current_cover">The current cover</string>
   <string name="action_keep_cover">Keep the current cover</string>
 </resources>

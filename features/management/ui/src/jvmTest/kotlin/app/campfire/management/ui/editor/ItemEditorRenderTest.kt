@@ -6,10 +6,13 @@ package app.campfire.management.ui.editor
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
+import androidx.window.core.layout.WindowSizeClass
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.SeriesSequence
@@ -19,6 +22,7 @@ import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
 import app.campfire.libraries.api.SeriesEntry
 import app.campfire.management.api.match.BookMatch
+import app.campfire.management.api.match.ImageSize
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.ui.match.MatchField
 import app.campfire.management.ui.match.MatchReviewState
@@ -29,6 +33,7 @@ import app.campfire.management.ui.match.reviewRows
 import app.campfire.management.ui.match.selectedBy
 import assertk.assertThat
 import assertk.assertions.isGreaterThan
+import com.slack.circuit.overlay.ContentWithOverlays
 import java.io.File
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.hours
@@ -83,16 +88,16 @@ class ItemEditorRenderTest {
   fun matchReview() = render(
     "item-editor-match-phone-review.png",
     width = 412,
-    height = 1300,
+    height = 915,
     section = EditorSection.Match,
     reviewing = true,
   )
 
   @Test
-  fun matchWide() = render(
-    "item-editor-match-wide.png",
-    width = 1200,
-    height = 900,
+  fun matchReviewSideways() = render(
+    "item-editor-match-landscape-review.png",
+    width = 915,
+    height = 412,
     section = EditorSection.Match,
     reviewing = true,
   )
@@ -158,6 +163,8 @@ class ItemEditorRenderTest {
         selected = rows.selectedBy(SelectionMode.All, canChangeCover = true) - MatchField.Description,
         merges = emptyMap(),
         canChangeCover = true,
+        currentCoverSize = ImageSize(500, 500),
+        newCoverSize = ImageSize(2400, 2400),
       )
     }
     val match = MatchUiState(
@@ -176,7 +183,19 @@ class ItemEditorRenderTest {
       width = width * 2,
       height = height * 2,
       density = Density(2f),
-      content = { Editor(draft, section, match, filledFrom = "Audible.com".takeIf { filled }) },
+      content = {
+        // The window the sheet a review opens in reads to choose its side
+        CompositionLocalProvider(
+          LocalWindowSizeClass provides WindowSizeClass(minWidthDp = width, minHeightDp = height),
+        ) {
+          // The app's overlay host sits inside its theme, so its sheets are themed too
+          CampfireTheme(useDarkColors = false) {
+            ContentWithOverlays {
+              Editor(draft, section, match, filledFrom = "Audible.com".takeIf { filled })
+            }
+          }
+        }
+      },
     ).use { scene ->
       repeat(5) { frame -> scene.render(frame * 100_000_000L) }
       scene.render(nanoTime = 2_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
@@ -192,24 +211,22 @@ class ItemEditorRenderTest {
     match: MatchUiState,
     filledFrom: String?,
   ) {
-    CampfireTheme(useDarkColors = false) {
-      ItemEditorUi(
-        state = ItemEditorUiState(
-          item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
-          draft = draft,
-          section = section,
-          match = match,
-          filledFrom = filledFrom,
-          canEdit = true,
-          canSeeExplicit = true,
-          suggestions = DetailSuggestions(),
-          isSaving = false,
-          isBehindServer = true,
-          isConfirmingDiscard = false,
-          isLoadFailed = false,
-          eventSink = {},
-        ),
-      )
-    }
+    ItemEditorUi(
+      state = ItemEditorUiState(
+        item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
+        draft = draft,
+        section = section,
+        match = match,
+        filledFrom = filledFrom,
+        canEdit = true,
+        canSeeExplicit = true,
+        suggestions = DetailSuggestions(),
+        isSaving = false,
+        isBehindServer = true,
+        isConfirmingDiscard = false,
+        isLoadFailed = false,
+        eventSink = {},
+      ),
+    )
   }
 }

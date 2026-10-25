@@ -14,6 +14,7 @@ import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
 import app.campfire.management.api.match.BookMatch
+import app.campfire.management.api.match.ImageSize
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.ui.editor.BookDetailsDraft
 import app.campfire.management.ui.match.FakeMetadataMatchRepository.Companion.Audible
@@ -25,6 +26,7 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
@@ -70,6 +72,7 @@ class MatchPresenterTest {
   )
 
   private val repository = FakeMetadataMatchRepository()
+  private val coverSizes = FakeCoverSizeReader()
   private var isActive by mutableStateOf(true)
   private val applied = mutableListOf<Applied>()
 
@@ -179,6 +182,27 @@ class MatchPresenterTest {
   }
 
   @Test
+  fun `a review reads how big both covers are, once each`() = runTest {
+    coverSizes.sizes[NewCover] = ImageSize(2400, 2400)
+    coverSizes.sizes[BookCover] = ImageSize(500, 500)
+
+    presenter().test {
+      val found = awaitFound()
+      found.eventSink(MatchUiEvent.Review(match))
+
+      val review = awaitReview { it.newCoverSize != null && it.currentCoverSize != null }
+      assertThat(review.newCoverSize).isEqualTo(ImageSize(2400, 2400))
+      assertThat(review.currentCoverSize).isEqualTo(ImageSize(500, 500))
+
+      found.eventSink(MatchUiEvent.CloseReview)
+      found.eventSink(MatchUiEvent.Review(match))
+      awaitReview()
+      assertThat(coverSizes.reads).containsExactlyInAnyOrder(NewCover, BookCover)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `applying hands on the chosen details and closes the review`() = runTest {
     presenter().test {
       awaitFound().eventSink(MatchUiEvent.Review(match))
@@ -255,7 +279,7 @@ class MatchPresenterTest {
     item: LibraryItem = book,
     canChangeCover: Boolean = true,
   ): Flow<MatchUiState> {
-    val presenter = MatchPresenter(repository)
+    val presenter = MatchPresenter(repository, coverSizes)
     val book = item.media as Media.Book
     val draft = BookDetailsDraft(book.metadata, book.tags)
     // Not a screen's presenter, so composed as is rather than through Circuit's
@@ -294,5 +318,8 @@ class MatchPresenterTest {
   private companion object {
     const val BookId = "book"
     const val NewCover = "https://m.media-amazon.com/images/I/cover.jpg"
+
+    /** The fixture item's cover */
+    const val BookCover = "https://example.com/cover.jpg"
   }
 }
