@@ -50,6 +50,18 @@ class TokenListState(private val initial: List<String>) {
     tokens.remove(name)
   }
 
+  /** Adds each of [names] that isn't there yet */
+  fun addAll(names: List<String>) {
+    names.forEach { add(it) }
+  }
+
+  /** Swaps the names for [names], dropping what's typed */
+  fun replaceWith(names: List<String>) {
+    tokens.clear()
+    input.clearText()
+    addAll(names)
+  }
+
   /** Takes the last name back into the typing, to change it, when nothing's being typed */
   fun editLast(): Boolean {
     if (input.text.isNotEmpty() || tokens.isEmpty()) return false

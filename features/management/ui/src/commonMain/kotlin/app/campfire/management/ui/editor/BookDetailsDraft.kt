@@ -18,6 +18,7 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 
 /** A detail of a book that the editor changes. */
 enum class BookDetail {
+  Cover,
   Title,
   Subtitle,
   Authors,
@@ -81,6 +82,9 @@ class BookDetailsDraft(
     base.series.forEach { add(SeriesRowState(it.name, it.formattedSequence)) }
   }
 
+  /** A cover for the server to download in place of the book's own, as a match offers */
+  var newCoverUrl by mutableStateOf<String?>(null)
+
   /** Edited with its formatting, which the server keeps as HTML */
   val description = RichTextState().apply {
     setHtml(base.description.orEmpty().toRichTextHtml(linkify = false))
@@ -124,6 +128,7 @@ class BookDetailsDraft(
   }
 
   fun isChanged(detail: BookDetail): Boolean = when (detail) {
+    BookDetail.Cover -> newCoverUrl != null
     BookDetail.Title -> title.isChangedFrom(base.title)
     BookDetail.Subtitle -> subtitle.isChangedFrom(base.subtitle)
     // The server matches authors by name ignoring case, in an order of its own
@@ -162,10 +167,14 @@ class BookDetailsDraft(
       series = seriesEntries().takeIf { BookDetail.Series in changes },
       genres = genres.values.takeIf { BookDetail.Genres in changes },
       tags = tags.values.takeIf { BookDetail.Tags in changes },
+      coverUrl = newCoverUrl,
     )
   }
 
-  /** What puts back the details [update] changes, as [base] had them. */
+  /**
+   * What puts back the details [update] changes, as [base] had them. A new cover takes the place
+   * of the old one on the server, so it can't be put back.
+   */
   fun undoOf(update: BookDetailsUpdate) = BookDetailsUpdate(
     title = update.title?.let { base.title.orEmpty() },
     subtitle = update.subtitle?.let { base.subtitle.orEmpty() },

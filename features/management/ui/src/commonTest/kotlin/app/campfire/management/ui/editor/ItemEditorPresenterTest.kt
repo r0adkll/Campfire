@@ -19,7 +19,14 @@ import app.campfire.home.ui.mediaMetadata
 import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.management.api.match.BookMatch
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.match.FakeMetadataMatchRepository
+import app.campfire.management.ui.match.MatchField
+import app.campfire.management.ui.match.MatchPresenter
+import app.campfire.management.ui.match.MatchSearch
+import app.campfire.management.ui.match.MatchUiEvent
+import app.campfire.management.ui.match.SelectionMode
 import app.campfire.user.test.FakeUserRepository
 import app.campfire.user.test.fixtures.user
 import app.cash.turbine.ReceiveTurbine
@@ -68,6 +75,7 @@ class ItemEditorPresenterTest {
   private val libraryItemRepository = FakeLibraryItemRepository()
   private val userRepository = FakeUserRepository()
   private val filteringRepository = FakeFilteringRepository()
+  private val matchRepository = FakeMetadataMatchRepository()
   private val navigator = FakeNavigator(ItemEditorScreen(BookId))
   private val snackbarHost = SnackbarHostState()
 
@@ -309,6 +317,98 @@ class ItemEditorPresenterTest {
     }
   }
 
+  @Test
+  fun `matching takes the permission to change items`() = runTest {
+    userRepository.currentStatefulUserFlow.value = user("user-1").let {
+      it.copy(permissions = it.permissions.copy(update = false))
+    }
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter().test {
+      awaitDraft().eventSink(ItemEditorUiEvent.ShowSection(EditorSection.Match))
+      val later = book.copy(updatedAtMillis = book.updatedAtMillis + 1)
+      libraryItemRepository.libraryItemFlow.emit(later)
+
+      assertThat(awaitState { it.item.dataOrNull == later }.section).isEqualTo(EditorSection.Details)
+      assertThat(matchRepository.providerLoads).isEqualTo(0)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a match fills the form, says where from, and goes back to the details`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter().test {
+      val reviewing = reviewMatch(awaitDraft())
+
+      reviewing.match.eventSink(MatchUiEvent.ApplyToForm)
+
+      val filled = awaitState { it.filledFrom != null }
+      assertThat(filled.section).isEqualTo(EditorSection.Details)
+      assertThat(filled.filledFrom).isEqualTo("Audible.com")
+      assertThat(filled.draft!!.subtitle.text.toString()).isEqualTo("Children of Time, Book 2")
+      assertThat(libraryItemRepository.detailUpdates).isEmpty()
+
+      filled.eventSink(ItemEditorUiEvent.DismissFilledFrom)
+      assertThat(awaitState { it.filledFrom == null }.draft!!.changes).containsOnly(BookDetail.Subtitle)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `applying and saving a match sends its cover too`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter().test {
+      val reviewing = reviewMatch(awaitDraft())
+
+      reviewing.match.eventSink(MatchUiEvent.Select(SelectionMode.All))
+      awaitState { MatchField.Cover in it.match.review?.selected.orEmpty() }
+      reviewing.match.eventSink(MatchUiEvent.ApplyAndSave)
+
+      navigator.awaitPop()
+      assertThat(libraryItemRepository.detailUpdates).containsExactly(
+        BookId to BookDetailsUpdate(subtitle = "Children of Time, Book 2", coverUrl = NewCover),
+      )
+      assertThat(awaitSnackbar().visuals.actionLabel).isEqualTo("Undo")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a new cover alone is saved without offering to undo it`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter().test {
+      val reviewing = reviewMatch(awaitDraft(), BookMatch(title = "Children of Ruin", coverUrl = NewCover))
+
+      reviewing.match.eventSink(MatchUiEvent.Toggle(MatchField.Cover))
+      awaitState { MatchField.Cover in it.match.review?.selected.orEmpty() }
+      reviewing.match.eventSink(MatchUiEvent.ApplyAndSave)
+
+      navigator.awaitPop()
+      assertThat(libraryItemRepository.detailUpdates)
+        .containsExactly(BookId to BookDetailsUpdate(coverUrl = NewCover))
+      val saved = awaitSnackbar()
+      assertThat(saved.visuals.message).isEqualTo("Saved the details of Children of Ruin")
+      assertThat(saved.visuals.actionLabel).isEqualTo(null)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  /** Opens matching from [state] and a review of [match] once the search finds something */
+  private suspend fun ReceiveTurbine<ItemEditorUiState>.reviewMatch(
+    state: ItemEditorUiState,
+    match: BookMatch =
+      BookMatch(title = "Children of Ruin", subtitle = "Children of Time, Book 2", coverUrl = NewCover),
+  ): ItemEditorUiState {
+    matchRepository.searchResult = { Result.success(listOf(match)) }
+    state.eventSink(ItemEditorUiEvent.ShowSection(EditorSection.Match))
+    awaitState { it.match.search is MatchSearch.Found }.match.eventSink(MatchUiEvent.Review(match))
+    return awaitState { it.match.review != null }
+  }
+
   private fun TestScope.presenter(): Presenter<ItemEditorUiState> {
     val presenter = ItemEditorPresenter(
       screen = ItemEditorScreen(BookId),
@@ -316,6 +416,7 @@ class ItemEditorPresenterTest {
       libraryItemRepository = libraryItemRepository,
       userRepository = userRepository,
       filteringRepository = filteringRepository,
+      matchPresenter = MatchPresenter(matchRepository),
       userScope = CoroutineScopeHolder { backgroundScope },
     )
     return object : Presenter<ItemEditorUiState> {
@@ -358,5 +459,6 @@ class ItemEditorPresenterTest {
 
   private companion object {
     const val BookId = "book"
+    const val NewCover = "https://m.media-amazon.com/images/I/cover.jpg"
   }
 }

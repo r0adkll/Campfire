@@ -34,6 +34,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
+import app.campfire.management.ui.match.MatchUiState
+import app.campfire.management.ui.match.matchUiState
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -291,6 +293,8 @@ class ItemEditorUiTest {
 
     onNodeWithTag("field_authors").performScrollTo().performTouchInput { click(centerRight - Offset(24f, 0f)) }
     onNodeWithTag("field_authors").performTextInput("leck")
+    // Past the wait for the keyboard to settle, and the scroll that brings the field and its row into view
+    mainClock.advanceTimeBy(1_000)
 
     val field = onNodeWithTag("field_authors").getUnclippedBoundsInRoot()
     val suggestion = onNodeWithText("Ann Leckie").getUnclippedBoundsInRoot()
@@ -333,6 +337,51 @@ class ItemEditorUiTest {
     onNodeWithTag("series_sequence_0").assertTextEquals("Number", "0")
   }
 
+  @Test
+  fun theTabsSwitchToMatching() = runComposeUiTest {
+    setEditor()
+
+    onNodeWithTag("tab_Match").performClick()
+
+    events.assertEvents(ItemEditorUiEvent.ShowSection(EditorSection.Match))
+  }
+
+  @Test
+  fun anAccountThatCantChangeItemsHasNoTabs() = runComposeUiTest {
+    setEditor(canEdit = false)
+
+    onNodeWithTag("tab_Match").assertDoesNotExist()
+  }
+
+  @Test
+  fun theMatchSectionTakesTheFormsPlace() = runComposeUiTest {
+    setEditor(section = EditorSection.Match)
+
+    onNodeWithTag("match_title").assertExists()
+    onNodeWithTag("field_title").assertDoesNotExist()
+  }
+
+  @Test
+  fun whereAMatchFilledTheFormFromCanBeDismissed() = runComposeUiTest {
+    setEditor(filledFrom = "Audible.com")
+
+    onNodeWithText("Filled in from Audible.com. Look over the details and save.").assertExists()
+    onNodeWithTag("editor_dismiss_filled").performClick()
+
+    events.assertEvents(ItemEditorUiEvent.DismissFilledFrom)
+  }
+
+  @Test
+  fun aMatchsNewCoverCanBeLeftOut() = runComposeUiTest {
+    setEditor(newCoverUrl = "https://m.media-amazon.com/images/I/cover.jpg")
+
+    onNodeWithTag("editor_new_cover").assertExists()
+    onNodeWithTag("editor_keep_cover").performClick()
+
+    onNodeWithTag("editor_new_cover").assertDoesNotExist()
+    assertThat(draft!!.newCoverUrl).isEqualTo(null)
+  }
+
   private fun ComposeUiTest.setEditor(
     item: LoadState<out LibraryItem> = LoadState.Loaded(book),
     withDraft: Boolean = true,
@@ -342,15 +391,22 @@ class ItemEditorUiTest {
     isConfirmingDiscard: Boolean = false,
     isLoadFailed: Boolean = false,
     suggestions: DetailSuggestions = DetailSuggestions(),
+    section: EditorSection = EditorSection.Details,
+    match: MatchUiState = matchUiState(),
+    filledFrom: String? = null,
+    newCoverUrl: String? = null,
     width: Dp = 400.dp,
     height: Dp = 1600.dp,
   ) {
-    draft = if (withDraft) BookDetailsDraft(details, book.media.tags) else null
+    draft = if (withDraft) BookDetailsDraft(details, book.media.tags).apply { this.newCoverUrl = newCoverUrl } else null
     setContent {
       ItemEditorUi(
         state = ItemEditorUiState(
           item = item,
           draft = draft,
+          section = section,
+          match = match,
+          filledFrom = filledFrom,
           canEdit = canEdit,
           canSeeExplicit = canSeeExplicit,
           suggestions = suggestions,
