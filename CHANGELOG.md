@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - E-book reading progress shows to a tenth of a percent
 - E-book details show the format and file size, the chapter you're on, the book's contents and edition details in place of audiobook-only information, and let you continue reading or discard your reading progress
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress
+- Latest checks for new podcast episodes every time you open it, instead of once a day
 
 ### Deprecated
 

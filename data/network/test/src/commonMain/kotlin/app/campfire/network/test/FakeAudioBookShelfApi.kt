@@ -66,6 +66,11 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set personalizedHomeResult on the fake"))
   }
 
+  val recentEpisodesRequests = mutableListOf<RecentEpisodesRequest>()
+  var recentEpisodesResult: suspend (RecentEpisodesRequest) -> Result<PagedRecentEpisodesResponse> = {
+    Result.failure(NotImplementedError("Set recentEpisodesResult on the fake"))
+  }
+
   val collectionsRequests = mutableListOf<String>()
   var collectionsResult: suspend (libraryId: String) -> Result<List<Collection>> = {
     Result.failure(NotImplementedError("Set collectionsResult on the fake"))
@@ -136,7 +141,9 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     page: Int,
     limit: Int,
   ): Result<PagedRecentEpisodesResponse> {
-    TODO("Not yet implemented")
+    val request = RecentEpisodesRequest(libraryId, page, limit)
+    recentEpisodesRequests += request
+    return recentEpisodesResult(request)
   }
 
   override suspend fun getPodcastFeed(
@@ -413,3 +420,9 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 }
+
+data class RecentEpisodesRequest(
+  val libraryId: String,
+  val page: Int,
+  val limit: Int,
+)

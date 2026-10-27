@@ -21,7 +21,6 @@ import app.campfire.data.mapping.asPodcastMediaDbModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.podcasts.api.LatestEpisode
 import app.cash.sqldelight.async.coroutines.awaitAsOne
-import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -33,8 +32,6 @@ fun interface RecentEpisodesRemoteMediatorFactory {
     user: User,
   ): RecentEpisodesRemoteMediator
 }
-
-private const val MAX_CACHE_TIME_MS = 24L * 60L * 60 * 1000L
 
 @OptIn(ExperimentalPagingApi::class)
 @AssistedInject
@@ -49,18 +46,11 @@ class RecentEpisodesRemoteMediator(
 
   override val tag: String = "RecentEpisodesRemoteMediator"
 
-  override suspend fun initialize(): InitializeAction {
-    val oldestPage = db.podcastEpisodePageQueries.selectOldestPage(
-      userId = user.id,
-      libraryId = user.selectedLibraryId,
-    ).awaitAsOneOrNull()
-    val elapsed = fatherTime.nowInEpochMillis() - (oldestPage?.updatedAt ?: 0)
-    return if (elapsed > MAX_CACHE_TIME_MS) {
-      InitializeAction.LAUNCH_INITIAL_REFRESH
-    } else {
-      InitializeAction.SKIP_INITIAL_REFRESH
-    }
-  }
+  /**
+   * Always check the server for newer episodes when the feed opens. The cached pages still show
+   * straight away, and the refresh replaces them once it lands.
+   */
+  override suspend fun initialize(): InitializeAction = InitializeAction.LAUNCH_INITIAL_REFRESH
 
   override suspend fun load(
     loadType: LoadType,

@@ -50,12 +50,6 @@ WHERE userId = ?
 
 -- Queries
 
-selectOldestPage:
-SELECT * FROM podcastEpisodePage
-WHERE userId = ?
-  AND libraryId = ?
-ORDER BY updatedAt DESC LIMIT 1;
-
 selectNextPage:
 SELECT nextPage FROM podcastEpisodePage
 WHERE userId = ?
