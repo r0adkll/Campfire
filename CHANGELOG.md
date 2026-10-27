@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Books whose download failed or was stopped playing as though they were downloaded
 - Downloading a playlist skipping its podcast episodes
 - Podcast episodes in a playlist failing to play until their podcast's page had been opened
+- New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode
 
 ### Other Notes & Contributions
 

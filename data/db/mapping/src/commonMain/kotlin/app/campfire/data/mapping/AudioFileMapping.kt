@@ -9,10 +9,14 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.network.models.AudioFile as NetworkAudioFile
 import kotlin.time.DurationUnit
 
-fun NetworkAudioFile.asDbModel(mediaId: String): MediaAudioFiles {
+/**
+ * [fallbackIndex] stands in for a missing [NetworkAudioFile.index]: the file's 1-based position
+ * in its item's list, which is how the server numbers them.
+ */
+fun NetworkAudioFile.asDbModel(mediaId: String, fallbackIndex: Int): MediaAudioFiles {
   return MediaAudioFiles(
     mediaId = mediaId,
-    mediaIndex = index,
+    mediaIndex = index ?: fallbackIndex,
     ino = ino,
     addedAt = addedAt,
     updatedAt = updatedAt,
@@ -64,9 +68,12 @@ fun AudioFile.asDbModel(mediaId: String): MediaAudioFiles {
   )
 }
 
-fun NetworkAudioFile.asDomainModel(): AudioFile {
+/**
+ * [fallbackIndex] stands in for a missing [NetworkAudioFile.index], as in [asDbModel].
+ */
+fun NetworkAudioFile.asDomainModel(fallbackIndex: Int): AudioFile {
   return AudioFile(
-    index = index,
+    index = index ?: fallbackIndex,
     ino = ino,
     addedAt = addedAt,
     updatedAt = updatedAt,

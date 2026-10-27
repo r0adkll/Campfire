@@ -344,8 +344,8 @@ class SqlDelightLibraryItemDao(
         }
       }
 
-      item.media.audioFiles.forEach { audioFile ->
-        db.mediaAudioFilesQueries.insert(audioFile.asDbModel(media.mediaId))
+      item.media.audioFiles.forEachIndexed { position, audioFile ->
+        db.mediaAudioFilesQueries.insert(audioFile.asDbModel(media.mediaId, fallbackIndex = position + 1))
       }
 
       item.media.chapters.forEach { chapter ->
