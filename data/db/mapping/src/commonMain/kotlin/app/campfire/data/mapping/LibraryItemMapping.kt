@@ -366,8 +366,8 @@ private fun LibraryItemExpanded.Book.asDomainModelBook(
         sizeInBytes = size ?: -1,
         ebookFormat = resolvedEbookFormat,
 
-        audioFiles = audioFiles.map {
-          it.asDomainModel()
+        audioFiles = audioFiles.mapIndexed { position, audioFile ->
+          audioFile.asDomainModel(fallbackIndex = position + 1)
         },
 
         chapters = chapters.map {

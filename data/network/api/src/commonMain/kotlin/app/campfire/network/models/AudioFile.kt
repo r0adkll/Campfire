@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
 /**
  * An audio file for a book. Includes audio metadata and track numbers.
  *
- * @param index The index of the audio file.
+ * @param index The index of the audio file. Null on a podcast episode's file once the server has
+ * rescanned it, as the rescan copies its unset index over the stored one.
  * @param ino The inode of the item in the file system.
  * @param metadata
  * @param addedAt The time (in ms since POSIX epoch) when added to the server.
@@ -36,7 +37,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AudioFile(
-  val index: Int,
+  val index: Int? = null,
   val ino: String,
   val metadata: FileMetadata,
   val addedAt: Long,
