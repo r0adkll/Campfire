@@ -154,6 +154,10 @@ class LibraryItemRemoteMediator(
                   val podcastMedia = item.media.asDbModel(item.id, urlHydrator)
                   db.libraryItemsQueries.insertOrIgnore(libraryItem)
                   db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+                  // Only this endpoint counts a show's episodes, so keep a saved show's count current
+                  item.media.numEpisodes?.let {
+                    db.podcastMediaQueries.updateNumEpisodes(numEpisodes = it, mediaId = item.media.id)
+                  }
                 }
               }
             }

@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloading a playlist skipping its podcast episodes
 - Podcast episodes in a playlist failing to play until their podcast's page had been opened
 - New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode
+- Podcasts in Shows' list layout saying they have 0 episodes
+- Shows counting its podcasts as books
 
 ### Other Notes & Contributions
 

@@ -21,6 +21,7 @@ kotlin {
 
     commonTest {
       dependencies {
+        implementation(projects.data.account.test)
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
       }

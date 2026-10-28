@@ -12,6 +12,7 @@ import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.db.DatabaseFactory
 import app.campfire.db.test.createDriver
 import app.campfire.network.test.FakeAudioBookShelfApi
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -60,6 +61,19 @@ class LibraryItemRemoteMediatorTest {
     mediator.load(LoadType.REFRESH, emptyState())
 
     assertThat(mediator.initialize()).isEqualTo(InitializeAction.SKIP_INITIAL_REFRESH)
+  }
+
+  @Test
+  fun `a saved show's episode count follows the server`() = mediatorTest { db, mediator ->
+    // Other screens can save a show first, without a reliable episode count.
+    db.library(mediaType = "podcast")
+    api.libraryItemsMinifiedResult = { _, _ -> Result.success(page(podcast("pod_1", numEpisodes = 0))) }
+    mediator.load(LoadType.REFRESH, emptyState())
+
+    api.libraryItemsMinifiedResult = { _, _ -> Result.success(page(podcast("pod_1", numEpisodes = 12))) }
+    mediator.load(LoadType.REFRESH, emptyState())
+
+    assertThat(db.podcastMediaQueries.selectForLibraryItem("pod_1").awaitAsOne().numEpisodes).isEqualTo(12)
   }
 
   private fun mediatorTest(

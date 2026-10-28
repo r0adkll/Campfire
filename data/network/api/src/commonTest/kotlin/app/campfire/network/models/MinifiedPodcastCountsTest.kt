@@ -10,7 +10,7 @@ import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
 import kotlin.test.Test
 
-class NumEpisodesIncompleteTest {
+class MinifiedPodcastCountsTest {
 
   @Test
   fun includedCount_decodes() {
@@ -29,6 +29,16 @@ class NumEpisodesIncompleteTest {
     assertThat(item).isInstanceOf<LibraryItemMinified.Podcast>()
       .prop(LibraryItemMinified.Podcast::numEpisodesIncomplete)
       .isEqualTo(0)
+  }
+
+  @Test
+  fun episodeCount_decodes() {
+    val item = TestJson.decodeFromString<LibraryItemMinified>(podcastItemJson(""))
+
+    assertThat(item).isInstanceOf<LibraryItemMinified.Podcast>()
+      .prop(LibraryItemMinified.Podcast::media)
+      .prop(Podcast::numEpisodes)
+      .isEqualTo(9)
   }
 
   // The minified shape served by `/api/libraries/:id/items?minified=1&include=numEpisodesIncomplete`.

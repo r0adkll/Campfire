@@ -43,6 +43,11 @@ insertOrIgnore:
 INSERT OR IGNORE INTO podcastMedia
 VALUES ?;
 
+updateNumEpisodes:
+UPDATE podcastMedia
+SET numEpisodes = :numEpisodes
+WHERE mediaId = :mediaId;
+
 selectForLibraryItem:
 SELECT * FROM podcastMedia
 WHERE libraryItemId = ?;

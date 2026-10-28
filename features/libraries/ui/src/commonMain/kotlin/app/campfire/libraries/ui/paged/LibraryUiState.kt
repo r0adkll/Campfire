@@ -16,6 +16,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class LibraryUiState(
+  val isPodcastLibrary: Boolean,
   val canAddPodcasts: Boolean,
   val lazyPagingItems: LazyPagingItems<LibraryItem>,
   val itemDisplayState: ItemDisplayState,

@@ -74,6 +74,7 @@ import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_add_podcast
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.filter_bar_book_count
+import campfire.features.libraries.ui.generated.resources.filter_bar_show_count
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
@@ -142,7 +143,7 @@ fun LibraryUi(
       .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
     LoadedContent(
-      totalCount = state.totalItemCount,
+      count = { ItemCount(state.totalItemCount, state.isPodcastLibrary) },
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
       unfinishedEpisodes = state.unfinishedEpisodes,
@@ -187,7 +188,7 @@ fun LibraryUi(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LoadedContent(
-  totalCount: Int,
+  count: @Composable () -> Unit,
   lazyPagingItems: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
@@ -212,7 +213,7 @@ private fun LoadedContent(
   ) {
     when (itemDisplayState) {
       ItemDisplayState.List -> LibraryList(
-        totalCount = totalCount,
+        count = count,
         items = lazyPagingItems,
         offlineStates = offlineStates,
         unfinishedEpisodes = unfinishedEpisodes,
@@ -231,7 +232,7 @@ private fun LoadedContent(
       ItemDisplayState.GridDense,
       ItemDisplayState.Grid,
       -> LibraryGrid(
-        totalCount = totalCount,
+        count = count,
         items = lazyPagingItems,
         offlineStates = offlineStates,
         unfinishedEpisodes = unfinishedEpisodes,
@@ -255,7 +256,7 @@ private fun LoadedContent(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ContentPagingScaffoldScope.LibraryGrid(
-  totalCount: Int,
+  count: @Composable () -> Unit,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
@@ -287,15 +288,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
       key = "filter-bar",
     ) {
       FilterBar(
-        count = {
-          if (totalCount != INVALID_ITEM_COUNT) {
-            Text(
-              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount),
-            )
-          } else {
-            Text("--")
-          }
-        },
+        count = count,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = filter != null,
@@ -337,7 +330,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
 
 @Composable
 private fun ContentPagingScaffoldScope.LibraryList(
-  totalCount: Int,
+  count: @Composable () -> Unit,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
@@ -361,15 +354,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
   ) {
     stickyHeader(key = "filter-bar") {
       FilterBar(
-        count = {
-          if (totalCount != INVALID_ITEM_COUNT) {
-            Text(
-              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount),
-            )
-          } else {
-            Text("--")
-          }
-        },
+        count = count,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = filter != null,
@@ -409,5 +394,19 @@ private fun ContentPagingScaffoldScope.LibraryList(
     }
 
     appendingIndicatorItem()
+  }
+}
+
+@Composable
+private fun ItemCount(
+  totalCount: Int,
+  isPodcastLibrary: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  if (totalCount == INVALID_ITEM_COUNT) {
+    Text("--", modifier)
+  } else {
+    val label = if (isPodcastLibrary) Res.plurals.filter_bar_show_count else Res.plurals.filter_bar_book_count
+    Text(pluralStringResource(label, totalCount, totalCount), modifier)
   }
 }

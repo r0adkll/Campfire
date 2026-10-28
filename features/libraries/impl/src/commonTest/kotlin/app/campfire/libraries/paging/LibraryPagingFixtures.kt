@@ -104,7 +104,11 @@ internal fun page(vararg items: LibraryItemMinified) = PagedResponse(
   offset = 0,
 )
 
-internal fun podcast(id: String, numEpisodesIncomplete: Int) = LibraryItemMinified.Podcast(
+internal fun podcast(
+  id: String,
+  numEpisodesIncomplete: Int = 0,
+  numEpisodes: Int? = null,
+) = LibraryItemMinified.Podcast(
   id = id,
   ino = "ino",
   libraryId = TestUser.selectedLibraryId,
@@ -121,7 +125,7 @@ internal fun podcast(id: String, numEpisodesIncomplete: Int) = LibraryItemMinifi
   isInvalid = false,
   mediaType = NetworkMediaType.Podcast2,
   size = 0,
-  media = Podcast(id = "media-$id"),
+  media = Podcast(id = "media-$id", numEpisodes = numEpisodes),
   numEpisodesIncomplete = numEpisodesIncomplete,
 )
 

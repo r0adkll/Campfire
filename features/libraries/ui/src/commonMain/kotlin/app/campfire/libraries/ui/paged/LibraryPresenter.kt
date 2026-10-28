@@ -135,6 +135,7 @@ class LibraryPresenter(
     }
 
     return LibraryUiState(
+      isPodcastLibrary = isPodcastLibrary,
       canAddPodcasts = canAddPodcasts,
       lazyPagingItems = lazyPagingItems,
       totalItemCount = totalItemCount,

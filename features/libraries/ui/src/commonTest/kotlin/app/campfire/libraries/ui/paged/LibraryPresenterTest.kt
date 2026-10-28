@@ -65,8 +65,9 @@ class LibraryPresenterTest {
     repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
 
     presenter().test {
-      assertThat(expectMostRecentItemMatching { it.unfinishedEpisodes.isNotEmpty() }.unfinishedEpisodes)
-        .isEqualTo(mapOf("pod_1" to 4))
+      val state = expectMostRecentItemMatching { it.unfinishedEpisodes.isNotEmpty() }
+      assertThat(state.unfinishedEpisodes).isEqualTo(mapOf("pod_1" to 4))
+      assertThat(state.isPodcastLibrary).isEqualTo(true)
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -78,7 +79,9 @@ class LibraryPresenterTest {
 
     presenter().test {
       testScheduler.advanceUntilIdle()
-      assertThat(expectMostRecentItem().unfinishedEpisodes).isEmpty()
+      val state = expectMostRecentItem()
+      assertThat(state.unfinishedEpisodes).isEmpty()
+      assertThat(state.isPodcastLibrary).isEqualTo(false)
       cancelAndIgnoreRemainingEvents()
     }
     assertThat(repository.observedLibrary).isEqualTo(true)
