@@ -27,8 +27,13 @@ kotlin {
 
     commonTest {
       dependencies {
-        implementation(libs.kotlin.test)
-        implementation(libs.assertk)
+        implementation(projects.common.test)
+        implementation(projects.data.account.test)
+        implementation(projects.data.db.test)
+        implementation(projects.data.network.test)
+        implementation(projects.features.user.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
       }
     }
   }
