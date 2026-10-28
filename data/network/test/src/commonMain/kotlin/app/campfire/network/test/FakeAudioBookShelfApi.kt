@@ -50,6 +50,7 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   val libraryItemsMinifiedRequests = mutableListOf<String>()
+  val libraryItemsMinifiedSkippedServerCache = mutableListOf<Boolean>()
   var libraryItemsMinifiedResult: suspend (
     libraryId: String,
     page: Int,
@@ -117,8 +118,10 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     sortDescending: Boolean,
     page: Int,
     limit: Int,
+    skipServerCache: Boolean,
   ): Result<PagedResponse<LibraryItemMinified>> {
     libraryItemsMinifiedRequests += libraryId
+    libraryItemsMinifiedSkippedServerCache += skipServerCache
     return libraryItemsMinifiedResult(libraryId, page)
   }
 

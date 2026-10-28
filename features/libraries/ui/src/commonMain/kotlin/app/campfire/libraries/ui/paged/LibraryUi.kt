@@ -145,6 +145,7 @@ fun LibraryUi(
       totalCount = state.totalItemCount,
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
+      unfinishedEpisodes = state.unfinishedEpisodes,
       onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
       itemDisplayState = state.itemDisplayState,
       onDisplayStateClick = { state.eventSink(LibraryUiEvent.ToggleItemDisplayState) },
@@ -189,6 +190,7 @@ private fun LoadedContent(
   totalCount: Int,
   lazyPagingItems: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  unfinishedEpisodes: Map<LibraryItemId, Int>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -213,6 +215,7 @@ private fun LoadedContent(
         totalCount = totalCount,
         items = lazyPagingItems,
         offlineStates = offlineStates,
+        unfinishedEpisodes = unfinishedEpisodes,
         onItemClick = onItemClick,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
@@ -231,6 +234,7 @@ private fun LoadedContent(
         totalCount = totalCount,
         items = lazyPagingItems,
         offlineStates = offlineStates,
+        unfinishedEpisodes = unfinishedEpisodes,
         onItemClick = onItemClick,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
@@ -254,6 +258,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  unfinishedEpisodes: Map<LibraryItemId, Int>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -314,6 +319,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
         LibraryItemCard(
           item = item,
           offlineStatus = offlineStatus,
+          unfinishedEpisodes = unfinishedEpisodes[item.id] ?: 0,
           onClick = { onItemClick(item) },
           modifier = Modifier.animateItem(),
           showInformation = itemDisplayState != ItemDisplayState.GridDense,
@@ -334,6 +340,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  unfinishedEpisodes: Map<LibraryItemId, Int>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -390,6 +397,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
             onItemClick(item)
           },
           offlineStatus = offlineStatus,
+          unfinishedEpisodes = unfinishedEpisodes[item.id] ?: 0,
           meta = item.listMeta(sortMode, filter),
           modifier = Modifier
             .padding(

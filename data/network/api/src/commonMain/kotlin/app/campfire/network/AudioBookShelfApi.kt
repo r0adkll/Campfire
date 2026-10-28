@@ -55,6 +55,9 @@ interface AudioBookShelfApi {
    * Fetch a library's items
    *
    * @param libraryId the id of the library to fetch the items for
+   * @param skipServerCache ask past the server's response cache. It keeps a library's pages for up
+   * to 30 minutes and doesn't clear them when the user's progress changes, so a podcast's
+   * `numEpisodesIncomplete` can lag behind episodes the user has since finished.
    * @return as result with the list of library items
    */
   suspend fun getLibraryItemsMinified(
@@ -64,6 +67,7 @@ interface AudioBookShelfApi {
     sortDescending: Boolean = false,
     page: Int = INVALID,
     limit: Int = INVALID,
+    skipServerCache: Boolean = false,
   ): Result<PagedResponse<LibraryItemMinified>>
 
   /**

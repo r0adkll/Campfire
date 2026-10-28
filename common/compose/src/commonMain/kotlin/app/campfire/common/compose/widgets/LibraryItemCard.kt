@@ -49,6 +49,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -70,11 +72,14 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.offline.OfflineStatus
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.placeholder_book
+import campfire.common.compose.generated.resources.unfinished_episodes
+import campfire.common.compose.generated.resources.unfinished_episodes_capped
 import campfire.common.compose.generated.resources.unknown_author_name
 import campfire.common.compose.generated.resources.unknown_library_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 private val CardMaxWidth = 400.dp
@@ -94,6 +99,8 @@ val LocalItemCardMarquee = compositionLocalOf { true }
 
 /**
  * @param subtitle Replaces the author line under the title; null keeps the author.
+ * @param unfinishedEpisodes How many of a podcast's episodes the user hasn't finished, badged on
+ * the cover when above 0.
  */
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -110,6 +117,7 @@ fun LibraryItemCard(
   subtitle: String? = null,
   marqueeEnabled: Boolean = LocalItemCardMarquee.current,
   offlineStatus: OfflineStatus = OfflineStatus.None,
+  unfinishedEpisodes: Int = 0,
   progress: MediaProgress? = item.userMediaProgress,
   shape: Shape = MaterialTheme.shapes.largeIncreased,
   colors: CardColors = CardDefaults.elevatedCardColors(
@@ -161,6 +169,13 @@ fun LibraryItemCard(
               // Render the ebook format decoration
               EbookFormatDecorator(
                 format = item.media.ebookFormat.orEmpty(),
+                offlineStatus = offlineStatus,
+                isTransitioning = isTransitioning,
+              )
+            } else if (unfinishedEpisodes > 0) {
+              // Render the podcast's unfinished episode count
+              UnfinishedEpisodesDecorator(
+                count = unfinishedEpisodes,
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
               )
@@ -435,6 +450,74 @@ fun EbookFormatBadge(
     )
   }
 }
+
+@Composable
+private fun BoxScope.UnfinishedEpisodesDecorator(
+  count: Int,
+  offlineStatus: OfflineStatus,
+  isTransitioning: Boolean,
+) {
+  AnimatedVisibility(
+    visible = isTransitioning,
+    enter = fadeIn(),
+    exit = fadeOut(),
+    modifier = Modifier
+      .align(Alignment.TopEnd)
+      .padding(
+        end = 8.dp,
+        top = 8.dp,
+      ),
+  ) {
+    UnfinishedEpisodesBadge(
+      count = count,
+      offlineStatus = offlineStatus,
+    )
+  }
+}
+
+/**
+ * How many of a podcast's episodes the user hasn't finished, led by its [offlineStatus] once any
+ * are downloaded or on their way. Counts over 99 show as 99+.
+ */
+@Composable
+fun UnfinishedEpisodesBadge(
+  count: Int,
+  modifier: Modifier = Modifier,
+  offlineStatus: OfflineStatus = OfflineStatus.None,
+) {
+  Row(
+    modifier = modifier
+      .clip(CircleShape)
+      .background(
+        color = MaterialTheme.colorScheme.scrim.copy(0.68f),
+      )
+      .padding(
+        horizontal = 8.dp,
+        vertical = 4.dp,
+      ),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(4.dp),
+  ) {
+    if (offlineStatus != OfflineStatus.None) {
+      OfflineStatusIndicator(offlineStatus)
+    }
+
+    // Read out in full, as the capped number on its own doesn't say what it counts
+    val description = pluralStringResource(Res.plurals.unfinished_episodes, count, count)
+    Text(
+      text = if (count > MaxBadgedEpisodes) {
+        stringResource(Res.string.unfinished_episodes_capped, MaxBadgedEpisodes)
+      } else {
+        count.toString()
+      },
+      style = MaterialTheme.typography.labelSmall,
+      color = Color.White,
+      modifier = Modifier.semantics { contentDescription = description },
+    )
+  }
+}
+
+private const val MaxBadgedEpisodes = 99
 
 @Composable
 private fun LibraryItemCardInformation(

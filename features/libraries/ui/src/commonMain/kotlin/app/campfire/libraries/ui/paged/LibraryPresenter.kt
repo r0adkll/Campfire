@@ -37,6 +37,7 @@ import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal const val INVALID_ITEM_COUNT = -1
@@ -102,6 +103,19 @@ class LibraryPresenter(
       ).map { it ?: INVALID_ITEM_COUNT }
     }.collectAsState(INVALID_ITEM_COUNT)
 
+    val isPodcastLibrary = currentLibrary?.mediaType == MediaType.Podcast
+    val unfinishedEpisodes by rememberRetained(isPodcastLibrary, sortMode, sortDirection, itemFilter) {
+      if (isPodcastLibrary) {
+        repository.observeUnfinishedEpisodes(
+          filter = itemFilter,
+          sortMode = sortMode,
+          sortDirection = sortDirection,
+        )
+      } else {
+        flowOf(emptyMap())
+      }
+    }.collectAsState(emptyMap())
+
     val itemDisplayState by libraryViewSettings.observeLibraryItemDisplayState()
       .collectAsState()
 
@@ -127,6 +141,7 @@ class LibraryPresenter(
       sort = LibrarySort(sortMode, sortDirection),
       filter = itemFilter,
       offlineStates = offlineDownloads,
+      unfinishedEpisodes = unfinishedEpisodes,
       itemDisplayState = itemDisplayState,
     ) { event ->
       when (event) {

@@ -23,6 +23,8 @@ data class LibraryUiState(
   val sort: LibrarySort,
   val filter: ContentFilter?,
   val offlineStates: Map<LibraryItemId, ItemDownloads>,
+  // Podcasts only: how many of each show's episodes the user hasn't finished
+  val unfinishedEpisodes: Map<LibraryItemId, Int>,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
 
