@@ -216,6 +216,8 @@ class PlaylistDetailPresenter(
             playbackController.startSession(
               itemId = firstItem.libraryItem.id,
               episodeId = firstItem.episodeId,
+              // The playlist replaces the queue, so what was playing doesn't stay in it
+              requeueCurrent = false,
             )
             if (queueItems.isNotEmpty()) {
               sessionQueue.clear()

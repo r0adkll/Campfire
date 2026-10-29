@@ -184,6 +184,7 @@ class AutomationDeepLinksTest {
       chapterId: Int?,
       episodeId: PodcastEpisodeId?,
       methodOverride: PlayMethod?,
+      requeueCurrent: Boolean,
     ) {
       started += itemId
     }

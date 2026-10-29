@@ -11,6 +11,7 @@ import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -38,8 +39,11 @@ class DefaultPlaybackSessionManager(
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
+    requeueCurrent: Boolean,
   ) {
     withContext(dispatcherProvider.io) {
+      // Read before creating the new session, which deactivates every other one
+      val displaced = if (requeueCurrent) sessionsRepository.getCurrentSession() else null
       val session = sessionsRepository.createSession(libraryItemId, episodeId, methodOverride)
 
       // eBook-only items have no audio to prepare. Guarded here (not just in the UI) so
@@ -59,6 +63,8 @@ class DefaultPlaybackSessionManager(
       // so other queued episodes of the same podcast aren't clobbered.
       sessionQueue.remove(session.libraryItem.id, session.episodeId)
 
+      displaced?.let { requeueDisplaced(it, replacement = session) }
+
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         // For podcast sessions, scope all the finishing operations to the playing episode
         // so siblings (other episodes' progress / history / sessions) aren't clobbered.
@@ -73,6 +79,7 @@ class DefaultPlaybackSessionManager(
             libraryItemId = nextItem.libraryItemId,
             playImmediately = true,
             episodeId = nextItem.episodeId,
+            requeueCurrent = false,
           )
         } else {
           // If we don't have a next-of-queue, Mark the session as finished which maxes out its current time
@@ -106,12 +113,33 @@ class DefaultPlaybackSessionManager(
             libraryItemId = nextItem.libraryItemId,
             playImmediately = true,
             episodeId = nextItem.episodeId,
+            requeueCurrent = false,
           )
         } else {
           sessionsRepository.stopSession(libraryItemId, episodeId)
         }
       }
     }
+  }
+
+  /**
+   * Moves the book or podcast episode [replacement] takes the player from to the front of the
+   * queue, so it plays next instead of dropping out. Items marked finished or reset from their
+   * screens (deleted sessions) stay out.
+   */
+  private suspend fun requeueDisplaced(displaced: Session, replacement: Session) {
+    if (displaced.isDeleted) return
+    val isSameEntry = displaced.libraryItem.id == replacement.libraryItem.id &&
+      displaced.episodeId == replacement.episodeId
+    if (isSameEntry) return
+
+    // An episode no longer on its podcast can't be queued; without it the podcast would be
+    // queued as if it were a book
+    val episode = displaced.episode
+    if (displaced.episodeId != null && episode == null) return
+
+    ibark { "Requeueing displaced session ${displaced.libraryItem.id.loggableId}" }
+    sessionQueue.addFirst(displaced.libraryItem, episode)
   }
 
   companion object : Corked("PlaybackSessionManager")

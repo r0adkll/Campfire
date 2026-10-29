@@ -49,10 +49,18 @@ class DesktopPlaybackController(
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
+    requeueCurrent: Boolean,
   ) {
     userScopeHolder.get().launch {
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId, methodOverride)
+      playbackSessionManager.startSession(
+        itemId,
+        playImmediately,
+        chapterId,
+        episodeId,
+        methodOverride,
+        requeueCurrent,
+      )
     }
   }
 

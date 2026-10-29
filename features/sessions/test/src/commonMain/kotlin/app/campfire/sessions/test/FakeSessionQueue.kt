@@ -27,6 +27,13 @@ class FakeSessionQueue : SessionQueue {
     emit()
   }
 
+  override suspend fun addFirst(libraryItem: LibraryItem, episode: PodcastEpisode?) {
+    val entry = QueuedEntry(libraryItem, episode)
+    queue.removeAll { it.key == entry.key }
+    queue.addFirst(entry)
+    emit()
+  }
+
   override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     queue.removeAll { it.libraryItemId == libraryItemId && it.episodeId == episodeId }
     emit()

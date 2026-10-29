@@ -15,6 +15,12 @@ interface SessionQueue {
 
   suspend fun add(libraryItem: LibraryItem, episode: PodcastEpisode? = null)
   suspend fun addAll(libraryItems: List<LibraryItem>)
+
+  /**
+   * Puts the entry at the front of the queue so it plays next, moving it there if it is
+   * already queued.
+   */
+  suspend fun addFirst(libraryItem: LibraryItem, episode: PodcastEpisode? = null)
   suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId? = null)
   suspend fun pop(): QueuedEntry?
   suspend fun reorder(entries: List<QueuedEntry>)
