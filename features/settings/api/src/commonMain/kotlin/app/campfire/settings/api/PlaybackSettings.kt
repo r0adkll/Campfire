@@ -63,6 +63,13 @@ interface PlaybackSettings {
   fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean>
 
   /**
+   * When true, starting a different book or episode moves the one that was playing to the front of
+   * the queue. When false, it is dropped.
+   */
+  var requeueOnSwitch: Boolean
+  fun observeRequeueOnSwitch(): StateFlow<Boolean>
+
+  /**
    * When true, we will show sync opportunities to the user (or allow auto-sync if enabled)
    */
   var syncEnabled: Boolean

@@ -34,6 +34,8 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.common.test)
+        implementation(projects.data.account.test)
+        implementation(projects.data.db.test)
         implementation(projects.features.sessions.test)
         implementation(projects.features.user.test)
         implementation(projects.infra.offline.test)

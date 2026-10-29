@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Books that had been streaming fine failing with "Unable to play this file" until the app's cache was cleared
 - [Android] Playback errors say what actually went wrong (connection, sign-in, missing file or unreadable audio) with an error code to include in bug reports, instead of always blaming the audio format
 - E-books in list views showing a length of "0s"; they show their file size instead, and podcasts show their episode count
+- What you were listening to disappearing when you start something else; it moves to the top of Up Next, which you can turn off in Playback settings
 - Series numbers show exactly as entered in Audiobookshelf, so dates like 2026.10.10 are no longer cut short or shown out of order
 - Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
 - Your server sign-in and custom connection headers being sent to other websites when Campfire loaded cover art and podcast artwork from them, or when your server redirected a request to them

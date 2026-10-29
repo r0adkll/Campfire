@@ -20,6 +20,9 @@ interface PlaybackController {
    * ([app.campfire.core.model.PlayMethod.Transcode]) or direct play
    * ([app.campfire.core.model.PlayMethod.DirectPlay]) for this session only, winning over
    * the streaming-method setting.
+   * @param requeueCurrent When true and a different book or podcast episode is in the player,
+   * it moves to the front of the queue instead of being dropped, unless the user turned that off
+   * in the playback settings. Pass false when the caller replaces the whole queue.
    */
   fun startSession(
     itemId: LibraryItemId,
@@ -27,6 +30,7 @@ interface PlaybackController {
     chapterId: Int? = null,
     episodeId: PodcastEpisodeId? = null,
     methodOverride: PlayMethod? = null,
+    requeueCurrent: Boolean = true,
   )
 
   /**

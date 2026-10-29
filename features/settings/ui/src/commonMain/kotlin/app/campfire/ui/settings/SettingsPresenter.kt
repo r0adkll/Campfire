@@ -77,6 +77,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHis
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackRateChanged
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RequeueOnSwitch
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ScrollingTitles
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.StreamingMethodChanged
@@ -174,6 +175,7 @@ class SettingsPresenter(
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
+    val requeueOnSwitch by remember { playbackSettings.observeRequeueOnSwitch() }.collectAsState()
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
     val streamingMethod by remember { playbackSettings.observeStreamingMethod() }.collectAsState()
@@ -288,6 +290,7 @@ class SettingsPresenter(
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
+        requeueOnSwitch = requeueOnSwitch,
         syncEnabled = syncEnabled,
         streamingMethod = streamingMethod,
         hlsAvailable = hlsPlaybackSupport.supportsHls,
@@ -468,6 +471,7 @@ class SettingsPresenter(
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
+          is RequeueOnSwitch -> playbackSettings.requeueOnSwitch = event.enabled
           is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
           is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
           is StreamingMethodChanged -> playbackSettings.streamingMethod = event.method
