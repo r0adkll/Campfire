@@ -52,6 +52,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_mp3see
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_title
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_title
+import campfire.features.settings.ui.generated.resources.setting_playback_requeue_on_switch_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_requeue_on_switch_title
 import campfire.features.settings.ui.generated.resources.setting_playback_resume_rewind_preview_header
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_title
@@ -132,6 +134,15 @@ internal fun PlaybackPane(
       },
       headlineContent = { Text(stringResource(Res.string.setting_playback_remote_skip_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.requeueOnSwitch,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.RequeueOnSwitch(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_requeue_on_switch_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_requeue_on_switch_subtitle)) },
     )
 
     Header(

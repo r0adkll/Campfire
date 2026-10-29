@@ -15,6 +15,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.user.api.MediaProgressRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -30,6 +31,7 @@ class DefaultPlaybackSessionManager(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val playbackSettings: PlaybackSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
 
@@ -43,7 +45,8 @@ class DefaultPlaybackSessionManager(
   ) {
     withContext(dispatcherProvider.io) {
       // Read before creating the new session, which deactivates every other one
-      val displaced = if (requeueCurrent) sessionsRepository.getCurrentSession() else null
+      val requeue = requeueCurrent && playbackSettings.requeueOnSwitch
+      val displaced = if (requeue) sessionsRepository.getCurrentSession() else null
       val session = sessionsRepository.createSession(libraryItemId, episodeId, methodOverride)
 
       // eBook-only items have no audio to prepare. Guarded here (not just in the UI) so

@@ -64,6 +64,12 @@ class FakePlaybackSettings : PlaybackSettings {
     set(value) { _remoteNextPrevSkipsChapters.value = value }
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = _remoteNextPrevSkipsChapters.asStateFlow()
 
+  private val _requeueOnSwitch = MutableStateFlow(true)
+  override var requeueOnSwitch: Boolean
+    get() = _requeueOnSwitch.value
+    set(value) { _requeueOnSwitch.value = value }
+  override fun observeRequeueOnSwitch(): StateFlow<Boolean> = _requeueOnSwitch.asStateFlow()
+
   private val _syncEnabled = MutableStateFlow(true)
   override var syncEnabled: Boolean
     get() = _syncEnabled.value

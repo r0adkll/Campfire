@@ -117,6 +117,7 @@ class SettingsAnalyticUiEventHandler(
         Updated,
         event.remoteNextPrevSkipsChapters,
       )
+      is SettingsUiEvent.PlaybackSettingEvent.RequeueOnSwitch -> send("requeue_on_switch", Updated, event.enabled)
       is SyncEnabled -> send("sync", Updated, event.enabled)
       is AutoSyncEnabled -> send("auto_sync", Updated, event.enabled)
       is StreamingMethodChanged -> send("streaming_method", Updated, event.method.storageKey)

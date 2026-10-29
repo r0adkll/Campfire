@@ -707,6 +707,8 @@ internal class PreviewPlaybackSettings : PlaybackSettings {
   override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> = MutableStateFlow(itemPlaybackSpeeds)
   override var remoteNextPrevSkipsChapters = true
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = MutableStateFlow(remoteNextPrevSkipsChapters)
+  override var requeueOnSwitch = true
+  override fun observeRequeueOnSwitch(): StateFlow<Boolean> = MutableStateFlow(requeueOnSwitch)
   override var syncEnabled = true
   override fun observeSyncEnabled(): StateFlow<Boolean> = MutableStateFlow(syncEnabled)
   override var autoSyncEnabled = false

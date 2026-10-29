@@ -17,6 +17,7 @@ import app.campfire.core.model.Session
 import app.campfire.home.ui.libraryItem
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
+import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.user.test.FakeMediaProgressRepository
 import assertk.assertThat
 import assertk.assertions.containsExactly
@@ -39,6 +40,7 @@ class DefaultPlaybackSessionManagerTest {
   private val sessionsRepository = FakeSessionsRepository()
   private val sessionQueue = FakeSessionQueue()
   private val player = FakeAudioPlayer()
+  private val playbackSettings = FakePlaybackSettings()
 
   private val manager = DefaultPlaybackSessionManager(
     sessionsRepository = sessionsRepository,
@@ -46,6 +48,7 @@ class DefaultPlaybackSessionManagerTest {
     mediaProgressRepository = FakeMediaProgressRepository(),
     playbackHistoryRepository = FakePlaybackHistoryRepository(),
     audioPlayerHolder = FakeAudioPlayerHolder().apply { setCurrentPlayer(player) },
+    playbackSettings = playbackSettings,
     dispatcherProvider = dispatcherProvider,
   )
 
@@ -125,6 +128,18 @@ class DefaultPlaybackSessionManagerTest {
     manager.startSession(podcast.id, episodeId = episodeB.id, requeueCurrent = false)
 
     assertThat(sessionQueue.keys()).isEmpty()
+  }
+
+  @Test
+  fun `the playing episode is dropped when the requeue setting is off`() = runTest(testDispatcher) {
+    playbackSettings.requeueOnSwitch = false
+    sessionQueue.add(podcast, episodeC)
+    sessionsRepository.currentSession = episodeSession(episodeA)
+    sessionsRepository.createSession = episodeSession(episodeB)
+
+    manager.startSession(podcast.id, episodeId = episodeB.id)
+
+    assertThat(sessionQueue.keys()).containsExactly("podcast:c")
   }
 
   @Test
