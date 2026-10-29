@@ -43,6 +43,19 @@
 
   <string name="remaining_duration_format">%1$s left</string>
   <string name="remaining_duration_finished">Finished on %1$s</string>
+  <string name="remaining_duration_finished_undated">Finished</string>
+  <string name="listening_dates_edit_action">Edit listening dates</string>
+  <string name="listening_dates_title">Listening dates</string>
+  <string name="listening_dates_started">Started</string>
+  <string name="listening_dates_finished">Finished</string>
+  <string name="listening_dates_unknown">Unknown</string>
+  <string name="listening_dates_edit">Change date</string>
+  <string name="listening_dates_saved_to_account">Saved to your Audiobookshelf account</string>
+  <string name="listening_dates_finished_picker_title">Finished on</string>
+  <string name="listening_dates_finished_picker_earliest">Started %1$s, so earlier days can't be picked</string>
+  <string name="listening_dates_save_failed">Couldn't save the date. Check your connection and try again.</string>
+  <string name="mark_finished_snackbar">Marked as finished</string>
+  <string name="mark_finished_snackbar_set_date">Set date</string>
   <string name="last_read_time_ago">Last read %1$s</string>
   <string name="last_read_just_now">Last read just now</string>
   <string name="ebook_format_and_size">%1$s · %2$s</string>

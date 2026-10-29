@@ -17,10 +17,12 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.dates.ListeningDate
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
+import kotlinx.datetime.LocalDate
 
 @Immutable
 data class LibraryItemUiState(
@@ -36,6 +38,8 @@ data class LibraryItemUiState(
 @Immutable
 data class ContentUiState(
   val slots: List<ContentSlot>,
+  /** A failure to tell the user about, cleared by [LibraryItemUiEvent.ClearError]. */
+  val errorMessage: String? = null,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -63,6 +67,15 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
+
+  /** Pick a new day for one of the item's listening dates. */
+  data class EditListeningDate(val date: ListeningDate) : LibraryItemUiEvent
+
+  /** Put the listening date being picked away unchanged. */
+  data object DismissListeningDate : LibraryItemUiEvent
+
+  /** Save [day] as the new day of the item's listening [date]. */
+  data class ChangeListeningDate(val date: ListeningDate, val day: LocalDate) : LibraryItemUiEvent
   data class MarkEpisodeFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class MarkEpisodeNotFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class AuthorClick(val item: LibraryItem, val author: String) : LibraryItemUiEvent

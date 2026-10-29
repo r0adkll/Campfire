@@ -4,13 +4,16 @@
 package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -20,11 +23,13 @@ import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +38,7 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Check
+import app.campfire.common.compose.icons.rounded.Edit
 import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.util.withDensity
 import app.campfire.core.extensions.asDate
@@ -44,7 +50,9 @@ import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.last_read_just_now
 import campfire.features.libraries.ui.generated.resources.last_read_time_ago
+import campfire.features.libraries.ui.generated.resources.listening_dates_edit_action
 import campfire.features.libraries.ui.generated.resources.remaining_duration_finished
+import campfire.features.libraries.ui.generated.resources.remaining_duration_finished_undated
 import campfire.features.libraries.ui.generated.resources.remaining_duration_format
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -66,10 +74,30 @@ internal fun MediaProgressBar(
   chapter: String? = null,
   /** Says which progress this is, where an item shows more than one. */
   leadingIcon: ImageVector? = null,
+  /**
+   * Opens the finished progress's listening dates. The bar and the line under it are one target,
+   * padded out to a comfortable size, so the content sits [EditableInset] in from the bar's edges.
+   */
+  onEditDates: (() -> Unit)? = null,
 ) {
   Column(
     modifier = modifier
-      .fillMaxWidth(),
+      .fillMaxWidth()
+      .then(
+        if (onEditDates != null) {
+          Modifier
+            .clip(EditableShape)
+            .clickable(
+              onClickLabel = stringResource(Res.string.listening_dates_edit_action),
+              role = Role.Button,
+              onClick = onEditDates,
+            )
+            .padding(horizontal = EditableInset, vertical = 11.dp)
+            .testTag("progress_edit_dates")
+        } else {
+          Modifier
+        },
+      ),
   ) {
     LinearWavyProgressIndicator(
       progress = { progress.actualProgress },
@@ -123,10 +151,11 @@ internal fun MediaProgressBar(
 
       val duration = progress.duration?.takeIf { it > 0f } ?: totalDuration.asSeconds()
       val remainingText = when {
-        progress.isFinished -> stringResource(
-          Res.string.remaining_duration_finished,
-          progress.finishedAt!!.asDate().readableFormat,
-        )
+        progress.isFinished ->
+          progress.finishedAt
+            ?.let { stringResource(Res.string.remaining_duration_finished, it.asDate().readableFormat) }
+            // Progress an older server finished can be missing when
+            ?: stringResource(Res.string.remaining_duration_finished_undated)
         else -> {
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
           when {
@@ -167,6 +196,15 @@ internal fun MediaProgressBar(
           },
           fontWeight = FontWeight.SemiBold,
         )
+        if (onEditDates != null) {
+          Spacer(Modifier.width(4.dp))
+          Icon(
+            CampfireIcons.Rounded.Edit,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp),
+          )
+        }
       }
 
       Spacer(Modifier.weight(1f))
@@ -189,6 +227,11 @@ internal fun MediaProgressBar(
     }
   }
 }
+
+/** How far the editable bar's touch target reaches past the bar on either side. */
+internal val EditableInset = 12.dp
+
+private val EditableShape = RoundedCornerShape(16.dp)
 
 @Composable
 private fun lastReadLabel(lastUpdate: Long): String = when {
