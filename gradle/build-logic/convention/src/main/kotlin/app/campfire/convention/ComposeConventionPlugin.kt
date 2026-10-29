@@ -37,8 +37,13 @@ fun Project.configureCompose() {
   // Task 'generateDebugUnitTestLintModel' uses this output of task
   // 'generateResourceAccessorsForAndroidUnitTest' without declaring an explicit or
   // implicit dependency.
+  // Matched by name, not task, so resolving it doesn't create every task in the project; AGP
+  // 9.5's Compose Preview tasks fail to configure on variants without unit tests.
+  val resourceAccessorTasks = provider {
+    tasks.names.filter { it.startsWith("generateResourceAccessorsFor") }
+  }
   tasks.matching { it is AndroidLintAnalysisTask || it is LintModelWriterTask }.configureEach {
-    mustRunAfter(tasks.matching { it.name.startsWith("generateResourceAccessorsFor") })
+    mustRunAfter(resourceAccessorTasks)
   }
 }
 
