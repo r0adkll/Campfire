@@ -59,7 +59,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
-import app.campfire.core.settings.LibraryItemSortModes
 import app.campfire.core.settings.SortDirection
 import app.campfire.filters.ContentFilterResult
 import app.campfire.filters.ContentFilterUi
@@ -169,7 +168,7 @@ fun LibraryUi(
             overlayHost,
             state.sort.mode,
             state.sort.direction,
-            LibraryItemSortModes,
+            state.sort.config,
           )
           if (updatedSortMode != null) {
             state.eventSink(LibraryUiEvent.SortModeSelected(updatedSortMode))

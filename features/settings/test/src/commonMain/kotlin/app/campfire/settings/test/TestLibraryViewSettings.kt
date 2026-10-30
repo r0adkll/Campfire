@@ -41,6 +41,16 @@ class TestLibraryViewSettings(
     observeEnum<SortDirection>(::librarySortDirection)
       .stateIn(testScope, SharingStarted.Lazily, librarySortDirection)
 
+  override var podcastSortMode: ContentSortMode by enum()
+  override fun observePodcastSortMode(): StateFlow<ContentSortMode> =
+    observeEnum<ContentSortMode>(::podcastSortMode)
+      .stateIn(testScope, SharingStarted.Lazily, podcastSortMode)
+
+  override var podcastSortDirection: SortDirection by enum()
+  override fun observePodcastSortDirection(): StateFlow<SortDirection> =
+    observeEnum<SortDirection>(::podcastSortDirection)
+      .stateIn(testScope, SharingStarted.Lazily, podcastSortDirection)
+
   override var authorsSortMode: ContentSortMode by enum()
   override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> =
     observeEnum<ContentSortMode>(::authorsSortMode)

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The library's list layout shows what you're sorting or filtering by, such as the publish year, size, date added, time left, or position in the filtered series
 - [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
 - Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
+- Podcast libraries have their own sort options, matching the web app (title, author, date added, size, number of episodes, file created and file modified), and sort by title by default instead of in no particular order
 
 ### Changed
 
@@ -43,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
 - Your server sign-in and custom connection headers being sent to other websites when Campfire loaded cover art and podcast artwork from them, or when your server redirected a request to them
 - [Android] OpenID sign-in failing on servers that need custom connection headers
+- Sorting the library by size leaving items in their original order
 - "1 hours ago" and similar wording when something happened a single minute, hour, day, month or year ago
 - Short titles in the playback bar showing faded edges as if they were about to scroll
 - Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
