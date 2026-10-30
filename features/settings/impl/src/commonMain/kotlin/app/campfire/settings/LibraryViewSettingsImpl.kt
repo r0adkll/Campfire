@@ -48,6 +48,14 @@ class LibraryViewSettingsImpl(
   override var librarySortDirection: SortDirection by librarySortDirectionProperty
   override fun observeLibrarySortDirection(): StateFlow<SortDirection> = librarySortDirectionProperty.observe()
 
+  private val podcastSortModeProperty = enumSetting(KEY_PODCAST_SORT_MODE, ContentSortMode.PodcastSortMode)
+  override var podcastSortMode: ContentSortMode by podcastSortModeProperty
+  override fun observePodcastSortMode(): StateFlow<ContentSortMode> = podcastSortModeProperty.observe()
+
+  private val podcastSortDirectionProperty = enumSetting(KEY_PODCAST_SORT_DIRECTION, SortDirection)
+  override var podcastSortDirection: SortDirection by podcastSortDirectionProperty
+  override fun observePodcastSortDirection(): StateFlow<SortDirection> = podcastSortDirectionProperty.observe()
+
   private val authorsSortModeProperty = enumSetting(KEY_AUTHOR_SORT_MODE, ContentSortMode.AuthorSortMode)
   override var authorsSortMode: ContentSortMode by authorsSortModeProperty
   override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> = authorsSortModeProperty.observe()
@@ -91,6 +99,8 @@ internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_s
 internal const val KEY_LIBRARY_ITEM_MARQUEE = "pref_library_item_marquee"
 internal const val KEY_SORT_MODE = "pref_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
+internal const val KEY_PODCAST_SORT_MODE = "pref_podcast_sort_mode"
+internal const val KEY_PODCAST_SORT_DIRECTION = "pref_podcast_sort_direction"
 internal const val KEY_AUTHOR_SORT_MODE = "pref_authors_sort_mode"
 internal const val KEY_AUTHORS_SORT_DIRECTION = "pref_authors_sort_direction"
 internal const val KEY_SERIES_SORT_MODE = "pref_series_sort_mode"
@@ -106,6 +116,8 @@ internal val LibraryViewStringKeys = listOf(
   KEY_LIBRARY_ITEM_DISPLAY_STATE,
   KEY_SORT_MODE,
   KEY_SORT_DIRECTION,
+  KEY_PODCAST_SORT_MODE,
+  KEY_PODCAST_SORT_DIRECTION,
   KEY_AUTHOR_SORT_MODE,
   KEY_AUTHORS_SORT_DIRECTION,
   KEY_SERIES_SORT_MODE,

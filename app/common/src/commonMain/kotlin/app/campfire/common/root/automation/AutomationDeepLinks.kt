@@ -7,6 +7,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.auth.api.AuthRepository
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
@@ -133,6 +134,7 @@ object AutomationScreens {
     "collections" -> CollectionsScreen
     "playlists" -> PlaylistsScreen
     "statistics" -> StatisticsScreen
+    "downloads" -> DownloadsScreen
     "theme_picker" -> ThemePickerScreen
     "settings" -> SettingsScreen(
       page = navigate.arg

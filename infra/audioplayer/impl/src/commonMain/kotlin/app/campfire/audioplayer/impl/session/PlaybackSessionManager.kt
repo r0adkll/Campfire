@@ -13,12 +13,18 @@ import app.campfire.core.model.PodcastEpisodeId
  */
 interface PlaybackSessionManager {
 
+  /**
+   * @param requeueCurrent when true and a different book or podcast episode is in the player,
+   * it moves to the front of the queue instead of being dropped, unless the user turned
+   * [app.campfire.settings.api.PlaybackSettings.requeueOnSwitch] off.
+   */
   suspend fun startSession(
     libraryItemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
     episodeId: PodcastEpisodeId? = null,
     methodOverride: PlayMethod? = null,
+    requeueCurrent: Boolean = true,
   )
 
   suspend fun stopSession(

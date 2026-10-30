@@ -8,7 +8,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.campfire.analytics.test.FakeAnalytics
-import app.campfire.common.test.user
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
@@ -17,6 +16,8 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.LibraryItemSortModes
+import app.campfire.core.settings.PodcastSortModes
 import app.campfire.core.settings.SortDirection
 import app.campfire.libraries.api.AddPodcastContext
 import app.campfire.libraries.api.LibraryRepository
@@ -26,6 +27,7 @@ import app.campfire.offline.test.FakeDownloads
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.user.test.FakeUserRepository
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.slack.circuit.test.FakeNavigator
@@ -36,6 +38,7 @@ import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -46,9 +49,25 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryPresenterTest {
 
-  private val repository = CountingLibraryRepository()
+  private val userRepository = FakeUserRepository()
+  private val repository = RecordingLibraryRepository()
+  private val settings = TestLibraryViewSettings().apply {
+    librarySortMode = ContentSortMode.AuthorFL
+    librarySortDirection = SortDirection.Ascending
+    podcastSortMode = ContentSortMode.Title
+    podcastSortDirection = SortDirection.Ascending
+  }
 
-  // The presenter collects its pager as LazyPagingItems, which loads on the main dispatcher
+  private val presenter = LibraryPresenter(
+    screen = LibraryScreen(),
+    navigator = FakeNavigator(LibraryScreen()),
+    userRepository = userRepository,
+    repository = repository,
+    downloads = FakeDownloads(),
+    libraryViewSettings = settings,
+    analytics = FakeAnalytics(),
+  )
+
   @BeforeTest
   fun setUp() {
     Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -60,85 +79,164 @@ class LibraryPresenterTest {
   }
 
   @Test
-  fun `a podcast library badges each show's unfinished episodes`() = runTest {
-    repository.library.value = library(MediaType.Podcast)
-    repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
+  fun `a book library pages with the book sort`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Book))
 
-    presenter().test {
-      val state = expectMostRecentItemMatching { it.unfinishedEpisodes.isNotEmpty() }
-      assertThat(state.unfinishedEpisodes).isEqualTo(mapOf("pod_1" to 4))
+    presenter.test {
+      val state = expectMostRecentItem()
+
+      assertThat(state.sort).isEqualTo(
+        LibrarySort(ContentSortMode.AuthorFL, SortDirection.Ascending, LibraryItemSortModes),
+      )
+      assertThat(repository.pagedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a podcast library pages with the podcast sort`() = runTest {
+    settings.podcastSortMode = ContentSortMode.NumberOfEpisodes
+    settings.podcastSortDirection = SortDirection.Descending
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      val state = expectMostRecentItem()
+
+      assertThat(state.sort).isEqualTo(
+        LibrarySort(ContentSortMode.NumberOfEpisodes, SortDirection.Descending, PodcastSortModes),
+      )
+      assertThat(state.totalItemCount).isEqualTo(12)
+      assertThat(repository.pagedSorts)
+        .containsExactly(ContentSortMode.NumberOfEpisodes to SortDirection.Descending)
+      assertThat(repository.countedSorts)
+        .containsExactly(ContentSortMode.NumberOfEpisodes to SortDirection.Descending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `nothing is paged or counted until the selected library has loaded`() = runTest {
+    presenter.test {
+      assertThat(expectMostRecentItem().totalItemCount).isEqualTo(INVALID_ITEM_COUNT)
+
+      assertThat(repository.pagedSorts).isEmpty()
+      assertThat(repository.countedSorts).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `nothing is paged while the loaded library is not the selected one`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Podcast, id = "previous_library_id"))
+
+    presenter.test {
+      expectMostRecentItem()
+
+      assertThat(repository.pagedSorts).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `picking a sort in a podcast library keeps the book sort`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      expectMostRecentItem().eventSink(LibraryUiEvent.SortModeSelected(ContentSortMode.FileModified))
+
+      assertThat(expectMostRecentItem().sort.mode).isEqualTo(ContentSortMode.FileModified)
+      assertThat(settings.podcastSortMode).isEqualTo(ContentSortMode.FileModified)
+      assertThat(settings.librarySortMode).isEqualTo(ContentSortMode.AuthorFL)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `picking the current sort in a podcast library flips its direction`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      expectMostRecentItem().eventSink(LibraryUiEvent.SortModeSelected(ContentSortMode.Title))
+
+      assertThat(expectMostRecentItem().sort.direction).isEqualTo(SortDirection.Descending)
+      assertThat(settings.librarySortDirection).isEqualTo(SortDirection.Ascending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `picking a sort in a book library keeps the podcast sort`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Book))
+
+    presenter.test {
+      expectMostRecentItem().eventSink(LibraryUiEvent.SortModeSelected(ContentSortMode.AuthorFL))
+
+      assertThat(expectMostRecentItem().sort.direction).isEqualTo(SortDirection.Descending)
+      assertThat(settings.librarySortDirection).isEqualTo(SortDirection.Descending)
+      assertThat(settings.podcastSortDirection).isEqualTo(SortDirection.Ascending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a podcast library badges each show's unfinished episodes`() = runTest {
+    repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      val state = expectMostRecentItem()
+
       assertThat(state.isPodcastLibrary).isEqualTo(true)
+      assertThat(state.unfinishedEpisodes).isEqualTo(mapOf("pod_1" to 4))
+      // Counted under the podcast sort, the same pages the grid shows
+      assertThat(repository.unfinishedEpisodeSorts).containsExactly(ContentSortMode.Title to SortDirection.Ascending)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
   fun `a book library doesn't count episodes`() = runTest {
-    repository.library.value = library(MediaType.Book)
     repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
+    repository.currentLibrary.emit(library(MediaType.Book))
 
-    presenter().test {
-      testScheduler.advanceUntilIdle()
+    presenter.test {
       val state = expectMostRecentItem()
-      assertThat(state.unfinishedEpisodes).isEmpty()
+
+      assertThat(repository.pagedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
       assertThat(state.isPodcastLibrary).isEqualTo(false)
+      assertThat(state.unfinishedEpisodes).isEmpty()
+      assertThat(repository.unfinishedEpisodeSorts).isEmpty()
       cancelAndIgnoreRemainingEvents()
     }
-    assertThat(repository.observedLibrary).isEqualTo(true)
-    assertThat(repository.unfinishedEpisodesRequests).isEqualTo(0)
   }
 
-  private fun presenter() = LibraryPresenter(
-    screen = LibraryScreen(),
-    navigator = FakeNavigator(LibraryScreen()),
-    userRepository = FakeUserRepository().apply { currentStatefulUserFlow.value = TestUser },
-    repository = repository,
-    downloads = FakeDownloads(),
-    libraryViewSettings = TestLibraryViewSettings(),
-    analytics = FakeAnalytics(),
-  )
-
-  private fun library(mediaType: MediaType) = Library(
-    id = TestUser.selectedLibraryId,
+  private fun library(
+    mediaType: MediaType,
+    id: LibraryId = userRepository.userFlow.value.selectedLibraryId,
+  ) = Library(
+    id = id,
     name = "Library",
     displayOrder = 0,
     icon = Library.Icon.Database,
     mediaType = mediaType,
     provider = "",
-    coverAspectRatio = 1,
+    coverAspectRatio = 0,
     audiobooksOnly = false,
-    createdAt = 0,
-    lastUpdate = 0,
+    createdAt = 0L,
+    lastUpdate = 0L,
   )
-
-  private companion object {
-    val TestUser = user("user")
-  }
 }
 
-private suspend fun <T> app.cash.turbine.ReceiveTurbine<T>.expectMostRecentItemMatching(
-  predicate: (T) -> Boolean,
-): T {
-  while (true) {
-    val item = awaitItem()
-    if (predicate(item)) return item
-  }
-}
+private class RecordingLibraryRepository : LibraryRepository {
 
-private class CountingLibraryRepository : LibraryRepository {
-  val library = MutableStateFlow<Library?>(null)
+  val currentLibrary = MutableSharedFlow<Library>(replay = 1)
+  val pagedSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
+  val countedSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
   val unfinishedEpisodes = MutableStateFlow<Map<LibraryItemId, Int>>(emptyMap())
-  var unfinishedEpisodesRequests = 0
+  val unfinishedEpisodeSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
 
-  var observedLibrary = false
-
-  override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> {
-    observedLibrary = true
-    return flowOf(library.value!!)
-  }
-
+  override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> = currentLibrary
   override fun observeAllLibraries(refresh: Boolean): Flow<List<Library>> = flowOf(emptyList())
-
   override fun observeCurrentLibraryItems(refresh: Boolean): Flow<List<LibraryItem>> = flowOf(emptyList())
 
   override fun createLibraryItemPager(
@@ -146,31 +244,38 @@ private class CountingLibraryRepository : LibraryRepository {
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): LibraryItemPager = Pager(PagingConfig(pageSize = 50)) { EmptyPagingSource() }
+  ): LibraryItemPager {
+    pagedSorts += sortMode to sortDirection
+    return Pager(PagingConfig(pageSize = 20)) { EmptyPagingSource() }
+  }
 
   override fun observeFilteredLibraryCount(
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<Int?> = flowOf(null)
+  ): Flow<Int?> {
+    countedSorts += sortMode to sortDirection
+    return flowOf(12)
+  }
 
   override fun observeUnfinishedEpisodes(
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
   ): Flow<Map<LibraryItemId, Int>> {
-    unfinishedEpisodesRequests++
+    unfinishedEpisodeSorts += sortMode to sortDirection
     return unfinishedEpisodes
   }
 
   override suspend fun setCurrentLibrary(library: Library) = Unit
 
   override suspend fun getAddPodcastContext(libraryId: LibraryId): Result<AddPodcastContext> =
-    error("not used")
+    throw NotImplementedError("not exercised in these tests")
 }
 
 private class EmptyPagingSource : PagingSource<Int, LibraryItem>() {
-  override fun getRefreshKey(state: PagingState<Int, LibraryItem>): Int? = null
   override suspend fun load(params: LoadParams<Int>): LoadResult<Int, LibraryItem> =
     LoadResult.Page(data = emptyList(), prevKey = null, nextKey = null)
+
+  override fun getRefreshKey(state: PagingState<Int, LibraryItem>): Int? = null
 }

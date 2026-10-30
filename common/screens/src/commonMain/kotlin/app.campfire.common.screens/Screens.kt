@@ -134,6 +134,13 @@ data object StatisticsScreen : BaseScreen(name = "Statistics") {
 @Parcelize
 data object StorageScreen : BaseScreen(name = "Storage")
 
+/** Everything downloaded or downloading on this device, to open or remove. */
+@Parcelize
+data object DownloadsScreen : BaseScreen(name = "Downloads") {
+  override val presentation: Presentation
+    get() = Presentation.Fullscreen
+}
+
 @Parcelize
 data object ConnectedProvidersScreen : BaseScreen(name = "ConnectedProviders") {
   override val presentation: Presentation

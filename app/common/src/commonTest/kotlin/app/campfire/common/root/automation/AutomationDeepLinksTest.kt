@@ -7,6 +7,7 @@ import app.campfire.account.api.BackedUpAccount
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
@@ -63,6 +64,7 @@ class AutomationDeepLinksTest {
     assertThat(AutomationScreens.resolve(DeepLink.Navigate("home"))).isEqualTo(HomeScreen)
     assertThat(AutomationScreens.resolve(DeepLink.Navigate("library"))).isEqualTo(LibraryScreen())
     assertThat(AutomationScreens.resolve(DeepLink.Navigate("statistics"))).isEqualTo(StatisticsScreen)
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("downloads"))).isEqualTo(DownloadsScreen)
     assertThat(AutomationScreens.resolve(DeepLink.Navigate("theme_picker"))).isEqualTo(ThemePickerScreen)
     assertThat(AutomationScreens.resolve(DeepLink.Navigate("library_item", "abc")))
       .isEqualTo(LibraryItemScreen("abc"))
@@ -185,6 +187,7 @@ class AutomationDeepLinksTest {
       chapterId: Int?,
       episodeId: PodcastEpisodeId?,
       methodOverride: PlayMethod?,
+      requeueCurrent: Boolean,
     ) {
       started += itemId
     }

@@ -29,13 +29,17 @@ import app.campfire.core.settings.SortModeConfig
 import app.campfire.filters.SortModeUi
 import campfire.features.filters.ui.generated.resources.Res
 import campfire.features.filters.ui.generated.resources.sort_mode_addedat
+import campfire.features.filters.ui.generated.resources.sort_mode_author
 import campfire.features.filters.ui.generated.resources.sort_mode_author_fl
 import campfire.features.filters.ui.generated.resources.sort_mode_author_lf
 import campfire.features.filters.ui.generated.resources.sort_mode_duration
+import campfire.features.filters.ui.generated.resources.sort_mode_file_created
+import campfire.features.filters.ui.generated.resources.sort_mode_file_modified
 import campfire.features.filters.ui.generated.resources.sort_mode_last_book_added
 import campfire.features.filters.ui.generated.resources.sort_mode_last_book_updated
 import campfire.features.filters.ui.generated.resources.sort_mode_name
 import campfire.features.filters.ui.generated.resources.sort_mode_number_of_books
+import campfire.features.filters.ui.generated.resources.sort_mode_number_of_episodes
 import campfire.features.filters.ui.generated.resources.sort_mode_publishyear
 import campfire.features.filters.ui.generated.resources.sort_mode_sheet_title
 import campfire.features.filters.ui.generated.resources.sort_mode_size
@@ -165,4 +169,8 @@ val ContentSortMode.displayName
     ContentSortMode.Name -> stringResource(Res.string.sort_mode_name)
     ContentSortMode.LastBookAdded -> stringResource(Res.string.sort_mode_last_book_added)
     ContentSortMode.LastBookUpdated -> stringResource(Res.string.sort_mode_last_book_updated)
+    ContentSortMode.Author -> stringResource(Res.string.sort_mode_author)
+    ContentSortMode.NumberOfEpisodes -> stringResource(Res.string.sort_mode_number_of_episodes)
+    ContentSortMode.FileCreated -> stringResource(Res.string.sort_mode_file_created)
+    ContentSortMode.FileModified -> stringResource(Res.string.sort_mode_file_modified)
   }

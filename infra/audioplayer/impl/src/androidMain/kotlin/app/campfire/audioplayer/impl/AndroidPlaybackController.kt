@@ -41,6 +41,7 @@ class AndroidPlaybackController(
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
+    requeueCurrent: Boolean,
   ) {
     // Dumb hack to get around edge case where this can be called twice from [SessionLayoutHost]
     // during init/new session
@@ -56,7 +57,14 @@ class AndroidPlaybackController(
       .onEach { mediaController ->
         ibark { "$mediaController <-- starting for item, playImmediately=$playImmediately" }
         currentSessionId = itemId
-        playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId, methodOverride)
+        playbackSessionManager.startSession(
+          itemId,
+          playImmediately,
+          chapterId,
+          episodeId,
+          methodOverride,
+          requeueCurrent,
+        )
       }
       .launchIn(scopeHolder.get())
   }

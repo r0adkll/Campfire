@@ -48,11 +48,19 @@ class IosPlaybackController(
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
+    requeueCurrent: Boolean,
   ) {
     userScopeHolder.get().launch {
       configureAudioSession()
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId, methodOverride)
+      playbackSessionManager.startSession(
+        itemId,
+        playImmediately,
+        chapterId,
+        episodeId,
+        methodOverride,
+        requeueCurrent,
+      )
     }
   }
 

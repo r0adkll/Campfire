@@ -18,6 +18,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.ConnectedProvidersScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.Platform
@@ -31,8 +32,6 @@ import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.core.session.user
-import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.network.reachability.WorkOffline
@@ -42,6 +41,7 @@ import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.AppStateSettings
 import app.campfire.settings.api.ConnectionSettings
 import app.campfire.settings.api.DevSettings
+import app.campfire.settings.api.DownloadSettings
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
@@ -62,8 +62,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicIt
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
@@ -77,6 +75,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHis
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackRateChanged
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RequeueOnSwitch
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ScrollingTitles
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.StreamingMethodChanged
@@ -131,7 +130,6 @@ class SettingsPresenter(
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val downloads: Downloads,
-  private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
   private val tokenBackup: TokenBackup,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
@@ -139,6 +137,7 @@ class SettingsPresenter(
   private val androidAuto: AndroidAuto,
   private val appUpdates: AppUpdates,
   private val mobileDataSettings: MobileDataSettings,
+  private val downloadSettings: DownloadSettings,
   private val serverReachability: ServerReachability,
   private val workOffline: WorkOffline,
   private val networkMonitor: NetworkMonitor,
@@ -174,6 +173,7 @@ class SettingsPresenter(
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
+    val requeueOnSwitch by remember { playbackSettings.observeRequeueOnSwitch() }.collectAsState()
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
     val streamingMethod by remember { playbackSettings.observeStreamingMethod() }.collectAsState()
@@ -193,10 +193,10 @@ class SettingsPresenter(
     // Downloads Settings
     val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
       .collectAsState()
+    val downloadQueuedEpisodes by remember { downloadSettings.observeDownloadQueuedEpisodes() }.collectAsState()
+    val deleteFinishedEpisodes by remember { downloadSettings.observeDeleteFinishedEpisodes() }.collectAsState()
 
-    val downloadEntries by remember {
-      downloads.observeAll().asDownloadEntries(libraryItemRepository::getLibraryItem)
-    }.collectAsState(emptyList())
+    val downloadCount by remember { downloads.observeAll().map { it.size } }.collectAsState(0)
 
     // Sleep Settings
     val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
@@ -279,7 +279,10 @@ class SettingsPresenter(
         showDownloadConfirmation = showDownloadConfirmation,
         isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
         downloadOnWifiOnly = downloadOnWifiOnly,
-        downloads = downloadEntries,
+        isAudioDownloadAvailable = currentPlatform != Platform.IOS,
+        downloadQueuedEpisodes = downloadQueuedEpisodes,
+        deleteFinishedEpisodes = deleteFinishedEpisodes,
+        downloadCount = downloadCount,
       ),
       playbackSettings = PlaybackSettingsInfo(
         playbackRates = playbackRates,
@@ -288,6 +291,7 @@ class SettingsPresenter(
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
+        requeueOnSwitch = requeueOnSwitch,
         syncEnabled = syncEnabled,
         streamingMethod = streamingMethod,
         hlsAvailable = hlsPlaybackSupport.supportsHls,
@@ -445,13 +449,13 @@ class SettingsPresenter(
           is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
             mobileDataSettings.downloadOnWifiOnly = event.enabled
           }
-          is DownloadClicked -> navigator.goTo(
-            LibraryItemScreen(
-              libraryItemId = event.entry.libraryItem.id,
-              episodeId = (event.entry as? DownloadEntry.Episode)?.episode?.id,
-            ),
-          )
-          is DeleteDownload -> downloads.delete(event.entry.download.content)
+          is SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes -> {
+            downloadSettings.downloadQueuedEpisodes = event.enabled
+          }
+          is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
+            downloadSettings.deleteFinishedEpisodes = event.enabled
+          }
+          SettingsUiEvent.DownloadsSettingEvent.ViewAllDownloads -> navigator.goTo(DownloadsScreen)
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
@@ -468,6 +472,7 @@ class SettingsPresenter(
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
+          is RequeueOnSwitch -> playbackSettings.requeueOnSwitch = event.enabled
           is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
           is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
           is StreamingMethodChanged -> playbackSettings.streamingMethod = event.method

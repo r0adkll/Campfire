@@ -84,6 +84,10 @@ class PlaybackSettingsImpl(
   override var remoteNextPrevSkipsChapters: Boolean by remoteNextPrevSkipsChaptersProperty
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = remoteNextPrevSkipsChaptersProperty.observe()
 
+  private val requeueOnSwitchProperty = booleanSetting(PREF_REQUEUE_ON_SWITCH, DEFAULT_REQUEUE_ON_SWITCH)
+  override var requeueOnSwitch: Boolean by requeueOnSwitchProperty
+  override fun observeRequeueOnSwitch(): StateFlow<Boolean> = requeueOnSwitchProperty.observe()
+
   private val syncEnabledProperty = booleanSetting(PREF_SYNC, DEFAULT_AUTO_SYNC)
   override var syncEnabled: Boolean by syncEnabledProperty
   override fun observeSyncEnabled(): StateFlow<Boolean> = syncEnabledProperty.observe()
@@ -220,6 +224,7 @@ internal const val ITEM_SPEED_VALUE_SEPARATOR = "|"
 internal const val PREF_SYNC = "pref_synchronization"
 internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
+internal const val PREF_REQUEUE_ON_SWITCH = "pref_playback_requeue_on_switch"
 internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
 internal const val PREF_SYNC_INTERVAL_UNMETERED = "pref_sync_interval_unmetered"
 internal const val PREF_SYNC_INTERVAL_METERED = "pref_sync_interval_metered"
@@ -243,6 +248,7 @@ internal const val DEFAULT_TRACK_RESET_THRESHOLD_SECONDS = 5.0 // 5s
 internal val DEFAULT_PLAYBACK_RATES = listOf(1f, 1.1f, 1.25f, 1.5f, 2f)
 internal const val DEFAULT_PLAYBACK_SPEED = 1f
 internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = false
+internal const val DEFAULT_REQUEUE_ON_SWITCH = true
 internal const val DEFAULT_AUTO_SYNC = true
 internal const val DEFAULT_PLAYBACK_HISTORY = true
 internal val DEFAULT_SYNC_INTERVAL_UNMETERED = 15.seconds

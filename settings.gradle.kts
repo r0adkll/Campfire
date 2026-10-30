@@ -265,6 +265,7 @@ include(
   ":features:discover:impl",
   ":features:discover:ui",
 )
+include(":features:downloads:ui")
 include(
   ":ui:appbar",
   ":ui:navigation:api",

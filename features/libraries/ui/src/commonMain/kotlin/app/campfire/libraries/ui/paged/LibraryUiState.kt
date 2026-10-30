@@ -11,6 +11,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortModeConfig
 import app.campfire.offline.ItemDownloads
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -33,6 +34,7 @@ data class LibraryUiState(
 data class LibrarySort(
   val mode: ContentSortMode,
   val direction: SortDirection,
+  val config: SortModeConfig,
 )
 
 sealed interface LibraryUiEvent : CircuitUiEvent {

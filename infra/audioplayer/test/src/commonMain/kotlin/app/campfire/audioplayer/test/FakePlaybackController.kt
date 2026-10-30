@@ -18,6 +18,7 @@ class FakePlaybackController : PlaybackController {
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
     methodOverride: PlayMethod?,
+    requeueCurrent: Boolean,
   ) {
     session = PlaybackControllerSession.Started(
       itemId = itemId,
@@ -25,6 +26,7 @@ class FakePlaybackController : PlaybackController {
       chapterId = chapterId,
       episodeId = episodeId,
       methodOverride = methodOverride,
+      requeueCurrent = requeueCurrent,
     )
   }
 
@@ -50,6 +52,7 @@ sealed interface PlaybackControllerSession {
     val chapterId: Int?,
     val episodeId: PodcastEpisodeId?,
     val methodOverride: PlayMethod? = null,
+    val requeueCurrent: Boolean = true,
   ) : PlaybackControllerSession
 
   data class Stopped(

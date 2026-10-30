@@ -32,36 +32,43 @@ class LibraryItemMetasTest {
     assertThat(ebook.listMeta(ContentSortMode.Title, null)).containsExactly(size)
   }
 
+  private val podcast = audiobook.copy(
+    media = Media.Podcast(
+      id = "podcast",
+      metadata = Media.Metadata.Podcast(
+        title = "Podcast",
+        author = null,
+        description = null,
+        releaseDate = null,
+        genres = emptyList(),
+        feedUrl = null,
+        imageUrl = null,
+        itunesPageUrl = null,
+        itunesId = null,
+        itunesArtistId = null,
+        isExplicit = false,
+        language = null,
+        podcastType = null,
+      ),
+      coverImageUrl = "",
+      coverPath = null,
+      tags = emptyList(),
+      sizeInBytes = 0L,
+      numEpisodes = 12,
+    ),
+  )
+
   @Test
   fun `a podcast shows its episode count`() {
-    val podcast = audiobook.copy(
-      media = Media.Podcast(
-        id = "podcast",
-        metadata = Media.Metadata.Podcast(
-          title = "Podcast",
-          author = null,
-          description = null,
-          releaseDate = null,
-          genres = emptyList(),
-          feedUrl = null,
-          imageUrl = null,
-          itunesPageUrl = null,
-          itunesId = null,
-          itunesArtistId = null,
-          isExplicit = false,
-          language = null,
-          podcastType = null,
-        ),
-        coverImageUrl = "",
-        coverPath = null,
-        tags = emptyList(),
-        sizeInBytes = 0L,
-        numEpisodes = 12,
-      ),
-    )
-
     assertThat(podcast.listMeta(ContentSortMode.Title, null))
       .containsExactly(LibraryItemMeta.Episodes(12))
+  }
+
+  @Test
+  fun `podcast sorts already visible on the show add nothing`() {
+    listOf(ContentSortMode.Author, ContentSortMode.NumberOfEpisodes).forEach { mode ->
+      assertThat(podcast.listMeta(mode, null)).containsExactly(LibraryItemMeta.Episodes(12))
+    }
   }
 
   @Test
@@ -103,6 +110,24 @@ class LibraryItemMetasTest {
   fun `sorting by date added shows when it was added`() {
     assertThat(audiobook.copy(addedAtMillis = 1234L).listMeta(ContentSortMode.AddedAt, null))
       .containsExactly(length, LibraryItemMeta.AddedAt(1234L))
+  }
+
+  @Test
+  fun `sorting by file creation shows when the file was created`() {
+    assertThat(audiobook.copy(birthtimeMs = 1234L).listMeta(ContentSortMode.FileCreated, null))
+      .containsExactly(length, LibraryItemMeta.FileCreated(1234L))
+  }
+
+  @Test
+  fun `sorting by file creation skips a filesystem that records none`() {
+    assertThat(audiobook.copy(birthtimeMs = 0L).listMeta(ContentSortMode.FileCreated, null))
+      .containsExactly(length)
+  }
+
+  @Test
+  fun `sorting by file modification shows when the file changed`() {
+    assertThat(audiobook.copy(mtimeMs = 1234L).listMeta(ContentSortMode.FileModified, null))
+      .containsExactly(length, LibraryItemMeta.FileModified(1234L))
   }
 
   @Test

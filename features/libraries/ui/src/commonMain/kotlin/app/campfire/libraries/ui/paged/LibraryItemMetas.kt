@@ -29,6 +29,9 @@ private fun LibraryItem.sortMeta(sortMode: ContentSortMode): LibraryItemMeta? = 
       ?.let { LibraryItemMeta.PublishedYear(it) }
   ContentSortMode.Size -> LibraryItemMeta.Size(media.sizeInBytes)
   ContentSortMode.AddedAt -> LibraryItemMeta.AddedAt(addedAtMillis)
+  // Some filesystems don't record a creation time, which the server reports as 0
+  ContentSortMode.FileCreated -> birthtimeMs.takeIf { it > 0 }?.let { LibraryItemMeta.FileCreated(it) }
+  ContentSortMode.FileModified -> LibraryItemMeta.FileModified(mtimeMs)
   else -> null
 }
 

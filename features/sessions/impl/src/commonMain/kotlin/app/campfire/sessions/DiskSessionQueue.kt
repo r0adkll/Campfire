@@ -86,6 +86,34 @@ class DiskSessionQueue(
     }
   }
 
+  override suspend fun addFirst(libraryItem: LibraryItem, episode: PodcastEpisode?) {
+    val head = QueueKey(libraryItem.id, episode?.id.orEmpty())
+    write {
+      db.sessionQueueQueries.transaction {
+        val rest = db.sessionQueueQueries
+          .selectAll(userSession.requiredUserId)
+          .awaitAsList()
+          .map { QueueKey(it.libraryItemId, it.episodeId) }
+          .filterNot { it == head }
+
+        db.sessionQueueQueries.delete(
+          userId = userSession.requiredUserId,
+          libraryItemId = head.libraryItemId,
+          episodeId = head.episodeId,
+        )
+        db.sessionQueueQueries.insert(
+          DbSessionQueue(
+            userId = userSession.requiredUserId,
+            libraryItemId = head.libraryItemId,
+            episodeId = head.episodeId,
+            queueIndex = 0,
+          ),
+        )
+        reindexQueue(listOf(head) + rest)
+      }
+    }
+  }
+
   override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val targetEpisodeId = episodeId.orEmpty()
     val remaining = read {

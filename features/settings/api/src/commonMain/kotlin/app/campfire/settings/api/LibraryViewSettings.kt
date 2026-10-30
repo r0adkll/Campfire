@@ -26,6 +26,13 @@ interface LibraryViewSettings {
   var librarySortDirection: SortDirection
   fun observeLibrarySortDirection(): StateFlow<SortDirection>
 
+  /** Podcast libraries sort by their own keys, so they keep a choice apart from book libraries. */
+  var podcastSortMode: ContentSortMode
+  fun observePodcastSortMode(): StateFlow<ContentSortMode>
+
+  var podcastSortDirection: SortDirection
+  fun observePodcastSortDirection(): StateFlow<SortDirection>
+
   var authorsSortMode: ContentSortMode
   fun observeAuthorsSortMode(): StateFlow<ContentSortMode>
 
