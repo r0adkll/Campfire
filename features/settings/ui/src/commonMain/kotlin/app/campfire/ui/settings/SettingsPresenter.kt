@@ -42,6 +42,7 @@ import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.AppStateSettings
 import app.campfire.settings.api.ConnectionSettings
 import app.campfire.settings.api.DevSettings
+import app.campfire.settings.api.DownloadSettings
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
@@ -140,6 +141,7 @@ class SettingsPresenter(
   private val androidAuto: AndroidAuto,
   private val appUpdates: AppUpdates,
   private val mobileDataSettings: MobileDataSettings,
+  private val downloadSettings: DownloadSettings,
   private val serverReachability: ServerReachability,
   private val workOffline: WorkOffline,
   private val networkMonitor: NetworkMonitor,
@@ -195,6 +197,8 @@ class SettingsPresenter(
     // Downloads Settings
     val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
       .collectAsState()
+    val downloadQueuedEpisodes by remember { downloadSettings.observeDownloadQueuedEpisodes() }.collectAsState()
+    val deleteFinishedEpisodes by remember { downloadSettings.observeDeleteFinishedEpisodes() }.collectAsState()
 
     val downloadEntries by remember {
       downloads.observeAll().asDownloadEntries(libraryItemRepository::getLibraryItem)
@@ -281,6 +285,9 @@ class SettingsPresenter(
         showDownloadConfirmation = showDownloadConfirmation,
         isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
         downloadOnWifiOnly = downloadOnWifiOnly,
+        isAudioDownloadAvailable = currentPlatform != Platform.IOS,
+        downloadQueuedEpisodes = downloadQueuedEpisodes,
+        deleteFinishedEpisodes = deleteFinishedEpisodes,
         downloads = downloadEntries,
       ),
       playbackSettings = PlaybackSettingsInfo(
@@ -447,6 +454,12 @@ class SettingsPresenter(
           is ShowDownloadConfirmation -> libraryViewSettings.showConfirmDownload = event.enabled
           is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
             mobileDataSettings.downloadOnWifiOnly = event.enabled
+          }
+          is SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes -> {
+            downloadSettings.downloadQueuedEpisodes = event.enabled
+          }
+          is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
+            downloadSettings.deleteFinishedEpisodes = event.enabled
           }
           is DownloadClicked -> navigator.goTo(
             LibraryItemScreen(

@@ -101,6 +101,12 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
         send("download_on_wifi_only", Updated, event.enabled.toString())
       }
+      is SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes -> {
+        send("download_queued_episodes", Updated, event.enabled.toString())
+      }
+      is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
+        send("delete_finished_episodes", Updated, event.enabled.toString())
+      }
       is DeleteDownload -> send("delete_download", Click)
       is DownloadClicked -> send("download", Click)
     }

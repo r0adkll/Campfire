@@ -13,8 +13,11 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.DownloadSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.user.api.MediaProgressRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -32,6 +35,8 @@ class DefaultPlaybackSessionManager(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val playbackSettings: PlaybackSettings,
+  private val downloads: Downloads,
+  private val downloadSettings: DownloadSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
 
@@ -89,6 +94,9 @@ class DefaultPlaybackSessionManager(
           // and marks it as inactive so it can be sync'd and then deleted
           sessionsRepository.markFinished(session.libraryItem.id, session.episodeId)
         }
+
+        // Last, so any next item has already taken the player off this one's file
+        deleteFinishedDownload(session)
       }
     }
   }
@@ -143,6 +151,18 @@ class DefaultPlaybackSessionManager(
 
     ibark { "Requeueing displaced session ${displaced.libraryItem.id.loggableId}" }
     sessionQueue.addFirst(displaced.libraryItem, episode)
+  }
+
+  /**
+   * Removes the download of the podcast episode [finished] played to the end, while "Remove
+   * finished episodes" is on. Books keep theirs.
+   */
+  private fun deleteFinishedDownload(finished: Session) {
+    val episodeId = finished.episodeId ?: return
+    if (!downloadSettings.deleteFinishedEpisodes) return
+
+    ibark { "Removing the download of finished episode ${episodeId.loggableId}" }
+    downloads.delete(DownloadContent.Episode(finished.libraryItem.id, episodeId))
   }
 
   companion object : Corked("PlaybackSessionManager")

@@ -100,6 +100,10 @@ data class DownloadsSettingsInfo(
   /** Only where downloads can wait for Wi-Fi (Android); desktop never reports mobile data. */
   val isWifiOnlyAvailable: Boolean,
   val downloadOnWifiOnly: Boolean,
+  /** Only where audio can be downloaded at all, which iOS can't yet. */
+  val isAudioDownloadAvailable: Boolean,
+  val downloadQueuedEpisodes: Boolean,
+  val deleteFinishedEpisodes: Boolean,
   val downloads: List<DownloadEntry>,
 )
 
@@ -288,6 +292,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadOnWifiOnly(val enabled: Boolean) : DownloadsSettingEvent
+    data class DownloadQueuedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
+    data class DeleteFinishedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadClicked(val entry: DownloadEntry) : DownloadsSettingEvent
     data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
   }
