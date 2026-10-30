@@ -22,6 +22,8 @@ import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CalendarMonth
+import app.campfire.common.compose.icons.rounded.Description
+import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.EventAvailable
 import app.campfire.common.compose.icons.rounded.LibraryAdd
 import app.campfire.common.compose.icons.rounded.LibraryBooks
@@ -56,6 +58,8 @@ sealed interface LibraryItemMeta {
   data class PublishedYear(val year: String) : LibraryItemMeta
   data class AddedAt(val epochMillis: Long) : LibraryItemMeta
   data class FinishedAt(val epochMillis: Long) : LibraryItemMeta
+  data class FileCreated(val epochMillis: Long) : LibraryItemMeta
+  data class FileModified(val epochMillis: Long) : LibraryItemMeta
   data class SeriesPosition(val sequence: String) : LibraryItemMeta
 }
 
@@ -115,6 +119,8 @@ private val LibraryItemMeta.icon: ImageVector
     is LibraryItemMeta.PublishedYear -> CampfireIcons.Rounded.CalendarMonth
     is LibraryItemMeta.AddedAt -> CampfireIcons.Rounded.LibraryAdd
     is LibraryItemMeta.FinishedAt -> CampfireIcons.Rounded.EventAvailable
+    is LibraryItemMeta.FileCreated -> CampfireIcons.Rounded.Description
+    is LibraryItemMeta.FileModified -> CampfireIcons.Rounded.EditSquare
     is LibraryItemMeta.SeriesPosition -> CampfireIcons.Rounded.LibraryBooks
   }
 
@@ -128,5 +134,7 @@ private fun LibraryItemMeta.label(): String = when (this) {
   is LibraryItemMeta.PublishedYear -> year
   is LibraryItemMeta.AddedAt -> epochMillis.asDate().asRelativeDayLabel(ReadoutStyle.Short)
   is LibraryItemMeta.FinishedAt -> epochMillis.asDate().asRelativeDayLabel(ReadoutStyle.Short)
+  is LibraryItemMeta.FileCreated -> epochMillis.asDate().asRelativeDayLabel(ReadoutStyle.Short)
+  is LibraryItemMeta.FileModified -> epochMillis.asDate().asRelativeDayLabel(ReadoutStyle.Short)
   is LibraryItemMeta.SeriesPosition -> stringResource(Res.string.item_meta_series_position, sequence)
 }

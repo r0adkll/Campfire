@@ -35,6 +35,8 @@ class LibraryItemMetaRowTest {
           LibraryItemMeta.SeriesPosition("2.5"),
           LibraryItemMeta.AddedAt(0L),
           LibraryItemMeta.FinishedAt(0L),
+          LibraryItemMeta.FileCreated(0L),
+          LibraryItemMeta.FileModified(0L),
         ),
       )
     }

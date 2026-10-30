@@ -22,6 +22,8 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.ItemDisplayState
+import app.campfire.core.settings.LibraryItemSortModes
+import app.campfire.core.settings.PodcastSortModes
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
@@ -37,6 +39,8 @@ import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal const val INVALID_ITEM_COUNT = -1
@@ -69,41 +73,71 @@ class LibraryPresenter(
       mutableStateOf(screen.filter)
     }
 
-    val sortMode by remember {
+    val librarySortMode by remember {
       libraryViewSettings.observeLibrarySortMode()
     }.collectAsState()
 
-    val sortDirection by remember {
+    val librarySortDirection by remember {
       libraryViewSettings.observeLibrarySortDirection()
+    }.collectAsState()
+
+    val podcastSortMode by remember {
+      libraryViewSettings.observePodcastSortMode()
+    }.collectAsState()
+
+    val podcastSortDirection by remember {
+      libraryViewSettings.observePodcastSortDirection()
     }.collectAsState()
 
     val currentUser by userRepository.userFlow.collectAsState()
 
+    // Podcast and book libraries sort by different server keys, so the sort depends on the
+    // selected library's media type, which is unknown until that library loads (or catches up
+    // after a library switch).
+    val libraryMediaType = currentLibrary
+      ?.takeIf { it.id == currentUser.selectedLibraryId }
+      ?.mediaType
+
+    val sort = when (libraryMediaType) {
+      MediaType.Podcast -> LibrarySort(podcastSortMode, podcastSortDirection, PodcastSortModes)
+      else -> LibrarySort(librarySortMode, librarySortDirection, LibraryItemSortModes)
+    }
+
     val lazyPagingItems = rememberRetained(
       currentUser.id,
       currentUser.selectedLibraryId,
-      sortMode,
-      sortDirection,
+      libraryMediaType,
+      sort,
       itemFilter,
     ) {
-      repository.createLibraryItemPager(
-        user = currentUser,
-        filter = itemFilter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).flow.cachedIn(scope)
+      if (libraryMediaType == null) {
+        // Stays loading rather than paging the library with the other media type's sort
+        emptyFlow()
+      } else {
+        repository.createLibraryItemPager(
+          user = currentUser,
+          filter = itemFilter,
+          sortMode = sort.mode,
+          sortDirection = sort.direction,
+        ).flow.cachedIn(scope)
+      }
     }.collectAsLazyPagingItems()
 
-    val totalItemCount by rememberRetained(sortMode, sortDirection, itemFilter) {
-      repository.observeFilteredLibraryCount(
-        filter = itemFilter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).map { it ?: INVALID_ITEM_COUNT }
+    val totalItemCount by rememberRetained(libraryMediaType, sort, itemFilter) {
+      if (libraryMediaType == null) {
+        flowOf(INVALID_ITEM_COUNT)
+      } else {
+        repository.observeFilteredLibraryCount(
+          filter = itemFilter,
+          sortMode = sort.mode,
+          sortDirection = sort.direction,
+        ).map { it ?: INVALID_ITEM_COUNT }
+      }
     }.collectAsState(INVALID_ITEM_COUNT)
 
-    val itemDisplayState by libraryViewSettings.observeLibraryItemDisplayState()
-      .collectAsState()
+    val itemDisplayState by remember {
+      libraryViewSettings.observeLibraryItemDisplayState()
+    }.collectAsState()
 
     val offlineDownloads by remember {
       downloads.observeByItem()
@@ -124,7 +158,7 @@ class LibraryPresenter(
       canAddPodcasts = canAddPodcasts,
       lazyPagingItems = lazyPagingItems,
       totalItemCount = totalItemCount,
-      sort = LibrarySort(sortMode, sortDirection),
+      sort = sort,
       filter = itemFilter,
       offlineStates = offlineDownloads,
       itemDisplayState = itemDisplayState,
@@ -142,10 +176,20 @@ class LibraryPresenter(
 
         is LibraryUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
-          if (sortMode == event.mode) {
-            libraryViewSettings.librarySortDirection = sortDirection.flip()
+          when (libraryMediaType) {
+            MediaType.Podcast -> {
+              if (podcastSortMode == event.mode) {
+                libraryViewSettings.podcastSortDirection = podcastSortDirection.flip()
+              }
+              libraryViewSettings.podcastSortMode = event.mode
+            }
+            else -> {
+              if (librarySortMode == event.mode) {
+                libraryViewSettings.librarySortDirection = librarySortDirection.flip()
+              }
+              libraryViewSettings.librarySortMode = event.mode
+            }
           }
-          libraryViewSettings.librarySortMode = event.mode
         }
 
         is LibraryUiEvent.ItemFilterSelected -> {

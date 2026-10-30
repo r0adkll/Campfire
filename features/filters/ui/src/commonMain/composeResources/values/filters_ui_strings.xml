@@ -12,6 +12,10 @@
   <string name="sort_mode_name">Name</string>
   <string name="sort_mode_last_book_added">Last book added</string>
   <string name="sort_mode_last_book_updated">Last book updated</string>
+  <string name="sort_mode_author">Author</string>
+  <string name="sort_mode_number_of_episodes">Number of episodes</string>
+  <string name="sort_mode_file_created">File created</string>
+  <string name="sort_mode_file_modified">File modified</string>
 
   <plurals name="genres_title">
     <item quantity="one">Genre</item>

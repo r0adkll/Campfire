@@ -69,6 +69,19 @@ class DefaultUserSettingsStoreTest {
   }
 
   @Test
+  fun `podcast libraries sort by title until a sort is picked`() {
+    assertThat(libraryView("user-1").podcastSortMode).isEqualTo(ContentSortMode.Title)
+  }
+
+  @Test
+  fun `podcast libraries keep their sort apart from book libraries`() {
+    libraryView("user-1").podcastSortMode = ContentSortMode.NumberOfEpisodes
+
+    assertThat(libraryView("user-1").podcastSortMode).isEqualTo(ContentSortMode.NumberOfEpisodes)
+    assertThat(libraryView("user-1").librarySortMode).isEqualTo(ContentSortMode.Duration)
+  }
+
+  @Test
   fun `signed out, the settings are the app-wide ones`() {
     assertThat(store.settingsFor(null)).isSameInstanceAs(app)
   }

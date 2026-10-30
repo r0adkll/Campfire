@@ -28,7 +28,7 @@ enum class ContentSortMode(
     Mode.Alphabetical,
   ),
   PublishYear("publish-year", "media.metadata.publishedYear", Mode.Numerical),
-  Size("size", "media.size", Mode.Numerical),
+  Size("size", "size", Mode.Numerical),
   Duration(
     "duration",
     SortNetworkKey("media.duration", "totalDuration", ""),
@@ -44,6 +44,12 @@ enum class ContentSortMode(
   Name("name", "name", Mode.Alphabetical),
   LastBookAdded("last-book-added", "lastBookAdded", Mode.Normal),
   LastBookUpdated("last-book-updated", "lastBookUpdated", Mode.Normal),
+
+  // Podcast
+  Author("author", "media.metadata.author", Mode.Alphabetical),
+  NumberOfEpisodes("number-of-episodes", "media.numTracks", Mode.Numerical),
+  FileCreated("file-created", "birthtimeMs", Mode.Numerical),
+  FileModified("file-modified", "mtimeMs", Mode.Numerical),
   ;
 
   constructor(storageKey: String, networkKey: String, mode: Mode) : this(storageKey, SortNetworkKey(networkKey), mode)
@@ -69,6 +75,13 @@ enum class ContentSortMode(
         return entries.find { it.storageKey == key } ?: Default
       }
     }
+
+    val PodcastSortMode = object : EnumSettingProvider<ContentSortMode> {
+      val Default = Title
+      override fun fromStorageKey(key: String?): ContentSortMode {
+        return entries.find { it.storageKey == key } ?: Default
+      }
+    }
   }
 }
 
@@ -81,6 +94,22 @@ object LibraryItemSortModes : SortModeConfig {
     ContentSortMode.Size,
     ContentSortMode.Duration,
     ContentSortMode.AddedAt,
+  )
+}
+
+/**
+ * The sorts the server's podcast library query understands, matching the web client. Random is
+ * left out: the server reshuffles every page request, so cached pages would repeat or skip shows.
+ */
+object PodcastSortModes : SortModeConfig {
+  override val availableModes = listOf(
+    ContentSortMode.Title,
+    ContentSortMode.Author,
+    ContentSortMode.AddedAt,
+    ContentSortMode.Size,
+    ContentSortMode.NumberOfEpisodes,
+    ContentSortMode.FileCreated,
+    ContentSortMode.FileModified,
   )
 }
 
