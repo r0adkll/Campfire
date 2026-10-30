@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.ui.settings.panes
+package app.campfire.downloads.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +19,6 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
-import app.campfire.ui.settings.DownloadEntry
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue

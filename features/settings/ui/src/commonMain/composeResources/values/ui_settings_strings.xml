@@ -93,11 +93,18 @@
   <string name="setting_show_download_confirmation_description">Show a dialog to confirm each item download for offline listening</string>
   <string name="setting_download_on_wifi_only_title">Download on Wi-Fi only</string>
   <string name="setting_download_on_wifi_only_description">Downloads wait for Wi-Fi and pause if you switch to mobile data.</string>
+  <string name="download_header_episodes">Podcast episodes</string>
+  <string name="setting_download_queued_episodes_title">Download queued episodes</string>
+  <string name="setting_download_queued_episodes_description">Episodes start downloading as you add them to the queue</string>
+  <string name="setting_delete_finished_episodes_title">Remove finished episodes</string>
+  <string name="setting_delete_finished_episodes_description">An episode's download is removed once you listen to the end of it</string>
   <string name="download_header_downloads">Downloads</string>
-  <string name="action_delete_download">Delete</string>
-  <string name="action_stop_download">Stop</string>
-  <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
-  <string name="label_confirm_download_stop">Are you sure you want to stop this download?</string>
+  <string name="setting_view_all_downloads_title">View all downloads</string>
+  <string name="setting_view_all_downloads_none">No downloads yet</string>
+  <plurals name="setting_view_all_downloads_count">
+    <item quantity="one">%1$d download</item>
+    <item quantity="other">%1$d downloads</item>
+  </plurals>
 
   <!-- Playback setting strings -->
   <string name="setting_playback_forward_title">Forward time</string>
@@ -284,5 +291,4 @@
   <string name="dialog_confirm_action">Apply</string>
   <string name="dialog_dismiss_action">Cancel</string>
   <string name="action_back">Back</string>
-  <string name="action_dismiss">Dismiss</string>
 </resources>

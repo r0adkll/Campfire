@@ -43,7 +43,8 @@ tools/testbed/testbed.py app install [--skip-build] [--keep-data]
 tools/testbed/testbed.py app sign-in [--library Podcasts]
 tools/testbed/testbed.py app launch | restart | stop
 tools/testbed/testbed.py app navigate library                # home, library, series, authors, collections,
-                                                             # playlists, statistics, settings <Page>, library_item <id>
+                                                             # playlists, statistics, downloads, settings <Page>,
+                                                             # library_item <id>
 tools/testbed/testbed.py app open "The Martian"              # detail screen by title
 tools/testbed/testbed.py app play "The Martian"              # blocks until the media session is playing
 tools/testbed/testbed.py app ui --grep Martian               # on-screen labels with bounds

@@ -15,8 +15,11 @@ import app.campfire.core.model.MediaType
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
 import app.campfire.home.ui.libraryItem
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
+import app.campfire.settings.test.FakeDownloadSettings
 import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.user.test.FakeMediaProgressRepository
 import assertk.assertThat
@@ -41,6 +44,8 @@ class DefaultPlaybackSessionManagerTest {
   private val sessionQueue = FakeSessionQueue()
   private val player = FakeAudioPlayer()
   private val playbackSettings = FakePlaybackSettings()
+  private val downloads = FakeDownloads()
+  private val downloadSettings = FakeDownloadSettings()
 
   private val manager = DefaultPlaybackSessionManager(
     sessionsRepository = sessionsRepository,
@@ -49,6 +54,8 @@ class DefaultPlaybackSessionManagerTest {
     playbackHistoryRepository = FakePlaybackHistoryRepository(),
     audioPlayerHolder = FakeAudioPlayerHolder().apply { setCurrentPlayer(player) },
     playbackSettings = playbackSettings,
+    downloads = downloads,
+    downloadSettings = downloadSettings,
     dispatcherProvider = dispatcherProvider,
   )
 
@@ -167,6 +174,56 @@ class DefaultPlaybackSessionManagerTest {
 
     assertThat(sessionQueue.keys()).isEmpty()
     assertThat(player.preparedEpisodeIds()).containsExactly("b")
+  }
+
+  @Test
+  fun `finishing an episode removes its download when the setting is on`() = runTest(testDispatcher) {
+    downloadSettings.deleteFinishedEpisodes = true
+    sessionsRepository.createSession = episodeSession(episodeA)
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Delete(DownloadContent.Episode(podcast.id, episodeA.id)),
+    )
+  }
+
+  @Test
+  fun `the download is removed after the queue advances to the next episode`() = runTest(testDispatcher) {
+    downloadSettings.deleteFinishedEpisodes = true
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.createSession = episodeSession(episodeA)
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    sessionsRepository.createSession = episodeSession(episodeB)
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(player.preparedEpisodeIds()).containsExactly("a", "b")
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Delete(DownloadContent.Episode(podcast.id, episodeA.id)),
+    )
+  }
+
+  @Test
+  fun `finishing an episode keeps its download when the setting is off`() = runTest(testDispatcher) {
+    sessionsRepository.createSession = episodeSession(episodeA)
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(downloads.invocations).isEmpty()
+  }
+
+  @Test
+  fun `finishing a book keeps its download`() = runTest(testDispatcher) {
+    downloadSettings.deleteFinishedEpisodes = true
+    sessionsRepository.createSession = session(libraryItem = book)
+    manager.startSession(book.id)
+
+    player.lastPrepare().onFinished(book.id)
+
+    assertThat(downloads.invocations).isEmpty()
   }
 
   private fun FakeSessionQueue.keys() = queue.map { it.key }
