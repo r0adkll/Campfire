@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The library's list layout shows what you're sorting or filtering by, such as the publish year, size, date added, time left, or position in the filtered series
 - [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
 - Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
+- [Android, Desktop] Download podcast episodes as you add them to the queue, and remove their downloads once you finish listening, each with its own setting in Downloads
 
 ### Changed
 

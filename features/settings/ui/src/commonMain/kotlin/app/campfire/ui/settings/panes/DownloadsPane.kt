@@ -71,10 +71,15 @@ import campfire.features.settings.ui.generated.resources.action_delete_download
 import campfire.features.settings.ui.generated.resources.action_dismiss
 import campfire.features.settings.ui.generated.resources.action_stop_download
 import campfire.features.settings.ui.generated.resources.download_header_downloads
+import campfire.features.settings.ui.generated.resources.download_header_episodes
 import campfire.features.settings.ui.generated.resources.label_confirm_download_delete
 import campfire.features.settings.ui.generated.resources.label_confirm_download_stop
+import campfire.features.settings.ui.generated.resources.setting_delete_finished_episodes_description
+import campfire.features.settings.ui.generated.resources.setting_delete_finished_episodes_title
 import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_description
 import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_title
+import campfire.features.settings.ui.generated.resources.setting_download_queued_episodes_description
+import campfire.features.settings.ui.generated.resources.setting_download_queued_episodes_title
 import campfire.features.settings.ui.generated.resources.setting_downloads_title
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_description
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_title
@@ -104,6 +109,24 @@ internal fun DownloadsPane(
         onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_description)) },
+      )
+    }
+
+    if (state.downloadsSettings.isAudioDownloadAvailable) {
+      Header(title = { Text(stringResource(Res.string.download_header_episodes)) })
+
+      SwitchSetting(
+        value = state.downloadsSettings.downloadQueuedEpisodes,
+        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes(it)) },
+        headlineContent = { Text(stringResource(Res.string.setting_download_queued_episodes_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_download_queued_episodes_description)) },
+      )
+
+      SwitchSetting(
+        value = state.downloadsSettings.deleteFinishedEpisodes,
+        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes(it)) },
+        headlineContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_description)) },
       )
     }
 

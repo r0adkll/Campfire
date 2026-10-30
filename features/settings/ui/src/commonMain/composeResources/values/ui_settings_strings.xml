@@ -93,6 +93,11 @@
   <string name="setting_show_download_confirmation_description">Show a dialog to confirm each item download for offline listening</string>
   <string name="setting_download_on_wifi_only_title">Download on Wi-Fi only</string>
   <string name="setting_download_on_wifi_only_description">Downloads wait for Wi-Fi and pause if you switch to mobile data.</string>
+  <string name="download_header_episodes">Podcast episodes</string>
+  <string name="setting_download_queued_episodes_title">Download queued episodes</string>
+  <string name="setting_download_queued_episodes_description">Episodes start downloading as you add them to the queue</string>
+  <string name="setting_delete_finished_episodes_title">Remove finished episodes</string>
+  <string name="setting_delete_finished_episodes_description">An episode's download is removed once you listen to the end of it</string>
   <string name="download_header_downloads">Downloads</string>
   <string name="action_delete_download">Delete</string>
   <string name="action_stop_download">Stop</string>
