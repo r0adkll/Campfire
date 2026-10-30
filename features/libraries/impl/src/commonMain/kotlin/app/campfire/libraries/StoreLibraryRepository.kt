@@ -11,6 +11,7 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
@@ -30,6 +31,7 @@ import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.paging.LibraryItemPagerFactory
 import app.campfire.libraries.paging.LibraryItemPagingInput
 import app.campfire.libraries.paging.fetchAllLibraryItems
+import app.campfire.libraries.paging.unfinishedEpisodes
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.user.api.UserRepository
@@ -42,6 +44,7 @@ import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -264,6 +267,28 @@ class StoreLibraryRepository(
           .mapToOneOrNull(dispatcherProvider.databaseRead)
           .map { it?.total }
       }
+  }
+
+  override fun observeUnfinishedEpisodes(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Map<LibraryItemId, Int>> {
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        val input = LibraryItemPagingInput(filter, sortMode, sortDirection)
+        db.libraryItemPageQueries
+          .selectUnfinishedEpisodes(
+            userId = user.id,
+            libraryId = user.selectedLibraryId,
+            input = input.databaseKey,
+          )
+          .asFlow()
+          .mapToList(dispatcherProvider.databaseRead)
+          .map { rows -> rows.associate { it.libraryItemId to it.unfinishedEpisodes() } }
+      }
+      // Re-read on every progress write, so playback ticks would otherwise emit the same counts
+      .distinctUntilChanged()
   }
 
   override suspend fun setCurrentLibrary(library: Library) {

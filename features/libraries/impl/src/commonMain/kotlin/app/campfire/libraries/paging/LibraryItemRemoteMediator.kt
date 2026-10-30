@@ -12,11 +12,12 @@ import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.time.FatherTime
-import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.mapping.asDbModel
+import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
@@ -52,7 +53,24 @@ class LibraryItemRemoteMediator(
 
   override val tag: String = "LibraryItemRemoteMediator"
 
+  /**
+   * A podcast library's pages carry each show's unfinished episode count, so they're reloaded
+   * every time the library opens (while the cached pages show in the meantime), and past the
+   * server's response cache, which doesn't notice the user finishing episodes.
+   */
+  private suspend fun isPodcastLibrary(): Boolean {
+    val library = db.librariesQueries
+      .selectById(user.selectedLibraryId)
+      .awaitAsOneOrNull()
+      ?.asDomainModel()
+    return library?.mediaType == MediaType.Podcast
+  }
+
   override suspend fun initialize(): InitializeAction {
+    if (isPodcastLibrary()) {
+      return InitializeAction.LAUNCH_INITIAL_REFRESH
+    }
+
     val oldestPage = db.libraryItemPageQueries.selectOldestPage(
       input = input.databaseKey,
       userId = user.id,
@@ -107,6 +125,7 @@ class LibraryItemRemoteMediator(
         sortDescending = input.sortDirection == SortDirection.Descending,
         page = loadKey,
         limit = state.config.pageSize,
+        skipServerCache = isPodcastLibrary(),
       )
 
       response.fold(
@@ -135,6 +154,10 @@ class LibraryItemRemoteMediator(
                   val podcastMedia = item.media.asDbModel(item.id, urlHydrator)
                   db.libraryItemsQueries.insertOrIgnore(libraryItem)
                   db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+                  // Only this endpoint counts a show's episodes, so keep a saved show's count current
+                  item.media.numEpisodes?.let {
+                    db.podcastMediaQueries.updateNumEpisodes(numEpisodes = it, mediaId = item.media.id)
+                  }
                 }
               }
             }
@@ -157,13 +180,20 @@ class LibraryItemRemoteMediator(
             ibark { "Inserted page ${pagedResponse.page} with rowId[$pageId]" }
 
             pagedResponse.data.forEachIndexed { index, item ->
-              db.libraryItemPageQueries.insertPageJoin(
-                LibraryItemPageJoin(
+              when (item) {
+                is LibraryItemMinified.Book -> db.libraryItemPageQueries.insertPageJoin(
                   pageId = pageId,
-                  libraryItemId = item.id,
                   pageIndex = index,
-                ),
-              )
+                  libraryItemId = item.id,
+                )
+                is LibraryItemMinified.Podcast -> db.libraryItemPageQueries.insertPodcastPageJoin(
+                  pageId = pageId,
+                  pageIndex = index,
+                  libraryItemId = item.id,
+                  numEpisodesIncomplete = item.numEpisodesIncomplete,
+                  userId = user.id,
+                )
+              }
             }
           }
 

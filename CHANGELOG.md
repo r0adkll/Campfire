@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
 - [Android, Desktop] Download podcast episodes as you add them to the queue, and remove their downloads once you finish listening, each with its own setting in Downloads settings
 - Podcast libraries have their own sort options, matching the web app (title, author, date added, size, number of episodes, file created and file modified), and sort by title by default instead of in no particular order
+- Each podcast's cover in Shows counts the episodes you haven't finished, and Shows refreshes every time you open it to keep the counts current
 
 ### Changed
 
@@ -55,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloading a playlist skipping its podcast episodes
 - Podcast episodes in a playlist failing to play until their podcast's page had been opened
 - New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode
+- Podcasts in Shows' list layout saying they have 0 episodes
+- Shows counting its podcasts as books
 
 ### Other Notes & Contributions
 

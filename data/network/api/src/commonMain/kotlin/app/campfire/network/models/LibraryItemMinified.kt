@@ -128,6 +128,13 @@ sealed class LibraryItemMinified : LibraryItemBase() {
      * episode the shelf is highlighting.
      */
     val recentEpisode: PodcastEpisode? = null,
+
+    /**
+     * Populated only when the library items endpoint is asked to
+     * `include=numEpisodesIncomplete`: the podcast's episodes that this user hasn't finished.
+     * The server leaves it out when it's 0.
+     */
+    val numEpisodesIncomplete: Int = 0,
   ) : LibraryItemMinified()
 }
 

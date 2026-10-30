@@ -19,6 +19,10 @@ CREATE TABLE libraryItemPageJoin (
   -- The index in the list of page results that this library item was returned
   pageIndex INTEGER AS Int NOT NULL,
   libraryItemId TEXT NOT NULL,
+  -- Podcasts only: the server's count of episodes this user hasn't finished, when the page loaded
+  numEpisodesIncomplete INTEGER AS Int,
+  -- Podcasts only: how many of the podcast's episodes this device had as finished, when the page loaded
+  numEpisodesFinishedAtLoad INTEGER AS Int,
 
   PRIMARY KEY (pageId, libraryItemId),
   FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
@@ -34,8 +38,20 @@ selectLastPageId:
 SELECT last_insert_rowid();
 
 insertPageJoin:
+INSERT OR REPLACE INTO libraryItemPageJoin (pageId, pageIndex, libraryItemId)
+VALUES (:pageId, :pageIndex, :libraryItemId);
+
+-- Joins a podcast to its page with the server's unfinished episode count, and records how many of
+-- its episodes this device had as finished at the same moment (see selectUnfinishedEpisodes).
+insertPodcastPageJoin:
 INSERT OR REPLACE INTO libraryItemPageJoin
-VALUES ?;
+VALUES (:pageId, :pageIndex, :libraryItemId, :numEpisodesIncomplete, (
+  SELECT count(*) FROM mediaProgress
+  WHERE mediaProgress.userId = :userId
+    AND mediaProgress.libraryItemId = :libraryItemId
+    AND mediaProgress.episodeId != ''
+    AND mediaProgress.isFinished = 1
+));
 
 -- Get the last updated timestamp, in epoch MS, of a library item page
 -- for a given user/library.
@@ -125,3 +141,33 @@ WHERE libraryItemPage.userId = :userId
 ORDER BY libraryItemPage.page ASC, libraryItemPageJoin.pageIndex ASC
 LIMIT :limit OFFSET :offset;
 
+-- What each podcast on the pages of an input needs to count its unfinished episodes: the server's
+-- count and this device's finished count when its page loaded, and this device's finished episodes
+-- now, split by whether they were finished after the page loaded.
+selectUnfinishedEpisodes:
+SELECT
+  libraryItemPageJoin.libraryItemId,
+  libraryItemPageJoin.numEpisodesIncomplete,
+  libraryItemPageJoin.numEpisodesFinishedAtLoad,
+  (
+    SELECT count(*) FROM mediaProgress
+    WHERE mediaProgress.userId = libraryItemPage.userId
+      AND mediaProgress.libraryItemId = libraryItemPageJoin.libraryItemId
+      AND mediaProgress.episodeId != ''
+      AND mediaProgress.isFinished = 1
+      AND mediaProgress.finishedAt > libraryItemPage.updatedAt
+  ) AS finishedSinceLoad,
+  (
+    SELECT count(*) FROM mediaProgress
+    WHERE mediaProgress.userId = libraryItemPage.userId
+      AND mediaProgress.libraryItemId = libraryItemPageJoin.libraryItemId
+      AND mediaProgress.episodeId != ''
+      AND mediaProgress.isFinished = 1
+      AND (mediaProgress.finishedAt IS NULL OR mediaProgress.finishedAt <= libraryItemPage.updatedAt)
+  ) AS finishedBeforeLoad
+FROM libraryItemPageJoin
+INNER JOIN libraryItemPage ON libraryItemPage.id = libraryItemPageJoin.pageId
+WHERE libraryItemPage.userId = :userId
+  AND libraryItemPage.libraryId = :libraryId
+  AND libraryItemPage.input = :input
+  AND libraryItemPageJoin.numEpisodesIncomplete IS NOT NULL;

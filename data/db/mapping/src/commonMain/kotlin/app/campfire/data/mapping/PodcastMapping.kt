@@ -113,7 +113,7 @@ fun NetworkPodcast.asDomainModel(
     tags = tags ?: emptyList(),
     sizeInBytes = propertySize ?: episodeList.sumOf { it.sizeInBytes },
     episodes = episodeList,
-    numEpisodes = numTracks ?: episodeList.size,
+    numEpisodes = numEpisodes ?: episodeList.size,
     autoDownloadEpisodes = autoDownloadEpisodes ?: false,
     autoDownloadSchedule = autoDownloadSchedule,
     lastEpisodeCheckMillis = lastEpisodeCheck,

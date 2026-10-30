@@ -46,6 +46,8 @@ fun LibraryItemListItem(
   trailingContent: @Composable () -> Unit = {},
   mediaProgress: MediaProgress? = libraryItem.userMediaProgress,
   offlineStatus: OfflineStatus = OfflineStatus.None,
+  // How many of a podcast's episodes the user hasn't finished, badged on the cover when above 0
+  unfinishedEpisodes: Int = 0,
   sharedTransitionKey: String = libraryItem.id,
   sharedTransitionZIndex: Float = 0f,
   // Optional overrides used when the row should display something other than the parent
@@ -117,6 +119,14 @@ fun LibraryItemListItem(
         if (libraryItem.isEbookOnly) {
           EbookFormatBadge(
             format = libraryItem.media.ebookFormat.orEmpty(),
+            offlineStatus = offlineStatus,
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(8.dp),
+          )
+        } else if (unfinishedEpisodes > 0) {
+          UnfinishedEpisodesBadge(
+            count = unfinishedEpisodes,
             offlineStatus = offlineStatus,
             modifier = Modifier
               .align(Alignment.TopEnd)

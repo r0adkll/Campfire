@@ -17,6 +17,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class LibraryUiState(
+  val isPodcastLibrary: Boolean,
   val canAddPodcasts: Boolean,
   val lazyPagingItems: LazyPagingItems<LibraryItem>,
   val itemDisplayState: ItemDisplayState,
@@ -24,6 +25,8 @@ data class LibraryUiState(
   val sort: LibrarySort,
   val filter: ContentFilter?,
   val offlineStates: Map<LibraryItemId, ItemDownloads>,
+  // Podcasts only: how many of each show's episodes the user hasn't finished
+  val unfinishedEpisodes: Map<LibraryItemId, Int>,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
 

@@ -177,6 +177,8 @@ class DatabaseFactory(
     ),
     libraryItemPageJoinAdapter = LibraryItemPageJoin.Adapter(
       pageIndexAdapter = IntColumnAdapter,
+      numEpisodesIncompleteAdapter = IntColumnAdapter,
+      numEpisodesFinishedAtLoadAdapter = IntColumnAdapter,
     ),
     authorsPageAdapter = AuthorsPage.Adapter(
       pageAdapter = IntColumnAdapter,

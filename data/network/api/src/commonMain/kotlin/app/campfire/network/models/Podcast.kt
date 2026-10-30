@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
  * @param lastCoverSearchQuery The query used for the last cover search.
  * @param propertySize The total size of all episodes in bytes.
  * @param duration The total duration of all episodes in seconds.
- * @param numTracks The number of tracks (episodes) in the podcast.
+ * @param numEpisodes The number of episodes in the podcast, on the minified shape.
  * @param latestEpisodePublished The timestamp of the most recently published episode.
  */
 @Serializable
@@ -74,8 +74,11 @@ data class Podcast(
   /* The total duration of all episodes in seconds. */
   val duration: Int? = null,
 
-  /* The number of tracks (episodes) in the podcast. */
-  val numTracks: Int? = null,
+  /*
+   * The number of episodes in the podcast, on the minified shape. Only the library items
+   * endpoint counts them; other minified responses can send 0.
+   */
+  val numEpisodes: Int? = null,
 
   /* The timestamp of the most recently published episode. */
   val latestEpisodePublished: Long? = null,

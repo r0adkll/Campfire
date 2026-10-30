@@ -12,6 +12,7 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
@@ -38,6 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -176,6 +178,38 @@ class LibraryPresenterTest {
     }
   }
 
+  @Test
+  fun `a podcast library badges each show's unfinished episodes`() = runTest {
+    repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      val state = expectMostRecentItem()
+
+      assertThat(state.isPodcastLibrary).isEqualTo(true)
+      assertThat(state.unfinishedEpisodes).isEqualTo(mapOf("pod_1" to 4))
+      // Counted under the podcast sort, the same pages the grid shows
+      assertThat(repository.unfinishedEpisodeSorts).containsExactly(ContentSortMode.Title to SortDirection.Ascending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a book library doesn't count episodes`() = runTest {
+    repository.unfinishedEpisodes.value = mapOf("pod_1" to 4)
+    repository.currentLibrary.emit(library(MediaType.Book))
+
+    presenter.test {
+      val state = expectMostRecentItem()
+
+      assertThat(repository.pagedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
+      assertThat(state.isPodcastLibrary).isEqualTo(false)
+      assertThat(state.unfinishedEpisodes).isEmpty()
+      assertThat(repository.unfinishedEpisodeSorts).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
   private fun library(
     mediaType: MediaType,
     id: LibraryId = userRepository.userFlow.value.selectedLibraryId,
@@ -198,6 +232,8 @@ private class RecordingLibraryRepository : LibraryRepository {
   val currentLibrary = MutableSharedFlow<Library>(replay = 1)
   val pagedSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
   val countedSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
+  val unfinishedEpisodes = MutableStateFlow<Map<LibraryItemId, Int>>(emptyMap())
+  val unfinishedEpisodeSorts = mutableListOf<Pair<ContentSortMode, SortDirection>>()
 
   override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> = currentLibrary
   override fun observeAllLibraries(refresh: Boolean): Flow<List<Library>> = flowOf(emptyList())
@@ -220,6 +256,15 @@ private class RecordingLibraryRepository : LibraryRepository {
   ): Flow<Int?> {
     countedSorts += sortMode to sortDirection
     return flowOf(12)
+  }
+
+  override fun observeUnfinishedEpisodes(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Map<LibraryItemId, Int>> {
+    unfinishedEpisodeSorts += sortMode to sortDirection
+    return unfinishedEpisodes
   }
 
   override suspend fun setCurrentLibrary(library: Library) = Unit

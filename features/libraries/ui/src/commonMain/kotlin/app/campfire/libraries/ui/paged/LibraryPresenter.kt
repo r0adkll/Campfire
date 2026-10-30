@@ -135,6 +135,19 @@ class LibraryPresenter(
       }
     }.collectAsState(INVALID_ITEM_COUNT)
 
+    val isPodcastLibrary = libraryMediaType == MediaType.Podcast
+    val unfinishedEpisodes by rememberRetained(isPodcastLibrary, sort, itemFilter) {
+      if (isPodcastLibrary) {
+        repository.observeUnfinishedEpisodes(
+          filter = itemFilter,
+          sortMode = sort.mode,
+          sortDirection = sort.direction,
+        )
+      } else {
+        flowOf(emptyMap())
+      }
+    }.collectAsState(emptyMap())
+
     val itemDisplayState by remember {
       libraryViewSettings.observeLibraryItemDisplayState()
     }.collectAsState()
@@ -155,12 +168,14 @@ class LibraryPresenter(
     }
 
     return LibraryUiState(
+      isPodcastLibrary = isPodcastLibrary,
       canAddPodcasts = canAddPodcasts,
       lazyPagingItems = lazyPagingItems,
       totalItemCount = totalItemCount,
       sort = sort,
       filter = itemFilter,
       offlineStates = offlineDownloads,
+      unfinishedEpisodes = unfinishedEpisodes,
       itemDisplayState = itemDisplayState,
     ) { event ->
       when (event) {

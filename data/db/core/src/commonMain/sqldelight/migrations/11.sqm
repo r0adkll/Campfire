@@ -27,3 +27,7 @@ CREATE TABLE IF NOT EXISTS ebookContents (
 
 -- The server-listed position of each book in a series (see seriesBookJoin.sq)
 ALTER TABLE seriesBookJoin ADD COLUMN position INTEGER;
+
+-- Each podcast's unfinished episode count, kept with the library page it loaded on (see libraryItemPage.sq)
+ALTER TABLE libraryItemPageJoin ADD COLUMN numEpisodesIncomplete INTEGER;
+ALTER TABLE libraryItemPageJoin ADD COLUMN numEpisodesFinishedAtLoad INTEGER;

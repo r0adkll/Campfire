@@ -7,6 +7,7 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -47,6 +48,18 @@ interface LibraryRepository {
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
   ): Flow<Int?>
+
+  /**
+   * Observe how many episodes the user hasn't finished of each podcast on the cached pages of
+   * [createLibraryItemPager] for the same filter and sort, as of each page's last load and kept
+   * up to date with progress on this device since. Podcasts with every episode finished map to 0;
+   * items that aren't podcasts are left out.
+   */
+  fun observeUnfinishedEpisodes(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Map<LibraryItemId, Int>>
 
   /**
    * Set a library as the currently selected one

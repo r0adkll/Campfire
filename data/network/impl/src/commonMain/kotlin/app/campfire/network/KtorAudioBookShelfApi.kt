@@ -78,6 +78,7 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.takeFrom
 import io.ktor.util.encodeBase64
+import kotlin.time.Clock
 
 @Inject
 @SingleIn(UserScope::class)
@@ -106,12 +107,14 @@ class KtorAudioBookShelfApi(
     sortDescending: Boolean,
     page: Int,
     limit: Int,
+    skipServerCache: Boolean,
   ): Result<PagedResponse<LibraryItemMinified>> {
     return trySendRequest<MinifiedLibraryItemsResponse> {
       hydratedClientRequest(
         {
           appendPathSegments("api", "libraries", libraryId, "items")
           parameters.append("minified", "1")
+          parameters.append("include", "numEpisodesIncomplete")
           filter?.let { f ->
             val filterValue = "${f.group}.${f.value.encodeBase64().encodeURLQueryComponent()}"
             parameters.append("filter", filterValue)
@@ -120,6 +123,8 @@ class KtorAudioBookShelfApi(
           if (sortDescending) parameters.append("desc", "1")
           if (page != INVALID) parameters.append("page", page.toString())
           if (limit != INVALID) parameters.append("limit", limit.toString())
+          // The server caches responses by URL, so a parameter it ignores makes this request its own
+          if (skipServerCache) parameters.append("t", Clock.System.now().toEpochMilliseconds().toString())
         },
       )
     }.map {

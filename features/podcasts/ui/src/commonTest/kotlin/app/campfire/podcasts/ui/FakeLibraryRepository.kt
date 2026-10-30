@@ -7,6 +7,7 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -40,6 +41,12 @@ class FakeLibraryRepository(
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
   ): Flow<Int?> = flowOf(null)
+
+  override fun observeUnfinishedEpisodes(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Map<LibraryItemId, Int>> = flowOf(emptyMap())
 
   override suspend fun setCurrentLibrary(library: Library) = Unit
 

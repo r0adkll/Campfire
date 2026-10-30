@@ -100,4 +100,9 @@
   <string name="work_offline_go_online">Go online now</string>
   <string name="work_offline_go_online_until_wifi">Go online until next Wi-Fi</string>
   <string name="work_offline_back_online">Back online</string>
+  <plurals name="unfinished_episodes">
+    <item quantity="one">%1$d unfinished episode</item>
+    <item quantity="other">%1$d unfinished episodes</item>
+  </plurals>
+  <string name="unfinished_episodes_capped">%1$d+</string>
 </resources>
