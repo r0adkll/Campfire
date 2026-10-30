@@ -9,14 +9,11 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
 import app.campfire.network.reachability.NetworkSnapshot
 import app.campfire.network.reachability.OfflineChoice
 import app.campfire.network.reachability.OfflineState
 import app.campfire.network.reachability.Reachability
-import app.campfire.offline.Download
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.ResumeRewindConfig
@@ -104,31 +101,9 @@ data class DownloadsSettingsInfo(
   val isAudioDownloadAvailable: Boolean,
   val downloadQueuedEpisodes: Boolean,
   val deleteFinishedEpisodes: Boolean,
-  val downloads: List<DownloadEntry>,
+  /** Everything downloaded or downloading, which the Downloads screen lists. */
+  val downloadCount: Int,
 )
-
-@Immutable
-sealed interface DownloadEntry {
-  val libraryItem: LibraryItem
-  val download: Download
-
-  data class Book(
-    override val libraryItem: LibraryItem,
-    override val download: Download,
-  ) : DownloadEntry
-
-  data class Episode(
-    override val libraryItem: LibraryItem,
-    val episode: PodcastEpisode,
-    override val download: Download,
-  ) : DownloadEntry
-
-  /** An ebook kept by the reader to read offline. */
-  data class Ebook(
-    override val libraryItem: LibraryItem,
-    override val download: Download,
-  ) : DownloadEntry
-}
 
 @Immutable
 data class PlaybackSettingsInfo(
@@ -294,8 +269,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class DownloadOnWifiOnly(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadQueuedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
     data class DeleteFinishedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
-    data class DownloadClicked(val entry: DownloadEntry) : DownloadsSettingEvent
-    data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
+    data object ViewAllDownloads : DownloadsSettingEvent
   }
 
   // Playback Setting Events

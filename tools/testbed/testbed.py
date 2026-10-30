@@ -252,7 +252,7 @@ def parse_args(argv):
     app_sub.add_parser("restart", help="Force-stop and cold-start the app")
     app_sub.add_parser("stop", help="Force-stop the app")
     nav = app_sub.add_parser("navigate", help="home, library, series, authors, collections, playlists, "
-                                              "statistics, settings, library_item (arg = item id)")
+                                              "statistics, downloads, settings, library_item (arg = item id)")
     nav.add_argument("screen")
     nav.add_argument("arg", nargs="?")
     open_item = app_sub.add_parser("open", help="Open a library item's detail screen by title")

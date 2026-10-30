@@ -89,6 +89,8 @@ kotlin {
         api(projects.features.discover.impl)
         api(projects.features.discover.ui)
 
+        api(projects.features.downloads.ui)
+
         api(projects.ui.navigation.ui)
         api(projects.ui.navigation.impl)
         api(projects.ui.attribution)

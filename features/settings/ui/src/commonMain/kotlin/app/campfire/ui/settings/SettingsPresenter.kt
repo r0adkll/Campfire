@@ -18,6 +18,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.ConnectedProvidersScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.Platform
@@ -31,8 +32,6 @@ import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.core.session.user
-import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.network.reachability.WorkOffline
@@ -63,8 +62,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicIt
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
@@ -133,7 +130,6 @@ class SettingsPresenter(
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val downloads: Downloads,
-  private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
   private val tokenBackup: TokenBackup,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
@@ -200,9 +196,7 @@ class SettingsPresenter(
     val downloadQueuedEpisodes by remember { downloadSettings.observeDownloadQueuedEpisodes() }.collectAsState()
     val deleteFinishedEpisodes by remember { downloadSettings.observeDeleteFinishedEpisodes() }.collectAsState()
 
-    val downloadEntries by remember {
-      downloads.observeAll().asDownloadEntries(libraryItemRepository::getLibraryItem)
-    }.collectAsState(emptyList())
+    val downloadCount by remember { downloads.observeAll().map { it.size } }.collectAsState(0)
 
     // Sleep Settings
     val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
@@ -288,7 +282,7 @@ class SettingsPresenter(
         isAudioDownloadAvailable = currentPlatform != Platform.IOS,
         downloadQueuedEpisodes = downloadQueuedEpisodes,
         deleteFinishedEpisodes = deleteFinishedEpisodes,
-        downloads = downloadEntries,
+        downloadCount = downloadCount,
       ),
       playbackSettings = PlaybackSettingsInfo(
         playbackRates = playbackRates,
@@ -461,13 +455,7 @@ class SettingsPresenter(
           is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
             downloadSettings.deleteFinishedEpisodes = event.enabled
           }
-          is DownloadClicked -> navigator.goTo(
-            LibraryItemScreen(
-              libraryItemId = event.entry.libraryItem.id,
-              episodeId = (event.entry as? DownloadEntry.Episode)?.episode?.id,
-            ),
-          )
-          is DeleteDownload -> downloads.delete(event.entry.download.content)
+          SettingsUiEvent.DownloadsSettingEvent.ViewAllDownloads -> navigator.goTo(DownloadsScreen)
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {

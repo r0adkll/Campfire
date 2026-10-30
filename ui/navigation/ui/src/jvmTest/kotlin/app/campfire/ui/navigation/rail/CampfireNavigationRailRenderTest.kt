@@ -31,9 +31,9 @@ import app.campfire.common.compose.icons.rounded.QueryStats
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesScreen
-import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.screen.LibraryScreen
@@ -65,7 +65,7 @@ class CampfireNavigationRailRenderTest {
     HomeNavigationItem(UpcomingScreen, "Upcoming", "Upcoming", CampfireIcons.Rounded.Event),
     HomeNavigationItem(StatisticsScreen, "Statistics", "Statistics", CampfireIcons.Rounded.QueryStats),
     HomeNavigationItem(
-      SettingsScreen(SettingsScreen.Page.Downloads),
+      DownloadsScreen,
       "Downloads",
       "Downloads",
       CampfireIcons.Rounded.CloudDownload,

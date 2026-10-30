@@ -22,6 +22,7 @@ import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.UserScope
@@ -200,7 +201,7 @@ class NavigationPresenter(
 
       add(
         HomeNavigationItem(
-          screen = SettingsScreen(SettingsScreen.Page.Downloads),
+          screen = DownloadsScreen,
           label = stringResource(Res.string.nav_downloads_label),
           contentDescription = stringResource(Res.string.nav_downloads_content_description),
           iconImageVector = CampfireIcons.Rounded.CloudDownload,

@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.ui.settings.panes
+package app.campfire.downloads.ui
 
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.AudioTrack
@@ -12,7 +12,6 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
-import app.campfire.ui.settings.DownloadEntry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
