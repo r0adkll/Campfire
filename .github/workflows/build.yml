@@ -141,6 +141,14 @@ jobs:
           min-coverage-changed-files: 80
           coverage-counter-type: LINE
 
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: code-coverage-reports
+          path: |
+            **/build/reports/*
+
 # Ignoring failing this task for now until we set out to bring coverage up to snuff
 #      - name: Fail if coverage is not met
 #        if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
