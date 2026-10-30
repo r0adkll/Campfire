@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.ui.settings
+package app.campfire.downloads.ui
 
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
@@ -19,10 +19,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * The Downloads page's rows as these downloads change. Each item is looked up with [libraryItem]
+ * The Downloads screen's rows as these downloads change. Each item is looked up with [libraryItem]
  * once, when its first download shows, and the lookups run side by side: a row shows as soon as its
  * own item is found, and a download's progress never waits on, or restarts, a lookup. An item that
- * can't be found stays left out while the page is open.
+ * can't be found stays left out while the screen is open.
  */
 internal fun Flow<List<Download>>.asDownloadEntries(
   libraryItem: suspend (LibraryItemId) -> LibraryItem,
@@ -43,7 +43,7 @@ internal fun Flow<List<Download>>.asDownloadEntries(
 }
 
 /**
- * The Downloads page's rows for these downloads whose [items] are known, most recently changed
+ * The Downloads screen's rows for these downloads whose [items] are known, most recently changed
  * first.
  */
 internal fun List<Download>.asDownloadEntries(
@@ -63,7 +63,7 @@ internal fun List<Download>.asDownloadEntries(
 }.sortedByDescending { it.download.updatedAtMs }
 
 // A download whose item can't be resolved (server unreachable with no cached copy,
-// or deleted on the server) shouldn't take the whole settings screen down.
+// or deleted on the server) shouldn't take the whole Downloads screen down.
 private suspend fun findItem(
   itemId: LibraryItemId,
   libraryItem: suspend (LibraryItemId) -> LibraryItem,

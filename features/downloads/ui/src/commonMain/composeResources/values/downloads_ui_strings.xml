@@ -1,0 +1,9 @@
+<resources>
+  <string name="downloads_title">Downloads</string>
+  <string name="downloads_empty">No downloads yet!</string>
+  <string name="action_delete_download">Delete</string>
+  <string name="action_stop_download">Stop</string>
+  <string name="action_dismiss">Dismiss</string>
+  <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
+  <string name="label_confirm_download_stop">Are you sure you want to stop this download?</string>
+</resources>

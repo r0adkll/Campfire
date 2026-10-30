@@ -23,8 +23,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicIt
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
-import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
@@ -107,8 +105,7 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
         send("delete_finished_episodes", Updated, event.enabled.toString())
       }
-      is DeleteDownload -> send("delete_download", Click)
-      is DownloadClicked -> send("download", Click)
+      SettingsUiEvent.DownloadsSettingEvent.ViewAllDownloads -> send("view_all_downloads", Click)
     }
 
     is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
