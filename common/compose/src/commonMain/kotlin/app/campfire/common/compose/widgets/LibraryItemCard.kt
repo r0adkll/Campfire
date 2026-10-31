@@ -676,11 +676,18 @@ private fun LibraryItemCardEditingScrim(
   }
 }
 
+/**
+ * A progress bar for the bottom edge of a cover.
+ *
+ * The default [trackColor] is opaque and comes from the surface ramp, which stays at least 4.9:1
+ * from `primary` in every scheme style at every contrast level. A translucent track would blend
+ * with the cover art, and `primaryContainer` can sit as close as 1.1:1 to `primary`.
+ */
 @Composable
 fun MediaProgressBar(
   mediaProgress: MediaProgress,
   modifier: Modifier = Modifier,
-  trackColor: Color = MaterialTheme.colorScheme.primaryContainer,
+  trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
   progressColor: Color = MaterialTheme.colorScheme.primary,
   trackHeight: Dp = LargeProgressBarHeight,
 ) {
@@ -692,7 +699,6 @@ fun MediaProgressBar(
     drawRect(
       color = trackColor,
       size = size,
-      alpha = ProgressBarAlpha,
     )
 
     val cornerRadiusPx = trackHeight.toPx() / 2f
@@ -790,4 +796,3 @@ private val LibraryItemMarqueeVelocityRange = 30..40
 
 val SmallProgressBarHeight = 8.dp
 val LargeProgressBarHeight = 12.dp
-private const val ProgressBarAlpha = 0.5f
