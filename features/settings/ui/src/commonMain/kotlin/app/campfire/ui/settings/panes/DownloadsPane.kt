@@ -19,10 +19,10 @@ import campfire.features.settings.ui.generated.resources.download_header_downloa
 import campfire.features.settings.ui.generated.resources.download_header_episodes
 import campfire.features.settings.ui.generated.resources.setting_delete_finished_episodes_description
 import campfire.features.settings.ui.generated.resources.setting_delete_finished_episodes_title
+import campfire.features.settings.ui.generated.resources.setting_download_episodes_on_play_or_queue_description
+import campfire.features.settings.ui.generated.resources.setting_download_episodes_on_play_or_queue_title
 import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_description
 import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_title
-import campfire.features.settings.ui.generated.resources.setting_download_queued_episodes_description
-import campfire.features.settings.ui.generated.resources.setting_download_queued_episodes_title
 import campfire.features.settings.ui.generated.resources.setting_downloads_title
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_description
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_title
@@ -63,10 +63,10 @@ internal fun DownloadsPane(
       Header(title = { Text(stringResource(Res.string.download_header_episodes)) })
 
       SwitchSetting(
-        value = state.downloadsSettings.downloadQueuedEpisodes,
-        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes(it)) },
-        headlineContent = { Text(stringResource(Res.string.setting_download_queued_episodes_title)) },
-        supportingContent = { Text(stringResource(Res.string.setting_download_queued_episodes_description)) },
+        value = state.downloadsSettings.downloadEpisodesOnPlayOrQueue,
+        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadEpisodesOnPlayOrQueue(it)) },
+        headlineContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_description)) },
       )
 
       SwitchSetting(

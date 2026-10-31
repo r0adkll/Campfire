@@ -20,10 +20,11 @@ import dev.zacsweers.metro.binding
 import kotlinx.coroutines.launch
 
 /**
- * Downloads each podcast episode as it's added to the queue (Up next), while "Download queued
- * episodes" is on and the server lets the user download. Only additions count: what's already
- * queued at sign-in or when the setting is turned on stays as it is, and a queued episode whose
- * download is removed isn't fetched again until it's queued anew.
+ * Downloads each podcast episode as it's added to the queue (Up next), while "Download episodes
+ * you play or queue" is on and the server lets the user download. Only additions count: what's
+ * already queued at sign-in or when the setting is turned on stays as it is, and a queued episode
+ * whose download is removed isn't fetched again until it's queued anew. Episodes started without
+ * being queued are downloaded as they start, by the playback session manager.
  */
 @ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
@@ -49,7 +50,7 @@ class QueuedEpisodeDownloads(
   }
 
   private fun download(added: List<QueuedEntry>) {
-    if (!downloadSettings.downloadQueuedEpisodes) return
+    if (!downloadSettings.downloadEpisodesOnPlayOrQueue) return
     if (!userRepository.userFlow.value.canDownload) return
 
     ibark { "Downloading ${added.size} queued episode(s)" }

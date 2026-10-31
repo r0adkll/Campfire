@@ -27,7 +27,7 @@ class DownloadSettingsTest {
   fun `both default to off`() {
     val settings = DownloadSettingsImpl(MapSettings(), scope)
 
-    assertThat(settings.downloadQueuedEpisodes).isFalse()
+    assertThat(settings.downloadEpisodesOnPlayOrQueue).isFalse()
     assertThat(settings.deleteFinishedEpisodes).isFalse()
   }
 
@@ -36,13 +36,13 @@ class DownloadSettingsTest {
     val storage = MapSettings()
     val settings = DownloadSettingsImpl(storage, scope)
 
-    settings.downloadQueuedEpisodes = true
+    settings.downloadEpisodesOnPlayOrQueue = true
     settings.deleteFinishedEpisodes = true
 
     val reopened = DownloadSettingsImpl(storage, scope)
-    assertThat(reopened.downloadQueuedEpisodes).isTrue()
+    assertThat(reopened.downloadEpisodesOnPlayOrQueue).isTrue()
     assertThat(reopened.deleteFinishedEpisodes).isTrue()
-    assertThat(settings.observeDownloadQueuedEpisodes().value).isTrue()
+    assertThat(settings.observeDownloadEpisodesOnPlayOrQueue().value).isTrue()
     assertThat(settings.observeDeleteFinishedEpisodes().value).isTrue()
   }
 }

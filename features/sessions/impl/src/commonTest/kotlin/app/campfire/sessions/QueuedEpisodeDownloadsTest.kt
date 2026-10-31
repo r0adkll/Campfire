@@ -25,7 +25,7 @@ class QueuedEpisodeDownloadsTest {
 
   private val sessionQueue = FakeSessionQueue()
   private val downloads = FakeDownloads()
-  private val downloadSettings = FakeDownloadSettings().apply { downloadQueuedEpisodes = true }
+  private val downloadSettings = FakeDownloadSettings().apply { downloadEpisodesOnPlayOrQueue = true }
   private val userRepository = FakeUserRepository()
 
   private val podcast = libraryItem(id = "podcast", mediaType = MediaType.Podcast)
@@ -71,7 +71,7 @@ class QueuedEpisodeDownloadsTest {
 
   @Test
   fun `nothing is downloaded while the setting is off`() = downloadsTest {
-    downloadSettings.downloadQueuedEpisodes = false
+    downloadSettings.downloadEpisodesOnPlayOrQueue = false
 
     sessionQueue.add(podcast, episode("e1"))
 

@@ -15,11 +15,13 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
+import app.campfire.offline.download
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.DownloadSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.UserRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -37,6 +39,7 @@ class DefaultPlaybackSessionManager(
   private val playbackSettings: PlaybackSettings,
   private val downloads: Downloads,
   private val downloadSettings: DownloadSettings,
+  private val userRepository: UserRepository,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
 
@@ -50,8 +53,7 @@ class DefaultPlaybackSessionManager(
   ) {
     withContext(dispatcherProvider.io) {
       // Read before creating the new session, which deactivates every other one
-      val requeue = requeueCurrent && playbackSettings.requeueOnSwitch
-      val displaced = if (requeue) sessionsRepository.getCurrentSession() else null
+      val current = sessionsRepository.getCurrentSession()
       val session = sessionsRepository.createSession(libraryItemId, episodeId, methodOverride)
 
       // eBook-only items have no audio to prepare. Guarded here (not just in the UI) so
@@ -71,7 +73,10 @@ class DefaultPlaybackSessionManager(
       // so other queued episodes of the same podcast aren't clobbered.
       sessionQueue.remove(session.libraryItem.id, session.episodeId)
 
-      displaced?.let { requeueDisplaced(it, replacement = session) }
+      if (requeueCurrent && playbackSettings.requeueOnSwitch) {
+        current?.let { requeueDisplaced(it, replacement = session) }
+      }
+      downloadStartedEpisode(session, previous = current)
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         // For podcast sessions, scope all the finishing operations to the playing episode
@@ -140,9 +145,7 @@ class DefaultPlaybackSessionManager(
    */
   private suspend fun requeueDisplaced(displaced: Session, replacement: Session) {
     if (displaced.isDeleted) return
-    val isSameEntry = displaced.libraryItem.id == replacement.libraryItem.id &&
-      displaced.episodeId == replacement.episodeId
-    if (isSameEntry) return
+    if (displaced.isSameEntryAs(replacement)) return
 
     // An episode no longer on its podcast can't be queued; without it the podcast would be
     // queued as if it were a book
@@ -151,6 +154,26 @@ class DefaultPlaybackSessionManager(
 
     ibark { "Requeueing displaced session ${displaced.libraryItem.id.loggableId}" }
     sessionQueue.addFirst(displaced.libraryItem, episode)
+  }
+
+  /**
+   * Downloads the podcast episode [started] begins playing, while "Download episodes you play or
+   * queue" is on and the server lets the user download. Resuming the [previous] entry, as restoring
+   * the player at launch does, downloads nothing, so a download removed mid-listen stays removed.
+   * Books are never downloaded.
+   */
+  private fun downloadStartedEpisode(started: Session, previous: Session?) {
+    val episodeId = started.episodeId ?: return
+    if (previous?.isSameEntryAs(started) == true) return
+    if (!downloadSettings.downloadEpisodesOnPlayOrQueue) return
+    if (!userRepository.userFlow.value.canDownload) return
+
+    ibark { "Downloading started episode ${episodeId.loggableId}" }
+    downloads.download(DownloadContent.Episode(started.libraryItem.id, episodeId))
+  }
+
+  private fun Session.isSameEntryAs(other: Session): Boolean {
+    return libraryItem.id == other.libraryItem.id && episodeId == other.episodeId
   }
 
   /**

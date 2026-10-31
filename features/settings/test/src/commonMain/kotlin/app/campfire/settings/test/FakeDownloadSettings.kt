@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class FakeDownloadSettings : DownloadSettings {
 
-  private val _downloadQueuedEpisodes = MutableStateFlow(false)
-  override var downloadQueuedEpisodes: Boolean
-    get() = _downloadQueuedEpisodes.value
-    set(value) { _downloadQueuedEpisodes.value = value }
-  override fun observeDownloadQueuedEpisodes(): StateFlow<Boolean> = _downloadQueuedEpisodes.asStateFlow()
+  private val _downloadEpisodesOnPlayOrQueue = MutableStateFlow(false)
+  override var downloadEpisodesOnPlayOrQueue: Boolean
+    get() = _downloadEpisodesOnPlayOrQueue.value
+    set(value) { _downloadEpisodesOnPlayOrQueue.value = value }
+  override fun observeDownloadEpisodesOnPlayOrQueue(): StateFlow<Boolean> = _downloadEpisodesOnPlayOrQueue.asStateFlow()
 
   private val _deleteFinishedEpisodes = MutableStateFlow(false)
   override var deleteFinishedEpisodes: Boolean
