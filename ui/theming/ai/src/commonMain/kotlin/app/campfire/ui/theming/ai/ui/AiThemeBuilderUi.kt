@@ -57,13 +57,13 @@ import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.di.UserScope
-import app.campfire.ui.theming.ai.ui.composables.AppPreview
 import app.campfire.ui.theming.ai.ui.emptystate.ShapeParticleEmptyState
 import app.campfire.ui.theming.ai.ui.emptystate.ShapeParticleGameState
 import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.composables.IconPicker
+import app.campfire.ui.theming.ui.preview.ThemePreviewCard
 import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlin.time.Duration.Companion.nanoseconds
 
@@ -147,7 +147,7 @@ fun AiThemeBuilder(
         MaterialExpressiveTheme(
           colorScheme = previewColorScheme,
         ) {
-          AppPreview(
+          ThemePreviewCard(
             isDarkMode = isDarkMode,
             onDarkModeChange = { isDarkMode = it },
             modifier = Modifier
