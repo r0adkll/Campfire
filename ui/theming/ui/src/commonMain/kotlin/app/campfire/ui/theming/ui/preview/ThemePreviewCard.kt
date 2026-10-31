@@ -36,11 +36,13 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DarkMode
 import app.campfire.common.compose.icons.rounded.LightMode
+import app.campfire.ui.theming.api.AppTheme
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_preview_dark_mode
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_book
-import campfire.ui.theming.ui.generated.resources.theme_preview_scene_edge_cases
+import campfire.ui.theming.ui.generated.resources.theme_preview_scene_everywhere
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_home
+import campfire.ui.theming.ui.generated.resources.theme_preview_scene_library
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_player
 import campfire.ui.theming.ui.generated.resources.theme_preview_title
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +58,10 @@ internal val ThemePreviewHeight = 420.dp
 fun ThemePreviewCard(
   isDarkMode: Boolean,
   onDarkModeChange: (Boolean) -> Unit,
+  content: PreviewContent,
+  icon: AppTheme.Icon,
   modifier: Modifier = Modifier,
+  onCoverThemingClick: (() -> Unit)? = null,
 ) {
   var scene by rememberSaveable { mutableStateOf(PreviewScene.Home) }
   Surface(
@@ -83,6 +88,9 @@ fun ThemePreviewCard(
       PreviewSceneTabs(scene = scene, onSceneChange = { scene = it })
       ThemePreview(
         scene = scene,
+        content = content,
+        icon = icon,
+        onCoverThemingClick = onCoverThemingClick,
         modifier = Modifier
           .fillMaxWidth()
           .height(ThemePreviewHeight),
@@ -154,8 +162,9 @@ internal fun DarkModeSwitch(
 internal fun PreviewScene.label(): String = stringResource(
   when (this) {
     PreviewScene.Home -> Res.string.theme_preview_scene_home
+    PreviewScene.Library -> Res.string.theme_preview_scene_library
+    PreviewScene.Everywhere -> Res.string.theme_preview_scene_everywhere
     PreviewScene.Book -> Res.string.theme_preview_scene_book
     PreviewScene.Player -> Res.string.theme_preview_scene_player
-    PreviewScene.EdgeCases -> Res.string.theme_preview_scene_edge_cases
   },
 )
