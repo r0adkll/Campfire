@@ -7,13 +7,16 @@ import androidx.compose.ui.graphics.Color
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
+import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.cash.turbine.ReceiveTurbine
 import assertk.all
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEqualTo
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import assertk.assertions.prop
 import assertk.assertions.single
@@ -25,7 +28,6 @@ import kotlin.test.Test
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
 class ThemeBuilderPresenterTest {
@@ -45,8 +47,30 @@ class ThemeBuilderPresenterTest {
       assertThat(awaitItem()).all {
         prop(ThemeBuilderUiState::colorStyle).isEqualTo(Variant.EXPRESSIVE)
         prop(ThemeBuilderUiState::colorSpec).isEqualTo(SpecVersion.SPEC_2025)
-        prop(ThemeBuilderUiState::theme).prop(AppTheme.Fixed.Custom::isNew).isTrue()
+        prop(ThemeBuilderUiState::isNew).isTrue()
       }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun state_offersEveryStylePaletteAndCheck() = runTest {
+    presenter().test {
+      val state = awaitItem()
+      assertThat(state.styles.map { it.style }).containsExactly(*StyleOrder.toTypedArray())
+      assertThat(state.palettes.map { it.key }).containsExactly(*PaletteKey.entries.toTypedArray())
+      assertThat(state.contrast.map { it.check }).containsExactly(*ContrastCheck.entries.toTypedArray())
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun customThemeCount_followsTheRepository() = runTest {
+    repository.themes["a"] = customTheme(id = "a", name = "A")
+    repository.themes["b"] = customTheme(id = "b", name = "B")
+
+    presenter().test {
+      assertThat(awaitState { it.customThemeCount == 2 }.customThemeCount).isEqualTo(2)
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -55,103 +79,99 @@ class ThemeBuilderPresenterTest {
   fun paletteColorPicks_applyTheirOverrides() = runTest {
     presenter().test {
       val sink = awaitItem().eventSink
-      sink(ThemeBuilderUiEvent.SecondaryColorPicked(Color.Green))
-      sink(ThemeBuilderUiEvent.ErrorColorPicked(Color.Magenta))
-      sink(ThemeBuilderUiEvent.NeutralColorPicked(Color.Cyan))
+      sink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Supporting, Color.Green))
+      sink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.ThirdAccent, Color.Blue))
+      sink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Errors, Color.Magenta))
       sink(ThemeBuilderUiEvent.IconPicked(AppTheme.Icon.Owl))
 
-      val state = awaitState { it.neutralColorOverride != null && it.theme.icon == AppTheme.Icon.Owl }
-      assertThat(state).all {
-        prop(ThemeBuilderUiState::secondaryColorOverride).isEqualTo(Color.Green)
-        prop(ThemeBuilderUiState::errorColorOverride).isEqualTo(Color.Magenta)
-        prop(ThemeBuilderUiState::neutralColorOverride).isEqualTo(Color.Cyan)
-      }
-      cancelAndIgnoreRemainingEvents()
-    }
-  }
-
-  @Test
-  fun seedColorPicked_clearsPaletteOverrides() = runTest {
-    presenter().test {
-      awaitItem().eventSink(ThemeBuilderUiEvent.TertiaryColorPicked(Color.Blue))
-      awaitState { it.tertiaryColorOverride != null }.eventSink(ThemeBuilderUiEvent.SeedColorPicked(Color.Green))
-
-      // The test clock can recompose between the presenter's writes, so wait for the settled state.
-      val state = awaitState { it.seedColor == Color.Green && it.tertiaryColorOverride == null }
+      val state = awaitState { it.theme.errorColorOverride != null && it.theme.icon == AppTheme.Icon.Owl }
       assertThat(state.theme).all {
-        prop(AppTheme.Fixed.Custom::seedColor).isEqualTo(Color.Green)
-        prop(AppTheme.Fixed.Custom::tertiaryColorOverride).isEqualTo(null)
+        prop(AppTheme.Fixed.Custom::secondaryColorOverride).isEqualTo(Color.Green)
+        prop(AppTheme.Fixed.Custom::tertiaryColorOverride).isEqualTo(Color.Blue)
+        prop(AppTheme.Fixed.Custom::errorColorOverride).isEqualTo(Color.Magenta)
+      }
+      assertThat(state.palettes.single { it.key == PaletteKey.ThirdAccent }).all {
+        prop(PaletteRow::isCustom).isTrue()
+        prop(PaletteRow::keyColor).isEqualTo(Color.Blue)
       }
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun styleSpecAndContrastClicks_updateTheTheme() = runTest {
+  fun pickingTheAccent_keepsOtherPicks() = runTest {
     presenter().test {
-      val sink = awaitItem().eventSink
-      sink(ThemeBuilderUiEvent.ColorSpecClick(SpecVersion.SPEC_2021))
-      sink(ThemeBuilderUiEvent.ColorStyleClick(Variant.FIDELITY))
-      sink(ThemeBuilderUiEvent.ContrastLevelClick(ContrastLevel.High))
+      awaitItem().eventSink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.ThirdAccent, Color.Blue))
+      awaitState { it.theme.tertiaryColorOverride != null }
+        .eventSink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Accent, Color.Green))
 
-      val state = awaitState { it.colorStyle == Variant.FIDELITY && it.contrastLevel == ContrastLevel.High }
-      assertThat(state.theme).all {
-        prop(AppTheme.Fixed.Custom::colorSpec).isEqualTo(SpecVersion.SPEC_2021)
-        prop(AppTheme.Fixed.Custom::colorStyle).isEqualTo(Variant.FIDELITY)
-        prop(AppTheme.Fixed.Custom::contrastLevel).isEqualTo(1f)
+      val state = awaitState { it.seedColor == Color.Green }
+      assertThat(state.theme.tertiaryColorOverride).isEqualTo(Color.Blue)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun backgrounds_setAndResetBothNeutralPalettes() = runTest {
+    presenter().test {
+      awaitItem().eventSink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Backgrounds, Color.Cyan))
+
+      val picked = awaitState { it.theme.neutralColorOverride != null && it.theme.neutralVariantColorOverride != null }
+      assertThat(picked.theme).all {
+        prop(AppTheme.Fixed.Custom::neutralColorOverride).isEqualTo(Color.Cyan)
+        prop(AppTheme.Fixed.Custom::neutralVariantColorOverride).isEqualTo(Color.Cyan)
       }
+
+      picked.eventSink(ThemeBuilderUiEvent.ColorReset(PaletteKey.Backgrounds))
+      val reset = awaitState { it.theme.neutralColorOverride == null && it.theme.neutralVariantColorOverride == null }
+      assertThat(reset.palettes.single { it.key == PaletteKey.Backgrounds }.isCustom).isEqualTo(false)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun switchingTo2025Spec_replacesAClassicStyle() = runTest {
+  fun resettingTheAccent_keepsTheSeed() = runTest {
     presenter().test {
-      val sink = awaitItem().eventSink
-      sink(ThemeBuilderUiEvent.ColorSpecClick(SpecVersion.SPEC_2021))
-      sink(ThemeBuilderUiEvent.ColorStyleClick(Variant.FIDELITY))
-      awaitState { it.colorStyle == Variant.FIDELITY }.eventSink(
-        ThemeBuilderUiEvent.ColorSpecClick(SpecVersion.SPEC_2025),
-      )
+      val state = awaitItem()
+      state.eventSink(ThemeBuilderUiEvent.ColorReset(PaletteKey.Accent))
+      state.eventSink(ThemeBuilderUiEvent.IconPicked(AppTheme.Icon.Owl))
 
-      val state = awaitState { it.colorSpec == SpecVersion.SPEC_2025 && it.colorStyle == Variant.EXPRESSIVE }
-      assertThat(state.colorStyle).isEqualTo(Variant.EXPRESSIVE)
+      assertThat(awaitState { it.theme.icon == AppTheme.Icon.Owl }.seedColor).isEqualTo(state.seedColor)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun back_popsTheScreen() = runTest {
+  fun styleClick_bringsTheStylesSpec() = runTest {
     presenter().test {
-      awaitItem().eventSink(ThemeBuilderUiEvent.Back)
-      navigator.awaitPop()
+      awaitItem().eventSink(ThemeBuilderUiEvent.StyleClick(Variant.FIDELITY))
+      val classic = awaitState { it.colorStyle == Variant.FIDELITY }
+      assertThat(classic.colorSpec).isEqualTo(SpecVersion.SPEC_2021)
+
+      classic.eventSink(ThemeBuilderUiEvent.StyleClick(Variant.VIBRANT))
+      assertThat(awaitState { it.colorStyle == Variant.VIBRANT }.colorSpec).isEqualTo(SpecVersion.SPEC_2025)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun neutralVariantColorPicked_appliesTheOverride() = runTest {
+  fun contrastLevelClick_updatesTheTheme() = runTest {
     presenter().test {
-      awaitItem().eventSink(ThemeBuilderUiEvent.NeutralVariantColorPicked(Color.Blue))
+      awaitItem().eventSink(ThemeBuilderUiEvent.ContrastLevelClick(ContrastLevel.High))
 
-      val state = awaitState { it.neutralVariantColorOverride != null }
-      assertThat(state).all {
-        prop(ThemeBuilderUiState::neutralVariantColorOverride).isEqualTo(Color.Blue)
-        prop(ThemeBuilderUiState::theme)
-          .prop(AppTheme.Fixed.Custom::neutralVariantColorOverride)
-          .isEqualTo(Color.Blue)
-      }
+      val state = awaitState { it.contrastLevel == ContrastLevel.High }
+      assertThat(state.theme.contrastLevel).isEqualTo(1f)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun tertiaryColorPicked_rebuildsThePalette() = runTest {
+  fun tertiaryPick_rebuildsThePalette() = runTest {
     presenter().test {
       val initial = awaitItem()
-      initial.eventSink(ThemeBuilderUiEvent.TertiaryColorPicked(Color(0xFF00A3FF)))
+      initial.eventSink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.ThirdAccent, Color(0xFF00A3FF)))
 
-      val updated = awaitState { it.tertiaryColorOverride != null }
+      val updated = awaitState { it.theme.tertiaryColorOverride != null }
       assertThat(updated.theme.colorPalette.lightColorScheme.tertiary)
         .isNotEqualTo(initial.theme.colorPalette.lightColorScheme.tertiary)
       cancelAndIgnoreRemainingEvents()
@@ -159,17 +179,18 @@ class ThemeBuilderPresenterTest {
   }
 
   @Test
-  fun existingTheme_loadsItsChoices() = runTest {
-    val saved = customTheme(id = "ember", name = "Ember", style = Variant.FIDELITY, spec = SpecVersion.SPEC_2021)
+  fun existingTheme_loadsItsChoicesAndKeepsItsSpec() = runTest {
+    // Expressive on the 2021 spec predates the spec following the style; it must load unchanged.
+    val saved = customTheme(id = "ember", name = "Ember", style = Variant.EXPRESSIVE, spec = SpecVersion.SPEC_2021)
     repository.themes[saved.id] = saved
 
     presenter(ThemeBuilderScreen(customThemeId = saved.id)).test {
-      val state = awaitState { it.theme.name == "Ember" && it.tertiaryColorOverride != null }
+      val state = awaitState { it.theme.name == "Ember" && it.theme.tertiaryColorOverride != null }
       assertThat(state).all {
-        prop(ThemeBuilderUiState::colorStyle).isEqualTo(Variant.FIDELITY)
+        prop(ThemeBuilderUiState::isNew).isEqualTo(false)
+        prop(ThemeBuilderUiState::colorStyle).isEqualTo(Variant.EXPRESSIVE)
         prop(ThemeBuilderUiState::colorSpec).isEqualTo(SpecVersion.SPEC_2021)
         prop(ThemeBuilderUiState::seedColor).isEqualTo(saved.seedColor)
-        prop(ThemeBuilderUiState::tertiaryColorOverride).isEqualTo(saved.tertiaryColorOverride)
       }
       cancelAndIgnoreRemainingEvents()
     }
@@ -191,6 +212,20 @@ class ThemeBuilderPresenterTest {
   }
 
   @Test
+  fun save_existingTheme_keepsItsId() = runTest {
+    val saved = customTheme(id = "ember", name = "Ember")
+    repository.themes[saved.id] = saved
+
+    presenter(ThemeBuilderScreen(customThemeId = saved.id)).test {
+      awaitState { it.theme.name == "Ember" }.eventSink(ThemeBuilderUiEvent.Save)
+      navigator.awaitPop()
+
+      assertThat(repository::saved).single().prop(AppTheme.Fixed::id).isEqualTo("ember")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun delete_existingTheme_removesIt() = runTest {
     val saved = customTheme(id = "ember", name = "Ember")
     repository.themes[saved.id] = saved
@@ -200,6 +235,20 @@ class ThemeBuilderPresenterTest {
       navigator.awaitPop()
 
       assertThat(repository::deleted).hasSize(1)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun delete_newTheme_doesNothing() = runTest {
+    presenter().test {
+      val state = awaitItem()
+      state.eventSink(ThemeBuilderUiEvent.Delete)
+      state.eventSink(ThemeBuilderUiEvent.Back)
+      navigator.awaitPop()
+
+      assertThat(repository::deleted).hasSize(0)
+      assertThat(repository.themes["new-theme-id"]).isNull()
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -243,10 +292,14 @@ private class FakeAppThemeRepository : AppThemeRepository {
   val themes = mutableMapOf<String, AppTheme.Fixed>()
   val saved = mutableListOf<AppTheme.Fixed>()
   val deleted = mutableListOf<String>()
+  private val customThemes = MutableStateFlow<List<AppTheme.Fixed>>(emptyList())
 
   override fun observeCurrentAppTheme(): StateFlow<AppTheme> = MutableStateFlow(AppTheme.Fixed.Tent)
 
-  override fun observeCustomThemes(): Flow<List<AppTheme.Fixed>> = flowOf(themes.values.toList())
+  override fun observeCustomThemes(): Flow<List<AppTheme.Fixed>> {
+    customThemes.value = themes.values.toList()
+    return customThemes
+  }
 
   override fun setCurrentTheme(theme: AppTheme) = Unit
 

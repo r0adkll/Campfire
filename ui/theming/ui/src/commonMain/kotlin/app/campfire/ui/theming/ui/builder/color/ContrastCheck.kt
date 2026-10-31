@@ -23,7 +23,7 @@ internal const val NON_TEXT_CONTRAST = 3.0
  * Each pair comes from a real screen, so a failing check names a place in the app a user would
  * notice.
  */
-internal enum class ContrastCheck(
+enum class ContrastCheck(
   val background: ThemeRole,
   val foreground: ThemeRole,
   val minimumRatio: Double,
@@ -74,7 +74,7 @@ internal enum class ContrastCheck(
   SnackbarActions(ThemeRole.InverseSurface, ThemeRole.InversePrimary, TEXT_CONTRAST),
 }
 
-internal data class ContrastResult(
+data class ContrastResult(
   val check: ContrastCheck,
   val ratio: Double,
 ) {

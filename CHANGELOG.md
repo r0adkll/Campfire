@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Secondary, tertiary and error colors you pick in the theme builder keep their colorfulness, and Neutral Variant picks now apply to themes on the 2021 color spec
+- The custom theme builder shows Campfire's screens as you edit, lets you pick a style by how it looks and choose any palette color, and warns when parts of the app become hard to read
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
 - [Android] Check for app updates when you come back to Campfire, not only when it starts
 - [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update

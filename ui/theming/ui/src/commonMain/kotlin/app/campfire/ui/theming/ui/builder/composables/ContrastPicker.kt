@@ -4,6 +4,7 @@
 package app.campfire.ui.theming.ui.builder.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -16,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.BrightnessHigh
 import app.campfire.common.compose.icons.rounded.BrightnessLow
@@ -50,6 +53,7 @@ internal fun ContrastPicker(
           checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
           checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
+        contentPadding = PaddingValues(horizontal = 8.dp),
         modifier = modifiers[index],
       ) {
         Icon(
@@ -62,13 +66,7 @@ internal fun ContrastPicker(
           modifier = Modifier.size(ToggleButtonDefaults.IconSize),
         )
         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-        Text(
-          text = when (contrastLevel) {
-            ContrastLevel.Normal -> "Normal"
-            ContrastLevel.Medium -> "Medium"
-            ContrastLevel.High -> "High"
-          },
-        )
+        Text(contrastLevel.label(), maxLines = 1, overflow = TextOverflow.Ellipsis)
       }
     }
   }

@@ -9,6 +9,98 @@
   <string name="action_back">Back</string>
   <string name="action_edit_theme">Edit theme</string>
   <string name="action_delete_theme">Delete theme</string>
+  <string name="action_more_options">More options</string>
+
+  <string name="theme_builder_title_new">New theme</string>
+  <string name="theme_builder_title_edit">Edit theme</string>
+  <string name="theme_builder_save">Save</string>
+  <string name="theme_builder_delete_title">Delete this theme?</string>
+  <string name="theme_builder_delete_body">This can't be undone.</string>
+  <string name="theme_builder_delete_confirm">Delete</string>
+  <string name="theme_builder_cancel">Cancel</string>
+  <string name="theme_builder_preview_light">Light</string>
+  <string name="theme_builder_preview_dark">Dark</string>
+
+  <string name="theme_builder_section_color">Your color</string>
+  <string name="theme_builder_color_change">Tap to change</string>
+  <string name="theme_builder_use_color">Use %1$s</string>
+  <string name="theme_builder_section_style">Style</string>
+  <string name="theme_builder_style_classic">Classic</string>
+  <string name="theme_builder_section_contrast">Contrast</string>
+  <string name="theme_builder_section_readability">Readability</string>
+  <string name="theme_builder_section_palettes">Palette colors</string>
+
+  <string name="theme_style_expressive">Expressive</string>
+  <string name="theme_style_expressive_description">Playful, shifting accents</string>
+  <string name="theme_style_vibrant">Vibrant</string>
+  <string name="theme_style_vibrant_description">Punchy, saturated accents</string>
+  <string name="theme_style_tonal">Tonal</string>
+  <string name="theme_style_tonal_description">Calm, built around your color</string>
+  <string name="theme_style_neutral">Neutral</string>
+  <string name="theme_style_neutral_description">Mostly grey with a hint of color</string>
+  <string name="theme_style_fidelity">Fidelity</string>
+  <string name="theme_style_fidelity_description">Keeps your exact color</string>
+  <string name="theme_style_content">Content</string>
+  <string name="theme_style_content_description">Close to your color, softer</string>
+  <string name="theme_style_monochrome">Monochrome</string>
+  <string name="theme_style_monochrome_description">Black, white and greys</string>
+  <string name="theme_style_rainbow">Rainbow</string>
+  <string name="theme_style_rainbow_description">Colorful accents on plain backgrounds</string>
+  <string name="theme_style_fruit_salad">Fruit salad</string>
+  <string name="theme_style_fruit_salad_description">Bold, rotated hues</string>
+
+  <string name="theme_contrast_standard">Standard</string>
+  <string name="theme_contrast_medium">Medium</string>
+  <string name="theme_contrast_high">High</string>
+
+  <string name="theme_readability_pass">All %1$d checks pass</string>
+  <string name="theme_readability_pass_detail">In light and dark mode</string>
+  <plurals name="theme_readability_fail">
+    <item quantity="one">%1$d part is hard to read</item>
+    <item quantity="other">%1$d parts are hard to read</item>
+  </plurals>
+  <string name="theme_readability_fail_detail">Try another style</string>
+  <string name="theme_readability_light">Light %1$s</string>
+  <string name="theme_readability_dark">Dark %1$s</string>
+
+  <string name="contrast_check_screen_text">Screen and titles</string>
+  <string name="contrast_check_card_text">Card text</string>
+  <string name="contrast_check_links">Text buttons and links</string>
+  <string name="contrast_check_play_buttons">Play buttons</string>
+  <string name="contrast_check_progress_bars">Progress bars</string>
+  <string name="contrast_check_highlights">Highlights</string>
+  <string name="contrast_check_selected_items">Selected items</string>
+  <string name="contrast_check_badges">Badges</string>
+  <string name="contrast_check_mini_player">Mini player</string>
+  <string name="contrast_check_navigation_bar">Navigation bar</string>
+  <string name="contrast_check_error_banners">Error banners</string>
+  <string name="contrast_check_error_text">Error text</string>
+  <string name="contrast_check_borders">Borders</string>
+  <string name="contrast_check_snackbars">Snackbars</string>
+  <string name="contrast_check_snackbar_actions">Snackbar actions</string>
+
+  <string name="theme_palette_accent">Accent</string>
+  <string name="theme_palette_supporting">Supporting</string>
+  <string name="theme_palette_third_accent">Third accent</string>
+  <string name="theme_palette_backgrounds">Backgrounds</string>
+  <string name="theme_palette_errors">Errors</string>
+  <string name="theme_palette_your_color">Your color</string>
+  <string name="theme_palette_generated">From your color</string>
+  <string name="theme_palette_custom">Custom</string>
+  <string name="theme_palette_reset">Use the generated color</string>
+
+  <string name="theme_picker_hue">Hue</string>
+  <string name="theme_picker_colorfulness">Colorfulness</string>
+  <string name="theme_picker_hex">Hex code</string>
+  <string name="theme_picker_use_generated">Use generated</string>
+  <string name="theme_picker_done">Done</string>
+  <string name="theme_picker_note">Lightness is set for you in light and dark mode, so pick the hue and how colorful it is.</string>
+  <string name="theme_picker_suggestions">Goes with your color</string>
+
+  <string name="theme_save_title">Name your theme</string>
+  <string name="theme_save_name">Name</string>
+  <string name="theme_save_default_name">Custom theme %1$d</string>
+  <string name="theme_save_confirm">Save theme</string>
 
   <string name="theme_preview_title">Preview</string>
   <string name="theme_preview_dark_mode">Preview in dark mode</string>

@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 /**
  * A color role in a Material [ColorScheme] that the theme builder can check or override.
  */
-internal enum class ThemeRole {
+enum class ThemeRole {
   Primary,
   OnPrimary,
   PrimaryContainer,
