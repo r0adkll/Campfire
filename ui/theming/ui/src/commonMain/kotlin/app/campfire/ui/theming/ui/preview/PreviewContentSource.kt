@@ -33,8 +33,8 @@ fun interface PreviewContentSource {
 }
 
 /**
- * The user's own Home shelves, library size and layout, and whether their book details and player
- * use cover colors. It reads what's cached and never waits on the server, so the preview shows
+ * The user's own Home shelves, library size and layout, and whether the player uses cover
+ * colors. It reads what's cached and never waits on the server, so the preview shows
  * samples until there's something to show.
  */
 @ContributesBinding(UserScope::class)
@@ -48,13 +48,9 @@ class DefaultPreviewContentSource(
 
   override fun observe(): Flow<PreviewContent> = combine(
     observeLibrary(),
-    themeSettings.observeDynamicallyThemeItemDetail(),
     themeSettings.observeDynamicallyThemePlayback(),
-  ) { library, bookDetails, player ->
-    PreviewContent(
-      library = library,
-      coverTheming = CoverTheming(bookDetails = bookDetails, player = player),
-    )
+  ) { library, playerUsesCoverColors ->
+    PreviewContent(library = library, playerUsesCoverColors = playerUsesCoverColors)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)

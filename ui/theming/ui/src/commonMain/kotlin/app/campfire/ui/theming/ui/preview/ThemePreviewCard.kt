@@ -39,11 +39,9 @@ import app.campfire.common.compose.icons.rounded.LightMode
 import app.campfire.ui.theming.api.AppTheme
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_preview_dark_mode
-import campfire.ui.theming.ui.generated.resources.theme_preview_scene_book
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_everywhere
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_home
 import campfire.ui.theming.ui.generated.resources.theme_preview_scene_library
-import campfire.ui.theming.ui.generated.resources.theme_preview_scene_player
 import campfire.ui.theming.ui.generated.resources.theme_preview_title
 import org.jetbrains.compose.resources.stringResource
 
@@ -169,7 +167,5 @@ internal fun PreviewScene.label(): String = stringResource(
     PreviewScene.Home -> Res.string.theme_preview_scene_home
     PreviewScene.Library -> Res.string.theme_preview_scene_library
     PreviewScene.Everywhere -> Res.string.theme_preview_scene_everywhere
-    PreviewScene.Book -> Res.string.theme_preview_scene_book
-    PreviewScene.Player -> Res.string.theme_preview_scene_player
   },
 )

@@ -133,15 +133,15 @@ class DefaultPreviewContentSourceTest {
   }
 
   @Test
-  fun coverTheming_followsTheSettings() = runTest {
+  fun playerUsesCoverColors_followsThePlaybackSetting() = runTest {
     source.observe().test {
-      assertThat(awaitItem().coverTheming).isEqualTo(CoverTheming(bookDetails = true, player = true))
+      assertThat(awaitItem().playerUsesCoverColors).isTrue()
 
-      theme.itemDetail.value = false
+      theme.playback.value = false
 
       var content = awaitItem()
-      while (content.coverTheming.bookDetails) content = awaitItem()
-      assertThat(content.coverTheming).isEqualTo(CoverTheming(bookDetails = false, player = true))
+      while (content.playerUsesCoverColors) content = awaitItem()
+      assertThat(content.playerUsesCoverColors).isFalse()
       cancelAndIgnoreRemainingEvents()
     }
   }

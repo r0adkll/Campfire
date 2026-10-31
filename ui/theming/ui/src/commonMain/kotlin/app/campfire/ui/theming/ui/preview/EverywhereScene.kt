@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -36,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.Home
-import app.campfire.common.compose.icons.outline.Collections
 import app.campfire.common.compose.icons.rounded.CloudOff
 import app.campfire.common.compose.icons.rounded.QueryStats
 import app.campfire.common.compose.icons.rounded.Warning
@@ -48,51 +45,53 @@ import campfire.ui.theming.ui.generated.resources.theme_preview_cancel
 import campfire.ui.theming.ui.generated.resources.theme_preview_cover_failed
 import campfire.ui.theming.ui.generated.resources.theme_preview_create
 import campfire.ui.theming.ui.generated.resources.theme_preview_downloads_header
-import campfire.ui.theming.ui.generated.resources.theme_preview_drawer_collections
 import campfire.ui.theming.ui.generated.resources.theme_preview_drawer_home
 import campfire.ui.theming.ui.generated.resources.theme_preview_drawer_statistics
 import campfire.ui.theming.ui.generated.resources.theme_preview_new_playlist
-import campfire.ui.theming.ui.generated.resources.theme_preview_new_playlist_body
 import campfire.ui.theming.ui.generated.resources.theme_preview_playlist_exists
 import campfire.ui.theming.ui.generated.resources.theme_preview_playlist_name
 import campfire.ui.theming.ui.generated.resources.theme_preview_playlist_road_trip
 import campfire.ui.theming.ui.generated.resources.theme_preview_server_name
 import campfire.ui.theming.ui.generated.resources.theme_preview_stream_offline
-import campfire.ui.theming.ui.generated.resources.theme_preview_stream_offline_body
 import campfire.ui.theming.ui.generated.resources.theme_preview_user_name
 import campfire.ui.theming.ui.generated.resources.theme_preview_wifi_only
-import campfire.ui.theming.ui.generated.resources.theme_preview_wifi_only_body
 import campfire.ui.theming.ui.generated.resources.theme_preview_working_offline
-import campfire.ui.theming.ui.generated.resources.theme_preview_working_offline_body
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The parts every screen shares, in the colors the app gives them: the navigation drawer with
- * its account card and offline status, a settings section with switches, a dialog with a field
- * error, a cover that won't load, and a snackbar.
+ * The parts every screen shares, in the colors the app gives them, side by side: the navigation
+ * drawer with its account card and offline status over a settings section with switches, beside
+ * a dialog with a field error, a cover that won't load and a snackbar.
  */
 @Composable
 internal fun EverywhereScene(
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
 ) {
-  Column(
+  Row(
     modifier = modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .padding(vertical = 12.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+      .padding(12.dp),
+    horizontalArrangement = Arrangement.spacedBy(12.dp),
   ) {
-    PreviewDrawer(targets, Modifier.padding(horizontal = 12.dp))
-    PreviewSettingsSection(targets)
-    PreviewDialog(targets, Modifier.padding(horizontal = 12.dp))
-    PreviewBrokenCover(targets, Modifier.padding(horizontal = 16.dp))
-    Snackbar(
-      modifier = Modifier
-        .padding(horizontal = 12.dp)
-        .themeTarget(ContrastCheck.Snackbars, targets, cornerRadius = 4.dp),
+    Column(
+      modifier = Modifier.weight(1f),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      Text(stringResource(Res.string.theme_preview_back_online))
+      PreviewDrawer(targets)
+      PreviewSettingsSection(targets)
+    }
+    Column(
+      modifier = Modifier.weight(1f),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      PreviewDialog(targets)
+      PreviewBrokenCover(targets)
+      Snackbar(
+        modifier = Modifier.themeTarget(ContrastCheck.Snackbars, targets, cornerRadius = 4.dp),
+      ) {
+        Text(stringResource(Res.string.theme_preview_back_online))
+      }
     }
   }
 }
@@ -142,22 +141,15 @@ private fun PreviewDrawer(
           .padding(horizontal = 12.dp)
           .themeTarget(ContrastCheck.SelectedItems, targets, cornerRadius = 28.dp),
       )
-      Column(Modifier.themeTarget(ContrastCheck.DrawerItems, targets)) {
-        NavigationDrawerItem(
-          icon = { Icon(CampfireIcons.Rounded.QueryStats, contentDescription = null) },
-          label = { Text(stringResource(Res.string.theme_preview_drawer_statistics)) },
-          selected = false,
-          onClick = {},
-          modifier = Modifier.padding(horizontal = 12.dp),
-        )
-        NavigationDrawerItem(
-          icon = { Icon(CampfireIcons.Outline.Collections, contentDescription = null) },
-          label = { Text(stringResource(Res.string.theme_preview_drawer_collections)) },
-          selected = false,
-          onClick = {},
-          modifier = Modifier.padding(horizontal = 12.dp),
-        )
-      }
+      NavigationDrawerItem(
+        icon = { Icon(CampfireIcons.Rounded.QueryStats, contentDescription = null) },
+        label = { Text(stringResource(Res.string.theme_preview_drawer_statistics)) },
+        selected = false,
+        onClick = {},
+        modifier = Modifier
+          .padding(horizontal = 12.dp)
+          .themeTarget(ContrastCheck.DrawerItems, targets, cornerRadius = 28.dp),
+      )
 
       Spacer(Modifier.size(8.dp))
       Surface(
@@ -175,16 +167,10 @@ private fun PreviewDrawer(
         ) {
           Icon(CampfireIcons.Rounded.CloudOff, contentDescription = null)
           Spacer(Modifier.width(16.dp))
-          Column {
-            Text(
-              text = stringResource(Res.string.theme_preview_working_offline),
-              style = MaterialTheme.typography.titleSmall,
-            )
-            Text(
-              text = stringResource(Res.string.theme_preview_working_offline_body),
-              style = MaterialTheme.typography.bodySmall,
-            )
-          }
+          Text(
+            text = stringResource(Res.string.theme_preview_working_offline),
+            style = MaterialTheme.typography.titleSmall,
+          )
         }
       }
     }
@@ -209,13 +195,11 @@ private fun PreviewSettingsSection(
     )
     PreviewSwitchRow(
       title = stringResource(Res.string.theme_preview_wifi_only),
-      description = stringResource(Res.string.theme_preview_wifi_only_body),
       checked = true,
       targets = targets,
     )
     PreviewSwitchRow(
       title = stringResource(Res.string.theme_preview_stream_offline),
-      description = stringResource(Res.string.theme_preview_stream_offline_body),
       checked = false,
       targets = targets,
     )
@@ -225,14 +209,12 @@ private fun PreviewSettingsSection(
 @Composable
 private fun PreviewSwitchRow(
   title: String,
-  description: String,
   checked: Boolean,
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
 ) {
   ListItem(
-    headlineContent = { Text(title) },
-    supportingContent = { Text(description) },
+    headlineContent = { Text(title, maxLines = 2) },
     trailingContent = {
       Switch(
         checked = checked,
@@ -261,17 +243,10 @@ private fun PreviewDialog(
     shape = MaterialTheme.shapes.extraLarge,
     modifier = modifier.fillMaxWidth(),
   ) {
-    Column(Modifier.padding(24.dp)) {
+    Column(Modifier.padding(20.dp)) {
       Text(
         text = stringResource(Res.string.theme_preview_new_playlist),
         style = MaterialTheme.typography.headlineSmall,
-      )
-      Spacer(Modifier.size(16.dp))
-      Text(
-        text = stringResource(Res.string.theme_preview_new_playlist_body),
-        style = MaterialTheme.typography.bodyMedium,
-        color = colors.onSurfaceVariant,
-        modifier = Modifier.themeTarget(ContrastCheck.SupportingText, targets),
       )
       Spacer(Modifier.size(16.dp))
       OutlinedTextField(

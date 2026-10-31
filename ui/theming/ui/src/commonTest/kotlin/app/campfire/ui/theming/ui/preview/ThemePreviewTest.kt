@@ -17,7 +17,6 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import app.campfire.core.settings.ItemDisplayState
@@ -74,7 +73,12 @@ class ThemePreviewTest {
   @Test
   fun home_withPlayerCoverColorsOff_showsTheMiniPlayer() = runComposeUiTest {
     setContent {
-      ThemePreview(PreviewScene.Home, PreviewContent(previewLibrary(), CoverThemingOff), icon, previewSize)
+      ThemePreview(
+        PreviewScene.Home,
+        PreviewContent(previewLibrary(), playerUsesCoverColors = false),
+        icon,
+        previewSize,
+      )
     }
 
     onNodeWithText("The player uses cover colors").assertDoesNotExist()
@@ -115,59 +119,10 @@ class ThemePreviewTest {
     setContent { ThemePreview(PreviewScene.Everywhere, PreviewContent(), icon, previewSize) }
 
     onNodeWithText("Working offline").assertExists()
-    onNodeWithText("Download on Wi-Fi only").performScrollTo()
-    onNodeWithText("New playlist").performScrollTo()
-    onNodeWithText("You already have a playlist with this name").performScrollTo()
-    onNodeWithText("Back online").performScrollTo()
-  }
-
-  @Test
-  fun book_whileItUsesCoverColors_saysSoAndLinksToTheSetting() = runComposeUiTest {
-    var opened = false
-    setContent {
-      ThemePreview(
-        scene = PreviewScene.Book,
-        content = PreviewContent(previewLibrary()),
-        icon = icon,
-        modifier = previewSize,
-        onCoverThemingClick = { opened = true },
-      )
-    }
-
-    onNodeWithText("Book details use cover colors").assertExists()
-    onNodeWithText("Narrated By").assertDoesNotExist()
-    onNodeWithText("Appearance settings").performClick()
-    assertTrue(opened)
-  }
-
-  @Test
-  fun book_withCoverColorsOff_showsTheNowPlayingBooksDetails() = runComposeUiTest {
-    setContent {
-      ThemePreview(PreviewScene.Book, PreviewContent(previewLibrary(), CoverThemingOff), icon, previewSize)
-    }
-
-    onNodeWithText("Project Hail Mary").assertExists()
-    onNodeWithText("Narrated By").assertExists()
-    onNodeWithText("Continue listening").performScrollTo()
-    onNodeWithText("Mark as finished").performScrollTo()
-  }
-
-  @Test
-  fun player_whileItUsesCoverColors_saysSo() = runComposeUiTest {
-    setContent { ThemePreview(PreviewScene.Player, PreviewContent(previewLibrary()), icon, previewSize) }
-
-    onNodeWithText("The player uses cover colors").assertExists()
-    onNodeWithText("Chapter 5").assertDoesNotExist()
-  }
-
-  @Test
-  fun player_withCoverColorsOff_showsThePlayer() = runComposeUiTest {
-    setContent {
-      ThemePreview(PreviewScene.Player, PreviewContent(previewLibrary(), CoverThemingOff), icon, previewSize)
-    }
-
-    onNodeWithText("Chapter 5").assertExists()
-    onNodeWithText("Project Hail Mary").assertExists()
+    onNodeWithText("Download on Wi-Fi only").assertExists()
+    onNodeWithText("New playlist").assertExists()
+    onNodeWithText("You already have a playlist with this name").assertExists()
+    onNodeWithText("Back online").assertExists()
   }
 
   @Test
@@ -176,7 +131,7 @@ class ThemePreviewTest {
     setContent {
       ThemePreviewContent(
         scene = scene.value,
-        content = PreviewContent(previewLibrary(), CoverThemingOff),
+        content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
         icon = icon,
         targets = ThemeTargets(failing = ContrastCheck.entries.toSet()),
         modifier = previewSize,
@@ -187,7 +142,7 @@ class ThemePreviewTest {
       scene.value = next
       waitForIdle()
     }
-    onNodeWithText("Chapter 5").assertExists()
+    onNodeWithText("Back online").assertExists()
   }
 
   @Test
@@ -206,7 +161,7 @@ class ThemePreviewTest {
     onNodeWithText("Working offline").performClick()
     assertEquals(ContrastCheck.OfflineStatus, tapped)
 
-    onNodeWithText("Back online").performScrollTo().performClick()
+    onNodeWithText("Back online").performClick()
     assertEquals(ContrastCheck.Snackbars, tapped)
   }
 
@@ -254,7 +209,7 @@ class ThemePreviewTest {
     }
 
     onNode(hasText("Home") and isToggleable()).assertIsOn()
-    onNode(hasText("Book") and isToggleable()).assertIsOff()
+    onNode(hasText("Library") and isToggleable()).assertIsOff()
     onNode(hasContentDescription("Preview in dark mode") and isToggleable()).assertIsOn()
   }
 }
