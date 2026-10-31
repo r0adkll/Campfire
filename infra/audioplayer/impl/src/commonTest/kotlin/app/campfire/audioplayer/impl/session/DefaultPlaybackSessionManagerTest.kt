@@ -22,6 +22,7 @@ import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.FakeDownloadSettings
 import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.user.test.FakeMediaProgressRepository
+import app.campfire.user.test.FakeUserRepository
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
@@ -46,6 +47,7 @@ class DefaultPlaybackSessionManagerTest {
   private val playbackSettings = FakePlaybackSettings()
   private val downloads = FakeDownloads()
   private val downloadSettings = FakeDownloadSettings()
+  private val userRepository = FakeUserRepository()
 
   private val manager = DefaultPlaybackSessionManager(
     sessionsRepository = sessionsRepository,
@@ -56,6 +58,7 @@ class DefaultPlaybackSessionManagerTest {
     playbackSettings = playbackSettings,
     downloads = downloads,
     downloadSettings = downloadSettings,
+    userRepository = userRepository,
     dispatcherProvider = dispatcherProvider,
   )
 
@@ -174,6 +177,92 @@ class DefaultPlaybackSessionManagerTest {
 
     assertThat(sessionQueue.keys()).isEmpty()
     assertThat(player.preparedEpisodeIds()).containsExactly("b")
+  }
+
+  @Test
+  fun `starting an episode downloads it when the setting is on`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    sessionsRepository.createSession = episodeSession(episodeA)
+
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Download(listOf(DownloadContent.Episode(podcast.id, episodeA.id))),
+    )
+  }
+
+  @Test
+  fun `switching to another episode downloads it`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    sessionsRepository.currentSession = episodeSession(episodeA)
+    sessionsRepository.createSession = episodeSession(episodeB)
+
+    manager.startSession(podcast.id, episodeId = episodeB.id)
+
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Download(listOf(DownloadContent.Episode(podcast.id, episodeB.id))),
+    )
+  }
+
+  @Test
+  fun `the next episode in the queue is downloaded as it starts`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.createSession = episodeSession(episodeA)
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    // The finished episode is still the active session when the queue advances
+    sessionsRepository.currentSession = episodeSession(episodeA)
+    sessionsRepository.createSession = episodeSession(episodeB)
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(downloads.invocations).containsExactly(
+      FakeDownloads.Invocation.Download(listOf(DownloadContent.Episode(podcast.id, episodeA.id))),
+      FakeDownloads.Invocation.Download(listOf(DownloadContent.Episode(podcast.id, episodeB.id))),
+    )
+  }
+
+  @Test
+  fun `resuming the playing episode does not download it`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    sessionsRepository.currentSession = episodeSession(episodeA)
+    sessionsRepository.createSession = episodeSession(episodeA)
+
+    manager.startSession(podcast.id, playImmediately = false, episodeId = episodeA.id)
+
+    assertThat(downloads.invocations).isEmpty()
+  }
+
+  @Test
+  fun `starting a book does not download it`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    sessionsRepository.createSession = session(libraryItem = book)
+
+    manager.startSession(book.id)
+
+    assertThat(downloads.invocations).isEmpty()
+  }
+
+  @Test
+  fun `starting an episode does not download it when the setting is off`() = runTest(testDispatcher) {
+    sessionsRepository.createSession = episodeSession(episodeA)
+
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    assertThat(downloads.invocations).isEmpty()
+  }
+
+  @Test
+  fun `starting an episode does not download it for a user the server won't let download`() = runTest(testDispatcher) {
+    downloadSettings.downloadEpisodesOnPlayOrQueue = true
+    userRepository.currentStatefulUserFlow.value = userRepository.userFlow.value.let { user ->
+      user.copy(permissions = user.permissions.copy(download = false))
+    }
+    sessionsRepository.createSession = episodeSession(episodeA)
+
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    assertThat(downloads.invocations).isEmpty()
   }
 
   @Test

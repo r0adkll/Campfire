@@ -193,7 +193,9 @@ class SettingsPresenter(
     // Downloads Settings
     val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
       .collectAsState()
-    val downloadQueuedEpisodes by remember { downloadSettings.observeDownloadQueuedEpisodes() }.collectAsState()
+    val downloadEpisodesOnPlayOrQueue by remember {
+      downloadSettings.observeDownloadEpisodesOnPlayOrQueue()
+    }.collectAsState()
     val deleteFinishedEpisodes by remember { downloadSettings.observeDeleteFinishedEpisodes() }.collectAsState()
 
     val downloadCount by remember { downloads.observeAll().map { it.size } }.collectAsState(0)
@@ -280,7 +282,7 @@ class SettingsPresenter(
         isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
         downloadOnWifiOnly = downloadOnWifiOnly,
         isAudioDownloadAvailable = currentPlatform != Platform.IOS,
-        downloadQueuedEpisodes = downloadQueuedEpisodes,
+        downloadEpisodesOnPlayOrQueue = downloadEpisodesOnPlayOrQueue,
         deleteFinishedEpisodes = deleteFinishedEpisodes,
         downloadCount = downloadCount,
       ),
@@ -449,8 +451,8 @@ class SettingsPresenter(
           is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
             mobileDataSettings.downloadOnWifiOnly = event.enabled
           }
-          is SettingsUiEvent.DownloadsSettingEvent.DownloadQueuedEpisodes -> {
-            downloadSettings.downloadQueuedEpisodes = event.enabled
+          is SettingsUiEvent.DownloadsSettingEvent.DownloadEpisodesOnPlayOrQueue -> {
+            downloadSettings.downloadEpisodesOnPlayOrQueue = event.enabled
           }
           is SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes -> {
             downloadSettings.deleteFinishedEpisodes = event.enabled

@@ -99,7 +99,7 @@ data class DownloadsSettingsInfo(
   val downloadOnWifiOnly: Boolean,
   /** Only where audio can be downloaded at all, which iOS can't yet. */
   val isAudioDownloadAvailable: Boolean,
-  val downloadQueuedEpisodes: Boolean,
+  val downloadEpisodesOnPlayOrQueue: Boolean,
   val deleteFinishedEpisodes: Boolean,
   /** Everything downloaded or downloading, which the Downloads screen lists. */
   val downloadCount: Int,
@@ -267,7 +267,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadOnWifiOnly(val enabled: Boolean) : DownloadsSettingEvent
-    data class DownloadQueuedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
+    data class DownloadEpisodesOnPlayOrQueue(val enabled: Boolean) : DownloadsSettingEvent
     data class DeleteFinishedEpisodes(val enabled: Boolean) : DownloadsSettingEvent
     data object ViewAllDownloads : DownloadsSettingEvent
   }

@@ -24,14 +24,16 @@ class DownloadSettingsImpl(
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : DownloadSettings, AppSettings() {
 
-  private val downloadQueuedEpisodesProperty = booleanSetting(KEY_DOWNLOAD_QUEUED_EPISODES, false)
-  override var downloadQueuedEpisodes: Boolean by downloadQueuedEpisodesProperty
-  override fun observeDownloadQueuedEpisodes(): StateFlow<Boolean> = downloadQueuedEpisodesProperty.observe()
+  private val downloadEpisodesOnPlayOrQueueProperty = booleanSetting(KEY_DOWNLOAD_EPISODES_ON_PLAY_OR_QUEUE, false)
+  override var downloadEpisodesOnPlayOrQueue: Boolean by downloadEpisodesOnPlayOrQueueProperty
+  override fun observeDownloadEpisodesOnPlayOrQueue(): StateFlow<Boolean> =
+    downloadEpisodesOnPlayOrQueueProperty.observe()
 
   private val deleteFinishedEpisodesProperty = booleanSetting(KEY_DELETE_FINISHED_EPISODES, false)
   override var deleteFinishedEpisodes: Boolean by deleteFinishedEpisodesProperty
   override fun observeDeleteFinishedEpisodes(): StateFlow<Boolean> = deleteFinishedEpisodesProperty.observe()
 }
 
-internal const val KEY_DOWNLOAD_QUEUED_EPISODES = "pref_download_queued_episodes"
+// Named for when the setting only covered queued episodes, kept so it stays on for those who turned it on
+internal const val KEY_DOWNLOAD_EPISODES_ON_PLAY_OR_QUEUE = "pref_download_queued_episodes"
 internal const val KEY_DELETE_FINISHED_EPISODES = "pref_delete_finished_episodes"

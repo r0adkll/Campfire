@@ -8,11 +8,12 @@ import kotlinx.coroutines.flow.StateFlow
 interface DownloadSettings {
 
   /**
-   * Whether a podcast episode starts downloading as it's added to the queue (Up next).
+   * Whether a podcast episode starts downloading as it starts playing or is added to the queue
+   * (Up next).
    * Default: `false`
    */
-  var downloadQueuedEpisodes: Boolean
-  fun observeDownloadQueuedEpisodes(): StateFlow<Boolean>
+  var downloadEpisodesOnPlayOrQueue: Boolean
+  fun observeDownloadEpisodesOnPlayOrQueue(): StateFlow<Boolean>
 
   /**
    * Whether a podcast episode's download is removed once it plays to the end.
