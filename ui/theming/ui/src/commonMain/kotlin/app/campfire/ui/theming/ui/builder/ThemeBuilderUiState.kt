@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.ui.preview.PreviewContent
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -21,6 +22,8 @@ data class ThemeBuilderUiState(
   val contrast: List<ContrastStatus>,
   /** How many custom themes already exist, for suggesting a name. */
   val customThemeCount: Int,
+  /** The user's books and cover theming settings, for the preview. */
+  val previewContent: PreviewContent,
   val eventSink: (ThemeBuilderUiEvent) -> Unit,
 ) : CircuitUiState {
 
@@ -47,4 +50,7 @@ sealed interface ThemeBuilderUiEvent : CircuitUiEvent {
   /** The color spec follows the style. */
   data class StyleClick(val style: Variant) : ThemeBuilderUiEvent
   data class ContrastLevelClick(val level: ContrastLevel) : ThemeBuilderUiEvent
+
+  /** Opens the settings where book details and the player stop using cover colors. */
+  data object CoverThemingSettings : ThemeBuilderUiEvent
 }

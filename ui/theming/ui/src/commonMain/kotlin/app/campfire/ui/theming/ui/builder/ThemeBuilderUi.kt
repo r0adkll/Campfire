@@ -67,6 +67,7 @@ import app.campfire.ui.theming.ui.builder.composables.SaveThemeSheet
 import app.campfire.ui.theming.ui.builder.composables.SeedColorSection
 import app.campfire.ui.theming.ui.builder.composables.StylePicker
 import app.campfire.ui.theming.ui.preview.DarkModeSwitch
+import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewScene
 import app.campfire.ui.theming.ui.preview.PreviewSceneTabs
 import app.campfire.ui.theming.ui.preview.ThemePreviewContent
@@ -406,7 +407,10 @@ private fun PreviewPane(
     MaterialExpressiveTheme(colorScheme = colorScheme(state.theme, isDarkMode)) {
       ThemePreviewContent(
         scene = scene,
+        content = state.previewContent,
+        icon = state.theme.icon,
         targets = ThemeTargets(failing = state.failingChecks(isDarkMode)),
+        onCoverThemingClick = { state.eventSink(ThemeBuilderUiEvent.CoverThemingSettings) },
         modifier = Modifier
           .fillMaxWidth()
           .weight(1f),
@@ -448,7 +452,10 @@ private fun LightAndDarkPreview(
           MaterialExpressiveTheme(colorScheme = colorScheme(state.theme, dark)) {
             ThemePreviewContent(
               scene = scene,
+              content = state.previewContent,
+              icon = state.theme.icon,
               targets = ThemeTargets(failing = state.failingChecks(dark)),
+              onCoverThemingClick = { state.eventSink(ThemeBuilderUiEvent.CoverThemingSettings) },
               modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
@@ -465,6 +472,7 @@ private fun LightAndDarkPreview(
 internal fun rememberSampleThemeBuilderState(
   colors: CustomThemeColors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE),
   isNew: Boolean = true,
+  previewContent: PreviewContent = PreviewContent(),
   eventSink: (ThemeBuilderUiEvent) -> Unit = {},
 ): ThemeBuilderUiState {
   val name = rememberTextFieldState(if (isNew) "" else "Ember")
@@ -490,6 +498,7 @@ internal fun rememberSampleThemeBuilderState(
     palettes = remember(colors) { paletteRows(colors) },
     contrast = remember(palette) { contrastStatuses(palette) },
     customThemeCount = 2,
+    previewContent = previewContent,
     eventSink = eventSink,
   )
 }

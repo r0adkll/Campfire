@@ -59,25 +59,27 @@
     <item quantity="one">%1$d part is hard to read</item>
     <item quantity="other">%1$d parts are hard to read</item>
   </plurals>
-  <string name="theme_readability_fail_detail">Try another style</string>
+  <string name="theme_readability_fail_detail">Outlined in the preview</string>
   <string name="theme_readability_light">Light %1$s</string>
   <string name="theme_readability_dark">Dark %1$s</string>
 
-  <string name="contrast_check_screen_text">Screen and titles</string>
-  <string name="contrast_check_card_text">Card text</string>
-  <string name="contrast_check_links">Text buttons and links</string>
-  <string name="contrast_check_play_buttons">Play buttons</string>
-  <string name="contrast_check_progress_bars">Progress bars</string>
-  <string name="contrast_check_highlights">Highlights</string>
+  <string name="contrast_check_screen_text">Screen text</string>
+  <string name="contrast_check_card_text">Book cards</string>
+  <string name="contrast_check_supporting_text">Search bar and dialog text</string>
+  <string name="contrast_check_dialog_buttons">Dialog buttons</string>
+  <string name="contrast_check_headers">Settings headers</string>
+  <string name="contrast_check_buttons">Buttons and switches</string>
+  <string name="contrast_check_progress_bars">Progress on covers</string>
+  <string name="contrast_check_account_card">Account card</string>
   <string name="contrast_check_selected_items">Selected items</string>
-  <string name="contrast_check_badges">Badges</string>
-  <string name="contrast_check_mini_player">Mini player</string>
+  <string name="contrast_check_selected_tab_name">Selected tab name</string>
   <string name="contrast_check_navigation_bar">Navigation bar</string>
-  <string name="contrast_check_error_banners">Error banners</string>
+  <string name="contrast_check_drawer_items">Drawer items</string>
+  <string name="contrast_check_offline_status">Offline status</string>
   <string name="contrast_check_error_text">Error text</string>
-  <string name="contrast_check_borders">Borders</string>
-  <string name="contrast_check_snackbars">Snackbars</string>
-  <string name="contrast_check_snackbar_actions">Snackbar actions</string>
+  <string name="contrast_check_warnings">Warnings</string>
+  <string name="contrast_check_borders">Borders and switches that are off</string>
+  <string name="contrast_check_snackbars">Snackbars and tooltips</string>
 
   <string name="theme_palette_accent">Accent</string>
   <string name="theme_palette_supporting">Supporting</string>

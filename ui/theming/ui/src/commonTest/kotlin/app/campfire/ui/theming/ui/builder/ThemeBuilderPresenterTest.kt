@@ -4,11 +4,14 @@
 package app.campfire.ui.theming.ui.builder
 
 import androidx.compose.ui.graphics.Color
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import app.campfire.ui.theming.ui.preview.CoverTheming
+import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.cash.turbine.ReceiveTurbine
 import assertk.all
 import assertk.assertThat
@@ -34,9 +37,11 @@ class ThemeBuilderPresenterTest {
 
   private val repository = FakeAppThemeRepository()
   private val navigator = FakeNavigator(ThemeBuilderScreen())
+  private val previewContent = MutableStateFlow(PreviewContent())
 
   private fun presenter(screen: ThemeBuilderScreen = ThemeBuilderScreen()) = ThemeBuilderPresenter(
     themeRepository = repository,
+    previewContentSource = { previewContent },
     screen = screen,
     navigator = navigator,
   )
@@ -249,6 +254,29 @@ class ThemeBuilderPresenterTest {
 
       assertThat(repository::deleted).hasSize(0)
       assertThat(repository.themes["new-theme-id"]).isNull()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun previewContent_followsTheSource() = runTest {
+    presenter().test {
+      assertThat(awaitItem().previewContent).isEqualTo(PreviewContent())
+
+      val content = PreviewContent(coverTheming = CoverTheming(bookDetails = false, player = true))
+      previewContent.value = content
+
+      assertThat(awaitState { it.previewContent == content }.previewContent).isEqualTo(content)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun coverThemingSettings_opensAppearanceSettings() = runTest {
+    presenter().test {
+      awaitItem().eventSink(ThemeBuilderUiEvent.CoverThemingSettings)
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(SettingsScreen(SettingsScreen.Page.Appearance))
       cancelAndIgnoreRemainingEvents()
     }
   }

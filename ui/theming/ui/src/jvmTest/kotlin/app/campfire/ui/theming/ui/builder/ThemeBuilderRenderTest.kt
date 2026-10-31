@@ -24,21 +24,38 @@ import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.builder.composables.ColorPickerPanel
+import app.campfire.ui.theming.ui.preview.CoverThemingOff
+import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.installTestCovers
+import app.campfire.ui.theming.ui.preview.previewLibrary
+import app.campfire.ui.theming.ui.preview.resetTestCovers
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import java.io.File
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
 
 /**
  * Renders the theme builder off-screen at phone and tablet widths, plus its color picker, and
  * writes PNGs to `build/renders` for eyeballing; the assertions only guard that each render paints.
+ * The preview shows a test library with flat-color covers and cover theming off, so every part
+ * of the theme is on show.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class ThemeBuilderRenderTest {
 
   private val renders = File("build/renders").apply { mkdirs() }
   private val colors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE, tertiaryColor = Color(0xFF0E7490))
+  private val content = PreviewContent(previewLibrary(), CoverThemingOff)
+
+  @BeforeTest
+  fun installCovers() = installTestCovers()
+
+  @AfterTest
+  fun tearDown() = resetTestCovers()
 
   @Test
   fun `phone light`() {
@@ -86,13 +103,21 @@ class ThemeBuilderRenderTest {
         LocalWindowSizeClass provides currentWindowSizeClass(),
         LocalContentLayout provides ContentLayout.Root,
       ) {
-        ThemeBuilder(rememberSampleThemeBuilderState(colors))
+        ThemeBuilder(rememberSampleThemeBuilderState(colors, previewContent = content))
       }
     }
   }
 
   private fun render(name: String, width: Int, height: Int, content: @Composable () -> Unit) {
-    ImageComposeScene(width = width * 2, height = height * 2, density = Density(2f), content = content).use { scene ->
+    ImageComposeScene(
+      width = width * 2,
+      height = height * 2,
+      density = Density(2f),
+      coroutineContext = Dispatchers.Unconfined,
+      content = content,
+    ).use { scene ->
+      // The first frame starts the cover requests; the second draws them.
+      scene.render()
       val bytes = scene.render(nanoTime = 2_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
       File(renders, "$name.png").writeBytes(bytes)
       println("rendered ${File(renders, "$name.png").absolutePath}")

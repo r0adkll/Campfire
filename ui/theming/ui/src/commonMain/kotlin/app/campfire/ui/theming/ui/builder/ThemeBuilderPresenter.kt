@@ -13,12 +13,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.builder.color.specVersion
+import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.PreviewContentSource
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -40,6 +43,7 @@ private val DefaultSeedColor = Color(0xFF904B3C)
 @Inject
 class ThemeBuilderPresenter(
   private val themeRepository: AppThemeRepository,
+  private val previewContentSource: PreviewContentSource,
   private val screen: ThemeBuilderScreen,
   private val navigator: Navigator,
 ) : Presenter<ThemeBuilderUiState> {
@@ -100,6 +104,8 @@ class ThemeBuilderPresenter(
       colorPalette = colorPalette,
     )
 
+    val previewContent by remember { previewContentSource.observe() }.collectAsState(PreviewContent())
+
     return ThemeBuilderUiState(
       theme = theme,
       name = name,
@@ -107,9 +113,14 @@ class ThemeBuilderPresenter(
       palettes = palettes,
       contrast = contrast,
       customThemeCount = customThemes.size,
+      previewContent = previewContent,
     ) { event ->
       when (event) {
         ThemeBuilderUiEvent.Back -> navigator.pop()
+
+        ThemeBuilderUiEvent.CoverThemingSettings -> {
+          navigator.goTo(SettingsScreen(SettingsScreen.Page.Appearance))
+        }
 
         ThemeBuilderUiEvent.Save -> {
           val themeToSave = if (theme.isNew) theme.copy(id = Uuid.random().toHexDashString()) else theme

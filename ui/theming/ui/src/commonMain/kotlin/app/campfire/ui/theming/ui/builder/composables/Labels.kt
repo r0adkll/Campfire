@@ -10,21 +10,23 @@ import app.campfire.ui.theming.ui.builder.ContrastLevel
 import app.campfire.ui.theming.ui.builder.PaletteKey
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import campfire.ui.theming.ui.generated.resources.Res
-import campfire.ui.theming.ui.generated.resources.contrast_check_badges
+import campfire.ui.theming.ui.generated.resources.contrast_check_account_card
 import campfire.ui.theming.ui.generated.resources.contrast_check_borders
+import campfire.ui.theming.ui.generated.resources.contrast_check_buttons
 import campfire.ui.theming.ui.generated.resources.contrast_check_card_text
-import campfire.ui.theming.ui.generated.resources.contrast_check_error_banners
+import campfire.ui.theming.ui.generated.resources.contrast_check_dialog_buttons
+import campfire.ui.theming.ui.generated.resources.contrast_check_drawer_items
 import campfire.ui.theming.ui.generated.resources.contrast_check_error_text
-import campfire.ui.theming.ui.generated.resources.contrast_check_highlights
-import campfire.ui.theming.ui.generated.resources.contrast_check_links
-import campfire.ui.theming.ui.generated.resources.contrast_check_mini_player
+import campfire.ui.theming.ui.generated.resources.contrast_check_headers
 import campfire.ui.theming.ui.generated.resources.contrast_check_navigation_bar
-import campfire.ui.theming.ui.generated.resources.contrast_check_play_buttons
+import campfire.ui.theming.ui.generated.resources.contrast_check_offline_status
 import campfire.ui.theming.ui.generated.resources.contrast_check_progress_bars
 import campfire.ui.theming.ui.generated.resources.contrast_check_screen_text
 import campfire.ui.theming.ui.generated.resources.contrast_check_selected_items
-import campfire.ui.theming.ui.generated.resources.contrast_check_snackbar_actions
+import campfire.ui.theming.ui.generated.resources.contrast_check_selected_tab_name
 import campfire.ui.theming.ui.generated.resources.contrast_check_snackbars
+import campfire.ui.theming.ui.generated.resources.contrast_check_supporting_text
+import campfire.ui.theming.ui.generated.resources.contrast_check_warnings
 import campfire.ui.theming.ui.generated.resources.theme_contrast_high
 import campfire.ui.theming.ui.generated.resources.theme_contrast_medium
 import campfire.ui.theming.ui.generated.resources.theme_contrast_standard
@@ -90,19 +92,21 @@ internal fun ContrastCheck.label(): String = stringResource(
   when (this) {
     ContrastCheck.ScreenText -> Res.string.contrast_check_screen_text
     ContrastCheck.CardText -> Res.string.contrast_check_card_text
-    ContrastCheck.Links -> Res.string.contrast_check_links
-    ContrastCheck.PlayButtons -> Res.string.contrast_check_play_buttons
+    ContrastCheck.SupportingText -> Res.string.contrast_check_supporting_text
+    ContrastCheck.DialogButtons -> Res.string.contrast_check_dialog_buttons
+    ContrastCheck.Headers -> Res.string.contrast_check_headers
+    ContrastCheck.Buttons -> Res.string.contrast_check_buttons
     ContrastCheck.ProgressBars -> Res.string.contrast_check_progress_bars
-    ContrastCheck.Highlights -> Res.string.contrast_check_highlights
+    ContrastCheck.AccountCard -> Res.string.contrast_check_account_card
     ContrastCheck.SelectedItems -> Res.string.contrast_check_selected_items
-    ContrastCheck.Badges -> Res.string.contrast_check_badges
-    ContrastCheck.MiniPlayer -> Res.string.contrast_check_mini_player
+    ContrastCheck.SelectedTabName -> Res.string.contrast_check_selected_tab_name
     ContrastCheck.NavigationBar -> Res.string.contrast_check_navigation_bar
-    ContrastCheck.ErrorBanners -> Res.string.contrast_check_error_banners
+    ContrastCheck.DrawerItems -> Res.string.contrast_check_drawer_items
+    ContrastCheck.OfflineStatus -> Res.string.contrast_check_offline_status
     ContrastCheck.ErrorText -> Res.string.contrast_check_error_text
+    ContrastCheck.Warnings -> Res.string.contrast_check_warnings
     ContrastCheck.Borders -> Res.string.contrast_check_borders
     ContrastCheck.Snackbars -> Res.string.contrast_check_snackbars
-    ContrastCheck.SnackbarActions -> Res.string.contrast_check_snackbar_actions
   },
 )
 

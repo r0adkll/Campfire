@@ -55,7 +55,7 @@ class ThemeBuilderUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
     onNodeWithText("New theme").assertExists()
-    onNodeWithText("Continue listening").assertExists()
+    onNodeWithText("Continue Listening").assertExists()
     onNodeWithText("Tap to change").assertExists()
     onNodeWithText("Readability").performScrollTo()
     onNodeWithText("Palette colors").performScrollTo()
@@ -109,7 +109,7 @@ class ThemeBuilderUiTest {
     onNodeWithText("Supporting").performScrollTo().performClick()
     onNodeWithText("Hue").assertExists()
     onNodeWithText("Colorfulness").assertExists()
-    onNodeWithText("Continue listening").assertExists()
+    onNodeWithText("Continue Listening").assertExists()
 
     onNodeWithText("Done").performClick()
     onNodeWithText("Hue").assertDoesNotExist()
@@ -185,7 +185,7 @@ class ThemeBuilderUiTest {
       Builder(
         state.copy(
           contrast = state.contrast.map {
-            if (it.check == ContrastCheck.PlayButtons) {
+            if (it.check == ContrastCheck.Buttons) {
               it.copy(lightRatio = 1.46, darkRatio = 7.0)
             } else {
               it.copy(lightRatio = 7.0, darkRatio = 7.0)
@@ -197,7 +197,8 @@ class ThemeBuilderUiTest {
     }
 
     onNodeWithText("1 part is hard to read").performScrollTo()
-    onNodeWithText("Play buttons").assertExists()
+    onNodeWithText("Outlined in the preview").assertExists()
+    onNodeWithText("Buttons and switches").assertExists()
     onNodeWithText("Light 1.5").assertExists()
   }
 
@@ -208,7 +209,7 @@ class ThemeBuilderUiTest {
       Builder(state.copy(contrast = state.contrast.map { it.copy(lightRatio = 7.0, darkRatio = 7.0) }), phone)
     }
 
-    onNodeWithText("All 15 checks pass").performScrollTo()
+    onNodeWithText("All 17 checks pass").performScrollTo()
     onNodeWithText("In light and dark mode").assertExists()
   }
 
@@ -240,6 +241,18 @@ class ThemeBuilderUiTest {
 
     onNodeWithText("Delete").performClick()
     assertEquals(ThemeBuilderUiEvent.Delete, events.last())
+  }
+
+  @Test
+  fun coverColorsNote_opensAppearanceSettings() = runComposeUiTest {
+    val events = mutableListOf<ThemeBuilderUiEvent>()
+    setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
+
+    onNode(isToggleable() and hasText("Book")).performClick()
+    onNodeWithText("Book details use cover colors").assertExists()
+    onNodeWithText("Appearance settings").performClick()
+
+    assertEquals(ThemeBuilderUiEvent.CoverThemingSettings, events.last())
   }
 
   @Test

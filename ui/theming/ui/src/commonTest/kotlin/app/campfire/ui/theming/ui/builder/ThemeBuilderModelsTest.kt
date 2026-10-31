@@ -74,7 +74,7 @@ class ThemeBuilderModelsTest {
 
   @Test
   fun contrastStatus_passesPerMode() {
-    val status = ContrastStatus(ContrastCheck.PlayButtons, lightRatio = 2.1, darkRatio = 7.0)
+    val status = ContrastStatus(ContrastCheck.Buttons, lightRatio = 2.1, darkRatio = 7.0)
 
     assertThat(status.passes(dark = false)).isFalse()
     assertThat(status.passes(dark = true)).isTrue()
