@@ -125,11 +125,11 @@ class ContrastCheckTest {
   fun contrastResults_generatedSchemeKeepsTextPairsReadable() {
     val textPairs = setOf(
       ContrastCheck.ScreenText,
-      ContrastCheck.PlayButtons,
-      ContrastCheck.Highlights,
+      ContrastCheck.Buttons,
+      ContrastCheck.AccountCard,
       ContrastCheck.SelectedItems,
-      ContrastCheck.Badges,
-      ContrastCheck.ErrorBanners,
+      ContrastCheck.OfflineStatus,
+      ContrastCheck.Warnings,
       ContrastCheck.Snackbars,
     )
     val palette = CustomThemeColors(Color(0xFF2563EB), Variant.EXPRESSIVE).toColorPalette()
@@ -141,13 +141,29 @@ class ContrastCheckTest {
   }
 
   @Test
+  fun contrastResults_everyGeneratedStylePassesEveryCheck() {
+    val seeds = listOf(Color(0xFF904B3C), Color(0xFF16A34A), Color(0xFFFFD23F), Color(0xFF7C3AED))
+    for (style in Variant.entries) {
+      for (seed in seeds) {
+        for (contrastLevel in listOf(0.0, 0.5, 1.0)) {
+          val palette = CustomThemeColors(seed, style, contrastLevel = contrastLevel).toColorPalette()
+          listOf(palette.lightColorScheme, palette.darkColorScheme).forEach { scheme ->
+            assertThat(scheme.contrastResults(), name = "$style $seed $contrastLevel")
+              .each { it.prop(ContrastResult::passes).isTrue() }
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   fun contrastResults_flagsUnreadableOverride() {
     val scheme = CustomThemeColors(Color(0xFFC0532D), Variant.TONAL_SPOT).toColorPalette().lightColorScheme
       .copy(primary = Color(0xFFFFD23F), onPrimary = Color.White)
 
-    val playButtons = scheme.contrastResults().single { it.check == ContrastCheck.PlayButtons }
+    val buttons = scheme.contrastResults().single { it.check == ContrastCheck.Buttons }
 
-    assertThat(playButtons).all {
+    assertThat(buttons).all {
       prop(ContrastResult::passes).isFalse()
       prop(ContrastResult::ratio).isCloseTo(contrastRatio(Color(0xFFFFD23F), Color.White), 0.0001)
     }

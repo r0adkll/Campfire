@@ -20,58 +20,65 @@ internal const val NON_TEXT_CONTRAST = 3.0
 
 /**
  * A pair of colors Campfire draws together, and the contrast that pair needs to stay legible.
- * Each pair comes from a real screen, so a failing check names a place in the app a user would
- * notice.
+ * Each pair is taken from a place the app theme reaches, so a failing check names something a
+ * user would notice. Book details and the player take their colors from the cover by default,
+ * so none of these depend on them.
  */
 enum class ContrastCheck(
   val background: ThemeRole,
   val foreground: ThemeRole,
   val minimumRatio: Double,
 ) {
-  /** Screen backgrounds, titles and body text. */
+  /** Titles and text on screen backgrounds, such as Home's shelf names and settings. */
   ScreenText(ThemeRole.Surface, ThemeRole.OnSurface, TEXT_CONTRAST),
 
-  /** Author names and durations on book cards. */
-  CardText(ThemeRole.SurfaceContainerHigh, ThemeRole.OnSurfaceVariant, TEXT_CONTRAST),
+  /** Titles and authors on book, series and author cards. */
+  CardText(ThemeRole.SurfaceContainerHigh, ThemeRole.OnSurface, TEXT_CONTRAST),
 
-  /** Dialog buttons and links on cards. */
-  Links(ThemeRole.SurfaceContainerHigh, ThemeRole.Primary, TEXT_CONTRAST),
+  /** The search bar's prompt and the message in dialogs. */
+  SupportingText(ThemeRole.SurfaceContainerHigh, ThemeRole.OnSurfaceVariant, TEXT_CONTRAST),
 
-  /** Continue listening, the big play button, switches. */
-  PlayButtons(ThemeRole.Primary, ThemeRole.OnPrimary, TEXT_CONTRAST),
+  /** Dialog buttons such as Cancel and Save. */
+  DialogButtons(ThemeRole.SurfaceContainerHigh, ThemeRole.Primary, TEXT_CONTRAST),
 
-  /** Listening progress under covers and the seek bar. */
-  ProgressBars(ThemeRole.PrimaryContainer, ThemeRole.Primary, NON_TEXT_CONTRAST),
+  /** Settings section headers and the active filter icon. */
+  Headers(ThemeRole.Surface, ThemeRole.Primary, TEXT_CONTRAST),
 
-  /** The user's avatar and other prominent containers. */
-  Highlights(ThemeRole.PrimaryContainer, ThemeRole.OnPrimaryContainer, TEXT_CONTRAST),
+  /** Switches that are on, and filled buttons such as Install. */
+  Buttons(ThemeRole.Primary, ThemeRole.OnPrimary, TEXT_CONTRAST),
 
-  /** The current tab, the current chapter and the mini player button. */
+  /** Listening progress along the bottom of covers. */
+  ProgressBars(ThemeRole.SurfaceContainerHighest, ThemeRole.Primary, NON_TEXT_CONTRAST),
+
+  /** The account card at the top of the navigation drawer, and the update card. */
+  AccountCard(ThemeRole.PrimaryContainer, ThemeRole.OnPrimaryContainer, TEXT_CONTRAST),
+
+  /** The selected tab's icon, the selected drawer item and the mini player. */
   SelectedItems(ThemeRole.SecondaryContainer, ThemeRole.OnSecondaryContainer, TEXT_CONTRAST),
 
-  /** Durations and "new" counts. */
-  Badges(ThemeRole.TertiaryContainer, ThemeRole.OnTertiaryContainer, TEXT_CONTRAST),
+  /** The selected tab's name in the navigation bar. */
+  SelectedTabName(ThemeRole.SurfaceContainer, ThemeRole.Secondary, TEXT_CONTRAST),
 
-  /** The chapter and time left under the mini player's title. */
-  MiniPlayer(ThemeRole.SurfaceContainerHighest, ThemeRole.OnSurfaceVariant, TEXT_CONTRAST),
-
-  /** Unselected tabs in the navigation bar. */
+  /** The other tabs in the navigation bar. */
   NavigationBar(ThemeRole.SurfaceContainer, ThemeRole.OnSurfaceVariant, TEXT_CONTRAST),
 
-  /** Banners such as "Can't reach your server". */
-  ErrorBanners(ThemeRole.ErrorContainer, ThemeRole.OnErrorContainer, TEXT_CONTRAST),
+  /** The other items in the navigation drawer. */
+  DrawerItems(ThemeRole.SurfaceContainerLow, ThemeRole.OnSurfaceVariant, TEXT_CONTRAST),
 
-  /** Field errors and destructive buttons. */
-  ErrorText(ThemeRole.Surface, ThemeRole.Error, TEXT_CONTRAST),
+  /** Working offline, in the drawer and Connection settings, and podcast episode numbers. */
+  OfflineStatus(ThemeRole.TertiaryContainer, ThemeRole.OnTertiaryContainer, TEXT_CONTRAST),
 
-  /** Text fields, outlined chips and switches that are off. */
+  /** Delete buttons and field errors in dialogs. */
+  ErrorText(ThemeRole.SurfaceContainerHigh, ThemeRole.Error, TEXT_CONTRAST),
+
+  /** Warnings such as a cover that won't load. */
+  Warnings(ThemeRole.ErrorContainer, ThemeRole.OnErrorContainer, TEXT_CONTRAST),
+
+  /** Switches that are off, and text field borders. */
   Borders(ThemeRole.Surface, ThemeRole.Outline, NON_TEXT_CONTRAST),
 
-  /** Snackbar messages such as "Marked as finished". */
+  /** Snackbars such as "Back online", and tooltips. */
   Snackbars(ThemeRole.InverseSurface, ThemeRole.InverseOnSurface, TEXT_CONTRAST),
-
-  /** Snackbar actions such as "Undo". */
-  SnackbarActions(ThemeRole.InverseSurface, ThemeRole.InversePrimary, TEXT_CONTRAST),
 }
 
 data class ContrastResult(

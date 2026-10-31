@@ -150,6 +150,9 @@ fun AiThemeBuilder(
           ThemePreviewCard(
             isDarkMode = isDarkMode,
             onDarkModeChange = { isDarkMode = it },
+            content = state.previewContent,
+            icon = state.icon,
+            onCoverThemingClick = { state.eventSink(AiThemeBuilderUiEvent.CoverThemingSettings) },
             modifier = Modifier
               .fillMaxWidth()
               .padding(horizontal = 16.dp),

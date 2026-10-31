@@ -15,26 +15,55 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import coil3.ColorImage
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.decode.DataSource
+import coil3.intercept.Interceptor
+import coil3.request.ImageResult
+import coil3.request.SuccessResult
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import java.io.File
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
 
 /**
  * Renders every preview scene side by side off-screen and writes PNGs to `build/renders` for
- * eyeballing; the assertions only guard that each render paints.
+ * eyeballing; the assertions only guard that each render paints. Covers load as flat colors, one
+ * per book, so the cards look like a real library.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class ThemePreviewRenderTest {
 
   private val renders = File("build/renders").apply { mkdirs() }
+
+  @BeforeTest
+  fun installCovers() {
+    SingletonImageLoader.reset()
+    SingletonImageLoader.setUnsafe(
+      ImageLoader.Builder(PlatformContext.INSTANCE)
+        .components { add(CoverInterceptor) }
+        .build(),
+    )
+  }
+
+  @AfterTest
+  fun tearDown() {
+    SingletonImageLoader.reset()
+  }
   private val palette = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE).toColorPalette()
 
   @Test
@@ -54,10 +83,16 @@ class ThemePreviewRenderTest {
     }
   }
 
+  @Test
+  fun `scenes while book details and the player use cover colors`() {
+    render("theme-preview-cover-colors") { Scenes(dark = false, coverTheming = CoverTheming.Default) }
+  }
+
   @Composable
   private fun Scenes(
     dark: Boolean,
     targets: ThemeTargets = ThemeTargets.None,
+    coverTheming: CoverTheming = CoverThemingOff,
   ) {
     CampfireTheme(colorPalette = palette, useDarkColors = dark) {
       Row(
@@ -70,6 +105,8 @@ class ThemePreviewRenderTest {
         PreviewScene.entries.forEach { scene ->
           ThemePreviewContent(
             scene = scene,
+            content = PreviewContent(previewLibrary(), coverTheming),
+            icon = AppTheme.Icon.Tent,
             targets = targets,
             modifier = Modifier.size(width = SCENE_WIDTH.dp, height = SCENE_HEIGHT.dp),
           )
@@ -81,11 +118,32 @@ class ThemePreviewRenderTest {
   private fun render(name: String, content: @Composable () -> Unit) {
     val width = PreviewScene.entries.size * (SCENE_WIDTH + GAP) + GAP
     val height = SCENE_HEIGHT + GAP * 2
-    ImageComposeScene(width = width * 2, height = height * 2, density = Density(2f), content = content).use { scene ->
+    ImageComposeScene(
+      width = width * 2,
+      height = height * 2,
+      density = Density(2f),
+      coroutineContext = Dispatchers.Unconfined,
+      content = content,
+    ).use { scene ->
+      // The first frame starts the cover requests; the second draws them.
+      scene.render()
       val bytes = scene.render(nanoTime = 1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
       File(renders, "$name.png").writeBytes(bytes)
       println("rendered ${File(renders, "$name.png").absolutePath}")
       assertTrue(bytes.size > 1_000)
+    }
+  }
+
+  /** Resolves each cover URL to a muted color picked from it, standing in for cover art. */
+  private object CoverInterceptor : Interceptor {
+    override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
+      val hue = (chain.request.data.toString().hashCode() and 0xFFFF) % 360
+      val color = Color.hsl(hue.toFloat(), saturation = 0.45f, lightness = 0.42f)
+      return SuccessResult(
+        image = ColorImage(color.toArgb(), width = 400, height = 400),
+        request = chain.request,
+        dataSource = DataSource.MEMORY,
+      )
     }
   }
 
