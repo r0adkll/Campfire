@@ -5,6 +5,7 @@ package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,10 +26,17 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
+import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.ListeningDatesEditor
 import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.mark_finished_snackbar
+import campfire.features.libraries.ui.generated.resources.mark_finished_snackbar_set_date
+import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 class ExpressiveControlSlot(
   private val libraryItem: LibraryItem,
@@ -43,6 +51,8 @@ class ExpressiveControlSlot(
   @get:VisibleForTesting val canDownload: Boolean = true,
   @get:VisibleForTesting val canStreamHls: Boolean = false,
   @get:VisibleForTesting val willStreamHls: Boolean = false,
+  /** Changes the date the item finished, which marking it finished offers to do where given. */
+  private val listeningDatesEditor: ListeningDatesEditor? = null,
 ) : ContentSlot {
 
   override val id: String = "expressive_control_bar"
@@ -60,6 +70,10 @@ class ExpressiveControlSlot(
 
     val scope = rememberCoroutineScope()
     val snackBarHost = LocalSnackBarHost.current
+    // Only read where there are dates to set, so the bar can be shown without overlays
+    val overlayHost = if (listeningDatesEditor != null) LocalOverlayHost.current else null
+    val markedFinishedMessage = stringResource(Res.string.mark_finished_snackbar)
+    val setDateLabel = stringResource(Res.string.mark_finished_snackbar_set_date)
     var showAddToPlaylistDialog by remember { mutableStateOf(false) }
     if (showAddToPlaylistDialog) {
       addToPlaylistDialog.Content(
@@ -114,6 +128,19 @@ class ExpressiveControlSlot(
       },
       onMarkFinished = {
         eventSink(LibraryItemUiEvent.MarkFinished(libraryItem))
+        // Marked by hand, the finish date is today's, which is seldom when it was really finished
+        scope.launch {
+          val result = snackBarHost.showSnackbar(
+            message = markedFinishedMessage,
+            actionLabel = setDateLabel.takeIf { listeningDatesEditor != null },
+            duration = SnackbarDuration.Long,
+          )
+          if (result == SnackbarResult.ActionPerformed) {
+            if (listeningDatesEditor != null && overlayHost != null) {
+              listeningDatesEditor.edit(libraryItem, ListeningDate.Finished, overlayHost, snackBarHost)
+            }
+          }
+        }
       },
       onMarkNotFinished = {
         eventSink(LibraryItemUiEvent.MarkNotFinished(libraryItem))

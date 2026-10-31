@@ -84,6 +84,7 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     dispatcherProvider = dispatcherProvider,
+    listeningDatesEditor = { _, _, _, _ -> },
   )
 
   internal val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker =

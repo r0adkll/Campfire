@@ -62,6 +62,7 @@ import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.libraries.ui.detail.dates.ListeningDatesEditor
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
@@ -123,6 +124,7 @@ class BookPresenter(
   private val themeManager: ThemeManager,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val dispatcherProvider: DispatcherProvider,
+  private val listeningDatesEditor: ListeningDatesEditor,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -280,6 +282,7 @@ class BookPresenter(
       session = itemSession.sessionOrNull(),
       isQueued = isQueued,
       addToPlaylistDialog = addToPlaylistDialog,
+      listeningDatesEditor = listeningDatesEditor,
       collapseListenedChapters = collapseListenedChapters,
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls && offlineDownloadState?.isAvailable != true,
@@ -483,6 +486,7 @@ private fun buildSlots(
   isQueued: Boolean,
   session: Session?,
   addToPlaylistDialog: AddToPlaylistDialog,
+  listeningDatesEditor: ListeningDatesEditor,
   collapseListenedChapters: Boolean,
   canStreamHls: Boolean,
   willStreamHls: Boolean,
@@ -577,6 +581,7 @@ private fun buildSlots(
           mediaProgress = mediaProgress,
           libraryItem = libraryItem,
           chapter = ebookContents.entryAt(mediaProgress.actualProgress)?.label,
+          listeningDatesEditor = listeningDatesEditor,
         )
         this += SpacerSlot.small("progress_spacer_after")
       }
@@ -593,6 +598,7 @@ private fun buildSlots(
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
       canDownload = canDownload,
       addToPlaylistDialog = addToPlaylistDialog,
+      listeningDatesEditor = listeningDatesEditor,
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls,
     )

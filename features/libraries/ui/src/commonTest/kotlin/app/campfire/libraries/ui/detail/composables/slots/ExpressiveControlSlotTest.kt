@@ -4,6 +4,10 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,15 +17,23 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.mediaProgress as readingProgress
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
+import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.composables.setCampfireContent
+import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.ListeningDatesEditor
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import assertk.assertThat
+import assertk.assertions.containsExactly
+import com.slack.circuit.overlay.ContentWithOverlays
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
@@ -109,6 +121,71 @@ class ExpressiveControlSlotTest {
     onNodeWithTag("button_discard_progress").assertExists()
     onNodeWithTag("button_mark_finished").assertExists()
   }
+
+  @Test
+  fun markingFinishedOffersToSetTheDate() = runComposeUiTest {
+    val libraryItem = libraryItem()
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val edits = mutableListOf<Pair<String, ListeningDate?>>()
+    val snackBarHost = SnackbarHostState()
+    val slot = markFinishedSlot(
+      libraryItem = libraryItem,
+      listeningDatesEditor = { item, date, _, _ -> edits += item.id to date },
+    )
+
+    setCampfireContent {
+      CompositionLocalProvider(LocalSnackBarHost provides snackBarHost) {
+        ContentWithOverlays {
+          Column {
+            slot.Content(Modifier) { events += it }
+            SnackbarHost(snackBarHost)
+          }
+        }
+      }
+    }
+
+    onNodeWithTag("button_mark_finished").performClick()
+    onNodeWithText("Marked as finished").assertExists()
+    onNodeWithText("Set date").performClick()
+
+    waitUntil { edits.isNotEmpty() }
+    assertThat(events).containsExactly(LibraryItemUiEvent.MarkFinished(libraryItem))
+    assertThat(edits).containsExactly(libraryItem.id to ListeningDate.Finished)
+  }
+
+  @Test
+  fun withoutDatesToSetMarkingFinishedOnlySaysSo() = runComposeUiTest {
+    val snackBarHost = SnackbarHostState()
+    val slot = markFinishedSlot(libraryItem = libraryItem(), listeningDatesEditor = null)
+
+    setCampfireContent {
+      CompositionLocalProvider(LocalSnackBarHost provides snackBarHost) {
+        Column {
+          slot.Content(Modifier) {}
+          SnackbarHost(snackBarHost)
+        }
+      }
+    }
+
+    onNodeWithTag("button_mark_finished").performClick()
+    onNodeWithText("Marked as finished").assertExists()
+    onNodeWithText("Set date").assertDoesNotExist()
+  }
+
+  private fun markFinishedSlot(
+    libraryItem: LibraryItem,
+    listeningDatesEditor: ListeningDatesEditor?,
+  ) = ExpressiveControlSlot(
+    libraryItem = libraryItem,
+    offlineDownload = null,
+    mediaProgress = null,
+    isCurrentSession = false,
+    isQueued = false,
+    hasSession = false,
+    addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    showConfirmDownloadDialogSetting = false,
+    listeningDatesEditor = listeningDatesEditor,
+  )
 
   @Test
   fun hasFinishedProgressContentTest() = runComposeUiTest {
