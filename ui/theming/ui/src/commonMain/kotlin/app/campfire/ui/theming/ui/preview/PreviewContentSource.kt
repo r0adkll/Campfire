@@ -4,6 +4,8 @@
 package app.campfire.ui.theming.ui.preview
 
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.ShelfEntity
@@ -59,13 +61,14 @@ class DefaultPreviewContentSource(
   private fun observeLibrary(): Flow<PreviewLibrary> {
     val shelves = homeRepository.observeHomeFeed()
       .map { it.dataOrNull.orEmpty() }
+      .orFallback("the home feed", emptyList())
       .distinctUntilChanged()
       .flatMapLatest { shelves ->
         combine(
-          observeShelf(shelves.firstOrNull { it.id == ShelfIds.ContinueListening }),
+          observeShelf(shelves.serverShelf(ShelfIds.ContinueListening)),
           observeShelf(
-            shelves.firstOrNull { it.id == ShelfIds.RecentlyAdded }
-              ?: shelves.firstOrNull { it.id == ShelfIds.EpisodesRecentlyAdded },
+            shelves.serverShelf(ShelfIds.RecentlyAdded)
+              ?: shelves.serverShelf(ShelfIds.EpisodesRecentlyAdded),
           ),
         ) { continueListening, recentlyAdded -> continueListening to recentlyAdded }
       }
@@ -82,11 +85,12 @@ class DefaultPreviewContentSource(
         sortMode = sortMode,
         sortDirection = sortDirection,
       )
-    }
+    }.orFallback("the library's size", null)
 
     val isPodcastLibrary = libraryRepository.observeCurrentLibrary(refresh = false)
       .map { it.mediaType == MediaType.Podcast }
       .onStart { emit(false) }
+      .orFallback("the current library", false)
 
     return combine(shelves, layout, itemCount, isPodcastLibrary) { shelfPair, layoutSettings, count, isPodcast ->
       val (continueListening, recentlyAdded) = shelfPair
@@ -112,7 +116,6 @@ class DefaultPreviewContentSource(
           library
         }
       }
-      .catch { emit(PreviewLibrary.Samples) }
   }
 
   private fun observeShelf(shelf: Shelf?): Flow<PreviewShelf> {
@@ -125,6 +128,27 @@ class DefaultPreviewContentSource(
         )
       }
       .onStart { emit(PreviewShelf(label = shelf.label, items = emptyList())) }
+      .orFallback("the ${shelf.id} shelf", PreviewShelf(label = shelf.label, items = emptyList()))
+  }
+
+  /**
+   * Stands in [fallback] for a source that fails, so one unreadable source leaves the rest of
+   * the preview showing the user's own library rather than samples.
+   */
+  private fun <T> Flow<T>.orFallback(what: String, fallback: T): Flow<T> = catch { error ->
+    bark(TAG, LogPriority.WARN, throwable = error) { "Theme preview couldn't read $what" }
+    emit(fallback)
+  }
+
+  /**
+   * The shelf the server calls [serverId]. Stored shelves carry the user and library after it
+   * (`continue-listening_<user>_<library>`), so the server's id is only the start.
+   */
+  private fun List<Shelf>.serverShelf(serverId: String): Shelf? =
+    firstOrNull { it.id == serverId || it.id.startsWith(serverId + "_") }
+
+  private companion object {
+    const val TAG = "PreviewContentSource"
   }
 
   private fun ShelfEntity.toPreviewItem(): PreviewShelfItem? = when (this) {
