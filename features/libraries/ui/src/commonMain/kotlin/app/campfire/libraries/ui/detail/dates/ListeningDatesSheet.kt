@@ -46,6 +46,8 @@ import campfire.features.libraries.ui.generated.resources.listening_dates_edit
 import campfire.features.libraries.ui.generated.resources.listening_dates_finished
 import campfire.features.libraries.ui.generated.resources.listening_dates_saved_to_account
 import campfire.features.libraries.ui.generated.resources.listening_dates_started
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_pause
+import campfire.features.libraries.ui.generated.resources.listening_dates_started_recreates
 import campfire.features.libraries.ui.generated.resources.listening_dates_title
 import campfire.features.libraries.ui.generated.resources.listening_dates_unknown
 import com.slack.circuit.overlay.OverlayHost
@@ -54,10 +56,14 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Shows when [progress] was started and finished, and returns the date picked to change, or null
  * when the sheet is put away without one.
+ *
+ * @param canChangeStarted whether the start can be changed now; not while the item plays, as a
+ * sync from playback could land while the progress is being created again
  */
 suspend fun OverlayHost.showListeningDatesSheet(
   itemTitle: String?,
   progress: MediaProgress,
+  canChangeStarted: Boolean,
 ): ListeningDate? {
   val result = show(
     AdaptiveSheetOverlay<MediaProgress, ListeningDatesResult>(
@@ -72,6 +78,7 @@ suspend fun OverlayHost.showListeningDatesSheet(
       ListeningDatesSheet(
         itemTitle = itemTitle,
         progress = model,
+        canChangeStarted = canChangeStarted,
         onDateClick = { navigator.finish(ListeningDatesResult.Edit(it)) },
       )
     },
@@ -85,13 +92,14 @@ internal sealed interface ListeningDatesResult {
 }
 
 /**
- * The dates [progress] keeps, each with a way to change it where it can be. Audiobookshelf only
- * lets a progress's start date be set when the progress is first made, so it shows without one.
+ * The dates [progress] keeps, each with a way to change it. Audiobookshelf only sets a progress's
+ * start when it creates the progress, so the start says that changing it creates it again.
  */
 @Composable
 internal fun ListeningDatesSheet(
   itemTitle: String?,
   progress: MediaProgress,
+  canChangeStarted: Boolean,
   onDateClick: (ListeningDate) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -129,7 +137,18 @@ internal fun ListeningDatesSheet(
           contentDescription = null,
         )
       },
-      onClick = null,
+      supporting = stringResource(
+        if (canChangeStarted) {
+          Res.string.listening_dates_started_recreates
+        } else {
+          Res.string.listening_dates_started_pause
+        },
+      ),
+      onClick = if (canChangeStarted) {
+        { onDateClick(ListeningDate.Started) }
+      } else {
+        null
+      },
       modifier = Modifier.testTag("listening_date_started"),
     )
 
@@ -177,6 +196,7 @@ private fun ListeningDateRow(
   icon: @Composable () -> Unit,
   onClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
+  supporting: String? = null,
 ) {
   val editLabel = stringResource(Res.string.listening_dates_edit)
   ListItem(
@@ -184,6 +204,7 @@ private fun ListeningDateRow(
     headlineContent = {
       Text(date?.asDate()?.readableFormat ?: stringResource(Res.string.listening_dates_unknown))
     },
+    supportingContent = supporting?.let { { Text(it) } },
     leadingContent = icon,
     trailingContent = if (onClick != null) {
       {
