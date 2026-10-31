@@ -111,6 +111,7 @@ internal fun PreviewSceneTabs(
     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
   ) {
     PreviewScene.entries.forEachIndexed { index, option ->
+      val label = option.label()
       OutlinedToggleButton(
         checked = option == scene,
         onCheckedChange = { onSceneChange(option) },
@@ -124,10 +125,11 @@ internal fun PreviewSceneTabs(
           checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
         contentPadding = PaddingValues(horizontal = 4.dp),
-        modifier = Modifier.weight(1f),
+        // Wider labels get wider tabs, so five fit across a phone without cutting any short
+        modifier = Modifier.weight(label.length + TabWeightPadding),
       ) {
         Text(
-          text = option.label(),
+          text = label,
           style = MaterialTheme.typography.labelMedium,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
@@ -136,6 +138,9 @@ internal fun PreviewSceneTabs(
     }
   }
 }
+
+/** Evens out the tabs' widths, so short labels still get room around them. */
+private const val TabWeightPadding = 3f
 
 @Composable
 internal fun DarkModeSwitch(
