@@ -10,7 +10,6 @@ import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
-import app.campfire.ui.theming.ui.preview.CoverTheming
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.cash.turbine.ReceiveTurbine
 import assertk.all
@@ -263,7 +262,7 @@ class ThemeBuilderPresenterTest {
     presenter().test {
       assertThat(awaitItem().previewContent).isEqualTo(PreviewContent())
 
-      val content = PreviewContent(coverTheming = CoverTheming(bookDetails = false, player = true))
+      val content = PreviewContent(playerUsesCoverColors = false)
       previewContent.value = content
 
       assertThat(awaitState { it.previewContent == content }.previewContent).isEqualTo(content)

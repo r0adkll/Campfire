@@ -24,7 +24,6 @@ import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.builder.composables.ColorPickerPanel
-import app.campfire.ui.theming.ui.preview.CoverThemingOff
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.installTestCovers
 import app.campfire.ui.theming.ui.preview.previewLibrary
@@ -41,15 +40,15 @@ import org.jetbrains.skia.EncodedImageFormat
 /**
  * Renders the theme builder off-screen at phone and tablet widths, plus its color picker, and
  * writes PNGs to `build/renders` for eyeballing; the assertions only guard that each render paints.
- * The preview shows a test library with flat-color covers and cover theming off, so every part
- * of the theme is on show.
+ * The preview shows a test library with flat-color covers and the player's cover colors off,
+ * so the mini player shows in the theme.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class ThemeBuilderRenderTest {
 
   private val renders = File("build/renders").apply { mkdirs() }
   private val colors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE, tertiaryColor = Color(0xFF0E7490))
-  private val content = PreviewContent(previewLibrary(), CoverThemingOff)
+  private val content = PreviewContent(previewLibrary(), playerUsesCoverColors = false)
 
   @BeforeTest
   fun installCovers() = installTestCovers()

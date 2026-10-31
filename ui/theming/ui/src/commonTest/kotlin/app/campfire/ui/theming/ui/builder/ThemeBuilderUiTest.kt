@@ -248,8 +248,7 @@ class ThemeBuilderUiTest {
     val events = mutableListOf<ThemeBuilderUiEvent>()
     setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
 
-    onNode(isToggleable() and hasText("Book")).performClick()
-    onNodeWithText("Book details use cover colors").assertExists()
+    onNodeWithText("The player uses cover colors").assertExists()
     onNodeWithText("Appearance settings").performClick()
 
     assertEquals(ThemeBuilderUiEvent.CoverThemingSettings, events.last())
