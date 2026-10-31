@@ -8,6 +8,7 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -72,12 +73,22 @@ class FakeMediaProgressRepository : MediaProgressRepository {
   }
 
   var setFinishedAtResult: Result<Unit> = Result.success(Unit)
+
+  /** Holds a finish date's save until completed, where set. */
+  var setFinishedAtGate: CompletableDeferred<Unit>? = null
+
+  /** How many finish dates' saves have run to their end. */
+  var setFinishedAtCompletions = 0
+    private set
+
   override suspend fun setFinishedAt(
     libraryItemId: LibraryItemId,
     finishedAt: Long,
     episodeId: PodcastEpisodeId?,
   ): Result<Unit> {
     invocations += Invocation.SetFinishedAt(libraryItemId, finishedAt, episodeId)
+    setFinishedAtGate?.await()
+    setFinishedAtCompletions++
     return setFinishedAtResult
   }
 

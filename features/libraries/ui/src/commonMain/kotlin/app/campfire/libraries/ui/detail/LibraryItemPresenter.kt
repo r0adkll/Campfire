@@ -103,7 +103,7 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = contentState,
-      errorMessage = errorMessage ?: contentState.dataOrNull?.errorMessage,
+      errorMessage = errorMessage,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -134,12 +134,7 @@ class LibraryItemPresenter(
         }
 
         LibraryItemUiEvent.ClearError -> {
-          // Shown one at a time, so this clears whichever was showing
-          if (errorMessage != null) {
-            errorMessage = null
-          } else {
-            contentState.dataOrNull?.eventSink(event)
-          }
+          errorMessage = null
         }
 
         // If we don't handle the event then pass it through the content state

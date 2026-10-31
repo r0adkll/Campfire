@@ -79,7 +79,7 @@ suspend fun OverlayHost.showListeningDatesSheet(
   return (result as? ListeningDatesResult.Edit)?.date
 }
 
-private sealed interface ListeningDatesResult {
+internal sealed interface ListeningDatesResult {
   data object Dismissed : ListeningDatesResult
   data class Edit(val date: ListeningDate) : ListeningDatesResult
 }

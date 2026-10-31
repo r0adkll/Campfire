@@ -19,6 +19,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.mediaProgress as readingProgress
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -26,11 +27,13 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.composables.setCampfireContent
 import app.campfire.libraries.ui.detail.dates.ListeningDate
+import app.campfire.libraries.ui.detail.dates.ListeningDatesEditor
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import com.slack.circuit.overlay.ContentWithOverlays
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
@@ -123,23 +126,20 @@ class ExpressiveControlSlotTest {
   fun markingFinishedOffersToSetTheDate() = runComposeUiTest {
     val libraryItem = libraryItem()
     val events = mutableListOf<LibraryItemUiEvent>()
+    val edits = mutableListOf<Pair<String, ListeningDate?>>()
     val snackBarHost = SnackbarHostState()
-    val slot = ExpressiveControlSlot(
+    val slot = markFinishedSlot(
       libraryItem = libraryItem,
-      offlineDownload = null,
-      mediaProgress = null,
-      isCurrentSession = false,
-      isQueued = false,
-      hasSession = false,
-      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
-      showConfirmDownloadDialogSetting = false,
+      listeningDatesEditor = { item, date, _, _ -> edits += item.id to date },
     )
 
     setCampfireContent {
       CompositionLocalProvider(LocalSnackBarHost provides snackBarHost) {
-        Column {
-          slot.Content(Modifier) { events += it }
-          SnackbarHost(snackBarHost)
+        ContentWithOverlays {
+          Column {
+            slot.Content(Modifier) { events += it }
+            SnackbarHost(snackBarHost)
+          }
         }
       }
     }
@@ -148,12 +148,44 @@ class ExpressiveControlSlotTest {
     onNodeWithText("Marked as finished").assertExists()
     onNodeWithText("Set date").performClick()
 
-    waitUntil { events.size == 2 }
-    assertThat(events).containsExactly(
-      LibraryItemUiEvent.MarkFinished(libraryItem),
-      LibraryItemUiEvent.EditListeningDate(ListeningDate.Finished),
-    )
+    waitUntil { edits.isNotEmpty() }
+    assertThat(events).containsExactly(LibraryItemUiEvent.MarkFinished(libraryItem))
+    assertThat(edits).containsExactly(libraryItem.id to ListeningDate.Finished)
   }
+
+  @Test
+  fun withoutDatesToSetMarkingFinishedOnlySaysSo() = runComposeUiTest {
+    val snackBarHost = SnackbarHostState()
+    val slot = markFinishedSlot(libraryItem = libraryItem(), listeningDatesEditor = null)
+
+    setCampfireContent {
+      CompositionLocalProvider(LocalSnackBarHost provides snackBarHost) {
+        Column {
+          slot.Content(Modifier) {}
+          SnackbarHost(snackBarHost)
+        }
+      }
+    }
+
+    onNodeWithTag("button_mark_finished").performClick()
+    onNodeWithText("Marked as finished").assertExists()
+    onNodeWithText("Set date").assertDoesNotExist()
+  }
+
+  private fun markFinishedSlot(
+    libraryItem: LibraryItem,
+    listeningDatesEditor: ListeningDatesEditor?,
+  ) = ExpressiveControlSlot(
+    libraryItem = libraryItem,
+    offlineDownload = null,
+    mediaProgress = null,
+    isCurrentSession = false,
+    isQueued = false,
+    hasSession = false,
+    addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    showConfirmDownloadDialogSetting = false,
+    listeningDatesEditor = listeningDatesEditor,
+  )
 
   @Test
   fun hasFinishedProgressContentTest() = runComposeUiTest {

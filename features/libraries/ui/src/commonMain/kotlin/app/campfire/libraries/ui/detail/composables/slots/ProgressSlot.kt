@@ -6,30 +6,27 @@ package app.campfire.libraries.ui.detail.composables.slots
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Headphones
 import app.campfire.common.compose.icons.rounded.MenuBook
-import app.campfire.common.compose.widgets.dialog.CampfireDatePickerDialog
-import app.campfire.core.extensions.asDate
-import app.campfire.core.extensions.readableFormat
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.EditableInset
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
-import app.campfire.libraries.ui.detail.dates.ListeningDate
-import app.campfire.libraries.ui.detail.dates.showListeningDatesSheet
-import campfire.features.libraries.ui.generated.resources.Res
-import campfire.features.libraries.ui.generated.resources.listening_dates_finished_picker_earliest
-import campfire.features.libraries.ui.generated.resources.listening_dates_finished_picker_title
+import app.campfire.libraries.ui.detail.dates.ListeningDatesEditor
 import com.slack.circuit.overlay.LocalOverlayHost
-import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 class ProgressSlot(
   val isPlaying: Boolean,
@@ -39,11 +36,14 @@ class ProgressSlot(
   /** The chapter of an ebook being read, where its contents are known. */
   @get:VisibleForTesting val chapter: String? = null,
   @get:VisibleForTesting val kind: Kind = Kind.Item,
-  /** Whether tapping the bar opens the progress's listening dates, for finished progress. */
-  @get:VisibleForTesting val canEditDates: Boolean = false,
-  /** The listening date being picked, if any. */
-  @get:VisibleForTesting val editingDate: ListeningDate? = null,
+  /** Changes the listening dates of finished progress, which tapping the bar does where given. */
+  private val listeningDatesEditor: ListeningDatesEditor? = null,
 ) : ContentSlot {
+
+  /** Whether tapping the bar opens the progress's listening dates. */
+  @get:VisibleForTesting
+  val canEditDates: Boolean
+    get() = listeningDatesEditor != null && kind == Kind.Item && mediaProgress.isFinished
 
   /**
    * Which progress the bar shows. An item with both audio and an ebook shows a bar for each, as
@@ -76,7 +76,7 @@ class ProgressSlot(
         progress = mediaProgress,
         totalDuration = libraryItem.media.duration,
         chapter = chapter,
-        onEditDates = if (canEditDates) rememberEditDates(eventSink) else null,
+        onEditDates = listeningDatesEditor?.takeIf { canEditDates }?.let { rememberEditDates(it) },
         modifier = barModifier,
       )
 
@@ -100,39 +100,20 @@ class ProgressSlot(
         modifier = barModifier,
       )
     }
-
-    if (canEditDates && editingDate == ListeningDate.Finished) {
-      FinishedDatePicker(eventSink)
-    }
   }
 
   @Composable
-  private fun rememberEditDates(eventSink: (LibraryItemUiEvent) -> Unit): () -> Unit {
+  private fun rememberEditDates(editor: ListeningDatesEditor): () -> Unit {
     val overlayHost = LocalOverlayHost.current
+    val snackbarHost = LocalSnackBarHost.current
     val scope = rememberCoroutineScope()
+    var editing by remember { mutableStateOf<Job?>(null) }
     return {
-      scope.launch {
-        overlayHost.showListeningDatesSheet(libraryItem.media.metadata.title, mediaProgress)
-          ?.let { eventSink(LibraryItemUiEvent.EditListeningDate(it)) }
+      // A second tap while the dates are open would only queue them up again behind the first
+      if (editing?.isActive != true) {
+        editing = scope.launch { editor.edit(libraryItem, null, overlayHost, snackbarHost) }
       }
     }
-  }
-
-  @Composable
-  private fun FinishedDatePicker(eventSink: (LibraryItemUiEvent) -> Unit) {
-    val today = Clock.System.now().toEpochMilliseconds().asDate()
-    val startedOn = mediaProgress.startedAt.takeIf { it > 0L }?.asDate()?.takeIf { it <= today }
-    CampfireDatePickerDialog(
-      title = stringResource(Res.string.listening_dates_finished_picker_title),
-      initialDate = mediaProgress.finishedAt?.asDate() ?: today,
-      earliest = startedOn,
-      latest = today,
-      supportingText = startedOn?.let {
-        stringResource(Res.string.listening_dates_finished_picker_earliest, it.readableFormat)
-      },
-      onConfirm = { eventSink(LibraryItemUiEvent.ChangeListeningDate(ListeningDate.Finished, it)) },
-      onDismissRequest = { eventSink(LibraryItemUiEvent.DismissListeningDate) },
-    )
   }
 }
 
