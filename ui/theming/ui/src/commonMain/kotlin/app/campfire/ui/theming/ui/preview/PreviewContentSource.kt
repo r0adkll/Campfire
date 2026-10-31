@@ -4,6 +4,8 @@
 package app.campfire.ui.theming.ui.preview
 
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.ShelfEntity
@@ -31,8 +33,8 @@ fun interface PreviewContentSource {
 }
 
 /**
- * The user's own Home shelves, library size and layout, and whether their book details and player
- * use cover colors. It reads what's cached and never waits on the server, so the preview shows
+ * The user's own Home shelves, library size and layout, and whether the player uses cover
+ * colors. It reads what's cached and never waits on the server, so the preview shows
  * samples until there's something to show.
  */
 @ContributesBinding(UserScope::class)
@@ -46,26 +48,23 @@ class DefaultPreviewContentSource(
 
   override fun observe(): Flow<PreviewContent> = combine(
     observeLibrary(),
-    themeSettings.observeDynamicallyThemeItemDetail(),
     themeSettings.observeDynamicallyThemePlayback(),
-  ) { library, bookDetails, player ->
-    PreviewContent(
-      library = library,
-      coverTheming = CoverTheming(bookDetails = bookDetails, player = player),
-    )
+  ) { library, playerUsesCoverColors ->
+    PreviewContent(library = library, playerUsesCoverColors = playerUsesCoverColors)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   private fun observeLibrary(): Flow<PreviewLibrary> {
     val shelves = homeRepository.observeHomeFeed()
       .map { it.dataOrNull.orEmpty() }
+      .orFallback("the home feed", emptyList())
       .distinctUntilChanged()
       .flatMapLatest { shelves ->
         combine(
-          observeShelf(shelves.firstOrNull { it.id == ShelfIds.ContinueListening }),
+          observeShelf(shelves.serverShelf(ShelfIds.ContinueListening)),
           observeShelf(
-            shelves.firstOrNull { it.id == ShelfIds.RecentlyAdded }
-              ?: shelves.firstOrNull { it.id == ShelfIds.EpisodesRecentlyAdded },
+            shelves.serverShelf(ShelfIds.RecentlyAdded)
+              ?: shelves.serverShelf(ShelfIds.EpisodesRecentlyAdded),
           ),
         ) { continueListening, recentlyAdded -> continueListening to recentlyAdded }
       }
@@ -82,11 +81,12 @@ class DefaultPreviewContentSource(
         sortMode = sortMode,
         sortDirection = sortDirection,
       )
-    }
+    }.orFallback("the library's size", null)
 
     val isPodcastLibrary = libraryRepository.observeCurrentLibrary(refresh = false)
       .map { it.mediaType == MediaType.Podcast }
       .onStart { emit(false) }
+      .orFallback("the current library", false)
 
     return combine(shelves, layout, itemCount, isPodcastLibrary) { shelfPair, layoutSettings, count, isPodcast ->
       val (continueListening, recentlyAdded) = shelfPair
@@ -112,7 +112,6 @@ class DefaultPreviewContentSource(
           library
         }
       }
-      .catch { emit(PreviewLibrary.Samples) }
   }
 
   private fun observeShelf(shelf: Shelf?): Flow<PreviewShelf> {
@@ -125,6 +124,27 @@ class DefaultPreviewContentSource(
         )
       }
       .onStart { emit(PreviewShelf(label = shelf.label, items = emptyList())) }
+      .orFallback("the ${shelf.id} shelf", PreviewShelf(label = shelf.label, items = emptyList()))
+  }
+
+  /**
+   * Stands in [fallback] for a source that fails, so one unreadable source leaves the rest of
+   * the preview showing the user's own library rather than samples.
+   */
+  private fun <T> Flow<T>.orFallback(what: String, fallback: T): Flow<T> = catch { error ->
+    bark(TAG, LogPriority.WARN, throwable = error) { "Theme preview couldn't read $what" }
+    emit(fallback)
+  }
+
+  /**
+   * The shelf the server calls [serverId]. Stored shelves carry the user and library after it
+   * (`continue-listening_<user>_<library>`), so the server's id is only the start.
+   */
+  private fun List<Shelf>.serverShelf(serverId: String): Shelf? =
+    firstOrNull { it.id == serverId || it.id.startsWith(serverId + "_") }
+
+  private companion object {
+    const val TAG = "PreviewContentSource"
   }
 
   private fun ShelfEntity.toPreviewItem(): PreviewShelfItem? = when (this) {

@@ -3,7 +3,6 @@
 
 package app.campfire.ui.theming.ui.preview
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,14 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
@@ -41,7 +40,10 @@ import campfire.ui.theming.ui.generated.resources.theme_preview_show_count
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** Home: the search bar and the Continue listening and Recently added shelves. */
+/**
+ * Home, condensed: the search bar, then as many shelves of the app's own cards as fit, over the
+ * mini player and the navigation bar.
+ */
 @Composable
 internal fun HomeScene(
   content: PreviewContent,
@@ -50,73 +52,76 @@ internal fun HomeScene(
   onCoverThemingClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
-  PreviewScreen(
-    tab = PreviewTab.Home,
-    content = content,
-    icon = icon,
-    targets = targets,
-    onCoverThemingClick = onCoverThemingClick,
-    modifier = modifier,
-  ) {
-    val library = content.library
-    PreviewShelfRow(
-      label = library.continueListening.label ?: stringResource(Res.string.theme_preview_continue_listening),
-      items = library.continueListening.items,
-      targets = targets,
-    )
-    PreviewShelfRow(
-      label = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added),
-      items = library.recentlyAdded.items,
-      targets = targets,
-    )
+  val library = content.library
+  Column(modifier.fillMaxSize()) {
+    PreviewAppBar(icon, targets)
+
+    ClippedArea {
+      PreviewShelfRow(
+        label = library.continueListening.label ?: stringResource(Res.string.theme_preview_continue_listening),
+        items = library.continueListening.items,
+        targets = targets,
+      )
+      PreviewShelfRow(
+        label = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added),
+        items = library.recentlyAdded.items,
+        targets = targets,
+      )
+    }
+
+    val nowPlaying = library.nowPlaying
+    if (content.playerUsesCoverColors) {
+      CoverColorsNote(onSettingsClick = onCoverThemingClick, modifier = Modifier.padding(8.dp))
+    } else if (nowPlaying != null) {
+      PreviewMiniPlayer(nowPlaying, targets, Modifier.padding(8.dp))
+    }
+    PreviewNavigationBar(PreviewTab.Home, library.isPodcastLibrary, targets)
   }
 }
 
-/** Library: the count, sort and layout bar over the books, laid out as the user has chosen. */
+/**
+ * Library, condensed: the count, sort and layout bar over as many of the books as fit, laid out
+ * as the user has chosen, over the navigation bar.
+ */
 @Composable
 internal fun LibraryScene(
   content: PreviewContent,
-  icon: AppTheme.Icon,
   targets: ThemeTargets,
-  onCoverThemingClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
   val library = content.library
-  PreviewScreen(
-    tab = PreviewTab.Library,
-    content = content,
-    icon = icon,
-    targets = targets,
-    onCoverThemingClick = onCoverThemingClick,
-    modifier = modifier,
-  ) {
-    val isGrid = library.displayState != ItemDisplayState.List
-    // The grid and its filter bar sit inside the app's 16dp side padding; the list runs edge to edge
-    Column(if (isGrid) Modifier.padding(horizontal = 16.dp) else Modifier) {
-      FilterBar(
-        count = {
-          val count = library.itemCount ?: library.allItems.size
-          val label = if (library.isPodcastLibrary) {
-            Res.plurals.theme_preview_show_count
-          } else {
-            Res.plurals.theme_preview_book_count
-          }
-          Text(pluralStringResource(label, count, count))
-        },
-        itemDisplayState = library.displayState,
-        sortMode = library.sortMode,
-        sortDirection = library.sortDirection,
-        onSortClick = {},
-        onDisplayStateClick = {},
-        onFilterClick = {},
-        modifier = Modifier.themeTarget(ContrastCheck.ScreenText, targets),
-      )
+  val isGrid = library.displayState != ItemDisplayState.List
+  Column(modifier.fillMaxSize()) {
+    FilterBar(
+      count = {
+        val count = library.itemCount ?: library.allItems.size
+        val label = if (library.isPodcastLibrary) {
+          Res.plurals.theme_preview_show_count
+        } else {
+          Res.plurals.theme_preview_book_count
+        }
+        Text(pluralStringResource(label, count, count))
+      },
+      itemDisplayState = library.displayState,
+      sortMode = library.sortMode,
+      sortDirection = library.sortDirection,
+      onSortClick = {},
+      onDisplayStateClick = {},
+      onFilterClick = {},
+      modifier = Modifier
+        .padding(top = 8.dp)
+        // The grid and its bar sit inside the app's 16dp side padding; the list runs edge to edge
+        .padding(horizontal = if (isGrid) 16.dp else 0.dp)
+        .themeTarget(ContrastCheck.ScreenText, targets),
+    )
 
+    ClippedArea {
       if (isGrid) {
         PreviewGrid(
           items = library.allItems,
           dense = library.displayState == ItemDisplayState.GridDense,
           targets = targets,
+          modifier = Modifier.padding(horizontal = 16.dp),
         )
       } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -130,56 +135,30 @@ internal fun LibraryScene(
         }
       }
     }
+
+    PreviewNavigationBar(PreviewTab.Library, library.isPodcastLibrary, targets)
   }
 }
 
 /**
- * A Home or Library screen: the search bar and [body] scroll under the mini player and navigation
- * bar, which stay put as they do in the app.
+ * The flexible middle of a condensed screen: it takes the room left between the fixed bars, and
+ * what doesn't fit is cut off at the bottom instead of scrolling.
  */
 @Composable
-private fun PreviewScreen(
-  tab: PreviewTab,
-  content: PreviewContent,
-  icon: AppTheme.Icon,
-  targets: ThemeTargets,
-  onCoverThemingClick: (() -> Unit)?,
+private fun ColumnScope.ClippedArea(
   modifier: Modifier = Modifier,
-  body: @Composable ColumnScope.() -> Unit,
+  content: @Composable ColumnScope.() -> Unit,
 ) {
-  Box(modifier.fillMaxSize()) {
+  Box(
+    modifier = modifier
+      .weight(1f)
+      .fillMaxWidth()
+      .clipToBounds(),
+  ) {
     Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState()),
-    ) {
-      PreviewAppBar(icon, targets)
-      body()
-      // Room to scroll the last row out from under the mini player and navigation bar
-      Spacer(Modifier.height(BottomBarsHeight))
-    }
-
-    Column(Modifier.align(Alignment.BottomCenter)) {
-      val nowPlaying = content.library.nowPlaying
-      if (content.coverTheming.player) {
-        CoverColorsNote(
-          kind = CoverColorsNoteKind.MiniPlayer,
-          onSettingsClick = onCoverThemingClick,
-          modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-        )
-      } else if (nowPlaying != null) {
-        PreviewMiniPlayer(
-          nowPlaying = nowPlaying,
-          targets = targets,
-          modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-        )
-      }
-      PreviewNavigationBar(
-        selected = tab,
-        isPodcastLibrary = content.library.isPodcastLibrary,
-        targets = targets,
-      )
-    }
+      modifier = Modifier.wrapContentHeight(Alignment.Top, unbounded = true),
+      content = content,
+    )
   }
 }
 
@@ -202,13 +181,14 @@ private fun PreviewShelfRow(
     ) {
       Text(text = label, style = MaterialTheme.typography.labelLarge)
     }
+    // The row runs off the right edge, as a shelf does in the app
     Row(
       modifier = Modifier
-        .horizontalScroll(rememberScrollState())
+        .wrapContentWidth(Alignment.Start, unbounded = true)
         .padding(horizontal = 16.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      items.forEach { entry ->
+      items.take(MaxShelfCards).forEach { entry ->
         PreviewCard(entry, targets, Modifier.width(ShelfCardWidth))
       }
     }
@@ -293,10 +273,10 @@ private fun PreviewCard(
 /** Keeps the preview's cards from sharing transitions with the same books elsewhere. */
 private const val PreviewTransitionKey = "theme-preview:"
 
-private val ShelfCardWidth = 180.dp
+/** Enough to run off the right edge of the widest preview. */
+private const val MaxShelfCards = 6
+
+private val ShelfCardWidth = 136.dp
 private val GridSpacing = 8.dp
 private val LargeBarHeight = 12.dp
 private val SmallBarHeight = 8.dp
-
-/** The mini player, its margins and the navigation bar. */
-private val BottomBarsHeight: Dp = 56.dp + 16.dp + 80.dp

@@ -5,6 +5,7 @@ package app.campfire.ui.theming.ui.preview
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,14 +26,18 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
@@ -49,6 +54,7 @@ import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Playlists
 import app.campfire.common.compose.icons.outline.Podcasts
 import app.campfire.common.compose.icons.outline.Series
+import app.campfire.common.compose.icons.rounded.Palette
 import app.campfire.common.compose.icons.rounded.Pause
 import app.campfire.common.compose.icons.rounded.Replay10
 import app.campfire.common.compose.icons.rounded.Search
@@ -58,6 +64,8 @@ import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_preview_chapter
+import campfire.ui.theming.ui.generated.resources.theme_preview_cover_colors_mini_player
+import campfire.ui.theming.ui.generated.resources.theme_preview_cover_colors_settings
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_authors
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_home
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_latest
@@ -241,9 +249,8 @@ internal fun PreviewMiniPlayer(
   ) {
     Box {
       Row(verticalAlignment = Alignment.CenterVertically) {
-        CoverImage(
+        PreviewCover(
           imageUrl = item.media.coverImageUrl,
-          contentDescription = null,
           size = 56.dp,
           shape = RoundedCornerShape(8.dp),
         )
@@ -283,3 +290,71 @@ internal fun PreviewMiniPlayer(
     }
   }
 }
+
+/**
+ * A book's cover in the copies, on the grey the app's own placeholder uses, so a book without
+ * art (the samples) still reads as a cover. Cover art isn't themed, so neither is the grey.
+ */
+@Composable
+internal fun PreviewCover(
+  imageUrl: String?,
+  size: Dp,
+  shape: Shape,
+  modifier: Modifier = Modifier,
+) {
+  CoverImage(
+    imageUrl = imageUrl,
+    contentDescription = null,
+    size = size,
+    shape = shape,
+    modifier = modifier.background(MissingCoverColor, shape),
+  )
+}
+
+private val MissingCoverColor = Color(0xFFABABAB)
+
+/**
+ * Stands in for the mini player while the player takes its colors from book covers, which it
+ * does by default, so this theme doesn't reach it; [onSettingsClick] opens the setting that
+ * changes that. It's drawn in neutral outline colors so it doesn't read as the player itself,
+ * and opaque, as the player it stands in for floats over the shelves.
+ */
+@Composable
+internal fun CoverColorsNote(
+  onSettingsClick: (() -> Unit)?,
+  modifier: Modifier = Modifier,
+) {
+  val colors = MaterialTheme.colorScheme
+  Row(
+    modifier = modifier
+      .fillMaxWidth()
+      .height(56.dp)
+      .background(colors.surface, RoundedCornerShape(12.dp))
+      .border(1.dp, colors.outlineVariant, RoundedCornerShape(12.dp))
+      .padding(start = 16.dp, end = 4.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Icon(
+      CampfireIcons.Rounded.Palette,
+      contentDescription = null,
+      tint = colors.onSurfaceVariant,
+      modifier = Modifier.size(20.dp),
+    )
+    Spacer(Modifier.width(12.dp))
+    Text(
+      text = stringResource(Res.string.theme_preview_cover_colors_mini_player),
+      style = MaterialTheme.typography.bodyMedium,
+      color = colors.onSurfaceVariant,
+      maxLines = 2,
+      modifier = Modifier.weight(1f),
+    )
+    if (onSettingsClick != null) {
+      TextButton(onClick = onSettingsClick) {
+        Text(stringResource(Res.string.theme_preview_cover_colors_settings))
+      }
+    }
+  }
+}
+
+/** The chapter the preview's mini player is on. */
+private const val PreviewChapter = 5

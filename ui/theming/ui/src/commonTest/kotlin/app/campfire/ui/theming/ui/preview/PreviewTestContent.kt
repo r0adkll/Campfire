@@ -50,5 +50,3 @@ internal fun previewLibrary(
   itemCount = itemCount,
   isPodcastLibrary = isPodcastLibrary,
 )
-
-internal val CoverThemingOff = CoverTheming(bookDetails = false, player = false)

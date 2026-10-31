@@ -46,6 +46,7 @@ class ThemePreviewRenderTest {
 
   @AfterTest
   fun tearDown() = resetTestCovers()
+
   private val palette = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE).toColorPalette()
 
   @Test
@@ -66,15 +67,24 @@ class ThemePreviewRenderTest {
   }
 
   @Test
-  fun `scenes while book details and the player use cover colors`() {
-    render("theme-preview-cover-colors") { Scenes(dark = false, coverTheming = CoverTheming.Default) }
+  fun `scenes while the player uses cover colors`() {
+    render("theme-preview-cover-colors") { Scenes(dark = false, playerUsesCoverColors = true) }
+  }
+
+  @Test
+  fun `scenes in a phone's preview pane`() {
+    render("theme-preview-phone", sceneWidth = PHONE_WIDTH, sceneHeight = PHONE_HEIGHT) {
+      Scenes(dark = false, sceneWidth = PHONE_WIDTH, sceneHeight = PHONE_HEIGHT)
+    }
   }
 
   @Composable
   private fun Scenes(
     dark: Boolean,
     targets: ThemeTargets = ThemeTargets.None,
-    coverTheming: CoverTheming = CoverThemingOff,
+    playerUsesCoverColors: Boolean = false,
+    sceneWidth: Int = SCENE_WIDTH,
+    sceneHeight: Int = SCENE_HEIGHT,
   ) {
     CampfireTheme(colorPalette = palette, useDarkColors = dark) {
       Row(
@@ -87,19 +97,24 @@ class ThemePreviewRenderTest {
         PreviewScene.entries.forEach { scene ->
           ThemePreviewContent(
             scene = scene,
-            content = PreviewContent(previewLibrary(), coverTheming),
+            content = PreviewContent(previewLibrary(), playerUsesCoverColors),
             icon = AppTheme.Icon.Tent,
             targets = targets,
-            modifier = Modifier.size(width = SCENE_WIDTH.dp, height = SCENE_HEIGHT.dp),
+            modifier = Modifier.size(width = sceneWidth.dp, height = sceneHeight.dp),
           )
         }
       }
     }
   }
 
-  private fun render(name: String, content: @Composable () -> Unit) {
-    val width = PreviewScene.entries.size * (SCENE_WIDTH + GAP) + GAP
-    val height = SCENE_HEIGHT + GAP * 2
+  private fun render(
+    name: String,
+    sceneWidth: Int = SCENE_WIDTH,
+    sceneHeight: Int = SCENE_HEIGHT,
+    content: @Composable () -> Unit,
+  ) {
+    val width = PreviewScene.entries.size * (sceneWidth + GAP) + GAP
+    val height = sceneHeight + GAP * 2
     ImageComposeScene(
       width = width * 2,
       height = height * 2,
@@ -119,6 +134,10 @@ class ThemePreviewRenderTest {
   private companion object {
     const val SCENE_WIDTH = 340
     const val SCENE_HEIGHT = 680
+
+    /** The preview pane under the scene tabs on a 412dp-wide phone. */
+    const val PHONE_WIDTH = 380
+    const val PHONE_HEIGHT = 330
     const val GAP = 16
   }
 }

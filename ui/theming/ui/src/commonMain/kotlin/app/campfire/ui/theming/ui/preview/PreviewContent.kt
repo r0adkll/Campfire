@@ -14,13 +14,13 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 
 /**
- * What the theme preview draws: the user's own books and whether their book details and player
- * take their colors from the cover instead of the theme.
+ * What the theme preview draws: the user's own books, and whether the player takes its colors
+ * from the cover of what's playing, as it does by default, instead of from the theme.
  */
 @Immutable
 data class PreviewContent(
   val library: PreviewLibrary = PreviewLibrary.Samples,
-  val coverTheming: CoverTheming = CoverTheming.Default,
+  val playerUsesCoverColors: Boolean = true,
 )
 
 /**
@@ -116,20 +116,6 @@ data class PreviewShelfItem(
   val episode: PodcastEpisode? = null,
 ) {
   val key: String get() = item.id + episode?.id.orEmpty()
-}
-
-/**
- * Whether the book details screen and the player take their colors from the book's cover, which
- * Campfire does by default. While they do, the theme doesn't reach them.
- */
-@Immutable
-data class CoverTheming(
-  val bookDetails: Boolean,
-  val player: Boolean,
-) {
-  companion object {
-    val Default = CoverTheming(bookDetails = true, player = true)
-  }
 }
 
 internal const val SampleNarrator = "Karen Savage"
