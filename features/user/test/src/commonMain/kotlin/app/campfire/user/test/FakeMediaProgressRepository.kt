@@ -92,6 +92,25 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     return setFinishedAtResult
   }
 
+  var setStartedAtResult: Result<Unit> = Result.success(Unit)
+  override suspend fun setStartedAt(
+    libraryItemId: LibraryItemId,
+    startedAt: Long,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    invocations += Invocation.SetStartedAt(libraryItemId, startedAt, episodeId)
+    return setStartedAtResult
+  }
+
+  var restoreProgressResult: Result<Unit> = Result.success(Unit)
+  override suspend fun restoreProgress(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Result<Unit> {
+    invocations += Invocation.RestoreProgress(libraryItemId, episodeId)
+    return restoreProgressResult
+  }
+
   override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
     invocations += Invocation.MarkAllFinished(keys)
   }
@@ -134,6 +153,15 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     data class SetFinishedAt(
       val libraryItemId: LibraryItemId,
       val finishedAt: Long,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
+    data class SetStartedAt(
+      val libraryItemId: LibraryItemId,
+      val startedAt: Long,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
+    data class RestoreProgress(
+      val libraryItemId: LibraryItemId,
       val episodeId: PodcastEpisodeId? = null,
     ) : Invocation
     data class MarkAllFinished(val keys: List<MediaProgressKey>) : Invocation

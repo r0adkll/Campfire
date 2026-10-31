@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -37,12 +38,31 @@ class ListeningDatesOverlaysTest {
     var picked: Result<ListeningDate?>? = null
 
     setContent {
-      WithOverlays { picked = Result.success(showListeningDatesSheet("The Martian", finishedProgress())) }
+      WithOverlays {
+        picked = Result.success(showListeningDatesSheet("The Martian", finishedProgress(), canChangeStarted = true))
+      }
     }
 
     waitUntil { onAllNodesWithText("Listening dates").fetchSemanticsNodes().isNotEmpty() }
     onNodeWithText("The Martian").assertExists()
-    // Audiobookshelf doesn't take a new start, so it's only shown
+    onNodeWithText("Changing it recreates your progress").assertExists()
+    onNodeWithTag("listening_date_started").performClick()
+
+    waitUntil { picked != null }
+    assertThat(picked).isEqualTo(Result.success(ListeningDate.Started))
+  }
+
+  @Test
+  fun whilePlayingTheSheetSaysToPauseToChangeTheStart() = runComposeUiTest {
+    var picked: Result<ListeningDate?>? = null
+
+    setContent {
+      WithOverlays {
+        picked = Result.success(showListeningDatesSheet("The Martian", finishedProgress(), canChangeStarted = false))
+      }
+    }
+
+    waitUntil { onAllNodesWithText("Pause this book to change it").fetchSemanticsNodes().isNotEmpty() }
     onNodeWithTag("listening_date_started").assertHasNoClickAction()
     onNodeWithTag("listening_date_finished").performClick()
 
@@ -79,6 +99,53 @@ class ListeningDatesOverlaysTest {
 
     waitUntil { picked != null }
     assertThat(picked).isEqualTo(Result.success(null))
+  }
+
+  @Test
+  fun theStartedPickerHandsBackTheDayPicked() = runComposeUiTest {
+    val progress = finishedProgress()
+    var picked: Result<LocalDate?>? = null
+
+    setContent {
+      WithOverlays { picked = Result.success(showStartedDatePicker(progress, today = today())) }
+    }
+
+    onNodeWithText("Started on").assertExists()
+    onNodeWithText("later days can't be picked", substring = true).assertExists()
+    onNodeWithTag("date_picker_confirm").performClick()
+
+    waitUntil { picked != null }
+    assertThat(picked).isEqualTo(Result.success(progress.startedAt.asDate()))
+  }
+
+  @Test
+  fun recreatingTheProgressGoesAheadOnlyWhenAgreed() = runComposeUiTest {
+    var agreed: Boolean? = null
+
+    setContent {
+      WithOverlays { agreed = showRecreateProgressDialog(from = LocalDate(2026, 1, 2), to = LocalDate(2026, 1, 12)) }
+    }
+
+    onNodeWithText("Change the start date?").assertExists()
+    onNodeWithTag("recreate_progress_new_start").assertTextEquals("January 12, 2026")
+    onNodeWithTag("recreate_progress_confirm").performClick()
+
+    waitUntil { agreed != null }
+    assertThat(agreed).isEqualTo(true)
+  }
+
+  @Test
+  fun backingOutOfRecreatingTheProgressSaysNo() = runComposeUiTest {
+    var agreed: Boolean? = null
+
+    setContent {
+      WithOverlays { agreed = showRecreateProgressDialog(from = null, to = LocalDate(2026, 1, 12)) }
+    }
+
+    onNodeWithText("Cancel").performClick()
+
+    waitUntil { agreed != null }
+    assertThat(agreed).isEqualTo(false)
   }
 
   /** Shows overlays on a phone-sized window, running [show] once they can be. */
