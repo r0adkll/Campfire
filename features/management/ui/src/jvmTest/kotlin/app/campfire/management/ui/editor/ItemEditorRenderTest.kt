@@ -77,7 +77,6 @@ class ItemEditorRenderTest {
           isSaving = false,
           isBehindServer = true,
           isConfirmingDiscard = false,
-          message = null,
           eventSink = {},
         ),
       )
