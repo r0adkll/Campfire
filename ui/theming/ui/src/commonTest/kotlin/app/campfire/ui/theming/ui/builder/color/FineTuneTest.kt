@@ -49,6 +49,25 @@ class FineTuneTest {
   }
 
   @Test
+  fun fixContrast_movesTheBackgroundWhenNoForegroundSuitsEveryPartDrawnWithIt() {
+    // A dark navigation bar in light mode. Its text color also draws the search bar and the
+    // drawer on pale backgrounds, so lightening the text would make those hard to read.
+    val darkBar = Color(Hct.from(30.0, 10.0, 20.0).toInt())
+    val tuned = RoleOverrides(light = mapOf(ThemeRole.SurfaceContainer to darkBar))
+    assertThat(ContrastCheck.NavigationBar.ratio(tuned, dark = false)).isLessThan(TEXT_CONTRAST)
+
+    val fixed = tuned.fixContrast(ContrastCheck.NavigationBar, dark = false, generated)
+
+    assertThat(ContrastCheck.NavigationBar.ratio(fixed, dark = false)).isGreaterThanOrEqualTo(TEXT_CONTRAST)
+    assertThat(fixed.light.keys).containsOnly(ThemeRole.SurfaceContainer)
+    ContrastCheck.entries
+      .filter { it.ratio(tuned, dark = false) >= it.minimumRatio }
+      .forEach { check ->
+        assertThat(check.ratio(fixed, dark = false), name = "$check").isGreaterThanOrEqualTo(check.minimumRatio)
+      }
+  }
+
+  @Test
   fun fixContrast_leavesAReadablePartAlone() {
     val tuned = RoleOverrides(light = mapOf(ThemeRole.Primary to Color(0xFF8A2BE2)))
 
