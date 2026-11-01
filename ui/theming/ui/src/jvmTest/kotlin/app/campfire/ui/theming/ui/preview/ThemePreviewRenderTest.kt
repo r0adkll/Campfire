@@ -78,6 +78,25 @@ class ThemePreviewRenderTest {
     }
   }
 
+  @Test
+  fun `scenes zoomed in on a part while it's fine-tuned`() {
+    val focus = mapOf(
+      PreviewScene.Home to ContrastCheck.SelectedTabName,
+      PreviewScene.Library to ContrastCheck.ProgressBars,
+      PreviewScene.Everywhere to ContrastCheck.Snackbars,
+    )
+    // A few frames: the zoom waits for the parts to lay out, then animates.
+    render("theme-preview-zoomed", sceneWidth = PHONE_WIDTH, sceneHeight = PHONE_HEIGHT, frames = 6) {
+      Scenes(
+        dark = false,
+        targets = ThemeTargets(onClick = {}),
+        sceneWidth = PHONE_WIDTH,
+        sceneHeight = PHONE_HEIGHT,
+        focus = focus::get,
+      )
+    }
+  }
+
   @Composable
   private fun Scenes(
     dark: Boolean,
@@ -85,6 +104,7 @@ class ThemePreviewRenderTest {
     playerUsesCoverColors: Boolean = false,
     sceneWidth: Int = SCENE_WIDTH,
     sceneHeight: Int = SCENE_HEIGHT,
+    focus: (PreviewScene) -> ContrastCheck? = { null },
   ) {
     CampfireTheme(colorPalette = palette, useDarkColors = dark) {
       Row(
@@ -100,6 +120,7 @@ class ThemePreviewRenderTest {
             content = PreviewContent(previewLibrary(), playerUsesCoverColors),
             icon = AppTheme.Icon.Tent,
             targets = targets,
+            focus = focus(scene),
             modifier = Modifier.size(width = sceneWidth.dp, height = sceneHeight.dp),
           )
         }
@@ -111,6 +132,7 @@ class ThemePreviewRenderTest {
     name: String,
     sceneWidth: Int = SCENE_WIDTH,
     sceneHeight: Int = SCENE_HEIGHT,
+    frames: Int = 2,
     content: @Composable () -> Unit,
   ) {
     val width = PreviewScene.entries.size * (sceneWidth + GAP) + GAP
@@ -122,9 +144,9 @@ class ThemePreviewRenderTest {
       coroutineContext = Dispatchers.Unconfined,
       content = content,
     ).use { scene ->
-      // The first frame starts the cover requests; the second draws them.
-      scene.render()
-      val bytes = scene.render(nanoTime = 1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
+      // The first frame starts the cover requests; the next draws them.
+      repeat(frames - 1) { scene.render(nanoTime = it * 1_000_000_000L) }
+      val bytes = scene.render(nanoTime = (frames - 1) * 1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
       File(renders, "$name.png").writeBytes(bytes)
       println("rendered ${File(renders, "$name.png").absolutePath}")
       assertTrue(bytes.size > 1_000)

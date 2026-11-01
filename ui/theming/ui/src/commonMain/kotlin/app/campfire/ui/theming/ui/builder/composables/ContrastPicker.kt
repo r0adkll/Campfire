@@ -4,6 +4,7 @@
 package app.campfire.ui.theming.ui.builder.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,15 +26,19 @@ import app.campfire.common.compose.icons.rounded.BrightnessLow
 import app.campfire.common.compose.icons.rounded.BrightnessMedium
 import app.campfire.ui.theming.ui.builder.ContrastLevel
 
+/**
+ * The three contrast levels as a connected button group. Below [IconsMinWidth] the buttons drop
+ * their icons, so a phone's tray or a narrow column fits the whole of each label.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ContrastPicker(
   level: ContrastLevel,
   onLevelClick: (ContrastLevel) -> Unit,
   modifier: Modifier = Modifier,
-) {
+) = BoxWithConstraints(modifier) {
+  val showIcons = maxWidth >= IconsMinWidth
   Row(
-    modifier = modifier,
     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
   ) {
     val modifiers = listOf(Modifier.weight(1f), Modifier.weight(1f), Modifier.weight(1f))
@@ -56,18 +61,23 @@ internal fun ContrastPicker(
         contentPadding = PaddingValues(horizontal = 8.dp),
         modifier = modifiers[index],
       ) {
-        Icon(
-          when (contrastLevel) {
-            ContrastLevel.Normal -> CampfireIcons.Rounded.BrightnessLow
-            ContrastLevel.Medium -> CampfireIcons.Rounded.BrightnessMedium
-            ContrastLevel.High -> CampfireIcons.Rounded.BrightnessHigh
-          },
-          contentDescription = null,
-          modifier = Modifier.size(ToggleButtonDefaults.IconSize),
-        )
-        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+        if (showIcons) {
+          Icon(
+            when (contrastLevel) {
+              ContrastLevel.Normal -> CampfireIcons.Rounded.BrightnessLow
+              ContrastLevel.Medium -> CampfireIcons.Rounded.BrightnessMedium
+              ContrastLevel.High -> CampfireIcons.Rounded.BrightnessHigh
+            },
+            contentDescription = null,
+            modifier = Modifier.size(ToggleButtonDefaults.IconSize),
+          )
+          Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+        }
         Text(contrastLevel.label(), maxLines = 1, overflow = TextOverflow.Ellipsis)
       }
     }
   }
 }
+
+/** Wide enough for each button's icon and the whole of its label. */
+private val IconsMinWidth = 352.dp

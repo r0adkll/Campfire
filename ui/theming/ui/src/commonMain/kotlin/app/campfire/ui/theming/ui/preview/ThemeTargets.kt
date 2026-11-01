@@ -3,28 +3,40 @@
 
 package app.campfire.ui.theming.ui.preview
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
@@ -32,13 +44,18 @@ import androidx.compose.ui.node.SemanticsModifierNode
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateSemantics
 import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * How the parts of a [ThemePreviewContent] respond: which ones get a warning outline because
@@ -95,12 +112,16 @@ internal fun Modifier.previewAction(onClick: () -> Unit): Modifier =
  * components handle taps of their own (cards, switches, text fields), and a part often contains
  * one, so rather than each part listening, a layer over the whole preview takes every tap and
  * gives it to the smallest part under it. That also keeps the preview's controls from reacting.
+ *
+ * With a [focus], the preview zooms in on the part it checks, so it shows at a size the user can
+ * judge, and zooms back out when [focus] clears.
  */
 @Composable
 internal fun TappablePreviewParts(
   targets: ThemeTargets,
   actionLabel: @Composable (ContrastCheck) -> String,
   modifier: Modifier = Modifier,
+  focus: ContrastCheck? = null,
   content: @Composable () -> Unit,
 ) {
   val onClick = targets.onClick
@@ -112,20 +133,87 @@ internal fun TappablePreviewParts(
   val currentOnClick by rememberUpdatedState(onClick)
   val labels = ContrastCheck.entries.associateWith { actionLabel(it) }
   val parts = remember(labels) { PreviewParts(labels) { currentOnClick(it) } }
+  val zoom = remember { PreviewZoom() }
+  var size by remember { mutableStateOf(IntSize.Zero) }
+  val padding = with(LocalDensity.current) { ZoomPadding.toPx() }
+
+  LaunchedEffect(parts, focus, size) {
+    // Wait for the parts to lay out at this size before reading where the focused one is.
+    withFrameNanos { }
+    val bounds = focus?.let(parts::boundsOf)
+    zoom.animateTo(if (bounds == null) ZoomTarget.None else zoomTo(bounds, size.toSize(), padding))
+  }
 
   CompositionLocalProvider(LocalPreviewParts provides parts) {
-    Box(modifier) {
-      content()
+    Box(
+      modifier
+        .clipToBounds()
+        .onSizeChanged { size = it },
+    ) {
+      // Taps and part bounds are both measured inside the zoomed layer, so neither needs undoing.
       Box(
         Modifier
           .matchParentSize()
-          .onPlaced { parts.layer = it }
-          .pointerHoverIcon(PointerIcon.Hand)
-          .pointerInput(parts) {
-            detectTapGestures { position -> parts.tap(position) }
+          .graphicsLayer {
+            scaleX = zoom.scale.value
+            scaleY = zoom.scale.value
+            translationX = zoom.x.value
+            translationY = zoom.y.value
+            transformOrigin = TransformOrigin(0f, 0f)
           },
-      )
+      ) {
+        content()
+        Box(
+          Modifier
+            .matchParentSize()
+            .onPlaced { parts.layer = it }
+            .pointerHoverIcon(PointerIcon.Hand)
+            .pointerInput(parts) {
+              detectTapGestures { position -> parts.tap(position) }
+            },
+        )
+      }
     }
+  }
+}
+
+/** How far the preview zooms and where it moves to, so the zoomed content still fills it. */
+@Immutable
+internal data class ZoomTarget(val scale: Float, val offset: Offset) {
+  companion object {
+    val None = ZoomTarget(1f, Offset.Zero)
+  }
+}
+
+/**
+ * Zooms a preview of [size] in on [part], centering it as far as the preview's edges allow.
+ * The whole part stays in sight, with [padding] around it, so a part as wide as the preview, like
+ * the navigation bar, doesn't zoom at all: cropping it hid the selected tab. It never zooms out,
+ * nor in past [MaxZoom].
+ */
+internal fun zoomTo(part: Rect, size: Size, padding: Float): ZoomTarget {
+  if (size.isEmpty() || part.isEmpty) return ZoomTarget.None
+  val width = part.width + padding * 2
+  val height = part.height + padding * 2
+  val scale = minOf(size.width / width, size.height / height).coerceIn(1f, MaxZoom)
+  val x = (size.width / 2 - part.center.x * scale).coerceIn(size.width - size.width * scale, 0f)
+  val y = (size.height / 2 - part.center.y * scale).coerceIn(size.height - size.height * scale, 0f)
+  return ZoomTarget(scale, Offset(x, y))
+}
+
+private const val MaxZoom = 2.5f
+private val ZoomPadding = 16.dp
+
+private class PreviewZoom {
+  val scale = Animatable(1f)
+  val x = Animatable(0f)
+  val y = Animatable(0f)
+
+  suspend fun animateTo(target: ZoomTarget) = coroutineScope {
+    val spec = tween<Float>(durationMillis = 350, easing = FastOutSlowInEasing)
+    launch { scale.animateTo(target.scale, spec) }
+    launch { x.animateTo(target.offset.x, spec) }
+    launch { y.animateTo(target.offset.y, spec) }
   }
 }
 
@@ -150,6 +238,15 @@ internal class PreviewParts(
 
   fun remove(node: PreviewTapNode) {
     nodes -= node
+  }
+
+  /** Where the first part [check] covers shows, reading top to bottom, then start to end. */
+  fun boundsOf(check: ContrastCheck): Rect? {
+    val layer = layer?.takeIf { it.isAttached } ?: return null
+    return nodes
+      .filter { it.check == check }
+      .mapNotNull { it.visibleBounds(layer) }
+      .minWithOrNull(compareBy<Rect>({ it.top }, { it.left }))
   }
 
   /** Taps the smallest part showing at [position], if there is one. */

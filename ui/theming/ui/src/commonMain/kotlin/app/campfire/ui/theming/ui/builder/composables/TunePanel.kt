@@ -26,6 +26,8 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -48,6 +50,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.asHct
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.FitScreen
+import app.campfire.common.compose.icons.rounded.ZoomIn
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.api.colorFor
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
@@ -85,6 +91,8 @@ import campfire.ui.theming.ui.generated.resources.theme_tune_reset
 import campfire.ui.theming.ui.generated.resources.theme_tune_track
 import campfire.ui.theming.ui.generated.resources.theme_tune_unchecked
 import campfire.ui.theming.ui.generated.resources.theme_tune_used_by
+import campfire.ui.theming.ui.generated.resources.theme_tune_zoom_in
+import campfire.ui.theming.ui.generated.resources.theme_tune_zoom_out
 import com.r0adkll.swatchbuckler.color.hct.Hct
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -104,6 +112,8 @@ private const val MAX_TONE = 100f
  * @param overrides the roles fine-tuned in the mode being edited.
  * @param showModeSwitch whether to offer switching modes here. On a phone the preview's own
  * switch does that, and the panel follows it.
+ * @param zoomed whether the preview is zoomed in on the part, for a button that switches it, or
+ * null for no button.
  */
 @Composable
 internal fun TunePanel(
@@ -121,6 +131,8 @@ internal fun TunePanel(
   onMirrorClick: () -> Unit,
   onDoneClick: () -> Unit,
   modifier: Modifier = Modifier,
+  zoomed: Boolean? = null,
+  onZoomChange: (Boolean) -> Unit = {},
 ) {
   val color = scheme.colorFor(role)
   val roles = check?.roles ?: listOf(role)
@@ -153,6 +165,8 @@ internal fun TunePanel(
         followColor = true
       },
       onDoneClick = onDoneClick,
+      zoomed = zoomed.takeIf { check != null },
+      onZoomChange = onZoomChange,
       modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
     )
 
@@ -188,6 +202,8 @@ private fun TunePanelHeader(
   onRoleChange: (ThemeRole) -> Unit,
   onFixContrastClick: () -> Unit,
   onDoneClick: () -> Unit,
+  zoomed: Boolean?,
+  onZoomChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -195,7 +211,7 @@ private fun TunePanelHeader(
       Column(Modifier.weight(1f)) {
         Text(
           text = check?.label() ?: role.tokenName,
-          style = MaterialTheme.typography.titleLarge,
+          style = MaterialTheme.typography.titleMedium,
         )
         Text(
           text = stringResource(if (dark) Res.string.theme_tune_editing_dark else Res.string.theme_tune_editing_light),
@@ -210,6 +226,17 @@ private fun TunePanelHeader(
           label = stringResource(Res.string.theme_fine_tune_dark_mode),
           modifier = Modifier.padding(end = 8.dp),
         )
+      }
+      if (zoomed != null) {
+        val zoomLabel = stringResource(if (zoomed) Res.string.theme_tune_zoom_out else Res.string.theme_tune_zoom_in)
+        IconButtonTooltip(text = zoomLabel) {
+          IconButton(onClick = { onZoomChange(!zoomed) }) {
+            Icon(
+              if (zoomed) CampfireIcons.Rounded.FitScreen else CampfireIcons.Rounded.ZoomIn,
+              contentDescription = zoomLabel,
+            )
+          }
+        }
       }
       FilledTonalButton(onClick = onDoneClick) {
         Text(stringResource(Res.string.theme_picker_done))
@@ -270,6 +297,14 @@ private fun TuneControls(
   }
 
   Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // Lightness first: it's the one that changes how readable the part is.
+    GradientSlider(
+      label = stringResource(Res.string.theme_tune_lightness),
+      value = sliders.tone,
+      maxValue = MAX_TONE,
+      trackColors = List(9) { colorOf(sliders.hue.toDouble(), sliders.chroma.toDouble(), it * 12.5) },
+      onValueChange = { onColorChange(sliders.set(tone = it)) },
+    )
     GradientSlider(
       label = stringResource(Res.string.theme_picker_hue),
       value = sliders.hue,
@@ -283,13 +318,6 @@ private fun TuneControls(
       maxValue = MAX_CHROMA,
       trackColors = List(7) { colorOf(sliders.hue.toDouble(), it * 20.0, sliders.tone.toDouble()) },
       onValueChange = { onColorChange(sliders.set(chroma = it)) },
-    )
-    GradientSlider(
-      label = stringResource(Res.string.theme_tune_lightness),
-      value = sliders.tone,
-      maxValue = MAX_TONE,
-      trackColors = List(9) { colorOf(sliders.hue.toDouble(), sliders.chroma.toDouble(), it * 12.5) },
-      onValueChange = { onColorChange(sliders.set(tone = it)) },
     )
 
     Row(verticalAlignment = Alignment.CenterVertically) {
