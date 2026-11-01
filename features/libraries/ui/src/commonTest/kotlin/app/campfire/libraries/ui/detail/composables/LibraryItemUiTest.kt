@@ -17,6 +17,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.window.core.layout.WindowSizeClass
@@ -35,6 +36,7 @@ import app.campfire.libraries.ui.detail.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
@@ -198,6 +200,39 @@ class LibraryItemUiTest {
     onNodeWithTag("item_action_rescan").performClick()
 
     events.assertEvent(LibraryItemUiEvent.RescanClick)
+  }
+
+  @Test
+  fun anAccountThatCanManageItems_quickMatchesFromTheMenu() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_quick_match").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.QuickMatchClick)
+  }
+
+  @Test
+  fun aQuickMatch_asksWhatItMayReplace() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user).copy(quickMatchSource = "Audible.com")) }
+
+    onNodeWithText("from the first Audible.com result", substring = true).assertExists()
+    onNodeWithTag("quick_match_replace_details").performClick()
+    onNodeWithText("A replaced cover can't be undone").assertDoesNotExist()
+    onNodeWithTag("quick_match_replace_cover").performClick()
+    onNodeWithText("A replaced cover can't be undone").assertExists()
+    onNodeWithTag("quick_match_confirm").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.QuickMatch(QuickMatchChoice(replaceDetails = true, replaceCover = true)))
+  }
+
+  @Test
+  fun aQuickMatch_canBeBackedOutOf() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(user).copy(quickMatchSource = "Audible.com")) }
+
+    onNodeWithText("Cancel").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.DismissQuickMatch)
   }
 
   @Test

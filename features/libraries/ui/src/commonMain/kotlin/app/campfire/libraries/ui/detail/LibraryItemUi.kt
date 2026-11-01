@@ -96,6 +96,7 @@ import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.manage.DeleteItemDialog
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
+import app.campfire.libraries.ui.detail.manage.QuickMatchDialog
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
@@ -226,6 +227,7 @@ fun LibraryItemContent(
                   showOverflowMenu = false
                   when (action) {
                     ItemAction.Edit -> state.eventSink(LibraryItemUiEvent.EditClick)
+                    ItemAction.QuickMatch -> state.eventSink(LibraryItemUiEvent.QuickMatchClick)
                     ItemAction.Rescan -> {
                       Analytics.send(ActionEvent("rescan_item", Click))
                       state.eventSink(LibraryItemUiEvent.RescanClick)
@@ -283,6 +285,16 @@ fun LibraryItemContent(
       item = libraryItem,
       onDismiss = { showAddToCollectionDialog = false },
       modifier = Modifier,
+    )
+  }
+
+  val quickMatchSource = state.quickMatchSource
+  if (quickMatchSource != null && libraryItem != null) {
+    QuickMatchDialog(
+      itemTitle = libraryItem.media.metadata.title.orEmpty(),
+      sourceName = quickMatchSource,
+      onConfirm = { state.eventSink(LibraryItemUiEvent.QuickMatch(it)) },
+      onDismissRequest = { state.eventSink(LibraryItemUiEvent.DismissQuickMatch) },
     )
   }
 

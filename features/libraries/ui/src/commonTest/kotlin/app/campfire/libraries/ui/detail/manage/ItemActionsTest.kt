@@ -46,21 +46,26 @@ class ItemActionsTest {
   fun anAdminWithTheServersDefaults_canEditAndRescanButNotDelete() {
     val admin = account(User.Type.Admin, update = true, delete = false)
 
-    assertThat(admin.itemActions(item)).containsExactly(ItemAction.Edit, ItemAction.Rescan)
+    assertThat(admin.itemActions(item)).containsExactly(ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Rescan)
   }
 
   @Test
   fun theRootAccount_canDoEverything() {
     val root = account(User.Type.Root, update = true, delete = true)
 
-    assertThat(root.itemActions(item)).containsExactly(ItemAction.Edit, ItemAction.Rescan, ItemAction.Delete)
+    assertThat(root.itemActions(item)).containsExactly(
+      ItemAction.Edit,
+      ItemAction.QuickMatch,
+      ItemAction.Rescan,
+      ItemAction.Delete,
+    )
   }
 
   @Test
   fun aUserGivenUpdateAndDelete_canEditAndDeleteButNotRescan() {
     val listener = account(User.Type.User, update = true, delete = true)
 
-    assertThat(listener.itemActions(item)).containsExactly(ItemAction.Edit, ItemAction.Delete)
+    assertThat(listener.itemActions(item)).containsExactly(ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Delete)
   }
 
   @Test
@@ -94,7 +99,8 @@ class ItemActionsTest {
   fun anItemThatIsASingleFile_cantBeRescanned() {
     val root = account(User.Type.Root, update = true, delete = true)
 
-    assertThat(root.itemActions(item.copy(isFile = true))).containsExactly(ItemAction.Edit, ItemAction.Delete)
+    assertThat(root.itemActions(item.copy(isFile = true)))
+      .containsExactly(ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Delete)
   }
 
   private fun account(
