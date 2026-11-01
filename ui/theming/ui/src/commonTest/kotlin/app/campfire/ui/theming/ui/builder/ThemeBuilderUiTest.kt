@@ -55,7 +55,7 @@ class ThemeBuilderUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
     onNodeWithText("New theme").assertExists()
-    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Search for your next story").assertExists()
     onNodeWithText("Tap to change").assertExists()
     onNodeWithText("Readability").performScrollTo()
     onNodeWithText("Palette colors").performScrollTo()
@@ -109,7 +109,7 @@ class ThemeBuilderUiTest {
     onNodeWithText("Supporting").performScrollTo().performClick()
     onNodeWithText("Hue").assertExists()
     onNodeWithText("Colorfulness").assertExists()
-    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Search for your next story").assertExists()
 
     onNodeWithText("Done").performClick()
     onNodeWithText("Hue").assertDoesNotExist()
