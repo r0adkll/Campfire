@@ -24,6 +24,8 @@
   <string name="theme_builder_section_color">Your color</string>
   <string name="theme_builder_color_change">Tap to change</string>
   <string name="theme_builder_use_color">Use %1$s</string>
+  <string name="theme_builder_from_your_books">From your books</string>
+  <string name="theme_builder_use_cover_color">Use the color of %1$s</string>
   <string name="theme_builder_section_style">Style</string>
   <string name="theme_builder_style_classic">Classic</string>
   <string name="theme_builder_section_contrast">Contrast</string>
