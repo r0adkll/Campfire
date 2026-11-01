@@ -345,7 +345,7 @@ private fun CoverChange(
           label = stringResource(Res.string.review_new_cover),
           contentDescription = stringResource(Res.string.cd_new_cover),
           size = newSize,
-          comparison = compare(newSize, currentSize)?.let { stringResource(it) },
+          comparison = compareCoverSizes(newSize, currentSize)?.let { stringResource(it) },
         )
       }
     }
@@ -374,7 +374,7 @@ private fun CoverChange(
 }
 
 @Composable
-private fun CoverSide(
+internal fun CoverSide(
   url: String?,
   side: Dp,
   label: String,
@@ -421,7 +421,7 @@ private fun CoverSide(
 }
 
 /** Whether [new] is noticeably bigger or smaller than [current], when both are known */
-private fun compare(new: ImageSize?, current: ImageSize?): StringResource? {
+internal fun compareCoverSizes(new: ImageSize?, current: ImageSize?): StringResource? {
   if (new == null || current == null) return null
   return when {
     new.pixels > current.pixels * NoticeableSizeChange -> Res.string.review_cover_larger

@@ -6,6 +6,7 @@ package app.campfire.management.ui.editor
 import androidx.compose.runtime.Stable
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
+import app.campfire.management.ui.cover.CoverUiState
 import app.campfire.management.ui.match.MatchUiState
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -17,6 +18,7 @@ data class ItemEditorUiState(
   /** The details being edited, null until the item has loaded */
   val draft: BookDetailsDraft?,
   val section: EditorSection,
+  val cover: CoverUiState,
   val match: MatchUiState,
   /** The source the form was last filled in from, to say so until it's saved */
   val filledFrom: String?,
@@ -39,6 +41,9 @@ data class ItemEditorUiState(
 /** A part of the editor, each its own tab */
 enum class EditorSection {
   Details,
+
+  /** Choosing a new cover, or none */
+  Cover,
 
   /** Finding the book in a source, like Audible, to fill in its details from */
   Match,

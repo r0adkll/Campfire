@@ -17,10 +17,13 @@ import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
 import app.campfire.libraries.api.BookDetailsUpdate
+import app.campfire.libraries.api.CoverUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.management.ui.cover.CoverPresenter
+import app.campfire.management.ui.cover.FakeCoverRepository
 import app.campfire.management.ui.match.FakeCoverSizeReader
 import app.campfire.management.ui.match.FakeMetadataMatchRepository
 import app.campfire.management.ui.match.MatchField
@@ -77,6 +80,7 @@ class ItemEditorPresenterTest {
   private val userRepository = FakeUserRepository()
   private val filteringRepository = FakeFilteringRepository()
   private val matchRepository = FakeMetadataMatchRepository()
+  private val coverRepository = FakeCoverRepository()
   private val navigator = FakeNavigator(ItemEditorScreen(BookId))
   private val snackbarHost = SnackbarHostState()
 
@@ -370,7 +374,7 @@ class ItemEditorPresenterTest {
 
       navigator.awaitPop()
       assertThat(libraryItemRepository.detailUpdates).containsExactly(
-        BookId to BookDetailsUpdate(subtitle = "Children of Time, Book 2", coverUrl = NewCover),
+        BookId to BookDetailsUpdate(subtitle = "Children of Time, Book 2", cover = CoverUpdate.FromUrl(NewCover)),
       )
       assertThat(awaitSnackbar().visuals.actionLabel).isEqualTo("Undo")
       cancelAndIgnoreRemainingEvents()
@@ -390,7 +394,7 @@ class ItemEditorPresenterTest {
 
       navigator.awaitPop()
       assertThat(libraryItemRepository.detailUpdates)
-        .containsExactly(BookId to BookDetailsUpdate(coverUrl = NewCover))
+        .containsExactly(BookId to BookDetailsUpdate(cover = CoverUpdate.FromUrl(NewCover)))
       val saved = awaitSnackbar()
       assertThat(saved.visuals.message).isEqualTo("Saved the details of Children of Ruin")
       assertThat(saved.visuals.actionLabel).isEqualTo(null)
@@ -417,6 +421,7 @@ class ItemEditorPresenterTest {
       libraryItemRepository = libraryItemRepository,
       userRepository = userRepository,
       filteringRepository = filteringRepository,
+      coverPresenter = CoverPresenter(coverRepository, matchRepository, FakeCoverSizeReader()),
       matchPresenter = MatchPresenter(matchRepository, FakeCoverSizeReader()),
       userScope = CoroutineScopeHolder { backgroundScope },
     )

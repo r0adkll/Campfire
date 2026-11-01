@@ -339,6 +339,35 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     return quickMatchResult(itemId, request)
   }
 
+  data class CoverSearch(val provider: String, val title: String, val author: String?)
+
+  val coverSearches = mutableListOf<CoverSearch>()
+  var searchCoversResult: suspend (CoverSearch) -> Result<List<String>> = {
+    Result.failure(NotImplementedError("Set searchCoversResult on the fake"))
+  }
+
+  override suspend fun searchCovers(provider: String, title: String, author: String?): Result<List<String>> {
+    val search = CoverSearch(provider, title, author)
+    coverSearches += search
+    return searchCoversResult(search)
+  }
+
+  val coversSet = mutableListOf<Pair<String, String>>()
+  var setLibraryItemCoverResult: Result<Unit> = Result.success(Unit)
+
+  override suspend fun setLibraryItemCover(itemId: String, path: String): Result<Unit> {
+    coversSet += itemId to path
+    return setLibraryItemCoverResult
+  }
+
+  val coversRemoved = mutableListOf<String>()
+  var removeLibraryItemCoverResult: Result<Unit> = Result.success(Unit)
+
+  override suspend fun removeLibraryItemCover(itemId: String): Result<Unit> {
+    coversRemoved += itemId
+    return removeLibraryItemCoverResult
+  }
+
   override suspend fun createPlaylist(
     libraryId: String,
     name: String,
