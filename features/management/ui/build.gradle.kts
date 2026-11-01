@@ -24,6 +24,8 @@ kotlin {
         implementation(projects.features.filters.test)
         implementation(projects.features.libraries.test)
         implementation(projects.features.user.test)
+
+        implementation(libs.molecule)
       }
     }
   }

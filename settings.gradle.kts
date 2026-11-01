@@ -219,6 +219,7 @@ include(
 )
 include(
   ":features:management:api",
+  ":features:management:impl",
   ":features:management:ui",
 )
 include(
