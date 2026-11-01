@@ -114,7 +114,8 @@ internal fun ThemePreviewContent(
  */
 private val PreviewScene.minSize: DpSize
   get() = when (this) {
-    PreviewScene.Home -> DpSize(360.dp, 470.dp)
+    // Home and Library share a size, so they draw at the same scale and their navigation bars match.
+    PreviewScene.Home -> DpSize(360.dp, 380.dp)
     PreviewScene.Library -> DpSize(360.dp, 380.dp)
     PreviewScene.Everywhere -> DpSize(480.dp, 500.dp)
   }

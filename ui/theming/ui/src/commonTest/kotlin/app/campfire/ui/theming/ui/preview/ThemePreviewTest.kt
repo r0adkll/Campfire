@@ -13,6 +13,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -23,6 +24,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
@@ -34,6 +36,9 @@ import kotlin.test.assertTrue
 class ThemePreviewTest {
 
   private val previewSize = Modifier.size(width = 400.dp, height = 720.dp)
+
+  /** The preview pane under the scene tabs on a 412dp-wide phone. */
+  private val phonePane = Modifier.size(width = 380.dp, height = 330.dp)
   private val icon = AppTheme.Icon.Tent
 
   @Test
@@ -98,6 +103,32 @@ class ThemePreviewTest {
     onNodeWithText("Shows").assertExists()
     onNodeWithText("Latest").assertExists()
     onNodeWithText("Authors").assertDoesNotExist()
+  }
+
+  @Test
+  fun homeAndLibrary_drawAtTheSameScaleInAPhonesPane() = runComposeUiTest {
+    val scene = mutableStateOf(PreviewScene.Home)
+    setContent {
+      ThemePreview(scene.value, PreviewContent(previewLibrary(), playerUsesCoverColors = false), icon, phonePane)
+    }
+
+    val homeTab = onNodeWithText("Series", useUnmergedTree = true).getBoundsInRoot()
+    scene.value = PreviewScene.Library
+    waitForIdle()
+    val libraryTab = onNodeWithText("Series", useUnmergedTree = true).getBoundsInRoot()
+
+    assertEquals(libraryTab.height, homeTab.height)
+  }
+
+  @Test
+  fun home_inAPhonesPane_showsCoversRatherThanCutOffCards() = runComposeUiTest {
+    setContent {
+      ThemePreview(PreviewScene.Home, PreviewContent(previewLibrary(), playerUsesCoverColors = false), icon, phonePane)
+    }
+
+    onNodeWithContentDescription("Project Hail Mary").assertExists()
+    onNodeWithText("Andy Weir").assertDoesNotExist()
+    onNodeWithText("Chapter 5").assertExists()
   }
 
   @Test
