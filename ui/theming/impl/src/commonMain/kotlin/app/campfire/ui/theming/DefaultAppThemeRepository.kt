@@ -15,7 +15,10 @@ import app.campfire.themes.Theme
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.db.mapping.asDbModel
+import app.campfire.ui.theming.db.mapping.asDbModels
 import app.campfire.ui.theming.db.mapping.asDomainModel
+import app.campfire.ui.theming.db.mapping.asRoleOverrides
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -28,7 +31,7 @@ import kotlin.time.measureTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
@@ -55,10 +58,7 @@ class DefaultAppThemeRepository(
       ThemeKey.Rucksack -> AppTheme.Fixed.Rucksack
       ThemeKey.Dynamic -> AppTheme.Dynamic
       is ThemeKey.Custom -> {
-        themingDb.customAppThemeQueries
-          .selectById(key.id)
-          .awaitAsOneOrNull()
-          ?.asDomainModel()
+        loadCustomTheme(key.id)
           ?.also { themeCache[key.id] = it }
           ?: AppTheme.Fixed.Tent
       }
@@ -74,11 +74,21 @@ class DefaultAppThemeRepository(
   }
 
   override fun observeCustomThemes(): Flow<List<AppTheme.Fixed>> {
-    return themingDb.customAppThemeQueries
+    val themes = themingDb.customAppThemeQueries
       .selectAll()
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
-      .map { it.map { dbEntity -> dbEntity.asDomainModel() } }
+    val overrides = themingDb.customAppThemeRoleOverrideQueries
+      .selectAll()
+      .asFlow()
+      .mapToList(dispatcherProvider.databaseRead)
+
+    return combine(themes, overrides) { themeEntities, overrideEntities ->
+      val overridesByTheme = overrideEntities.groupBy { it.themeId }
+      themeEntities.map { dbEntity ->
+        dbEntity.asDomainModel(overridesByTheme[dbEntity.id].orEmpty().asRoleOverrides())
+      }
+    }
       .onEach { themes ->
         // Update the local cache
         themeCache.putAll(
@@ -107,10 +117,7 @@ class DefaultAppThemeRepository(
     return if (cached != null) {
       Result.success(cached)
     } else {
-      val diskCached = themingDb.customAppThemeQueries
-        .selectById(id)
-        .awaitAsOneOrNull()
-        ?.asDomainModel()
+      val diskCached = loadCustomTheme(id)
 
       if (diskCached != null) {
         themeCache[id] = diskCached
@@ -119,6 +126,17 @@ class DefaultAppThemeRepository(
         Result.failure(IllegalArgumentException("Unable to find custom theme for the id '$id'"))
       }
     }
+  }
+
+  private suspend fun loadCustomTheme(id: String): AppTheme.Fixed? {
+    val entity = themingDb.customAppThemeQueries
+      .selectById(id)
+      .awaitAsOneOrNull()
+      ?: return null
+    val overrides = themingDb.customAppThemeRoleOverrideQueries
+      .selectForTheme(id)
+      .awaitAsList()
+    return entity.asDomainModel(overrides.asRoleOverrides())
   }
 
   override suspend fun saveCustomTheme(theme: AppTheme.Fixed) {
@@ -214,7 +232,14 @@ class DefaultAppThemeRepository(
           ),
         )
 
-        // 2) Insert theme
+        // 2) Replace its fine-tuned colors. Replacing the theme row above may already have
+        //    cleared them through the foreign key, so this never relies on either order.
+        themingDb.customAppThemeRoleOverrideQueries.deleteForTheme(theme.id)
+        theme.roleOverrides.asDbModels(theme.id).forEach { override ->
+          themingDb.customAppThemeRoleOverrideQueries.insert(override)
+        }
+
+        // 3) Insert theme
         themingDb.themeQueries.insertTheme(
           Theme(
             cacheKey = theme.id,
@@ -222,7 +247,7 @@ class DefaultAppThemeRepository(
           ),
         )
 
-        // 3) Insert color palette
+        // 4) Insert color palette
         themingDb.themeQueries.insertColorScheme(
           theme.colorPalette.lightColorScheme.asDbModel(theme.id, isDark = false),
         )
@@ -235,6 +260,7 @@ class DefaultAppThemeRepository(
 
   override suspend fun deleteCustomTheme(id: String) {
     themeCache.remove(id)
+    themingDb.customAppThemeRoleOverrideQueries.deleteForTheme(id)
     themingDb.customAppThemeQueries.delete(id)
     themingDb.themeQueries.deleteTheme(id)
 

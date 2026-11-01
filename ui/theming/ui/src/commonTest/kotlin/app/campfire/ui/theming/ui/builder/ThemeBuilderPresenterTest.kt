@@ -7,16 +7,22 @@ import androidx.compose.ui.graphics.Color
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
+import app.campfire.ui.theming.api.RoleOverrides
+import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import app.campfire.ui.theming.ui.builder.color.TEXT_CONTRAST
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.cash.turbine.ReceiveTurbine
 import assertk.all
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isGreaterThanOrEqualTo
 import assertk.assertions.isNotEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
@@ -178,6 +184,117 @@ class ThemeBuilderPresenterTest {
       val updated = awaitState { it.theme.tertiaryColorOverride != null }
       assertThat(updated.theme.colorPalette.lightColorScheme.tertiary)
         .isNotEqualTo(initial.theme.colorPalette.lightColorScheme.tertiary)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun roleColorPicked_tunesThePreviewButNotTheControls() = runTest {
+    presenter().test {
+      val initial = awaitItem()
+      initial.eventSink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.Primary, dark = false, color = Color.Magenta))
+
+      val tuned = awaitState { !it.roleOverrides.isEmpty }
+      assertThat(tuned.roleOverrides).isEqualTo(RoleOverrides(light = mapOf(ThemeRole.Primary to Color.Magenta)))
+      assertThat(tuned.theme.colorPalette.lightColorScheme.primary).isEqualTo(Color.Magenta)
+      assertThat(tuned.theme.colorPalette.darkColorScheme.primary)
+        .isEqualTo(initial.theme.colorPalette.darkColorScheme.primary)
+      assertThat(tuned.generatedPalette.lightColorScheme.primary)
+        .isEqualTo(initial.generatedPalette.lightColorScheme.primary)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun rolesReset_putsTheGeneratedColorsBackInThatModeOnly() = runTest {
+    presenter().test {
+      val sink = awaitItem().eventSink
+      sink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.Surface, dark = false, color = Color.Yellow))
+      sink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.Surface, dark = true, color = Color.DarkGray))
+      sink(ThemeBuilderUiEvent.RolesReset(setOf(ThemeRole.Surface, ThemeRole.OnSurface), dark = false))
+
+      val state = awaitState { it.roleOverrides.light.isEmpty() && it.roleOverrides.dark.isNotEmpty() }
+      assertThat(state.roleOverrides).isEqualTo(RoleOverrides(dark = mapOf(ThemeRole.Surface to Color.DarkGray)))
+      assertThat(state.theme.colorPalette.lightColorScheme.surface)
+        .isEqualTo(state.generatedPalette.lightColorScheme.surface)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun fixContrast_makesAHardToReadPartReadable() = runTest {
+    presenter().test {
+      val initial = awaitItem()
+      val cardColor = initial.generatedPalette.lightColorScheme.surfaceContainerHigh
+      initial.eventSink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.OnSurface, dark = false, color = cardColor))
+      val failing = awaitState { ContrastCheck.CardText in it.failingChecks(dark = false) }
+
+      failing.eventSink(ThemeBuilderUiEvent.FixContrast(ContrastCheck.CardText, dark = false))
+
+      val fixed = awaitState { ContrastCheck.CardText !in it.failingChecks(dark = false) }
+      assertThat(fixed.contrast.single { it.check == ContrastCheck.CardText }.lightRatio)
+        .isGreaterThanOrEqualTo(TEXT_CONTRAST)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun mirrorRoles_copiesFineTunesToTheOtherMode() = runTest {
+    presenter().test {
+      awaitItem().eventSink(
+        ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.SurfaceContainerHigh, dark = false, color = Color(0xFFFFF3E0)),
+      )
+      awaitState { !it.roleOverrides.isEmpty }.eventSink(
+        ThemeBuilderUiEvent.MirrorRoles(
+          roles = setOf(ThemeRole.SurfaceContainerHigh, ThemeRole.OnSurface),
+          fromDark = false,
+          check = ContrastCheck.CardText,
+        ),
+      )
+
+      val mirrored = awaitState { it.roleOverrides.dark.isNotEmpty() }
+      assertThat(mirrored.roleOverrides.dark.keys).contains(ThemeRole.SurfaceContainerHigh)
+      assertThat(ContrastCheck.CardText in mirrored.failingChecks(dark = true)).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun fineTunes_outlastStyleChanges() = runTest {
+    presenter().test {
+      awaitItem().eventSink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.Primary, dark = true, color = Color.Cyan))
+      awaitState { !it.roleOverrides.isEmpty }.eventSink(ThemeBuilderUiEvent.StyleClick(Variant.VIBRANT))
+
+      val restyled = awaitState { it.colorStyle == Variant.VIBRANT }
+      assertThat(restyled.theme.colorPalette.darkColorScheme.primary).isEqualTo(Color.Cyan)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun existingTheme_loadsItsFineTunes() = runTest {
+    val overrides = RoleOverrides(light = mapOf(ThemeRole.Outline to Color.Gray))
+    val saved = customTheme(id = "ember", name = "Ember").copy(roleOverrides = overrides)
+    repository.themes[saved.id] = saved
+
+    presenter(ThemeBuilderScreen(customThemeId = saved.id)).test {
+      val state = awaitState { it.theme.name == "Ember" && !it.roleOverrides.isEmpty }
+      assertThat(state.roleOverrides).isEqualTo(overrides)
+      assertThat(state.theme.colorPalette.lightColorScheme.outline).isEqualTo(Color.Gray)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun save_keepsTheFineTunes() = runTest {
+    presenter().test {
+      awaitItem().eventSink(ThemeBuilderUiEvent.RoleColorPicked(ThemeRole.Primary, dark = false, color = Color.Magenta))
+      awaitState { !it.roleOverrides.isEmpty }.eventSink(ThemeBuilderUiEvent.Save)
+      navigator.awaitPop()
+
+      val saved = repository.saved.single() as AppTheme.Fixed.Custom
+      assertThat(saved.roleOverrides).isEqualTo(RoleOverrides(light = mapOf(ThemeRole.Primary to Color.Magenta)))
+      assertThat(saved.colorPalette.lightColorScheme.primary).isEqualTo(Color.Magenta)
       cancelAndIgnoreRemainingEvents()
     }
   }

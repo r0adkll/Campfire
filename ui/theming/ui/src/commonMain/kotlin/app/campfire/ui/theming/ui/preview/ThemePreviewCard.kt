@@ -145,8 +145,8 @@ internal fun DarkModeSwitch(
   isDarkMode: Boolean,
   onDarkModeChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
+  label: String = stringResource(Res.string.theme_preview_dark_mode),
 ) {
-  val label = stringResource(Res.string.theme_preview_dark_mode)
   Switch(
     checked = isDarkMode,
     onCheckedChange = onDarkModeChange,

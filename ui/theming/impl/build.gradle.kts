@@ -38,6 +38,15 @@ kotlin {
       }
     }
 
+    commonTest {
+      dependencies {
+        implementation(projects.common.test)
+        implementation(projects.features.settings.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
+      }
+    }
+
     androidMain {
       dependencies {
         implementation(libs.sqldelight.android)

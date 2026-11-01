@@ -22,5 +22,11 @@ kotlin {
         api(libs.swatchbuckler.compose)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
   }
 }
