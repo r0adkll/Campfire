@@ -20,12 +20,14 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.AndroidUiModes
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.FatCheck
 import app.campfire.common.compose.theme.CampfireTheme
+import com.r0adkll.swatchbuckler.color.blend.Blend
 
 @Immutable
 class CampfireColorScheme(
@@ -57,6 +59,28 @@ fun darkCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
   loading = Color(0xffFEE650),
   onLoading = Color(0xff4A4100),
 )
+
+/** The success and loading colors for one mode, before they're harmonized with a theme. */
+fun campfireColorScheme(useDarkColors: Boolean): CampfireColorScheme =
+  if (useDarkColors) darkCampfireColorScheme() else lightCampfireColorScheme()
+
+/**
+ * This scheme with each color's hue turned toward [source], the theme's main color, using
+ * Material's harmonize: by half the difference, at most 15°, keeping each color's colorfulness and
+ * lightness. Success stays green and loading stays yellow, but they sit with the theme instead of
+ * ignoring it, and since lightness doesn't change, each pair reads as well as before (to within
+ * rounding to 8-bit color).
+ */
+fun CampfireColorScheme.harmonizedWith(source: Color): CampfireColorScheme = CampfireColorScheme(
+  success = success.harmonizedWith(source),
+  onSuccess = onSuccess.harmonizedWith(source),
+  successContainer = successContainer.harmonizedWith(source),
+  onSuccessContainer = onSuccessContainer.harmonizedWith(source),
+  loading = loading.harmonizedWith(source),
+  onLoading = onLoading.harmonizedWith(source),
+)
+
+private fun Color.harmonizedWith(source: Color): Color = Color(Blend.harmonize(toArgb(), source.toArgb()))
 
 val LocalCampfireColorScheme = staticCompositionLocalOf {
   lightCampfireColorScheme()
