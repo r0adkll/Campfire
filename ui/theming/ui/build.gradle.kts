@@ -17,7 +17,6 @@ kotlin {
 
         implementation(libs.compose.components.resources)
 
-        implementation(libs.color.picker.compose)
         implementation(libs.circuitx.overlays)
       }
     }
