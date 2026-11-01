@@ -22,8 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -94,12 +92,6 @@ fun ItemEditorUi(
   )
 
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
-  val snackbarHost = remember { SnackbarHostState() }
-  LaunchedEffect(state.message) {
-    val message = state.message ?: return@LaunchedEffect
-    snackbarHost.showSnackbar(message)
-    state.eventSink(ItemEditorUiEvent.ClearMessage)
-  }
 
   BoxWithConstraints(
     modifier = modifier
@@ -144,7 +136,6 @@ fun ItemEditorUi(
         )
       },
       modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-      snackbarHost = { SnackbarHost(snackbarHost) },
     ) { padding ->
       when {
         draft != null -> DetailsForm(

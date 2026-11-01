@@ -24,8 +24,6 @@ data class ItemEditorUiState(
   val isBehindServer: Boolean,
   /** Closing with changes waits on whether to throw them away */
   val isConfirmingDiscard: Boolean,
-  /** Something to tell, such as why a save failed */
-  val message: String?,
   val eventSink: (ItemEditorUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -44,6 +42,4 @@ sealed interface ItemEditorUiEvent : CircuitUiEvent {
 
   /** Keep the changes despite the server's details having changed meanwhile */
   data object KeepChanges : ItemEditorUiEvent
-
-  data object ClearMessage : ItemEditorUiEvent
 }

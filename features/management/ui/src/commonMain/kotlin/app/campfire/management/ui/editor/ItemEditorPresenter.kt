@@ -61,7 +61,7 @@ class ItemEditorPresenter(
   @Composable
   override fun present(): ItemEditorUiState {
     val scope = rememberRetainedCoroutineScope()
-    // The app's own, which outlasts this screen to offer undoing a save
+    // The app's own, which outlasts this screen to offer undoing a save, and says why one failed
     val snackbarHost = LocalSnackBarHost.current
 
     val user by userRepository.userFlow.collectAsState()
@@ -72,7 +72,6 @@ class ItemEditorPresenter(
     var isSaving by rememberRetained { mutableStateOf(false) }
     var isConfirmingDiscard by rememberRetained { mutableStateOf(false) }
     var keptChangesOver by rememberRetained { mutableStateOf<Media.Metadata?>(null) }
-    var message by rememberRetained { mutableStateOf<String?>(null) }
 
     LaunchedEffect(latest) {
       if (draft == null && latest != null) draft = BookDetailsDraft(latest)
@@ -90,7 +89,6 @@ class ItemEditorPresenter(
       isSaving = isSaving,
       isBehindServer = isBehindServer,
       isConfirmingDiscard = isConfirmingDiscard,
-      message = message,
     ) { event ->
       when (event) {
         ItemEditorUiEvent.Save -> {
@@ -113,12 +111,14 @@ class ItemEditorPresenter(
               .onFailure { error ->
                 bark(throwable = error) { "Failed to save the details of ${screen.libraryItemId}" }
                 isSaving = false
-                message = getString(
-                  if (error is ItemChangeNotAllowedException) {
-                    Res.string.editor_save_not_allowed
-                  } else {
-                    Res.string.editor_save_failed
-                  },
+                snackbarHost.showSnackbar(
+                  getString(
+                    if (error is ItemChangeNotAllowedException) {
+                      Res.string.editor_save_not_allowed
+                    } else {
+                      Res.string.editor_save_failed
+                    },
+                  ),
                 )
               }
           }
@@ -148,8 +148,6 @@ class ItemEditorPresenter(
         }
 
         ItemEditorUiEvent.KeepChanges -> keptChangesOver = latest
-
-        ItemEditorUiEvent.ClearMessage -> message = null
       }
     }
   }
