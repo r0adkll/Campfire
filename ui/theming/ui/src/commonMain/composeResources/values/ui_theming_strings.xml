@@ -99,6 +99,41 @@
   <string name="theme_picker_note">Lightness is set for you in light and dark mode, so pick the hue and how colorful it is.</string>
   <string name="theme_picker_suggestions">Goes with your color</string>
 
+  <string name="theme_builder_section_fine_tune">Fine-tune</string>
+  <string name="theme_fine_tune_hint_light">Tap any part of the preview, or pick one here. Tinted parts are fine-tuned in light mode.</string>
+  <string name="theme_fine_tune_hint_dark">Tap any part of the preview, or pick one here. Tinted parts are fine-tuned in dark mode.</string>
+  <string name="theme_fine_tune_state_tuned">Fine-tuned</string>
+  <string name="theme_fine_tune_dark_mode">Fine-tune dark mode</string>
+  <string name="theme_fine_tune_all_colors">All colors</string>
+  <string name="theme_fine_tune_all_colors_detail">Every color in the theme, by its Material name</string>
+
+  <string name="theme_tune_part">Fine-tune %1$s</string>
+  <string name="theme_tune_editing_light">Editing light mode</string>
+  <string name="theme_tune_editing_dark">Editing dark mode</string>
+  <string name="theme_tune_background">Background</string>
+  <string name="theme_tune_foreground">Text and icons</string>
+  <string name="theme_tune_button">Button</string>
+  <string name="theme_tune_track">Track</string>
+  <string name="theme_tune_progress">Progress</string>
+  <string name="theme_tune_borders">Borders</string>
+  <string name="theme_tune_ratio">%1$s:1</string>
+  <string name="theme_tune_readable">Readable</string>
+  <string name="theme_tune_hard_to_read">Hard to read</string>
+  <string name="theme_tune_easy_to_see">Easy to see</string>
+  <string name="theme_tune_hard_to_see">Hard to see</string>
+  <string name="theme_tune_needs">Needs %1$s:1</string>
+  <string name="theme_tune_fix">Fix contrast</string>
+  <string name="theme_tune_lightness">Lightness</string>
+  <string name="theme_tune_also_changes">Also changes: %1$s</string>
+  <string name="theme_tune_only_here">Only used here</string>
+  <string name="theme_tune_used_by">Used by: %1$s</string>
+  <string name="theme_tune_unchecked">No readability check uses this color</string>
+  <string name="theme_tune_reset">Reset</string>
+  <string name="theme_tune_mirror_to_dark">Mirror to dark mode</string>
+  <string name="theme_tune_mirror_to_light">Mirror to light mode</string>
+  <string name="theme_tune_mirrored_to_dark">Mirrored to dark mode</string>
+  <string name="theme_tune_mirrored_to_light">Mirrored to light mode</string>
+
   <string name="theme_save_title">Name your theme</string>
   <string name="theme_save_name">Name</string>
   <string name="theme_save_default_name">Custom theme %1$d</string>

@@ -6,7 +6,10 @@ package app.campfire.ui.theming.ui.preview
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -18,6 +21,7 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
@@ -197,6 +201,45 @@ class ThemePreviewTest {
   }
 
   @Test
+  fun tappingAPartInsideAnother_picksTheSmallerOne() = runComposeUiTest {
+    var tapped: ContrastCheck? = null
+    setContent {
+      ThemePreviewContent(
+        scene = PreviewScene.Home,
+        content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
+        icon = icon,
+        targets = ThemeTargets(onClick = { tapped = it }),
+        modifier = previewSize,
+      )
+    }
+
+    // The selected tab's name sits inside the navigation bar.
+    onNodeWithText("Home", useUnmergedTree = true).performClick()
+    assertEquals(ContrastCheck.SelectedTabName, tapped)
+
+    onNodeWithText("Library", useUnmergedTree = true).performClick()
+    assertEquals(ContrastCheck.NavigationBar, tapped)
+  }
+
+  @Test
+  fun parts_offerFineTuningToAccessibilityServices() = runComposeUiTest {
+    var tapped: ContrastCheck? = null
+    setContent {
+      ThemePreviewContent(
+        scene = PreviewScene.Everywhere,
+        content = PreviewContent(),
+        icon = icon,
+        targets = ThemeTargets(onClick = { tapped = it }),
+        modifier = previewSize,
+      )
+    }
+
+    onNode(hasClickLabel("Fine-tune Snackbars and tooltips")).performSemanticsAction(SemanticsActions.OnClick)
+
+    assertEquals(ContrastCheck.Snackbars, tapped)
+  }
+
+  @Test
   fun withoutAClickHandler_partsAreNotClickable() = runComposeUiTest {
     setContent {
       ThemePreviewContent(
@@ -243,4 +286,8 @@ class ThemePreviewTest {
     onNode(hasText("Library") and isToggleable()).assertIsOff()
     onNode(hasContentDescription("Preview in dark mode") and isToggleable()).assertIsOn()
   }
+}
+
+private fun hasClickLabel(label: String) = SemanticsMatcher("has click label " + label) { node ->
+  node.config.getOrNull(SemanticsActions.OnClick)?.label == label
 }

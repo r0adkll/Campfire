@@ -31,8 +31,9 @@ actual interface SqlDelightDatabasePlatformComponent {
 
     return desktopSqliteDriver(databaseFile, schema) {
       // Older desktop builds never stamped a version. This database holds user-made themes, so
-      // keep it: every table is `CREATE TABLE IF NOT EXISTS`, and the only migration so far
-      // (1.sqm) added columns to customAppTheme, so apply it when those columns are missing.
+      // keep it: every table is `CREATE TABLE IF NOT EXISTS`. 1.sqm added columns to
+      // customAppTheme, so migrate from the start when those columns are missing; 2.sqm only
+      // creates a table, which `create` has already made, and uses IF NOT EXISTS too.
       schema.create(this).value
       if (!hasColumn(table = "customAppTheme", column = "isAi")) {
         schema.migrate(this, 0, schema.version).value

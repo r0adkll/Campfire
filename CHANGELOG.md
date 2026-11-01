@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The custom theme builder shows Campfire's screens as you edit, lets you pick a style by how it looks and choose any palette color, and warns when parts of the app become hard to read
+- The custom theme builder shows Campfire's screens as you edit, lets you pick a style by how it looks, choose any palette color and fine-tune the exact colors of any part of the app in light and dark mode, and warns when parts become hard to read, with a one-tap fix
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
 - [Android] Check for app updates when you come back to Campfire, not only when it starts
 - [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update
@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
 - Podcast episodes in a playlist showing another episode's download status
 - Books whose download failed or was stopped playing as though they were downloaded
+- Empty space at the bottom of the theme picker, theme builder and Add Podcast while something is playing
 - Downloading a playlist skipping its podcast episodes
 - Podcast episodes in a playlist failing to play until their podcast's page had been opened
 - New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode

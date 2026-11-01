@@ -349,7 +349,7 @@ internal fun CoverColorsNote(
       modifier = Modifier.weight(1f),
     )
     if (onSettingsClick != null) {
-      TextButton(onClick = onSettingsClick) {
+      TextButton(onClick = onSettingsClick, modifier = Modifier.previewAction(onSettingsClick)) {
         Text(stringResource(Res.string.theme_preview_cover_colors_settings))
       }
     }
