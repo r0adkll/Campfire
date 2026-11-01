@@ -68,6 +68,24 @@ class FineTuneTest {
   }
 
   @Test
+  fun fixContrast_onADarkenedBarLeavesEveryPartReadableWhicheverPartIsFixedFirst() {
+    // The device run's loop: darkening the bar breaks both the bar and the selected tab's name.
+    // Fixing the name by lightening its own color used to leave the bar unfixable without
+    // breaking the search bar.
+    val darkBar = Color(Hct.from(30.0, 10.0, 20.0).toInt())
+    val tuned = RoleOverrides(light = mapOf(ThemeRole.SurfaceContainer to darkBar))
+
+    listOf(ContrastCheck.SelectedTabName, ContrastCheck.NavigationBar).forEach { first ->
+      val fixed = tuned.fixContrast(first, dark = false, generated)
+
+      ContrastCheck.entries.forEach { check ->
+        assertThat(check.ratio(fixed, dark = false), name = "$check after fixing $first")
+          .isGreaterThanOrEqualTo(check.minimumRatio)
+      }
+    }
+  }
+
+  @Test
   fun fixContrast_leavesAReadablePartAlone() {
     val tuned = RoleOverrides(light = mapOf(ThemeRole.Primary to Color(0xFF8A2BE2)))
 
