@@ -71,7 +71,7 @@ class ThemeBuilderUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
     onNodeWithText("New theme").assertExists()
-    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Search for your next story").assertExists()
     onNodeWithText("Tap to change").assertExists()
     onNodeWithText("Readability").performScrollTo()
     onNodeWithText("Palette colors").performScrollTo()
@@ -153,7 +153,7 @@ class ThemeBuilderUiTest {
     onNodeWithText("Supporting").performScrollTo().performClick()
     onNodeWithText("Hue").assertExists()
     onNodeWithText("Colorfulness").assertExists()
-    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Search for your next story").assertExists()
 
     onNodeWithText("Done").performClick()
     onNodeWithText("Hue").assertDoesNotExist()
@@ -262,12 +262,12 @@ class ThemeBuilderUiTest {
   fun previewPart_opensItsFineTuningInPlaceOfTheControls() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
-    onNodeWithText("Continue Listening").performClick()
+    onNodeWithText("Search for your next story").performClick()
 
-    onNodeWithText("Screen text").assertExists()
+    onNodeWithText("Search bar and dialog text").assertExists()
     onNodeWithText("Editing light mode").assertExists()
     onNodeWithText("Lightness").assertExists()
-    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Search for your next story").assertExists()
 
     onNodeWithText("Done").performClick()
     onNodeWithText("Lightness").assertDoesNotExist()
