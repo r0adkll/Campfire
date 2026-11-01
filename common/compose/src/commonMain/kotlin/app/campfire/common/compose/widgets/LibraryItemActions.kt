@@ -22,6 +22,7 @@ import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.model.LibraryItem
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.OverlayHost
+import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.launch
 
 /**
@@ -49,6 +50,11 @@ interface LibraryItemActions {
     overlayHost: OverlayHost,
     snackbarHost: SnackbarHostState,
   )
+}
+
+/** Makes the [LibraryItemActions] that go to their screens with [navigator], the app's own. */
+fun interface LibraryItemActionsFactory {
+  fun create(navigator: Navigator): LibraryItemActions
 }
 
 val LocalLibraryItemActions = staticCompositionLocalOf<LibraryItemActions?> { null }

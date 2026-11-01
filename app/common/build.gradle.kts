@@ -59,6 +59,8 @@ kotlin {
         api(projects.features.collections.impl)
         api(projects.features.collections.ui)
 
+        api(projects.features.management.ui)
+
         api(projects.features.author.impl)
         api(projects.features.author.ui)
 
@@ -124,6 +126,8 @@ kotlin {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
         implementation(libs.kotlinx.coroutines.test)
+        implementation(libs.circuit.test)
+        implementation(projects.features.management.api)
         implementation(projects.features.settings.test)
         implementation(projects.features.sessions.test)
       }

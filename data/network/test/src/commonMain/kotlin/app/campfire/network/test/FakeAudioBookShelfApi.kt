@@ -8,6 +8,7 @@ import app.campfire.network.PagedResponse
 import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -288,6 +289,16 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   override suspend fun scanLibraryItem(itemId: String): Result<String> {
     scannedLibraryItems += itemId
     return scanLibraryItemResult(itemId)
+  }
+
+  val mediaUpdates = mutableListOf<Pair<String, UpdateMediaRequest>>()
+  var updateLibraryItemMediaResult: suspend (itemId: String, request: UpdateMediaRequest) -> Result<Boolean> = { _, _ ->
+    Result.failure(NotImplementedError("Set updateLibraryItemMediaResult on the fake"))
+  }
+
+  override suspend fun updateLibraryItemMedia(itemId: String, request: UpdateMediaRequest): Result<Boolean> {
+    mediaUpdates += itemId to request
+    return updateLibraryItemMediaResult(itemId, request)
   }
 
   override suspend fun createPlaylist(

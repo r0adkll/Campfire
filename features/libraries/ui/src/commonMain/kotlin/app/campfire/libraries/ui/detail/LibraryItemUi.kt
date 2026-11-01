@@ -225,6 +225,7 @@ fun LibraryItemContent(
                 onAction = { action ->
                   showOverflowMenu = false
                   when (action) {
+                    ItemAction.Edit -> state.eventSink(LibraryItemUiEvent.EditClick)
                     ItemAction.Rescan -> {
                       Analytics.send(ActionEvent("rescan_item", Click))
                       state.eventSink(LibraryItemUiEvent.RescanClick)

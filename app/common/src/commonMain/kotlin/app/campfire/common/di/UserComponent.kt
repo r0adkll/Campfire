@@ -5,7 +5,7 @@ package app.campfire.common.di
 
 import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.screen.AnalyticConsentScreen
-import app.campfire.common.compose.widgets.LibraryItemActions
+import app.campfire.common.compose.widgets.LibraryItemActionsFactory
 import app.campfire.common.root.automation.UserAutomationDeepLinks
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.HomeScreen
@@ -64,7 +64,7 @@ interface UserComponent {
   val workOffline: WorkOffline
 
   /** What a library item's card offers on a long press, provided to every card from the root UI */
-  val libraryItemActions: LibraryItemActions
+  val libraryItemActionsFactory: LibraryItemActionsFactory
 
   @Provides @RootScreen
   fun provideRootScreen(

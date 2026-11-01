@@ -12,12 +12,15 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.dao.SqlDelightLibraryItemDao
 import app.campfire.db.DatabaseFactory
 import app.campfire.db.test.createDriver
+import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.ApiException
 import app.campfire.network.RequestOrigin
+import app.campfire.network.envelopes.UpdateBookMetadataRequest
+import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioFile
 import app.campfire.network.models.AudioMetaTags
 import app.campfire.network.models.AudioTrack
@@ -153,6 +156,54 @@ class StoreLibraryItemRepositoryTest {
 
     assertThat(rescan.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
     assertThat(delete.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
+  }
+
+  @Test
+  fun `only the details being changed are sent, a cleared one as empty text`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+
+    repository().updateBookDetails(
+      ITEM,
+      BookDetailsUpdate(title = "New title", subtitle = "", explicit = true),
+    )
+
+    assertThat(api.mediaUpdates).containsExactly(
+      ITEM to UpdateMediaRequest(
+        metadata = UpdateBookMetadataRequest(title = "New title", subtitle = "", explicit = true),
+      ),
+    )
+  }
+
+  @Test
+  fun `changed details fetch the item again`() = repositoryTest { cache ->
+    cache(audiobook(title = "Before"))
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(true) }
+    api.libraryItemResult = { Result.success(audiobook(title = "After")) }
+
+    val updated = repository().updateBookDetails(ITEM, BookDetailsUpdate(title = "After"))
+
+    assertThat(updated.getOrNull()).isEqualTo(true)
+    assertThat(api.libraryItemRequests).containsExactly(ITEM)
+    assertThat(repository().getLibraryItem(ITEM).media.metadata.title).isEqualTo("After")
+  }
+
+  @Test
+  fun `details the server already had aren't fetched again`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+
+    val updated = repository().updateBookDetails(ITEM, BookDetailsUpdate(title = "Same"))
+
+    assertThat(updated.getOrNull()).isEqualTo(false)
+    assertThat(api.libraryItemRequests).isEmpty()
+  }
+
+  @Test
+  fun `refused details are explained as not allowed`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.failure(ApiException(403)) }
+
+    val updated = repository().updateBookDetails(ITEM, BookDetailsUpdate(title = "New title"))
+
+    assertThat(updated.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
   }
 
   @Test
