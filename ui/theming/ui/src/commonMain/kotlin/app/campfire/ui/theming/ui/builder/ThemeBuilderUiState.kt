@@ -34,6 +34,8 @@ data class ThemeBuilderUiState(
   val customThemeCount: Int,
   /** The user's books and cover theming settings, for the preview. */
   val previewContent: PreviewContent,
+  /** Colors from the covers of the user's books, once their covers have been read. */
+  val coverColors: List<CoverColor>,
   val eventSink: (ThemeBuilderUiEvent) -> Unit,
 ) : CircuitUiState {
 

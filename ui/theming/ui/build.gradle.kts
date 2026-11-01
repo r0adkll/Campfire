@@ -24,6 +24,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.features.settings.test)
+        implementation(projects.ui.theming.test)
       }
     }
   }

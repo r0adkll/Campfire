@@ -8,12 +8,15 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.RoleOverrides
+import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
+import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.builder.color.TEXT_CONTRAST
 import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.previewLibrary
 import app.cash.turbine.ReceiveTurbine
 import assertk.all
 import assertk.assertThat
@@ -30,6 +33,7 @@ import assertk.assertions.prop
 import assertk.assertions.single
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
+import com.r0adkll.swatchbuckler.compose.Swatch
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.Test
@@ -43,10 +47,12 @@ class ThemeBuilderPresenterTest {
   private val repository = FakeAppThemeRepository()
   private val navigator = FakeNavigator(ThemeBuilderScreen())
   private val previewContent = MutableStateFlow(PreviewContent())
+  private val themeManager = SwatchThemeManager()
 
   private fun presenter(screen: ThemeBuilderScreen = ThemeBuilderScreen()) = ThemeBuilderPresenter(
     themeRepository = repository,
     previewContentSource = { previewContent },
+    themeManager = themeManager,
     screen = screen,
     navigator = navigator,
   )
@@ -388,6 +394,39 @@ class ThemeBuilderPresenterTest {
   }
 
   @Test
+  fun coverColors_comeFromTheUsersBooksAsTheirCoversAreRead() = runTest {
+    previewContent.value = PreviewContent(previewLibrary())
+
+    presenter().test {
+      assertThat(awaitState { it.previewContent.library.continueListening.items.isNotEmpty() }.coverColors)
+        .isEqualTo(emptyList())
+
+      themeManager.swatch("li_piranesi").value = Swatch(dominant = Color(0xFF2E5E4E))
+      themeManager.swatch("li_hail_mary").value = Swatch(dominant = Color(0xFFB8860B))
+
+      val state = awaitState { it.coverColors.size == 2 }
+      // In shelf order, not in the order their covers were read.
+      assertThat(state.coverColors.map { it.item.id to it.color }).containsExactly(
+        "li_hail_mary" to Color(0xFFB8860B),
+        "li_piranesi" to Color(0xFF2E5E4E),
+      )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun coverColors_skipSamples() = runTest {
+    themeManager.swatch("sample_moby_dick").value = Swatch(dominant = Color.Red)
+
+    presenter().test {
+      val state = awaitItem()
+      assertThat(state.previewContent.library.isEmpty).isFalse()
+      assertThat(state.coverColors).isEqualTo(emptyList())
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun coverThemingSettings_opensAppearanceSettings() = runTest {
     presenter().test {
       awaitItem().eventSink(ThemeBuilderUiEvent.CoverThemingSettings)
@@ -459,4 +498,13 @@ private class FakeAppThemeRepository : AppThemeRepository {
     deleted += id
     themes.remove(id)
   }
+}
+
+/** Each book's cover swatch, set by the test as covers would be read. */
+private class SwatchThemeManager : ThemeManager by FakeThemeManager() {
+  private val swatches = mutableMapOf<String, MutableStateFlow<Swatch?>>()
+
+  fun swatch(itemId: String): MutableStateFlow<Swatch?> = swatches.getOrPut(itemId) { MutableStateFlow(null) }
+
+  override fun observeSwatchFor(key: String): Flow<Swatch?> = swatch(key)
 }
