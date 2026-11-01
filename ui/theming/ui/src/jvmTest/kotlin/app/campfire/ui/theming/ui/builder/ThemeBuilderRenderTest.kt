@@ -48,7 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
 
 /**
- * Renders the theme builder off-screen at phone and tablet widths, plus its color picker, and
+ * Renders the theme builder off-screen at phone, foldable and tablet widths, plus its pages, and
  * writes PNGs to `build/renders` for eyeballing; the assertions only guard that each render paints.
  * The preview shows a test library with flat-color covers and the player's cover colors off,
  * so the mini player shows in the theme.
@@ -84,6 +84,17 @@ class ThemeBuilderRenderTest {
       }
       Builder(dark = false, coverColors = coverColors)
     }
+  }
+
+  @Test
+  fun `small phone`() {
+    render("theme-builder-small-phone", width = 360, height = 640) { Builder(dark = false) }
+  }
+
+  @Test
+  fun `unfolded foldable`() {
+    // A Pixel Fold's inner screen, held upright: the controls beside one preview.
+    render("theme-builder-foldable", width = 673, height = 841) { Builder(dark = false) }
   }
 
   @Test

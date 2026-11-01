@@ -28,9 +28,13 @@ import androidx.compose.ui.unit.height
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
+import app.campfire.ui.theming.ui.builder.composables.label
+import campfire.ui.theming.ui.generated.resources.Res
+import campfire.ui.theming.ui.generated.resources.theme_tune_part
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalTestApi::class)
 class ThemePreviewTest {
@@ -237,6 +241,34 @@ class ThemePreviewTest {
     onNode(hasClickLabel("Fine-tune Snackbars and tooltips")).performSemanticsAction(SemanticsActions.OnClick)
 
     assertEquals(ContrastCheck.Snackbars, tapped)
+  }
+
+  @Test
+  fun everyCheck_isDrawnByTheScenesItNames() = runComposeUiTest {
+    val scene = mutableStateOf(PreviewScene.Home)
+    lateinit var labels: Map<ContrastCheck, String>
+    setContent {
+      labels = ContrastCheck.entries.associateWith { stringResource(Res.string.theme_tune_part, it.label()) }
+      ThemePreviewContent(
+        scene = scene.value,
+        content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
+        icon = icon,
+        targets = ThemeTargets(onClick = {}),
+        modifier = previewSize,
+      )
+    }
+
+    PreviewScene.entries.forEach { shown ->
+      scene.value = shown
+      waitForIdle()
+      ContrastCheck.entries.filter { shown in it.scenes }.forEach { check ->
+        assertTrue(
+          // Unmerged: a part inside a control, like the selected tab's icon, merges into it.
+          onAllNodes(hasClickLabel(labels.getValue(check)), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty(),
+          "$shown should draw $check",
+        )
+      }
+    }
   }
 
   @Test

@@ -122,6 +122,79 @@ internal fun SeedColorSection(
   }
 }
 
+/**
+ * [SeedColorSection] for the tool tray, in two rows: the seed color beside the curated swatches,
+ * which scroll sideways, then the colors of the user's books.
+ */
+@Composable
+internal fun CompactSeedColorSection(
+  seedColor: Color,
+  onChangeClick: () -> Unit,
+  onSwatchClick: (Color) -> Unit,
+  modifier: Modifier = Modifier,
+  coverColors: List<CoverColor> = emptyList(),
+) {
+  Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Surface(
+        onClick = onChangeClick,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+      ) {
+        Row(
+          modifier = Modifier.padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          ColorDot(seedColor, size = 36.dp)
+          Column {
+            Text(seedColor.hexCode(), style = MaterialTheme.typography.titleSmall)
+            Text(
+              text = stringResource(Res.string.theme_builder_color_change),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
+      Row(
+        modifier = Modifier
+          .weight(1f)
+          .horizontalScroll(rememberScrollState())
+          .selectableGroup()
+          .padding(start = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        CuratedColors.forEach { color ->
+          Swatch(color = color, selected = color == seedColor, onClick = { onSwatchClick(color) })
+        }
+      }
+    }
+
+    if (coverColors.isNotEmpty()) {
+      Text(
+        text = stringResource(Res.string.theme_builder_from_your_books),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Row(
+        modifier = Modifier
+          .horizontalScroll(rememberScrollState())
+          .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        coverColors.forEach { coverColor ->
+          CoverSwatch(
+            coverColor = coverColor,
+            selected = coverColor.color == seedColor,
+            onClick = { onSwatchClick(coverColor.color) },
+          )
+        }
+      }
+    }
+  }
+}
+
 /** A book's cover, with a dot of the color it gives the theme. */
 @Composable
 private fun CoverSwatch(
@@ -172,18 +245,28 @@ internal fun SwatchRow(
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     colors.forEach { color ->
-      val label = stringResource(Res.string.theme_builder_use_color, color.hexCode())
-      ColorDot(
-        color = color,
-        size = 36.dp,
-        selected = color == selected,
-        modifier = Modifier
-          .clip(CircleShape)
-          .selectable(selected = color == selected, role = Role.RadioButton) { onSwatchClick(color) }
-          .semantics { contentDescription = label },
-      )
+      Swatch(color = color, selected = color == selected, onClick = { onSwatchClick(color) })
     }
   }
+}
+
+@Composable
+private fun Swatch(
+  color: Color,
+  selected: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val label = stringResource(Res.string.theme_builder_use_color, color.hexCode())
+  ColorDot(
+    color = color,
+    size = 36.dp,
+    selected = selected,
+    modifier = modifier
+      .clip(CircleShape)
+      .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+      .semantics { contentDescription = label },
+  )
 }
 
 @Composable
