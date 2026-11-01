@@ -11,6 +11,7 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.RescanResult
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import assertk.assertThat
@@ -267,5 +268,6 @@ class AudioDownloaderTest {
       items[itemId] ?: throw NoSuchElementException(itemId)
 
     override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean) = Result.success(Unit)
+    override suspend fun rescanLibraryItem(itemId: LibraryItemId) = Result.success(RescanResult.UpToDate)
   }
 }

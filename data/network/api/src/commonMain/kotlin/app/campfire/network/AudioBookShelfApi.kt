@@ -270,6 +270,14 @@ interface AudioBookShelfApi {
    */
   suspend fun deleteLibraryItem(itemId: String, hard: Boolean = false): Result<Unit>
 
+  /**
+   * Have the server scan a library item's files again, `POST /api/items/:id/scan`. Only admins
+   * with the update permission may, and not for an item that is a single file.
+   *
+   * @return the server's name for what it found: `UPDATED`, `UPTODATE`, or `NOTHING`
+   */
+  suspend fun scanLibraryItem(itemId: String): Result<String>
+
   //endregion
 
   //region Playlists

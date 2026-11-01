@@ -8,9 +8,12 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
+import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.isNotFound
 import dev.zacsweers.metro.ContributesBinding
@@ -84,6 +87,40 @@ class StoreLibraryItemRepository(
   override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
     return api.deleteLibraryItem(itemId, hardDelete)
       .onSuccess { itemStore.clear(itemId) }
+      .explainRefusal()
+  }
+
+  override suspend fun rescanLibraryItem(itemId: LibraryItemId): Result<RescanResult> {
+    return api.scanLibraryItem(itemId)
+      .map { result ->
+        when (result) {
+          "UPDATED" -> RescanResult.Updated
+          "UPTODATE" -> RescanResult.UpToDate
+          else -> RescanResult.Nothing
+        }
+      }
+      .onSuccess { result ->
+        // The server tells sockets about the change too, but they can be turned off
+        if (result == RescanResult.Updated) {
+          try {
+            itemStore.fresh(itemId)
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Exception) {
+            bark(throwable = e) { "Failed to fetch library item $itemId after rescanning it" }
+          }
+        }
+      }
+      .explainRefusal()
+  }
+
+  private fun <T> Result<T>.explainRefusal(): Result<T> {
+    val error = exceptionOrNull()
+    return if (error is ApiException && error.statusCode == HttpForbidden) {
+      Result.failure(ItemChangeNotAllowedException(error))
+    } else {
+      this
+    }
   }
 
   /**
@@ -107,3 +144,5 @@ class StoreLibraryItemRepository(
   private val Media.Book.hasOnlyAnEbook: Boolean
     get() = ebookFormat != null && numTracks == 0 && numAudioFiles == 0 && audioFiles.isEmpty()
 }
+
+private const val HttpForbidden = 403

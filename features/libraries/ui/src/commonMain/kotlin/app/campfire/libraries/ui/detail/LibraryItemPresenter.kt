@@ -6,10 +6,9 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
@@ -19,7 +18,9 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
@@ -27,10 +28,17 @@ import app.campfire.offline.Downloads
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.item_delete_failed
+import campfire.features.libraries.ui.generated.resources.item_delete_not_allowed
+import campfire.features.libraries.ui.generated.resources.item_rescan_failed
+import campfire.features.libraries.ui.generated.resources.item_rescan_not_allowed
+import campfire.features.libraries.ui.generated.resources.item_rescan_nothing
+import campfire.features.libraries.ui.generated.resources.item_rescan_up_to_date
+import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
-import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +46,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 @CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Inject
@@ -95,7 +104,8 @@ class LibraryItemPresenter(
       } else themeManager.observeSwatchFor(screen.libraryItemId)
     }.collectAsState(null)
 
-    var errorMessage by rememberRetained { mutableStateOf<String?>(null) }
+    // The app's own, so what a change did is told without passing it through the screen's state
+    val snackbarHost = LocalSnackBarHost.current
 
     return LibraryItemUiState(
       user = userSession.requiredUser,
@@ -103,7 +113,6 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = contentState,
-      errorMessage = errorMessage,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -128,13 +137,44 @@ class LibraryItemPresenter(
               }
               .onFailure { error ->
                 bark(throwable = error) { "Failed to delete library item ${screen.libraryItemId}" }
-                errorMessage = error.message ?: "Couldn't delete podcast"
+                snackbarHost.showSnackbar(
+                  getString(
+                    if (error is ItemChangeNotAllowedException) {
+                      Res.string.item_delete_not_allowed
+                    } else {
+                      Res.string.item_delete_failed
+                    },
+                  ),
+                )
               }
           }
         }
 
-        LibraryItemUiEvent.ClearError -> {
-          errorMessage = null
+        LibraryItemUiEvent.RescanClick -> {
+          scope.launch {
+            val told = repository.rescanLibraryItem(screen.libraryItemId).fold(
+              onSuccess = { result ->
+                getString(
+                  when (result) {
+                    RescanResult.Updated -> Res.string.item_rescan_updated
+                    RescanResult.UpToDate -> Res.string.item_rescan_up_to_date
+                    RescanResult.Nothing -> Res.string.item_rescan_nothing
+                  },
+                )
+              },
+              onFailure = { error ->
+                bark(throwable = error) { "Failed to rescan library item ${screen.libraryItemId}" }
+                getString(
+                  if (error is ItemChangeNotAllowedException) {
+                    Res.string.item_rescan_not_allowed
+                  } else {
+                    Res.string.item_rescan_failed
+                  },
+                )
+              },
+            )
+            snackbarHost.showSnackbar(told)
+          }
         }
 
         // If we don't handle the event then pass it through the content state

@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,11 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
@@ -55,7 +52,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.LibraryAdd
 import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.layout.ContentLayout
@@ -74,7 +70,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.MediaType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.User
 import app.campfire.core.model.User.Permissions
@@ -83,7 +78,6 @@ import app.campfire.core.model.UserId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.api.screen.LibraryItemScreen
-import app.campfire.libraries.ui.detail.composables.DeletePodcastDialog
 import app.campfire.libraries.ui.detail.composables.SwatchToolbar
 import app.campfire.libraries.ui.detail.composables.slots.ChapterContainerColor
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
@@ -99,6 +93,10 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesWithBooks
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.libraries.ui.detail.manage.DeleteItemDialog
+import app.campfire.libraries.ui.detail.manage.ItemAction
+import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
+import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -107,7 +105,6 @@ import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
 import campfire.features.libraries.ui.generated.resources.cd_more_actions
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.genres_title
-import campfire.features.libraries.ui.generated.resources.menu_item_delete_podcast
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
@@ -152,15 +149,7 @@ fun LibraryItemContent(
   val snackBarHost = remember { SnackbarHostState() }
   val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
 
-  state.errorMessage?.let { message ->
-    LaunchedEffect(message) {
-      snackBarHost.showSnackbar(message)
-      state.eventSink(LibraryItemUiEvent.ClearError)
-    }
-  }
-
-  val canDeletePodcast = state.user.canDeleteItems &&
-    state.libraryItem?.mediaType == MediaType.Podcast
+  val itemActions = state.libraryItem?.let { state.user.itemActions(it) }.orEmpty()
   Scaffold(
     containerColor = surfaceColor,
     snackbarHost = {
@@ -215,39 +204,35 @@ fun LibraryItemContent(
             }
           }
 
-          if (canDeletePodcast) {
-            val moreActionsLabel = stringResource(Res.string.cd_more_actions)
-            IconButtonTooltip(text = moreActionsLabel) {
-              IconButton(onClick = { showOverflowMenu = true }) {
-                Icon(
-                  CampfireIcons.Rounded.MoreVert,
-                  contentDescription = moreActionsLabel,
-                )
-              }
-            }
-            DropdownMenu(
-              expanded = showOverflowMenu,
-              onDismissRequest = { showOverflowMenu = false },
-              shape = MaterialTheme.shapes.medium,
-            ) {
-              DropdownMenuItem(
-                text = {
-                  Text(
-                    text = stringResource(Res.string.menu_item_delete_podcast),
-                    color = MaterialTheme.colorScheme.error,
-                  )
-                },
-                leadingIcon = {
+          if (itemActions.isNotEmpty()) {
+            // Anchors the menu under its button
+            Box {
+              val moreActionsLabel = stringResource(Res.string.cd_more_actions)
+              IconButtonTooltip(text = moreActionsLabel) {
+                IconButton(
+                  onClick = { showOverflowMenu = true },
+                  modifier = Modifier.testTag("item_actions_button"),
+                ) {
                   Icon(
-                    CampfireIcons.Rounded.DeleteForever,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    CampfireIcons.Rounded.MoreVert,
+                    contentDescription = moreActionsLabel,
                   )
-                },
-                onClick = {
+                }
+              }
+              ItemActionsMenu(
+                expanded = showOverflowMenu,
+                actions = itemActions,
+                onAction = { action ->
                   showOverflowMenu = false
-                  showDeleteDialog = true
+                  when (action) {
+                    ItemAction.Rescan -> {
+                      Analytics.send(ActionEvent("rescan_item", Click))
+                      state.eventSink(LibraryItemUiEvent.RescanClick)
+                    }
+                    ItemAction.Delete -> showDeleteDialog = true
+                  }
                 },
+                onDismissRequest = { showOverflowMenu = false },
               )
             }
           }
@@ -300,12 +285,13 @@ fun LibraryItemContent(
     )
   }
 
-  if (showDeleteDialog) {
-    DeletePodcastDialog(
+  if (showDeleteDialog && libraryItem != null) {
+    DeleteItemDialog(
+      itemTitle = libraryItem.media.metadata.title.orEmpty(),
       onConfirm = { hardDelete ->
         Analytics.send(
           ActionEvent(
-            "delete_podcast",
+            "delete_item",
             Click,
             if (hardDelete) "hard" else "soft",
           ),

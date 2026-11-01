@@ -3,12 +3,16 @@
 
 package app.campfire.libraries.ui.detail
 
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.withCompositionLocal
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.bookinfo.test.FakeBookInfoRegistry
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
 import app.campfire.core.model.LibraryItemId
@@ -32,6 +36,7 @@ import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
+import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.FakeNavigator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,7 +108,10 @@ abstract class BaseLibraryItemPresenterTest {
     remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
   )
 
-  internal val presenter = LibraryItemPresenter(
+  /** The app's snackbar, where the presenter tells what an action did. */
+  internal val snackbarHost = SnackbarHostState()
+
+  private val libraryItemPresenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),
     screen = screen,
     navigator = navigator,
@@ -115,6 +123,13 @@ abstract class BaseLibraryItemPresenterTest {
     dispatcherProvider = dispatcherProvider,
     downloads = downloads,
   )
+
+  internal val presenter: Presenter<LibraryItemUiState> = object : Presenter<LibraryItemUiState> {
+    @Composable
+    override fun present(): LibraryItemUiState = withCompositionLocal(LocalSnackBarHost provides snackbarHost) {
+      libraryItemPresenter.present()
+    }
+  }
 }
 
 internal fun emptyLibraryItem(

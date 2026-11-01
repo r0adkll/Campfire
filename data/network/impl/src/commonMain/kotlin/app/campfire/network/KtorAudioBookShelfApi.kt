@@ -27,6 +27,7 @@ import app.campfire.network.envelopes.PlayItemRequest
 import app.campfire.network.envelopes.PlaylistsResponse
 import app.campfire.network.envelopes.PodcastFeedRequest
 import app.campfire.network.envelopes.PodcastFeedResponse
+import app.campfire.network.envelopes.ScanItemResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncPlaybackSessionRequest
@@ -62,6 +63,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -433,6 +435,14 @@ class KtorAudioBookShelfApi(
       hydratedClientRequest("/api/items/$itemId") {
         method = HttpMethod.Delete
         if (hard) parameter("hard", "1")
+      }
+    }
+  }
+
+  override suspend fun scanLibraryItem(itemId: String): Result<String> {
+    return trySendRequest({ it.body<ScanItemResponse>().result }) {
+      hydratedClientRequest("/api/items/$itemId/scan") {
+        method = HttpMethod.Post
       }
     }
   }
