@@ -71,6 +71,7 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.offline.OfflineStatus
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.item_actions_label
 import campfire.common.compose.generated.resources.placeholder_book
 import campfire.common.compose.generated.resources.unfinished_episodes
 import campfire.common.compose.generated.resources.unfinished_episodes_capped
@@ -126,6 +127,10 @@ fun LibraryItemCard(
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
 
+  // A card that handles its own taps offers the item's actions too. An episode's card leaves them
+  // out, as they'd act on the whole podcast.
+  val openActions = if (onClick != null && episode == null) rememberLibraryItemActionsOpener(item) else null
+
   ElevatedContentCard(
     modifier = modifier
       .thenIfNotNull(animationScope) { scope ->
@@ -138,10 +143,13 @@ fun LibraryItemCard(
           ),
           animatedVisibilityScope = scope,
         )
-      },
+      }
+      .onRightClick(openActions?.let { open -> { pointer -> open(pointer) } }),
     onClick = onClick,
     colors = colors,
     shape = shape,
+    onLongClick = openActions?.let { open -> { open(null) } },
+    onLongClickLabel = stringResource(Res.string.item_actions_label),
   ) {
     Box {
       Column {

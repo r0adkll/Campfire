@@ -4,9 +4,11 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,12 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,8 +38,11 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
+import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.item_actions_label
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -59,30 +66,32 @@ fun LibraryItemListItem(
   // An extra line under the subtitle, such as the series the item belongs to
   supportingText: String? = null,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+  // Whether a long press or a right click offers the item's actions, for rows that stand for the
+  // item itself rather than, say, a playlist's entry, which may be one of a podcast's episodes
+  offersActions: Boolean = false,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
   val shape = MaterialTheme.shapes.large
-  ElevatedCard(
-    onClick = onClick,
-    interactionSource = interactionSource,
-    colors = CardDefaults.elevatedCardColors(
-      containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-      contentColor = MaterialTheme.colorScheme.onSurface,
-    ),
-    shape = shape,
-    modifier = modifier
-      .thenIfNotNull(animationScope) { scope ->
-        sharedBounds(
-          sharedContentState = rememberSharedContentState(
-            LibraryItemSharedTransitionKey(
-              id = sharedTransitionKey,
-              type = LibraryItemSharedTransitionKey.ElementType.Bounds,
-            ),
+  val openActions = if (offersActions) rememberLibraryItemActionsOpener(libraryItem) else null
+  val actionsLabel = stringResource(Res.string.item_actions_label)
+  val colors = CardDefaults.elevatedCardColors(
+    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    contentColor = MaterialTheme.colorScheme.onSurface,
+  )
+  val cardModifier = modifier
+    .thenIfNotNull(animationScope) { scope ->
+      sharedBounds(
+        sharedContentState = rememberSharedContentState(
+          LibraryItemSharedTransitionKey(
+            id = sharedTransitionKey,
+            type = LibraryItemSharedTransitionKey.ElementType.Bounds,
           ),
-          animatedVisibilityScope = scope,
-        )
-      },
-  ) {
+        ),
+        animatedVisibilityScope = scope,
+      )
+    }
+    .onRightClick(openActions?.let { open -> { pointer -> open(pointer) } })
+  val content: @Composable ColumnScope.() -> Unit = {
     Row(
       modifier = Modifier
         .fillMaxWidth(),
@@ -208,6 +217,34 @@ fun LibraryItemListItem(
 
       Spacer(Modifier.size(8.dp))
     }
+  }
+
+  if (openActions != null) {
+    // The card's own click has no long press, so it's handled around a card without one
+    ElevatedCard(
+      colors = colors,
+      shape = shape,
+      modifier = cardModifier
+        .clip(shape)
+        .combinedClickable(
+          interactionSource = interactionSource,
+          indication = ripple(),
+          role = Role.Button,
+          onLongClickLabel = actionsLabel,
+          onLongClick = { openActions(null) },
+          onClick = onClick,
+        ),
+      content = content,
+    )
+  } else {
+    ElevatedCard(
+      onClick = onClick,
+      interactionSource = interactionSource,
+      colors = colors,
+      shape = shape,
+      modifier = cardModifier,
+      content = content,
+    )
   }
 }
 

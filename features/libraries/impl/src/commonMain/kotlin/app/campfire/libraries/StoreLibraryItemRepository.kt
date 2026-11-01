@@ -86,6 +86,7 @@ class StoreLibraryItemRepository(
 
   override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
     return api.deleteLibraryItem(itemId, hardDelete)
+      // Clearing the store purges the item, from every list and with its downloads
       .onSuccess { itemStore.clear(itemId) }
       .explainRefusal()
   }
