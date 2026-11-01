@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress
 - Latest checks for new podcast episodes every time you open it, instead of once a day
 - Your downloads have a screen of their own, opened from the navigation drawer or from View all downloads in Downloads settings, which now holds just the settings
+- The greens and yellows that mean done, synced or connecting lean toward your theme's color instead of ignoring it
 
 ### Deprecated
 
