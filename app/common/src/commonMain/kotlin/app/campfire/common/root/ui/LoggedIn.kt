@@ -56,6 +56,7 @@ import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.offline.BackOnlineSnackbarEffect
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
+import app.campfire.common.compose.session.PlaybackBarAwareDecoration
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
@@ -102,11 +103,14 @@ import campfire.app.common.generated.resources.empty_supporting_pane_message
 import com.slack.circuit.backstack.SaveableBackStack
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
+import com.slack.circuit.foundation.LocalCircuit
 import com.slack.circuit.foundation.NavigableCircuitContent
+import com.slack.circuit.foundation.animation.AnimatedNavDecoration
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.foundation.rememberDefaultCircuitSaver
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.retained.rememberRetainedSaveable
+import com.slack.circuit.runtime.ExperimentalCircuitApi
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
@@ -506,11 +510,21 @@ private fun LoggedInUi(
             LocalSearchEventHandler provides searchEventHandler,
             LocalNavigationBarState provides navigationBarState,
           ) {
+            val circuit = requireNotNull(LocalCircuit.current)
             NavigableCircuitContent(
               navigator = homeNavigator,
               backStack = backstack,
-              decoratorFactory = remember {
-                GestureNavigationDecorationFactory()
+              // What NavigableCircuitContent builds from GestureNavigationDecorationFactory as a
+              // decorator factory, wrapped so screens that hide the playback bar don't inset for
+              // it. Building it here means opting into AnimatedNavDecoration's experimental API.
+              decoration = remember(circuit) {
+                @OptIn(ExperimentalCircuitApi::class)
+                PlaybackBarAwareDecoration(
+                  AnimatedNavDecoration(
+                    animatedScreenTransforms = circuit.animatedScreenTransforms,
+                    decoratorFactory = GestureNavigationDecorationFactory(),
+                  ),
+                )
               },
             )
           }
