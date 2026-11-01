@@ -218,10 +218,10 @@ class ListeningDatesEditorTest {
     assertThat(notRestored.visuals.duration).isEqualTo(SnackbarDuration.Indefinite)
     notRestored.performAction()
 
-    // Still off the server, so it's offered again
-    awaitRestoreAttempts(1)
+    // Still off the server, so it's offered again once that try has failed
+    val offeredAgain = awaitSnackbar("This book's progress couldn't be put back on your server", after = notRestored)
     repository.restoreProgressResult = Result.success(Unit)
-    awaitSnackbar("This book's progress couldn't be put back on your server").performAction()
+    offeredAgain.performAction()
 
     awaitSnackbar("Progress put back on your server")
     assertThat(repository.invocations.filterIsInstance<Invocation.RestoreProgress>())
@@ -324,17 +324,21 @@ class ListeningDatesEditorTest {
     }
   }
 
-  /** Waits for the snackbar saying [message]: its words load off the test's own thread. */
-  private suspend fun awaitSnackbar(message: String): SnackbarData = withContext(Dispatchers.Default) {
+  /**
+   * Waits for a snackbar saying [message], other than [after]: its words load off the test's own
+   * thread, so this polls from another, and reads nothing there but the snackbar host's state.
+   */
+  private suspend fun awaitSnackbar(
+    message: String,
+    after: SnackbarData? = null,
+  ): SnackbarData = withContext(Dispatchers.Default) {
     withTimeout(5.seconds) {
-      while (snackbarHost.currentSnackbarData?.visuals?.message != message) delay(10)
-      checkNotNull(snackbarHost.currentSnackbarData)
-    }
-  }
-
-  private suspend fun awaitRestoreAttempts(count: Int) = withContext(Dispatchers.Default) {
-    withTimeout(5.seconds) {
-      while (repository.invocations.filterIsInstance<Invocation.RestoreProgress>().size < count) delay(10)
+      var shown = snackbarHost.currentSnackbarData
+      while (shown == null || shown === after || shown.visuals.message != message) {
+        delay(10)
+        shown = snackbarHost.currentSnackbarData
+      }
+      shown
     }
   }
 
