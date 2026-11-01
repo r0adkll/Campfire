@@ -183,7 +183,6 @@ class ItemEditorUiTest {
           isSaving = false,
           isBehindServer = isBehindServer,
           isConfirmingDiscard = isConfirmingDiscard,
-          message = null,
           eventSink = events,
         ),
         modifier = Modifier.size(width = width, height = 1600.dp),

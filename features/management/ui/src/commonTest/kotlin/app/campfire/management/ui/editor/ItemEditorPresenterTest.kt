@@ -130,8 +130,9 @@ class ItemEditorPresenterTest {
 
       state.eventSink(ItemEditorUiEvent.Save)
 
-      val failed = awaitState { it.message != null }
-      assertThat(failed.message).isEqualTo("Your account isn't allowed to change this. Ask your server's admin.")
+      awaitSnackbar { it.visuals.message == "Your account isn't allowed to change this. Ask your server's admin." }
+      // Saving is over before the snackbar shows, so the latest state is the failed one
+      val failed = expectMostRecentItem()
       assertThat(failed.isSaving).isFalse()
       assertThat(failed.draft?.changes.orEmpty()).containsOnly(BookDetail.Publisher)
       navigator.expectNoEvents()
