@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
@@ -42,7 +44,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Home, condensed: the search bar, then as many shelves of the app's own cards as fit, over the
- * mini player and the navigation bar.
+ * mini player and the navigation bar. Laid out at Library's size, so the two share a scale and
+ * their navigation bars match; the shelves give way to fit (see [HomeShelves]).
  */
 @Composable
 internal fun HomeScene(
@@ -56,18 +59,7 @@ internal fun HomeScene(
   Column(modifier.fillMaxSize()) {
     PreviewAppBar(icon, targets)
 
-    ClippedArea {
-      PreviewShelfRow(
-        label = library.continueListening.label ?: stringResource(Res.string.theme_preview_continue_listening),
-        items = library.continueListening.items,
-        targets = targets,
-      )
-      PreviewShelfRow(
-        label = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added),
-        items = library.recentlyAdded.items,
-        targets = targets,
-      )
-    }
+    HomeShelves(library, targets)
 
     val nowPlaying = library.nowPlaying
     if (content.playerUsesCoverColors) {
@@ -163,23 +155,99 @@ private fun ColumnScope.ClippedArea(
 }
 
 /** A Home shelf: its name over a row of cards, as `ShelfListItem` draws it. */
+/**
+ * Home's shelves, in the space between the search bar and the mini player. Cards never show cut
+ * off: as the space gets shorter, the first shelf drops its name, then its cards shrink, down to
+ * [MinShelfCardWidth], and then they drop their titles and show just covers and progress, as the
+ * dense grid does (Library still shows titles). With room to spare, the cards stay the app's size
+ * and a second shelf follows.
+ */
+@Composable
+private fun ColumnScope.HomeShelves(
+  library: PreviewLibrary,
+  targets: ThemeTargets,
+  modifier: Modifier = Modifier,
+) {
+  val information = cardInformationHeight()
+  BoxWithConstraints(
+    modifier
+      .weight(1f)
+      .fillMaxWidth()
+      .clipToBounds(),
+  ) {
+    val space = maxHeight - ShelfBottomPadding
+    val fit = when {
+      space - ShelfLabelHeight - information >= MinShelfCardWidth -> ShelfFit(
+        showName = true,
+        showInformation = true,
+        cardWidth = space - ShelfLabelHeight - information,
+      )
+      space - information >= MinShelfCardWidth -> ShelfFit(
+        showName = false,
+        showInformation = true,
+        cardWidth = space - information,
+      )
+      else -> ShelfFit(showName = false, showInformation = false, cardWidth = space)
+    }
+    val cardWidth = fit.cardWidth.coerceAtMost(ShelfCardWidth)
+
+    Column {
+      PreviewShelfRow(
+        label = (library.continueListening.label ?: stringResource(Res.string.theme_preview_continue_listening))
+          .takeIf { fit.showName },
+        items = library.continueListening.items,
+        cardWidth = cardWidth,
+        showInformation = fit.showInformation,
+        targets = targets,
+      )
+      PreviewShelfRow(
+        label = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added),
+        items = library.recentlyAdded.items,
+        cardWidth = cardWidth,
+        showInformation = fit.showInformation,
+        targets = targets,
+      )
+    }
+  }
+}
+
+/** How Home's shelves fit their space: see [HomeShelves]. */
+private data class ShelfFit(
+  val showName: Boolean,
+  val showInformation: Boolean,
+  val cardWidth: Dp,
+)
+
+/** The title and author strip under a [LibraryItemCard]'s cover, at the current font scale. */
+@Composable
+private fun cardInformationHeight(): Dp {
+  val typography = MaterialTheme.typography
+  return with(LocalDensity.current) {
+    CardInformationPadding * 2 + typography.titleSmall.lineHeight.toDp() + typography.bodySmall.lineHeight.toDp()
+  }
+}
+
 @Composable
 private fun PreviewShelfRow(
-  label: String,
+  label: String?,
   items: List<PreviewShelfItem>,
+  cardWidth: Dp,
+  showInformation: Boolean,
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
 ) {
   if (items.isEmpty()) return
-  Column(modifier.padding(bottom = 8.dp)) {
-    Box(
-      modifier = Modifier
-        .height(48.dp)
-        .padding(horizontal = 16.dp)
-        .themeTarget(ContrastCheck.ScreenText, targets),
-      contentAlignment = Alignment.Center,
-    ) {
-      Text(text = label, style = MaterialTheme.typography.labelLarge)
+  Column(modifier.padding(bottom = ShelfBottomPadding)) {
+    if (label != null) {
+      Box(
+        modifier = Modifier
+          .height(ShelfLabelHeight)
+          .padding(horizontal = 16.dp)
+          .themeTarget(ContrastCheck.ScreenText, targets),
+        contentAlignment = Alignment.Center,
+      ) {
+        Text(text = label, style = MaterialTheme.typography.labelLarge)
+      }
     }
     // The row runs off the right edge, as a shelf does in the app
     Row(
@@ -189,7 +257,7 @@ private fun PreviewShelfRow(
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       items.take(MaxShelfCards).forEach { entry ->
-        PreviewCard(entry, targets, Modifier.width(ShelfCardWidth))
+        PreviewCard(entry, targets, Modifier.width(cardWidth), showInformation = showInformation)
       }
     }
   }
@@ -277,6 +345,14 @@ private const val PreviewTransitionKey = "theme-preview:"
 private const val MaxShelfCards = 6
 
 private val ShelfCardWidth = 136.dp
+
+/** As small as Home's cards get with their titles, a little under Library's grid columns. */
+private val MinShelfCardWidth = 88.dp
+private val ShelfLabelHeight = 48.dp
+private val ShelfBottomPadding = 8.dp
+
+/** [LibraryItemCard]'s vertical padding around its title and author. */
+private val CardInformationPadding = 16.dp
 private val GridSpacing = 8.dp
 private val LargeBarHeight = 12.dp
 private val SmallBarHeight = 8.dp
