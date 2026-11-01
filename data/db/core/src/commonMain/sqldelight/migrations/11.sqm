@@ -31,3 +31,6 @@ ALTER TABLE seriesBookJoin ADD COLUMN position INTEGER;
 -- Each podcast's unfinished episode count, kept with the library page it loaded on (see libraryItemPage.sq)
 ALTER TABLE libraryItemPageJoin ADD COLUMN numEpisodesIncomplete INTEGER;
 ALTER TABLE libraryItemPageJoin ADD COLUMN numEpisodesFinishedAtLoad INTEGER;
+
+-- Each narrator of a book, as an expanded item lists them (see media.sq)
+ALTER TABLE media ADD COLUMN metadata_narrators TEXT;

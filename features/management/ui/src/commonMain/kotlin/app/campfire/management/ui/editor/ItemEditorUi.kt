@@ -3,6 +3,7 @@
 
 package app.campfire.management.ui.editor
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -39,10 +40,11 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -60,6 +62,7 @@ import app.campfire.management.api.screen.ItemEditorScreen
 import campfire.features.management.ui.generated.resources.Res
 import campfire.features.management.ui.generated.resources.action_close_editor
 import campfire.features.management.ui.generated.resources.action_discard
+import campfire.features.management.ui.generated.resources.action_retry
 import campfire.features.management.ui.generated.resources.action_save
 import campfire.features.management.ui.generated.resources.dialog_discard_cancel
 import campfire.features.management.ui.generated.resources.dialog_discard_confirm
@@ -96,8 +99,9 @@ fun ItemEditorUi(
   BoxWithConstraints(
     modifier = modifier
       .fillMaxSize()
-      .onPreviewKeyEvent { event ->
-        if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+      // After the focused field, which can take Escape to close its suggestions first
+      .onKeyEvent { event ->
+        if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
         when {
           event.key == Key.S && (event.isCtrlPressed || event.isMetaPressed) -> {
             if (canSave) state.eventSink(ItemEditorUiEvent.Save)
@@ -117,7 +121,8 @@ fun ItemEditorUi(
 
     // A short window, such as a phone on its side, has little room left under the top bar once the
     // keyboard is up, so the bar gives way while typing there and comes back once that stops, as
-    // when the keyboard closes or the window turns tall; scrolling back down brings it back too
+    // when the keyboard closes or the window turns tall. Meanwhile scrolling leaves it be, or a
+    // field scrolled into view, with what it suggests under it, would bring it back over the field.
     val isTyping = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val isShort = maxHeight < ShortHeight
     val barGivesWay = isTyping && isShort
@@ -135,7 +140,7 @@ fun ItemEditorUi(
           scrollBehavior = scrollBehavior,
         )
       },
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+      modifier = if (barGivesWay) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
       when {
         draft != null -> DetailsForm(
@@ -143,25 +148,21 @@ fun ItemEditorUi(
           enabled = state.canEdit && !state.isSaving,
           canEdit = state.canEdit,
           canSeeExplicit = state.canSeeExplicit,
+          suggestions = state.suggestions,
           isBehindServer = state.isBehindServer,
           onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
           onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
           twoColumns = maxWidth >= TwoColumnWidth,
+          inlineSuggestions = isShort,
           // The keyboard's padding includes the navigation bar the scaffold's already does
           modifier = Modifier
             .padding(padding)
             .consumeWindowInsets(padding),
         )
 
-        state.item is LoadState.Loading -> Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-          CircularProgressIndicator()
-        }
-
-        else -> Box(
-          contentAlignment = Alignment.Center,
+        state.isLoadFailed || state.item is LoadState.Error -> Column(
+          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+          horizontalAlignment = Alignment.CenterHorizontally,
           modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
         ) {
           Text(
@@ -169,6 +170,19 @@ fun ItemEditorUi(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
+          TextButton(
+            onClick = { state.eventSink(ItemEditorUiEvent.RetryLoad) },
+            modifier = Modifier.testTag("editor_retry"),
+          ) {
+            Text(stringResource(Res.string.action_retry))
+          }
+        }
+
+        else -> Box(
+          contentAlignment = Alignment.Center,
+          modifier = Modifier.fillMaxSize().padding(padding),
+        ) {
+          CircularProgressIndicator()
         }
       }
     }
@@ -234,8 +248,13 @@ private fun EditorTopBar(
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier.padding(horizontal = 8.dp),
         )
+        val focusManager = LocalFocusManager.current
         TextButton(
-          onClick = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
+          onClick = {
+            // The fields are about to be replaced, so the keyboard lets go of the one it's in
+            focusManager.clearFocus()
+            state.eventSink(ItemEditorUiEvent.ResetChanges)
+          },
           enabled = !state.isSaving,
           modifier = Modifier.testTag("editor_discard"),
         ) {

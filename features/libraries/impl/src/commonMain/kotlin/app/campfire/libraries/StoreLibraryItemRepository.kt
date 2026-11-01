@@ -16,6 +16,8 @@ import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.envelopes.AuthorNameRequest
+import app.campfire.network.envelopes.SeriesSequenceRequest
 import app.campfire.network.envelopes.UpdateBookMetadataRequest
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.isNotFound
@@ -87,6 +89,17 @@ class StoreLibraryItemRepository(
     }
   }
 
+  override suspend fun fetchLibraryItem(itemId: LibraryItemId): Result<LibraryItem> {
+    return try {
+      Result.success(itemStore.fresh(itemId))
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      if (e.isNotFound) purger.purge(listOf(itemId))
+      Result.failure(e)
+    }
+  }
+
   override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
     return api.deleteLibraryItem(itemId, hardDelete)
       // Clearing the store purges the item, from every list and with its downloads
@@ -111,7 +124,11 @@ class StoreLibraryItemRepository(
   }
 
   override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate): Result<Boolean> {
-    return api.updateLibraryItemMedia(itemId, UpdateMediaRequest(metadata = update.asRequest()))
+    val request = UpdateMediaRequest(
+      metadata = update.asRequest().takeUnless { it == UpdateBookMetadataRequest() },
+      tags = update.tags,
+    )
+    return api.updateLibraryItemMedia(itemId, request)
       .onSuccess { updated ->
         // The server tells sockets about the change too, but they can be turned off
         if (updated) refresh(itemId, "updating its details")
@@ -140,6 +157,10 @@ class StoreLibraryItemRepository(
     asin = asin,
     explicit = explicit,
     abridged = abridged,
+    authors = authors?.map { AuthorNameRequest(it) },
+    narrators = narrators,
+    genres = genres,
+    series = series?.map { SeriesSequenceRequest(it.name, it.sequence) },
   )
 
   private fun <T> Result<T>.explainRefusal(): Result<T> {

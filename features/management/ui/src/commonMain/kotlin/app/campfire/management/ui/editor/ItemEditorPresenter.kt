@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,8 +24,10 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
+import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
+import app.campfire.filters.FilteringRepository
 import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
@@ -44,6 +48,7 @@ import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -55,6 +60,7 @@ class ItemEditorPresenter(
   private val navigator: Navigator,
   private val libraryItemRepository: LibraryItemRepository,
   private val userRepository: UserRepository,
+  private val filteringRepository: FilteringRepository,
   @ForScope(UserScope::class) private val userScope: CoroutineScopeHolder,
 ) : Presenter<ItemEditorUiState> {
 
@@ -66,19 +72,51 @@ class ItemEditorPresenter(
 
     val user by userRepository.userFlow.collectAsState()
     val item by remember { observeItem() }.collectAsState(LoadState.Loading)
-    val latest = item.dataOrNull?.media?.takeIf { it is Media.Book }?.metadata
+    val latestItem = item.dataOrNull
+    val latest = latestItem?.media as? Media.Book
+
+    val libraryId = latestItem?.libraryId
+    val suggestions by remember(libraryId) { observeSuggestions(libraryId) }.collectAsState(DetailSuggestions())
 
     var draft by rememberRetained { mutableStateOf<BookDetailsDraft?>(null) }
     var isSaving by rememberRetained { mutableStateOf(false) }
     var isConfirmingDiscard by rememberRetained { mutableStateOf(false) }
-    var keptChangesOver by rememberRetained { mutableStateOf<Media.Metadata?>(null) }
+    var keptChangesOver by rememberRetained { mutableStateOf<Media.Book?>(null) }
+    var isLoadFailed by rememberRetained { mutableStateOf(false) }
+    var loadAttempt by rememberRetained { mutableIntStateOf(0) }
+    // When the server last changed the item editing started from
+    var editingSince by rememberRetained { mutableLongStateOf(0L) }
 
-    LaunchedEffect(latest) {
-      if (draft == null && latest != null) draft = BookDetailsDraft(latest)
+    // Editing starts from the server's own copy. A cached one can be a list's, with no authors,
+    // narrators or series to edit, and saving a list replaces the server's whole list.
+    LaunchedEffect(loadAttempt) {
+      if (draft != null) return@LaunchedEffect
+      isLoadFailed = false
+      libraryItemRepository.fetchLibraryItem(screen.libraryItemId)
+        .onSuccess { fetched ->
+          val book = fetched.media as? Media.Book
+          if (book == null) {
+            isLoadFailed = true
+            return@onSuccess
+          }
+          draft = book.asDraft()
+          editingSince = fetched.updatedAtMillis
+        }
+        .onFailure { error ->
+          bark(throwable = error) { "Failed to fetch ${screen.libraryItemId} to edit" }
+          isLoadFailed = true
+        }
     }
 
+    // Only a copy the server changed since counts, not however an older cached one differs
     val isBehindServer = draft.let { current ->
-      current != null && latest != null && !isSaving && latest != keptChangesOver && current.isBehind(latest)
+      current != null &&
+        latestItem != null &&
+        latest != null &&
+        !isSaving &&
+        latestItem.updatedAtMillis > editingSince &&
+        latest != keptChangesOver &&
+        current.isBehind(latest.metadata, latest.tags)
     }
 
     return ItemEditorUiState(
@@ -86,9 +124,11 @@ class ItemEditorPresenter(
       draft = draft,
       canEdit = user.canUpdateItems,
       canSeeExplicit = user.permissions.accessExplicitContent,
+      suggestions = suggestions,
       isSaving = isSaving,
       isBehindServer = isBehindServer,
       isConfirmingDiscard = isConfirmingDiscard,
+      isLoadFailed = isLoadFailed,
     ) { event ->
       when (event) {
         ItemEditorUiEvent.Save -> {
@@ -141,13 +181,17 @@ class ItemEditorPresenter(
         ItemEditorUiEvent.CancelDiscard -> isConfirmingDiscard = false
 
         ItemEditorUiEvent.ResetChanges -> {
-          val details = latest ?: draft?.base ?: return@ItemEditorUiState
+          if (draft == null || isSaving) return@ItemEditorUiState
           Analytics.send(ActionEvent("edit_item", "reset"))
-          draft = BookDetailsDraft(details)
+          // From the server's own copy again, as editing started, not however the cache has it
+          draft = null
           keptChangesOver = null
+          loadAttempt++
         }
 
         ItemEditorUiEvent.KeepChanges -> keptChangesOver = latest
+
+        ItemEditorUiEvent.RetryLoad -> loadAttempt++
       }
     }
   }
@@ -158,6 +202,16 @@ class ItemEditorPresenter(
       .catch { error ->
         bark(throwable = error) { "Failed to load ${screen.libraryItemId} to edit" }
         emit(LoadState.Error)
+      }
+  }
+
+  private fun observeSuggestions(libraryId: LibraryId?): Flow<DetailSuggestions> {
+    if (libraryId == null) return flowOf(DetailSuggestions())
+    return filteringRepository.observeFilterData(libraryId)
+      .map { it.asSuggestions() }
+      .catch { error ->
+        bark(throwable = error) { "Failed to load the names in $libraryId to suggest" }
+        emit(DetailSuggestions())
       }
   }
 
@@ -201,4 +255,11 @@ private fun BookDetailsUpdate.analyticsFields(): String = listOfNotNull(
   asin?.let { "asin" },
   explicit?.let { "explicit" },
   abridged?.let { "abridged" },
+  authors?.let { "authors" },
+  narrators?.let { "narrators" },
+  series?.let { "series" },
+  genres?.let { "genres" },
+  tags?.let { "tags" },
 ).joinToString(",")
+
+private fun Media.Book.asDraft() = BookDetailsDraft(metadata, tags)

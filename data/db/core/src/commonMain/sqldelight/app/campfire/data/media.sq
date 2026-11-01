@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS media (
   -- Every series this book belongs to; the metadata_series_* columns above remain the
   -- "primary" series used for sorting/filtering and series-sequence backfill.
   metadata_series TEXT AS List<SeriesSequence>,
+
+  -- Each narrator, as an expanded item lists them; null when only metadata_narratorName is known
+  metadata_narrators TEXT AS List<String>,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 

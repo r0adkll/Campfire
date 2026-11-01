@@ -206,6 +206,7 @@ fun <T : Media> T.asDbModel(
     metadata_series_name = metadataSeries?.name,
     metadata_series_sequence = metadataSeriesSequence,
     metadata_series = metadataSeriesList,
+    metadata_narrators = (metadata as? ExpandedBookMetadata)?.narrators,
   )
 }
 
@@ -254,6 +255,7 @@ fun DomainMedia.asDbModel(
     metadata_series_name = metadataSeries?.name,
     metadata_series_sequence = metadataSeries?.sequence,
     metadata_series = metadata.series,
+    metadata_narrators = metadata.narrators,
   )
 }
 
@@ -448,6 +450,7 @@ suspend fun LibraryItemWithMedia.asDomainModel(
             name = it.name,
           )
         },
+        narrators = metadata_narrators ?: emptyList(),
       ),
       audioFiles = mediaAudioFiles.map {
         AudioFile(

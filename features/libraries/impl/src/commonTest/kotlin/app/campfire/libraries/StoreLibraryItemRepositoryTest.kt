@@ -16,9 +16,12 @@ import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.RescanResult
+import app.campfire.libraries.api.SeriesEntry
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.ApiException
 import app.campfire.network.RequestOrigin
+import app.campfire.network.envelopes.AuthorNameRequest
+import app.campfire.network.envelopes.SeriesSequenceRequest
 import app.campfire.network.envelopes.UpdateBookMetadataRequest
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioFile
@@ -175,6 +178,76 @@ class StoreLibraryItemRepositoryTest {
   }
 
   @Test
+  fun `lists are sent whole, with tags beside the metadata`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+
+    repository().updateBookDetails(
+      ITEM,
+      BookDetailsUpdate(
+        authors = listOf("Ann Leckie"),
+        narrators = emptyList(),
+        series = listOf(SeriesEntry("Imperial Radch", "1"), SeriesEntry("Unnumbered")),
+        tags = listOf("Book club"),
+      ),
+    )
+
+    assertThat(api.mediaUpdates).containsExactly(
+      ITEM to UpdateMediaRequest(
+        metadata = UpdateBookMetadataRequest(
+          authors = listOf(AuthorNameRequest("Ann Leckie")),
+          narrators = emptyList(),
+          series = listOf(SeriesSequenceRequest("Imperial Radch", "1"), SeriesSequenceRequest("Unnumbered")),
+        ),
+        tags = listOf("Book club"),
+      ),
+    )
+  }
+
+  @Test
+  fun `tags alone leave the metadata out`() = repositoryTest {
+    api.updateLibraryItemMediaResult = { _, _ -> Result.success(false) }
+
+    repository().updateBookDetails(ITEM, BookDetailsUpdate(tags = emptyList()))
+
+    assertThat(api.mediaUpdates).containsExactly(ITEM to UpdateMediaRequest(tags = emptyList()))
+  }
+
+  @Test
+  fun `fetching an item asks the server even with a copy cached`() = repositoryTest { cache ->
+    cache(audiobook(title = "Cached"))
+    api.libraryItemResult = { Result.success(audiobook(title = "Fetched")) }
+
+    val item = repository().fetchLibraryItem(ITEM)
+
+    assertThat(item.getOrNull()?.media?.metadata?.title).isEqualTo("Fetched")
+    assertThat(api.libraryItemRequests).containsExactly(ITEM)
+  }
+
+  @Test
+  fun `a fetched book keeps each of its narrators`() = repositoryTest {
+    api.libraryItemResult = {
+      Result.success(audiobook(title = "Fetched", narrators = listOf("Mel Hudson", "Gary Furlong")))
+    }
+
+    val fetched = repository().fetchLibraryItem(ITEM).getOrThrow()
+
+    assertThat(fetched.media.metadata.narrators).containsExactly("Mel Hudson", "Gary Furlong")
+    // As the cache has it too
+    assertThat(repository().getLibraryItem(ITEM).media.metadata.narrators)
+      .containsExactly("Mel Hudson", "Gary Furlong")
+  }
+
+  @Test
+  fun `fetching an item the server no longer has purges it`() = repositoryTest {
+    api.libraryItemResult = { Result.failure(ApiException(404)) }
+
+    val item = repository().fetchLibraryItem(ITEM)
+
+    assertThat(item.exceptionOrNull()).isNotNull().isInstanceOf<ApiException>()
+    assertThat(purger.purged).containsExactly(ITEM)
+  }
+
+  @Test
   fun `changed details fetch the item again`() = repositoryTest { cache ->
     cache(audiobook(title = "Before"))
     api.updateLibraryItemMediaResult = { _, _ -> Result.success(true) }
@@ -278,7 +351,8 @@ class StoreLibraryItemRepositoryTest {
 
     fun ebookOnly(title: String) = book(title = title, ebookFile = EPUB)
 
-    fun audiobook(title: String) = book(title = title, audioFiles = listOf(AUDIO_FILE), tracks = listOf(TRACK))
+    fun audiobook(title: String, narrators: List<String>? = null) =
+      book(title = title, narrators = narrators, audioFiles = listOf(AUDIO_FILE), tracks = listOf(TRACK))
 
     /** An audiobook that comes with an ebook, in the basic shape search sends a series' books in. */
     fun audiobookFromSearch(title: String) = book(title = title, audioFiles = listOf(AUDIO_FILE), ebookFile = EPUB)
@@ -316,6 +390,7 @@ class StoreLibraryItemRepositoryTest {
       audioFiles: List<AudioFile> = emptyList(),
       tracks: List<AudioTrack> = emptyList(),
       ebookFile: EBookFile? = null,
+      narrators: List<String>? = null,
     ) = LibraryItemExpanded.Book(
       id = ITEM,
       ino = "ino",
@@ -335,7 +410,7 @@ class StoreLibraryItemRepositoryTest {
       media = MediaExpanded(
         id = "media",
         coverPath = null,
-        metadata = ExpandedBookMetadata(title = title),
+        metadata = ExpandedBookMetadata(title = title, narrators = narrators),
         audioFiles = audioFiles,
         tracks = tracks,
         ebookFile = ebookFile,

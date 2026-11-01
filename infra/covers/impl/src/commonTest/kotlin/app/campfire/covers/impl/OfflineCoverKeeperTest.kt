@@ -174,6 +174,8 @@ class OfflineCoverKeeperTest {
     override suspend fun getLibraryItem(itemId: LibraryItemId): LibraryItem =
       items[itemId] ?: throw NoSuchElementException(itemId)
 
+    override suspend fun fetchLibraryItem(itemId: LibraryItemId) = runCatching { getLibraryItem(itemId) }
+
     override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean) = Result.success(Unit)
     override suspend fun rescanLibraryItem(itemId: LibraryItemId) = Result.success(RescanResult.UpToDate)
     override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate) = Result.success(false)
