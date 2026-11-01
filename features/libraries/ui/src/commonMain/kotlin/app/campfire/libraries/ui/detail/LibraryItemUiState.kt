@@ -29,8 +29,6 @@ data class LibraryItemUiState(
   val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out ContentUiState>,
-  /** Something to tell the user in a snackbar, cleared by [LibraryItemUiEvent.ClearMessage]. */
-  val message: String? = null,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -97,7 +95,6 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   /** Have the server scan the item's files again. */
   data object RescanClick : LibraryItemUiEvent
-  data object ClearMessage : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }

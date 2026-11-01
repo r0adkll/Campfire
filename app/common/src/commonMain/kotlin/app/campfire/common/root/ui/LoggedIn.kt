@@ -50,6 +50,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
@@ -590,28 +591,32 @@ private fun LoggedInUi(
     )
   }
 
-  if (tabletopSplit != null) {
-    TabletopSplitLayout(
-      split = tabletopSplit,
-      bottomContent = {
-        DedicatedPlayer(
-          onItemClick = { session ->
-            homeNavigator.goTo(
-              LibraryItemScreen(
-                libraryItemId = session.libraryItem.id,
-                episodeId = session.episodeId,
-              ),
-            )
-          },
-          modifier = Modifier.fillMaxSize(),
-        )
-      },
-      modifier = modifier,
-    ) {
-      adaptiveLayout(Modifier.fillMaxSize())
+  // The app's own snackbar, so screens tell what an action did without passing it through their
+  // state, such as how a rescan went
+  CompositionLocalProvider(LocalSnackBarHost provides snackbarHostState) {
+    if (tabletopSplit != null) {
+      TabletopSplitLayout(
+        split = tabletopSplit,
+        bottomContent = {
+          DedicatedPlayer(
+            onItemClick = { session ->
+              homeNavigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = session.libraryItem.id,
+                  episodeId = session.episodeId,
+                ),
+              )
+            },
+            modifier = Modifier.fillMaxSize(),
+          )
+        },
+        modifier = modifier,
+      ) {
+        adaptiveLayout(Modifier.fillMaxSize())
+      }
+    } else {
+      adaptiveLayout(modifier)
     }
-  } else {
-    adaptiveLayout(modifier)
   }
 }
 

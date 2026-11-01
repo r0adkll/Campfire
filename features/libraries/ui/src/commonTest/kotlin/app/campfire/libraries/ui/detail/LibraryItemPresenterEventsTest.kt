@@ -39,10 +39,14 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import assertk.assertions.prop
 import assertk.assertions.single
-import com.slack.circuit.test.CircuitReceiveTurbine
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
@@ -174,7 +178,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun deleteItemClick_onFailure_setsMessage_andClearMessageResetsIt() = runTest {
+  fun deleteItemClick_onFailure_saysSoInTheSnackbar() = runTest {
     val libraryItem = emptyLibraryItem()
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
     libraryItemRepository.deleteResult = Result.failure(IllegalStateException("boom"))
@@ -185,13 +189,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
       item.eventSink(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
 
-      val withError = awaitMessage()
-      assertThat(withError.message).isEqualTo("Couldn't delete this. Check your connection and try again.")
-
-      withError.eventSink(LibraryItemUiEvent.ClearMessage)
-      val cleared = awaitItem()
-      assertThat(cleared.message).isNull()
-
+      awaitSnackbar("Couldn't delete this. Check your connection and try again.")
       assertThat(libraryItemRepository.deleteInvocations).hasSize(1)
 
       cancelAndIgnoreRemainingEvents()
@@ -207,8 +205,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       skipItems(1)
       awaitItem().eventSink(LibraryItemUiEvent.DeleteItemClick(hardDelete = true))
 
-      assertThat(awaitMessage().message)
-        .isEqualTo("Your account isn't allowed to delete this. Ask your server's admin.")
+      awaitSnackbar("Your account isn't allowed to delete this. Ask your server's admin.")
       // Still here, as nothing was deleted
       navigator.expectNoEvents()
 
@@ -240,20 +237,21 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       skipItems(1)
       awaitItem().eventSink(LibraryItemUiEvent.RescanClick)
 
-      assertThat(awaitMessage().message).isEqualTo(outcome.message)
+      awaitSnackbar(outcome.message)
       assertThat(libraryItemRepository.rescanInvocations).containsExactly(TestLibraryItemId)
 
       cancelAndIgnoreRemainingEvents()
     }
   }
 
-  /** Drains states until the launched work has written a message. */
-  private suspend fun CircuitReceiveTurbine<LibraryItemUiState>.awaitMessage(): LibraryItemUiState {
-    var state = awaitItem()
-    while (state.message == null) {
-      state = awaitItem()
+  /**
+   * Waits for the app's snackbar to say [message]. Its words load off the test's own thread, so
+   * this polls from another, reading only the snackbar host's state there.
+   */
+  private suspend fun awaitSnackbar(message: String) = withContext(Dispatchers.Default) {
+    withTimeout(5.seconds) {
+      while (snackbarHost.currentSnackbarData?.visuals?.message != message) delay(10)
     }
-    return state
   }
 }
 

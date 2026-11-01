@@ -34,7 +34,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -149,13 +148,6 @@ fun LibraryItemContent(
 
   val snackBarHost = remember { SnackbarHostState() }
   val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
-
-  state.message?.let { message ->
-    LaunchedEffect(message) {
-      snackBarHost.showSnackbar(message)
-      state.eventSink(LibraryItemUiEvent.ClearMessage)
-    }
-  }
 
   val itemActions = state.libraryItem?.let { state.user.itemActions(it) }.orEmpty()
   Scaffold(

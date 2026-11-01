@@ -6,10 +6,9 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
@@ -40,7 +39,6 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
-import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -106,7 +104,8 @@ class LibraryItemPresenter(
       } else themeManager.observeSwatchFor(screen.libraryItemId)
     }.collectAsState(null)
 
-    var message by rememberRetained { mutableStateOf<String?>(null) }
+    // The app's own, so what a change did is told without passing it through the screen's state
+    val snackbarHost = LocalSnackBarHost.current
 
     return LibraryItemUiState(
       user = userSession.requiredUser,
@@ -114,7 +113,6 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = contentState,
-      message = message,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -139,12 +137,14 @@ class LibraryItemPresenter(
               }
               .onFailure { error ->
                 bark(throwable = error) { "Failed to delete library item ${screen.libraryItemId}" }
-                message = getString(
-                  if (error is ItemChangeNotAllowedException) {
-                    Res.string.item_delete_not_allowed
-                  } else {
-                    Res.string.item_delete_failed
-                  },
+                snackbarHost.showSnackbar(
+                  getString(
+                    if (error is ItemChangeNotAllowedException) {
+                      Res.string.item_delete_not_allowed
+                    } else {
+                      Res.string.item_delete_failed
+                    },
+                  ),
                 )
               }
           }
@@ -152,7 +152,7 @@ class LibraryItemPresenter(
 
         LibraryItemUiEvent.RescanClick -> {
           scope.launch {
-            message = repository.rescanLibraryItem(screen.libraryItemId).fold(
+            val told = repository.rescanLibraryItem(screen.libraryItemId).fold(
               onSuccess = { result ->
                 getString(
                   when (result) {
@@ -173,11 +173,8 @@ class LibraryItemPresenter(
                 )
               },
             )
+            snackbarHost.showSnackbar(told)
           }
-        }
-
-        LibraryItemUiEvent.ClearMessage -> {
-          message = null
         }
 
         // If we don't handle the event then pass it through the content state
