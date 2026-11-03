@@ -6,6 +6,7 @@ package app.campfire.ui.theming.ai.ui
 import androidx.compose.foundation.text.input.TextFieldState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.HalogenStyle
+import app.campfire.ui.theming.ui.preview.PreviewContent
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
@@ -17,6 +18,7 @@ data class AiThemeBuilderUiState(
   val errorMessage: String?,
   val theme: AppTheme.Fixed.Ai?,
   val icon: AppTheme.Icon,
+  val previewContent: PreviewContent,
   val eventSink: (AiThemeBuilderUiEvent) -> Unit,
 ) : CircuitUiState {
   val isSavable: Boolean get() = theme != null && name.text.isNotBlank()
@@ -30,4 +32,5 @@ sealed interface AiThemeBuilderUiEvent : CircuitUiEvent {
   data object DismissError : AiThemeBuilderUiEvent
   data class IconPicked(val icon: AppTheme.Icon) : AiThemeBuilderUiEvent
   data class StylePicked(val style: HalogenStyle) : AiThemeBuilderUiEvent
+  data object CoverThemingSettings : AiThemeBuilderUiEvent
 }

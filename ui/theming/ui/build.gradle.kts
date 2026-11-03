@@ -11,11 +11,20 @@ kotlin {
       dependencies {
         implementation(projects.ui.theming.api)
         implementation(projects.infra.socket.api)
+        implementation(projects.features.home.api)
+        implementation(projects.features.libraries.api)
+        implementation(projects.features.settings.api)
 
         implementation(libs.compose.components.resources)
 
         implementation(libs.color.picker.compose)
         implementation(libs.circuitx.overlays)
+      }
+    }
+
+    commonTest {
+      dependencies {
+        implementation(projects.features.settings.test)
       }
     }
   }

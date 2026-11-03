@@ -7,12 +7,14 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.campfire.common.compose.theme.ColorPalette
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.ai.HalogenResolveResult
 import app.campfire.ui.theming.ai.HalogenThemeManager
@@ -20,6 +22,8 @@ import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
+import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.PreviewContentSource
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -32,6 +36,7 @@ import kotlinx.coroutines.launch
 class AiThemeBuilderPresenter(
   private val themeRepository: AppThemeRepository,
   private val halogenThemeManager: HalogenThemeManager,
+  private val previewContentSource: PreviewContentSource,
   private val screen: AiThemeBuilderScreen,
   private val navigator: Navigator,
 ) : Presenter<AiThemeBuilderUiState> {
@@ -48,6 +53,7 @@ class AiThemeBuilderPresenter(
     var theme by remember { mutableStateOf<AppTheme.Fixed.Ai?>(null) }
     var icon by remember { mutableStateOf(AppTheme.Icon.entries.random()) }
     var style by remember { mutableStateOf(screen.style) }
+    val previewContent by remember { previewContentSource.observe() }.collectAsState(PreviewContent())
 
     return AiThemeBuilderUiState(
       prompt = prompt,
@@ -57,9 +63,14 @@ class AiThemeBuilderPresenter(
       errorMessage = errorMessage,
       theme = theme,
       icon = icon,
+      previewContent = previewContent,
     ) { event ->
       when (event) {
         AiThemeBuilderUiEvent.Back -> navigator.pop()
+
+        AiThemeBuilderUiEvent.CoverThemingSettings -> {
+          navigator.goTo(SettingsScreen(SettingsScreen.Page.Appearance))
+        }
 
         AiThemeBuilderUiEvent.DismissError -> {
           errorMessage = null
