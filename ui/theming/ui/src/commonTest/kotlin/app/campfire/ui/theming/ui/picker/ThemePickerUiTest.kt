@@ -3,6 +3,7 @@
 
 package app.campfire.ui.theming.ui.picker
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -14,9 +15,11 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onAllNodesWithText
@@ -36,6 +39,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.platformColorPalette
+import app.campfire.ui.theming.ui.layout.PreviewLayout
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewLibrary
 import app.campfire.ui.theming.ui.preview.PreviewShelf
@@ -44,7 +48,9 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isLessThan
 import assertk.assertions.prop
 import kotlin.test.Test
 
@@ -83,13 +89,99 @@ class ThemePickerUiTest {
 
   /** The app provides these; the picker's insets read them. */
   @Composable
-  private fun Picker(state: ThemePickerUiState) {
+  private fun Picker(state: ThemePickerUiState, size: Modifier = phone) {
     CompositionLocalProvider(
       LocalWindowSizeClass provides currentWindowSizeClass(),
       LocalContentLayout provides ContentLayout.Root,
     ) {
-      ThemePicker(state, phone)
+      ThemePicker(state, size)
     }
+  }
+
+  /** An unfolded foldable held upright: the list beside one preview. */
+  private val foldable = Modifier.size(width = 700.dp, height = 840.dp)
+
+  /** A tablet held sideways: wide enough for light and dark previews side by side. */
+  private val tablet = Modifier.size(width = 1024.dp, height = 768.dp)
+
+  @Test
+  fun foldables_listTheThemesBesideAPreviewOfTheOneInUse() = runComposeUiTest {
+    setContent { Picker(state(), foldable) }
+
+    onNode(hasContentDescription("Camping Tent Red") and isSelectable()).assertIsSelected()
+    onNode(hasContentDescription("Forest Green") and isSelectable()).assertIsNotSelected()
+    onNode(hasText("Camping Tent Red") and isHeading()).assertExists()
+    // The large preview is meant to be read, unlike a tile's.
+    onNodeWithText("Search for your next story").assertExists()
+    onNode(isToggleable() and hasText("Library")).assertExists()
+    // One preview, in the app's own mode: no light and dark labels beside the mode buttons.
+    onAllNodesWithText("Light").assertCountEquals(1)
+
+    onNode(hasContentDescription("Forest Green") and isSelectable()).performClick()
+    assertThat(events).containsExactly(ThemePickerUiEvent.SelectTheme(AppTheme.Fixed.Forest))
+  }
+
+  @Test
+  fun tablets_showLightAndDarkSideBySide() = runComposeUiTest {
+    setContent { Picker(state(), tablet) }
+
+    // The mode button and the light preview's label.
+    onAllNodesWithText("Light").assertCountEquals(2)
+    onAllNodesWithText("Dark").assertCountEquals(2)
+    onAllNodesWithText("Search for your next story").assertCountEquals(2)
+    // A wide pane has room for the action's label.
+    onNode(hasText("Customize") and hasClickAction()).assertExists()
+  }
+
+  @Test
+  fun thePreviewOfABuiltInTheme_offersToCustomizeIt() = runComposeUiTest {
+    setContent { Picker(state(), foldable) }
+
+    // Beside the list on a foldable, the action is an icon so the name has room.
+    onNode(hasText("Customize") and hasClickAction()).assertDoesNotExist()
+    onNodeWithContentDescription("Customize").performClick()
+
+    assertThat(events.single()).isInstanceOf<ThemePickerUiEvent.Customize>()
+      .prop(ThemePickerUiEvent.Customize::theme).isEqualTo(AppTheme.Fixed.Tent)
+  }
+
+  @Test
+  fun thePreviewOfYourTheme_offersToEditIt_andItsRowHasTheMenu() = runComposeUiTest {
+    setContent { Picker(state(currentTheme = ember), foldable) }
+
+    onNode(hasText("Ember") and isHeading()).assertExists()
+    onNodeWithContentDescription("Edit").performClick()
+    onNode(hasScrollAction()).performScrollToKey("custom:ember")
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Duplicate").performClick()
+
+    assertThat(events).containsExactly(
+      ThemePickerUiEvent.OpenThemeBuilder(ember),
+      ThemePickerUiEvent.Duplicate(ember, "Ember copy"),
+    )
+  }
+
+  @Test
+  fun tabletop_putsThePreviewAboveTheHingeAndTheListBelow() = runComposeUiTest {
+    setContent {
+      CompositionLocalProvider(
+        LocalWindowSizeClass provides currentWindowSizeClass(),
+        LocalContentLayout provides ContentLayout.Root,
+      ) {
+        ThemePickerContent(
+          state = state(),
+          layout = PreviewLayout.Tabletop(topHeight = 400.dp, hingeHeight = 24.dp),
+          contentPadding = PaddingValues(),
+          modifier = Modifier.size(width = 700.dp, height = 840.dp),
+        )
+      }
+    }
+
+    val preview = onNodeWithText("Search for your next story").fetchSemanticsNode().boundsInRoot
+    val list = onNode(hasContentDescription("Camping Tent Red") and isSelectable()).fetchSemanticsNode().boundsInRoot
+    assertThat(preview.bottom).isLessThan(list.top)
+    // The hinge: nothing of the list starts above it.
+    with(density) { assertThat(list.top).isGreaterThanOrEqualTo((400.dp + 24.dp).toPx()) }
   }
 
   @Test

@@ -3,11 +3,15 @@
 
 package app.campfire.ui.theming.ui.picker
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
@@ -18,6 +22,7 @@ import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.core.coroutines.LoadState
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.ui.layout.PreviewLayout
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.installTestCovers
 import app.campfire.ui.theming.ui.preview.previewLibrary
@@ -67,15 +72,43 @@ class ThemePickerRenderTest {
     render("theme-picker-tablet", width = 1280, height = 800) { Picker(dark = false) }
   }
 
+  @Test
+  fun `tablet dark`() {
+    render("theme-picker-tablet-dark", width = 1280, height = 800) { Picker(dark = true) }
+  }
+
+  @Test
+  fun `foldable`() {
+    render("theme-picker-foldable", width = 700, height = 840) { Picker(dark = false) }
+  }
+
+  @Test
+  fun `tabletop`() {
+    render("theme-picker-tabletop", width = 840, height = 900) {
+      Picker(dark = false) { state ->
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+          ThemePickerContent(
+            state = state,
+            layout = PreviewLayout.Tabletop(topHeight = 430.dp, hingeHeight = 24.dp),
+            contentPadding = PaddingValues(top = 16.dp),
+          )
+        }
+      }
+    }
+  }
+
   @Composable
-  private fun Picker(dark: Boolean) {
+  private fun Picker(
+    dark: Boolean,
+    content: @Composable (ThemePickerUiState) -> Unit = { ThemePicker(it) },
+  ) {
     CampfireTheme(useDarkColors = dark) {
       CompositionLocalProvider(
         LocalUseDarkColors provides dark,
         LocalWindowSizeClass provides currentWindowSizeClass(),
         LocalContentLayout provides ContentLayout.Root,
       ) {
-        ThemePicker(
+        content(
           ThemePickerUiState(
             currentTheme = AppTheme.Fixed.Tent,
             themeMode = if (dark) ThemeMode.DARK else ThemeMode.SYSTEM,

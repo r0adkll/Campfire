@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.ui.theming.ui.builder
+package app.campfire.ui.theming.ui.layout
 
 import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
@@ -13,20 +13,20 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class BuilderLayoutTest {
+class PreviewLayoutTest {
 
   @Test
-  fun phonesGetTheTray() {
-    assertEquals(BuilderLayout.Tray, builderLayout(DpSize(412.dp, 830.dp), hinge = null))
+  fun phonesGetTheCompactLayout() {
+    assertEquals(PreviewLayout.Compact, previewLayout(DpSize(412.dp, 830.dp), hinge = null))
     // Split screen on a tablet is phone-width too.
-    assertEquals(BuilderLayout.Tray, builderLayout(DpSize(599.dp, 1000.dp), hinge = null))
+    assertEquals(PreviewLayout.Compact, previewLayout(DpSize(599.dp, 1000.dp), hinge = null))
   }
 
   @Test
   fun anUnfoldedFoldablePutsTheControlsBesideOnePreview() {
     assertEquals(
-      BuilderLayout.Side(controlsWidth = 320.dp, gap = 8.dp, dual = false),
-      builderLayout(DpSize(673.dp, 777.dp), hinge = null),
+      PreviewLayout.Side(controlsWidth = 320.dp, gap = 8.dp, dual = false),
+      previewLayout(DpSize(673.dp, 777.dp), hinge = null),
     )
   }
 
@@ -34,12 +34,12 @@ class BuilderLayoutTest {
   fun lightAndDarkPreviewsShowOnlyWhenBothFitAtAPhonesWidth() {
     // Wide enough for the old two previews, but they came out at about half size.
     assertEquals(
-      BuilderLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = false),
-      builderLayout(DpSize(1000.dp, 609.dp), hinge = null),
+      PreviewLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = false),
+      previewLayout(DpSize(1000.dp, 609.dp), hinge = null),
     )
     assertEquals(
-      BuilderLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = true),
-      builderLayout(DpSize(1280.dp, 736.dp), hinge = null),
+      PreviewLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = true),
+      previewLayout(DpSize(1280.dp, 736.dp), hinge = null),
     )
   }
 
@@ -48,8 +48,8 @@ class BuilderLayoutTest {
     val hinge = FoldHinge(start = 362.dp, end = 382.dp, isVertical = false)
 
     assertEquals(
-      BuilderLayout.Tabletop(topHeight = 362.dp, hingeHeight = 20.dp),
-      builderLayout(DpSize(900.dp, 788.dp), hinge),
+      PreviewLayout.Tabletop(topHeight = 362.dp, hingeHeight = 20.dp),
+      previewLayout(DpSize(900.dp, 788.dp), hinge),
     )
   }
 
@@ -57,7 +57,7 @@ class BuilderLayoutTest {
   fun aTabletopFoldThatLeavesTooLittleOnOneSideIsIgnored() {
     val hinge = FoldHinge(start = 600.dp, end = 620.dp, isVertical = false)
 
-    assertEquals(BuilderLayout.Tray, builderLayout(DpSize(412.dp, 700.dp), hinge))
+    assertEquals(PreviewLayout.Compact, previewLayout(DpSize(412.dp, 700.dp), hinge))
   }
 
   @Test
@@ -65,8 +65,8 @@ class BuilderLayoutTest {
     val hinge = FoldHinge(start = 420.dp, end = 440.dp, isVertical = true)
 
     assertEquals(
-      BuilderLayout.Side(controlsWidth = 420.dp, gap = 20.dp, dual = false),
-      builderLayout(DpSize(880.dp, 780.dp), hinge),
+      PreviewLayout.Side(controlsWidth = 420.dp, gap = 20.dp, dual = false),
+      previewLayout(DpSize(880.dp, 780.dp), hinge),
     )
   }
 
@@ -75,8 +75,8 @@ class BuilderLayoutTest {
     val hinge = FoldHinge(start = 200.dp, end = 200.dp, isVertical = true)
 
     assertEquals(
-      BuilderLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = false),
-      builderLayout(DpSize(1000.dp, 780.dp), hinge),
+      PreviewLayout.Side(controlsWidth = 400.dp, gap = 8.dp, dual = false),
+      previewLayout(DpSize(1000.dp, 780.dp), hinge),
     )
   }
 

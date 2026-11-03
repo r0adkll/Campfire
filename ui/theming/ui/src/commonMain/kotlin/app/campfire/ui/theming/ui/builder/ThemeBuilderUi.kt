@@ -97,6 +97,11 @@ import app.campfire.ui.theming.ui.builder.composables.SaveThemeSheet
 import app.campfire.ui.theming.ui.builder.composables.SeedColorSection
 import app.campfire.ui.theming.ui.builder.composables.StylePicker
 import app.campfire.ui.theming.ui.builder.composables.TunePanel
+import app.campfire.ui.theming.ui.layout.DualPreviewGap
+import app.campfire.ui.theming.ui.layout.PreviewLayout
+import app.campfire.ui.theming.ui.layout.SidePreviewEndPadding
+import app.campfire.ui.theming.ui.layout.foldHinge
+import app.campfire.ui.theming.ui.layout.previewLayout
 import app.campfire.ui.theming.ui.preview.DarkModeSwitch
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewScene
@@ -192,8 +197,8 @@ fun ThemeBuilder(
     } else {
       with(density) { DpSize(contentBounds.width.toDp(), contentBounds.height.toDp()) }
     }
-    val layout = builderLayout(contentSize, hinge)
-    val dual = layout is BuilderLayout.Side && layout.dual
+    val layout = previewLayout(contentSize, hinge)
+    val dual = layout is PreviewLayout.Side && layout.dual
     val chromeDarkMode = if (dual) systemDarkMode else isDarkMode
     val editDarkMode = if (dual) tuneDarkMode else isDarkMode
     val onEditDarkModeChange: (Boolean) -> Unit = { if (dual) tuneDarkMode = it else isDarkMode = it }
@@ -217,7 +222,7 @@ fun ThemeBuilder(
         showTray = true
       }
     }
-    val trayHidden = !showTray && layout == BuilderLayout.Tray
+    val trayHidden = !showTray && layout == PreviewLayout.Compact
     // Hiding the tray asks for the whole preview, so it zooms out too.
     val focus = (pages.lastOrNull() as? ControlsPage.Tune)?.check?.takeIf { zoomed && !trayHidden }
 
@@ -289,7 +294,7 @@ fun ThemeBuilder(
             scene = scene,
             onSceneChange = { scene = it },
             contrast = state.contrast,
-            onReadabilityClick = onReadabilityClick.takeIf { hasFailingChecks || layout !is BuilderLayout.Side },
+            onReadabilityClick = onReadabilityClick.takeIf { hasFailingChecks || layout !is PreviewLayout.Side },
             expanded = (!showTray).takeIf { offerExpand },
             onExpandChange = { showTray = !it },
             modifier = headerModifier,
@@ -304,7 +309,7 @@ fun ThemeBuilder(
             .onPlaced { contentBounds = Rect(it.positionInWindow(), it.size.toSize()) },
         ) {
           when (layout) {
-            BuilderLayout.Tray -> BoxWithConstraints(Modifier.fillMaxSize()) {
+            PreviewLayout.Compact -> BoxWithConstraints(Modifier.fillMaxSize()) {
               val pageHeight = ((maxHeight - TrayChromeHeight) * TrayPageFraction).coerceAtMost(MaxTrayPageHeight)
               Column(Modifier.fillMaxSize()) {
                 previewHeader(Modifier.padding(horizontal = 16.dp), true)
@@ -353,7 +358,7 @@ fun ThemeBuilder(
               }
             }
 
-            is BuilderLayout.Tabletop -> Column(Modifier.fillMaxSize()) {
+            is PreviewLayout.Tabletop -> Column(Modifier.fillMaxSize()) {
               Column(
                 Modifier
                   .fillMaxWidth()
@@ -406,7 +411,7 @@ fun ThemeBuilder(
               }
             }
 
-            is BuilderLayout.Side -> Row(Modifier.fillMaxSize()) {
+            is PreviewLayout.Side -> Row(Modifier.fillMaxSize()) {
               controls(
                 "list",
                 Modifier.fillMaxSize(),
