@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -108,6 +109,49 @@ internal fun FineTuneParts(
         }
         Icon(CampfireIcons.Rounded.ChevronRight, contentDescription = null)
       }
+    }
+  }
+}
+
+/**
+ * [FineTuneParts] for the tool tray: one row of chips that scrolls sideways, the parts that are
+ * hard to read first, then All colors.
+ */
+@Composable
+internal fun FineTuneTray(
+  overrides: Map<ThemeRole, Color>,
+  failing: Set<ContrastCheck>,
+  dark: Boolean,
+  onPartClick: (ContrastCheck) -> Unit,
+  onAllColorsClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val parts = ContrastCheck.entries.sortedBy { it !in failing }
+  Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(
+      text = stringResource(if (dark) Res.string.theme_fine_tune_hint_dark else Res.string.theme_fine_tune_hint_light),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(
+      modifier = Modifier.horizontalScroll(rememberScrollState()),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      parts.forEach { check ->
+        PartChip(
+          label = check.label(),
+          isTuned = check.roles.any { it in overrides },
+          isFailing = check in failing,
+          onClick = { onPartClick(check) },
+        )
+      }
+      PartChip(
+        label = stringResource(Res.string.theme_fine_tune_all_colors),
+        isTuned = false,
+        isFailing = false,
+        onClick = onAllColorsClick,
+      )
     }
   }
 }

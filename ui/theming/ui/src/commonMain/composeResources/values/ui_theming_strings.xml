@@ -29,8 +29,14 @@
   <string name="theme_builder_section_style">Style</string>
   <string name="theme_builder_style_classic">Classic</string>
   <string name="theme_builder_section_contrast">Contrast</string>
-  <string name="theme_builder_section_readability">Readability</string>
   <string name="theme_builder_section_palettes">Palette colors</string>
+
+  <string name="theme_builder_tools">Tools</string>
+  <string name="theme_builder_tool_color">Color</string>
+  <string name="theme_builder_tool_palette">Palette</string>
+  <string name="theme_builder_show_whole_preview">Show the whole preview</string>
+  <string name="theme_builder_show_controls">Show the controls</string>
+  <string name="theme_palette_hint">Tap a color to change it.</string>
 
   <string name="theme_style_expressive">Expressive</string>
   <string name="theme_style_expressive_description">Playful, shifting accents</string>
@@ -62,8 +68,8 @@
     <item quantity="other">%1$d parts are hard to read</item>
   </plurals>
   <string name="theme_readability_fail_detail">Outlined in the preview</string>
-  <string name="theme_readability_light">Light %1$s</string>
-  <string name="theme_readability_dark">Dark %1$s</string>
+  <string name="theme_readability_chip_pass">Readable</string>
+  <string name="theme_readability_chip_fail">%1$d to fix</string>
 
   <string name="contrast_check_screen_text">Screen text</string>
   <string name="contrast_check_card_text">Book cards</string>
@@ -125,6 +131,8 @@
   <string name="theme_tune_hard_to_see">Hard to see</string>
   <string name="theme_tune_needs">Needs %1$s:1</string>
   <string name="theme_tune_fix">Fix contrast</string>
+  <string name="theme_tune_zoom_out">Show the whole screen</string>
+  <string name="theme_tune_zoom_in">Zoom to this part</string>
   <string name="theme_tune_lightness">Lightness</string>
   <string name="theme_tune_also_changes">Also changes: %1$s</string>
   <string name="theme_tune_only_here">Only used here</string>

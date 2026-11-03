@@ -12,8 +12,11 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -24,6 +27,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.width
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
@@ -53,6 +57,9 @@ class ThemeBuilderUiTest {
   }
 
   private val phone = Modifier.size(width = 400.dp, height = 900.dp)
+
+  /** An unfolded foldable held upright: the controls fit beside one preview. */
+  private val foldable = Modifier.size(width = 700.dp, height = 840.dp)
   private val wide = Modifier.size(width = 1200.dp, height = 800.dp)
 
   /** The app provides these; the builder's insets read them. */
@@ -66,26 +73,60 @@ class ThemeBuilderUiTest {
     }
   }
 
+  /** The sample state with every check passing except [check], which fails in light or dark. */
+  @Composable
+  private fun failing(check: ContrastCheck, dark: Boolean): ThemeBuilderUiState {
+    val state = rememberSampleThemeBuilderState()
+    return state.copy(
+      contrast = state.contrast.map {
+        when {
+          it.check != check -> it.copy(lightRatio = 7.0, darkRatio = 7.0)
+          dark -> it.copy(lightRatio = 7.0, darkRatio = 1.46)
+          else -> it.copy(lightRatio = 1.46, darkRatio = 7.0)
+        }
+      },
+    )
+  }
+
   @Test
-  fun phone_showsThePreviewAboveTheControls() = runComposeUiTest {
+  fun phone_showsThePreviewOverATrayOfOneTool() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
     onNodeWithText("New theme").assertExists()
     onNodeWithText("Search for your next story").assertExists()
     onNodeWithText("Tap to change").assertExists()
-    onNodeWithText("Readability").performScrollTo()
-    onNodeWithText("Palette colors").performScrollTo()
+    onNode(hasText("Color") and isSelectable()).assertIsSelected()
     onNode(isToggleable() and hasText("Home")).assertExists()
     onNodeWithContentDescription("Preview in dark mode").assertExists()
+    // The column of every control is for wider windows.
+    onNodeWithText("Palette colors").assertDoesNotExist()
   }
 
   @Test
-  fun wide_showsLightAndDarkPreviewsWithoutAModeSwitch() = runComposeUiTest {
-    setContent { Builder(rememberSampleThemeBuilderState(), wide) }
+  fun toolbar_switchesWhatTheTrayShows() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
-    onNodeWithText("Light").assertExists()
-    onNodeWithText("Dark").assertExists()
-    onNodeWithContentDescription("Preview in dark mode").assertDoesNotExist()
+    onNode(hasText("Style") and isSelectable()).performClick()
+    onNodeWithText("Vibrant").assertExists()
+    onNodeWithText("Tap to change").assertDoesNotExist()
+
+    onNode(hasText("Palette") and isSelectable()).performClick()
+    onNodeWithText("Tap a color to change it.").assertExists()
+
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("All colors").assertExists()
+  }
+
+  @Test
+  fun expand_hidesTheTrayUntilAToolIsPicked() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), phone) }
+
+    onNodeWithContentDescription("Show the whole preview").performClick()
+    onNodeWithText("Tap to change").assertDoesNotExist()
+    onNodeWithContentDescription("Show the controls").assertExists()
+
+    onNode(hasText("Color") and isSelectable()).performClick()
+    onNodeWithText("Tap to change").assertExists()
   }
 
   @Test
@@ -93,9 +134,21 @@ class ThemeBuilderUiTest {
     val events = mutableListOf<ThemeBuilderUiEvent>()
     setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
 
+    onNode(hasText("Style") and isSelectable()).performClick()
     onNodeWithText("Vibrant").performScrollTo().performClick()
 
     assertEquals(ThemeBuilderUiEvent.StyleClick(Variant.VIBRANT), events.last())
+  }
+
+  @Test
+  fun contrastLevel_sendsTheLevel() = runComposeUiTest {
+    val events = mutableListOf<ThemeBuilderUiEvent>()
+    setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
+
+    onNode(hasText("Style") and isSelectable()).performClick()
+    onNodeWithText("High").performScrollTo().performClick()
+
+    assertEquals(ThemeBuilderUiEvent.ContrastLevelClick(ContrastLevel.High), events.last())
   }
 
   @Test
@@ -137,27 +190,18 @@ class ThemeBuilderUiTest {
   }
 
   @Test
-  fun contrastLevel_sendsTheLevel() = runComposeUiTest {
-    val events = mutableListOf<ThemeBuilderUiEvent>()
-    setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
-
-    onNodeWithText("High").performScrollTo().performClick()
-
-    assertEquals(ThemeBuilderUiEvent.ContrastLevelClick(ContrastLevel.High), events.last())
-  }
-
-  @Test
-  fun paletteRow_opensThePickerInPlaceOfTheControls() = runComposeUiTest {
+  fun paletteTile_opensThePickerInTheTray() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
-    onNodeWithText("Supporting").performScrollTo().performClick()
+    onNode(hasText("Palette") and isSelectable()).performClick()
+    onNodeWithText("Supporting").performClick()
     onNodeWithText("Hue").assertExists()
     onNodeWithText("Colorfulness").assertExists()
     onNodeWithText("Search for your next story").assertExists()
 
     onNodeWithText("Done").performClick()
     onNodeWithText("Hue").assertDoesNotExist()
-    onNodeWithText("Tap to change").assertExists()
+    onNodeWithText("Tap a color to change it.").assertExists()
   }
 
   @Test
@@ -197,69 +241,49 @@ class ThemeBuilderUiTest {
       )
     }
 
-    onNodeWithText("Supporting").performScrollTo().performClick()
-    onNodeWithText("Use generated").performClick()
+    onNode(hasText("Palette") and isSelectable()).performClick()
+    onNodeWithText("Supporting").performClick()
+    onNodeWithText("Use generated").performScrollTo().performClick()
 
     assertEquals(ThemeBuilderUiEvent.ColorReset(PaletteKey.Supporting), events.last())
     onNodeWithText("Hue").assertDoesNotExist()
   }
 
   @Test
-  fun paletteRow_resetButtonClearsACustomPalette() = runComposeUiTest {
-    val events = mutableListOf<ThemeBuilderUiEvent>()
-    setContent {
-      Builder(
-        rememberSampleThemeBuilderState(
-          colors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE, errorColor = Color(0xFFD946EF)),
-          eventSink = { events += it },
-        ),
-        phone,
-      )
-    }
-
-    onNodeWithContentDescription("Use the generated color").performScrollTo().performClick()
-
-    assertEquals(ThemeBuilderUiEvent.ColorReset(PaletteKey.Errors), events.last())
-  }
-
-  @Test
-  fun readability_listsEachFailingPartWithItsRatio() = runComposeUiTest {
-    setContent {
-      val state = rememberSampleThemeBuilderState()
-      Builder(
-        state.copy(
-          contrast = state.contrast.map {
-            if (it.check == ContrastCheck.Buttons) {
-              it.copy(lightRatio = 1.46, darkRatio = 7.0)
-            } else {
-              it.copy(lightRatio = 7.0, darkRatio = 7.0)
-            }
-          },
-        ),
-        phone,
-      )
-    }
-
-    onNodeWithText("1 part is hard to read").performScrollTo()
-    onNodeWithText("Outlined in the preview").assertExists()
-    // The readability row comes first; the Fine-tune chip of the same name follows it.
-    onAllNodesWithText("Buttons and switches")[0].assertExists()
-    onNodeWithText("Light 1.5").assertExists()
-  }
-
-  @Test
-  fun readability_saysSoWhenEveryCheckPasses() = runComposeUiTest {
+  fun readabilityChip_saysReadableWhenEveryCheckPasses() = runComposeUiTest {
     setContent {
       val state = rememberSampleThemeBuilderState()
       Builder(state.copy(contrast = state.contrast.map { it.copy(lightRatio = 7.0, darkRatio = 7.0) }), phone)
     }
 
-    onNodeWithText("All 17 checks pass").performScrollTo()
-    onNodeWithText("In light and dark mode").assertExists()
+    onNodeWithContentDescription("All 17 checks pass. In light and dark mode").assertExists()
   }
 
   @Test
-  fun previewPart_opensItsFineTuningInPlaceOfTheControls() = runComposeUiTest {
+  fun readabilityChip_opensThePartThatsHardToRead() = runComposeUiTest {
+    setContent { Builder(failing(ContrastCheck.Buttons, dark = false), phone) }
+
+    onNodeWithContentDescription("1 part is hard to read. Outlined in the preview").performClick()
+
+    onNodeWithText("Buttons and switches").assertExists()
+    onNodeWithText("Editing light mode").assertExists()
+    onNode(hasText("Fine-tune") and isSelectable()).assertIsSelected()
+    // Buttons only show in Everywhere, so the preview switches to it.
+    onNode(isToggleable() and hasText("Everywhere")).assertIsOn()
+  }
+
+  @Test
+  fun readabilityChip_opensThePartInTheModeItFails() = runComposeUiTest {
+    setContent { Builder(failing(ContrastCheck.Buttons, dark = true), phone) }
+
+    onNodeWithContentDescription("1 part is hard to read. Outlined in the preview").performClick()
+
+    onNodeWithText("Editing dark mode").assertExists()
+    onNodeWithContentDescription("Preview in dark mode").assertIsOn()
+  }
+
+  @Test
+  fun previewPart_opensItsFineTuningInTheTray() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
     onNodeWithText("Search for your next story").performClick()
@@ -268,10 +292,33 @@ class ThemeBuilderUiTest {
     onNodeWithText("Editing light mode").assertExists()
     onNodeWithText("Lightness").assertExists()
     onNodeWithText("Search for your next story").assertExists()
+    onNode(hasText("Fine-tune") and isSelectable()).assertIsSelected()
 
+    // Done goes back to the parts to fine-tune, not to the tool that was open before.
     onNodeWithText("Done").performClick()
     onNodeWithText("Lightness").assertDoesNotExist()
-    onNodeWithText("Tap to change").assertExists()
+    onNodeWithText("All colors").assertExists()
+  }
+
+  @Test
+  fun fineTuning_zoomsThePreviewOnThePart() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), phone) }
+
+    // Offline status opens on Everywhere, zoomed in on the drawer's status chip.
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Offline status").performScrollTo().performClick()
+    waitForIdle()
+    val status = onNodeWithText("Working offline", useUnmergedTree = true)
+    val zoomed = status.getBoundsInRoot().width
+
+    onNodeWithContentDescription("Show the whole screen").performClick()
+    waitForIdle()
+    val whole = status.getBoundsInRoot().width
+    assertTrue(zoomed > whole, "The status is $zoomed wide zoomed in and $whole zoomed out")
+
+    onNodeWithContentDescription("Zoom to this part").performClick()
+    waitForIdle()
+    assertEquals(zoomed, status.getBoundsInRoot().width)
   }
 
   @Test
@@ -279,6 +326,7 @@ class ThemeBuilderUiTest {
     val events = mutableListOf<ThemeBuilderUiEvent>()
     setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
 
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
     onNodeWithText("Book cards").performScrollTo().performClick()
     onNodeWithText("Text and icons").performClick()
     onNodeWithContentDescription("Lightness").performSemanticsAction(SemanticsActions.SetProgress) { it(30f) }
@@ -293,6 +341,7 @@ class ThemeBuilderUiTest {
     val events = mutableListOf<ThemeBuilderUiEvent>()
     setContent { Builder(rememberSampleThemeBuilderState(eventSink = { events += it }), phone) }
 
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
     onNodeWithText("Book cards").performScrollTo().performClick()
     onNode(hasSetTextAction()).performTextReplacement("FFF3E0")
     waitForIdle()
@@ -304,14 +353,14 @@ class ThemeBuilderUiTest {
   }
 
   @Test
-  fun readabilityRow_opensThePartWithAFix() = runComposeUiTest {
+  fun hardToReadPart_offersAFix() = runComposeUiTest {
     val events = mutableListOf<ThemeBuilderUiEvent>()
     setContent {
       Builder(rememberSampleThemeBuilderState(colors = unreadableCards, eventSink = { events += it }), phone)
     }
 
-    onAllNodesWithText("Book cards")[0].performScrollTo().performClick()
-    onNodeWithText("Editing light mode").assertExists()
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Book cards").performScrollTo().performClick()
     onNodeWithText("Fix contrast").performClick()
 
     assertEquals(ThemeBuilderUiEvent.FixContrast(ContrastCheck.CardText, dark = false), events.last())
@@ -325,11 +374,12 @@ class ThemeBuilderUiTest {
     }
     val cardRoles = setOf(ThemeRole.SurfaceContainerHigh, ThemeRole.OnSurface)
 
-    onAllNodesWithText("Book cards")[0].performScrollTo().performClick()
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Book cards").performScrollTo().performClick()
     onNodeWithText("Reset").performScrollTo().performClick()
     assertEquals(ThemeBuilderUiEvent.RolesReset(cardRoles, dark = false), events.last())
 
-    onNodeWithText("Mirror to dark mode").performClick()
+    onNodeWithText("Mirror to dark mode").performScrollTo().performClick()
     assertEquals(ThemeBuilderUiEvent.MirrorRoles(cardRoles, fromDark = false, ContrastCheck.CardText), events.last())
     onNodeWithText("Mirrored to dark mode").assertExists()
   }
@@ -338,20 +388,23 @@ class ThemeBuilderUiTest {
   fun fineTune_untunedPartHasNothingToResetOrMirror() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
     onNodeWithText("Account card").performScrollTo().performClick()
 
     onNodeWithText("Reset").performScrollTo().assertIsNotEnabled()
     onNodeWithText("Mirror to dark mode").assertIsNotEnabled()
     onNodeWithText("Only used here").assertExists()
+    onNode(isToggleable() and hasText("Everywhere")).assertIsOn()
   }
 
   @Test
   fun allColors_tunesOneRoleOnItsOwn() = runComposeUiTest {
     setContent { Builder(rememberSampleThemeBuilderState(), phone) }
 
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
     onNodeWithText("All colors").performScrollTo().performClick()
     onNodeWithText("surfaceContainerHigh").assertExists()
-    onNodeWithText("primary").performClick()
+    onNodeWithText("primary").performScrollTo().performClick()
 
     onNode(hasText("Used by:", substring = true)).performScrollTo()
     onNodeWithText("Text and icons").assertDoesNotExist()
@@ -360,7 +413,46 @@ class ThemeBuilderUiTest {
     onNodeWithText("Done").performClick()
     onNodeWithText("surfaceContainerHigh").assertExists()
     onNodeWithText("Done").performScrollTo().performClick()
+    onNodeWithText("All colors").assertExists()
+  }
+
+  @Test
+  fun foldable_showsTheControlsBesideOnePreview() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), foldable) }
+
+    onNodeWithText("Palette colors").assertExists()
     onNodeWithText("Tap to change").assertExists()
+    onNode(hasText("Palette") and isSelectable()).assertDoesNotExist()
+    onNodeWithContentDescription("Preview in dark mode").assertExists()
+    onNodeWithText("Light").assertDoesNotExist()
+  }
+
+  @Test
+  fun foldable_paletteRowResetButtonClearsACustomPalette() = runComposeUiTest {
+    val events = mutableListOf<ThemeBuilderUiEvent>()
+    setContent {
+      Builder(
+        rememberSampleThemeBuilderState(
+          colors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE, errorColor = Color(0xFFD946EF)),
+          eventSink = { events += it },
+        ),
+        foldable,
+      )
+    }
+
+    onNodeWithContentDescription("Use the generated color").performScrollTo().performClick()
+
+    assertEquals(ThemeBuilderUiEvent.ColorReset(PaletteKey.Errors), events.last())
+  }
+
+  @Test
+  fun wide_showsLightAndDarkPreviewsWithoutAModeSwitch() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), wide) }
+
+    onNodeWithText("Light").assertExists()
+    onNodeWithText("Dark").assertExists()
+    onNodeWithText("Palette colors").assertExists()
+    onNodeWithContentDescription("Preview in dark mode").assertDoesNotExist()
   }
 
   @Test

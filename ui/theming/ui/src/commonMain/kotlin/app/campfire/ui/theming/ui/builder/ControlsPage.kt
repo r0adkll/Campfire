@@ -10,8 +10,9 @@ import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.roles
 
 /**
- * A page the builder's controls pane shows in place of the list of controls, so the preview
- * stays in sight while it's open. Pages stack: Back closes the top one.
+ * A page the builder shows in place of its controls (the column of every control, or a tool's
+ * tray on a phone), so the preview stays in sight while it's open. Pages stack: Back closes the
+ * top one.
  */
 internal sealed interface ControlsPage {
 

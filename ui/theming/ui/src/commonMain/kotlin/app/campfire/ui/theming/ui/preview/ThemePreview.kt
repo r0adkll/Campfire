@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.composables.label
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_tune_part
@@ -70,6 +71,10 @@ fun ThemePreview(
   )
 }
 
+/**
+ * [ThemePreview] with parts that can be tapped and outlined ([targets]), zoomed in on the part
+ * [focus] checks while it's set.
+ */
 @Composable
 internal fun ThemePreviewContent(
   scene: PreviewScene,
@@ -77,6 +82,7 @@ internal fun ThemePreviewContent(
   icon: AppTheme.Icon,
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
+  focus: ContrastCheck? = null,
   onCoverThemingClick: (() -> Unit)? = null,
 ) {
   Surface(
@@ -93,6 +99,7 @@ internal fun ThemePreviewContent(
         TappablePreviewParts(
           targets = targets,
           actionLabel = { stringResource(Res.string.theme_tune_part, it.label()) },
+          focus = focus,
           modifier = Modifier.fillMaxSize(),
         ) {
           ScaledToFit(minSize = scene.minSize, modifier = Modifier.fillMaxSize()) {
@@ -107,6 +114,33 @@ internal fun ThemePreviewContent(
     }
   }
 }
+
+/**
+ * The scenes that draw the part this check covers, the one that shows it best first. Home's
+ * shelves can drop their names and titles in a short preview, so Library comes first for those.
+ */
+internal val ContrastCheck.scenes: List<PreviewScene>
+  get() = when (this) {
+    ContrastCheck.SupportingText -> listOf(PreviewScene.Home)
+    ContrastCheck.NavigationBar,
+    ContrastCheck.SelectedTabName,
+    ContrastCheck.ProgressBars,
+    -> listOf(PreviewScene.Home, PreviewScene.Library)
+    ContrastCheck.SelectedItems -> listOf(PreviewScene.Home, PreviewScene.Library, PreviewScene.Everywhere)
+    ContrastCheck.CardText -> listOf(PreviewScene.Library, PreviewScene.Home)
+    ContrastCheck.ScreenText -> listOf(PreviewScene.Library, PreviewScene.Home, PreviewScene.Everywhere)
+    ContrastCheck.AccountCard,
+    ContrastCheck.DrawerItems,
+    ContrastCheck.OfflineStatus,
+    ContrastCheck.Headers,
+    ContrastCheck.Borders,
+    ContrastCheck.Buttons,
+    ContrastCheck.ErrorText,
+    ContrastCheck.DialogButtons,
+    ContrastCheck.Warnings,
+    ContrastCheck.Snackbars,
+    -> listOf(PreviewScene.Everywhere)
+  }
 
 /**
  * The smallest space each scene is laid out in. In less, the whole scene scales down to fit
