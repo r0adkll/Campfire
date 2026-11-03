@@ -24,7 +24,7 @@ internal const val NON_TEXT_CONTRAST = 3.0
  * user would notice. Book details and the player take their colors from the cover by default,
  * so none of these depend on them.
  */
-internal enum class ContrastCheck(
+enum class ContrastCheck(
   val background: ThemeRole,
   val foreground: ThemeRole,
   val minimumRatio: Double,
@@ -81,7 +81,7 @@ internal enum class ContrastCheck(
   Snackbars(ThemeRole.InverseSurface, ThemeRole.InverseOnSurface, TEXT_CONTRAST),
 }
 
-internal data class ContrastResult(
+data class ContrastResult(
   val check: ContrastCheck,
   val ratio: Double,
 ) {
