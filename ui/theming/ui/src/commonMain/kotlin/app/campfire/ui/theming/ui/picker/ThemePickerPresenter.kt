@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.toArgb
 import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
@@ -26,8 +28,10 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @CircuitInject(ThemePickerScreen::class, UserScope::class)
 @Inject
@@ -74,6 +78,8 @@ class ThemePickerPresenter(
 
     val previewContent by remember { previewContentSource.observe() }.collectAsState(PreviewContent())
 
+    val scope = rememberCoroutineScope()
+
     return ThemePickerUiState(
       currentTheme = currentTheme,
       themeMode = themeMode,
@@ -100,7 +106,32 @@ class ThemePickerPresenter(
         ThemePickerUiEvent.OpenAiThemeBuilder -> navigator.goTo(AiThemeBuilderScreen())
         is ThemePickerUiEvent.SelectTheme -> appThemeRepository.setCurrentTheme(event.theme)
         is ThemePickerUiEvent.SetThemeMode -> themeSettings.themeMode = event.mode
+        is ThemePickerUiEvent.Customize -> navigator.goTo(
+          ThemeBuilderScreen(
+            seedColor = event.seedColor.toArgb(),
+            icon = (event.theme as? AppTheme.Fixed)?.icon,
+          ),
+        )
+        is ThemePickerUiEvent.Duplicate -> scope.launch {
+          appThemeRepository.saveCustomTheme(event.theme.copied(event.name))
+        }
+        is ThemePickerUiEvent.Delete -> scope.launch {
+          appThemeRepository.deleteCustomTheme(event.theme.id)
+        }
       }
     }
+  }
+}
+
+/**
+ * A copy of one of the user's themes, under a new id and [name]. Built-in themes aren't copied;
+ * they're customized into a new theme instead.
+ */
+internal fun AppTheme.Fixed.copied(name: String): AppTheme.Fixed {
+  val id = Uuid.random().toHexDashString()
+  return when (this) {
+    is AppTheme.Fixed.Custom -> copy(id = id, name = name)
+    is AppTheme.Fixed.Ai -> copy(id = id, name = name)
+    else -> error("Only the user's own themes are copied, not $this")
   }
 }

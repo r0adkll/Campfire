@@ -4,6 +4,7 @@
 package app.campfire.ui.theming.ui.picker
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import app.campfire.core.coroutines.LoadState
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.test.TestThemeSettings
@@ -18,6 +19,7 @@ import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.previewLibrary
 import app.cash.turbine.ReceiveTurbine
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -154,6 +156,59 @@ class ThemePickerPresenterTest {
       assertThat(navigator.awaitNextScreen()).isEqualTo(ThemeBuilderScreen(ai.id))
       cancelAndIgnoreRemainingEvents()
     }
+  }
+
+  @Test
+  fun customizing_startsANewThemeFromTheThemesColorAndIcon() = runTest {
+    val green = Color(0xFF026B00)
+    presenter().test {
+      val sink = awaitItem().eventSink
+      sink(ThemePickerUiEvent.Customize(AppTheme.Fixed.Forest, green))
+      assertThat(navigator.awaitNextScreen())
+        .isEqualTo(ThemeBuilderScreen(seedColor = green.toArgb(), icon = AppTheme.Icon.Forest))
+      // The wallpaper theme has no icon of its own, so the builder picks its default.
+      sink(ThemePickerUiEvent.Customize(AppTheme.Dynamic, green))
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ThemeBuilderScreen(seedColor = green.toArgb()))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun duplicating_savesACopyUnderANewIdAndName() = runTest {
+    val ember = customTheme(id = "ember", name = "Ember")
+    val dusk = aiTheme()
+    presenter().test {
+      val sink = awaitItem().eventSink
+      sink(ThemePickerUiEvent.Duplicate(ember, "Ember copy"))
+      sink(ThemePickerUiEvent.Duplicate(dusk, "Dusk copy"))
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    val (emberCopy, duskCopy) = repository.saved
+    assertThat(emberCopy).isInstanceOf<AppTheme.Fixed.Custom>().all {
+      prop(AppTheme.Fixed.Custom::name).isEqualTo("Ember copy")
+      prop(AppTheme.Fixed.Custom::id).isNotEqualTo(ember.id)
+      prop(AppTheme.Fixed.Custom::seedColor).isEqualTo(ember.seedColor)
+      prop(AppTheme.Fixed.Custom::colorPalette).isEqualTo(ember.colorPalette)
+    }
+    assertThat(duskCopy).isInstanceOf<AppTheme.Fixed.Ai>().all {
+      prop(AppTheme.Fixed.Ai::name).isEqualTo("Dusk copy")
+      prop(AppTheme.Fixed.Ai::id).isNotEqualTo(dusk.id)
+      prop(AppTheme.Fixed.Ai::prompt).isEqualTo(dusk.prompt)
+    }
+    assertThat(emberCopy.id).isNotEqualTo(duskCopy.id)
+  }
+
+  @Test
+  fun deleting_removesTheTheme() = runTest {
+    val ember = customTheme(id = "ember", name = "Ember")
+    repository.themes[ember.id] = ember
+    presenter().test {
+      awaitItem().eventSink(ThemePickerUiEvent.Delete(ember))
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(repository.deleted).containsExactly(ember.id)
   }
 
   @Test
