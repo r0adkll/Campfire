@@ -446,6 +446,7 @@ private fun ControlsList(
     ControlSection(Res.string.theme_builder_section_color) {
       SeedColorSection(
         seedColor = state.seedColor,
+        coverColors = state.coverColors,
         onChangeClick = { onPick(PaletteKey.Accent) },
         onSwatchClick = { state.eventSink(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Accent, it)) },
       )
@@ -608,6 +609,7 @@ internal fun rememberSampleThemeBuilderState(
   colors: CustomThemeColors = CustomThemeColors(Color(0xFFC0532D), Variant.EXPRESSIVE),
   isNew: Boolean = true,
   previewContent: PreviewContent = PreviewContent(),
+  coverColors: List<CoverColor> = emptyList(),
   eventSink: (ThemeBuilderUiEvent) -> Unit = {},
 ): ThemeBuilderUiState {
   val name = rememberTextFieldState(if (isNew) "" else "Ember")
@@ -637,6 +639,7 @@ internal fun rememberSampleThemeBuilderState(
     contrast = remember(palette) { contrastStatuses(palette) },
     customThemeCount = 2,
     previewContent = previewContent,
+    coverColors = coverColors,
     eventSink = eventSink,
   )
 }

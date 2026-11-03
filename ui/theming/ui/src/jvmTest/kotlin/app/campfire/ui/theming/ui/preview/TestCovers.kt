@@ -27,14 +27,19 @@ internal fun installTestCovers() {
   )
 }
 
+/** The flat color the test image loader draws the cover at [url] in. */
+internal fun testCoverColor(url: String): Color {
+  val hue = (url.hashCode() and 0xFFFF) % 360
+  return Color.hsl(hue.toFloat(), saturation = 0.45f, lightness = 0.42f)
+}
+
 internal fun resetTestCovers() {
   SingletonImageLoader.reset()
 }
 
 private object CoverInterceptor : Interceptor {
   override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
-    val hue = (chain.request.data.toString().hashCode() and 0xFFFF) % 360
-    val color = Color.hsl(hue.toFloat(), saturation = 0.45f, lightness = 0.42f)
+    val color = testCoverColor(chain.request.data.toString())
     return SuccessResult(
       image = ColorImage(color.toArgb(), width = 400, height = 400),
       request = chain.request,

@@ -6,6 +6,7 @@ package app.campfire.ui.theming.ui.builder
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.theme.ColorPalette
+import app.campfire.core.model.LibraryItem
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
 import app.campfire.ui.theming.ui.builder.color.contrastResults
@@ -48,6 +49,16 @@ data class PaletteRow(
   val keyColor: Color,
   val tones: List<Color>,
   val isCustom: Boolean,
+)
+
+/**
+ * A book on the user's shelves and the color its details page and the player take from its
+ * cover, offered as a starting color.
+ */
+@Immutable
+data class CoverColor(
+  val item: LibraryItem,
+  val color: Color,
 )
 
 /** One contrast check's ratio in each mode. */

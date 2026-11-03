@@ -32,6 +32,7 @@ import app.campfire.ui.theming.api.RoleOverrides
 import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import app.campfire.ui.theming.ui.preview.previewBook
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -105,6 +106,34 @@ class ThemeBuilderUiTest {
     onNodeWithContentDescription("Use #2563EB").performScrollTo().performClick()
 
     assertEquals(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Accent, Color(0xFF2563EB)), events.last())
+  }
+
+  @Test
+  fun coverColor_picksThatBooksColor() = runComposeUiTest {
+    val events = mutableListOf<ThemeBuilderUiEvent>()
+    val book = previewBook("li_piranesi", "Piranesi", "Susanna Clarke").item
+    setContent {
+      Builder(
+        rememberSampleThemeBuilderState(
+          coverColors = listOf(CoverColor(book, Color(0xFF2E5E4E))),
+          eventSink = { events += it },
+        ),
+        phone,
+      )
+    }
+
+    onNodeWithText("From your books").performScrollTo()
+    onNodeWithContentDescription("Use the color of Piranesi").performClick()
+
+    assertEquals(ThemeBuilderUiEvent.ColorPicked(PaletteKey.Accent, Color(0xFF2E5E4E)), events.last())
+  }
+
+  @Test
+  fun coverColors_areHiddenUntilThereAreSome() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(), phone) }
+
+    onNodeWithText("Tap to change").assertExists()
+    onNodeWithText("From your books").assertDoesNotExist()
   }
 
   @Test

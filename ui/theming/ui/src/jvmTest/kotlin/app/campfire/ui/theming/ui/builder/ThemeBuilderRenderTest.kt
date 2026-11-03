@@ -36,6 +36,7 @@ import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.installTestCovers
 import app.campfire.ui.theming.ui.preview.previewLibrary
 import app.campfire.ui.theming.ui.preview.resetTestCovers
+import app.campfire.ui.theming.ui.preview.testCoverColor
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.r0adkll.swatchbuckler.color.hct.Hct
 import java.io.File
@@ -73,6 +74,16 @@ class ThemeBuilderRenderTest {
   @Test
   fun `phone dark`() {
     render("theme-builder-phone-dark", width = 412, height = 915) { Builder(dark = true) }
+  }
+
+  @Test
+  fun `phone with colors from the user's books`() {
+    render("theme-builder-phone-cover-colors", width = 412, height = 1100) {
+      val coverColors = content.library.allItems.map { shelfItem ->
+        CoverColor(shelfItem.item, testCoverColor(shelfItem.item.media.coverImageUrl))
+      }
+      Builder(dark = false, coverColors = coverColors)
+    }
   }
 
   @Test
@@ -186,14 +197,14 @@ class ThemeBuilderRenderTest {
   }
 
   @Composable
-  private fun Builder(dark: Boolean) {
+  private fun Builder(dark: Boolean, coverColors: List<CoverColor> = emptyList()) {
     CampfireTheme(useDarkColors = dark) {
       CompositionLocalProvider(
         LocalUseDarkColors provides dark,
         LocalWindowSizeClass provides currentWindowSizeClass(),
         LocalContentLayout provides ContentLayout.Root,
       ) {
-        ThemeBuilder(rememberSampleThemeBuilderState(colors, previewContent = content))
+        ThemeBuilder(rememberSampleThemeBuilderState(colors, previewContent = content, coverColors = coverColors))
       }
     }
   }

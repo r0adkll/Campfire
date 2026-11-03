@@ -5,6 +5,7 @@ package app.campfire.ui.theming.ui.builder.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,9 +32,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.ui.theming.ui.builder.CoverColor
+import app.campfire.ui.theming.ui.preview.PreviewCover
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_builder_color_change
+import campfire.ui.theming.ui.generated.resources.theme_builder_from_your_books
 import campfire.ui.theming.ui.generated.resources.theme_builder_use_color
+import campfire.ui.theming.ui.generated.resources.theme_builder_use_cover_color
 import org.jetbrains.compose.resources.stringResource
 
 /** Colors that make good seeds: warm to cool, plus a stone grey. */
@@ -49,13 +56,17 @@ internal val CuratedColors = listOf(
   Color(0xFF57534E),
 )
 
-/** The seed color with a tap target for the picker, and quick swatches beneath it. */
+/**
+ * The seed color with a tap target for the picker, and quick swatches beneath it: curated colors,
+ * then the colors of the user's own books, once their covers have been read.
+ */
 @Composable
 internal fun SeedColorSection(
   seedColor: Color,
   onChangeClick: () -> Unit,
   onSwatchClick: (Color) -> Unit,
   modifier: Modifier = Modifier,
+  coverColors: List<CoverColor> = emptyList(),
 ) {
   Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
     Surface(
@@ -85,6 +96,65 @@ internal fun SeedColorSection(
       colors = CuratedColors,
       selected = seedColor,
       onSwatchClick = onSwatchClick,
+    )
+
+    if (coverColors.isNotEmpty()) {
+      Text(
+        text = stringResource(Res.string.theme_builder_from_your_books),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Row(
+        modifier = Modifier
+          .horizontalScroll(rememberScrollState())
+          .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        coverColors.forEach { coverColor ->
+          CoverSwatch(
+            coverColor = coverColor,
+            selected = coverColor.color == seedColor,
+            onClick = { onSwatchClick(coverColor.color) },
+          )
+        }
+      }
+    }
+  }
+}
+
+/** A book's cover, with a dot of the color it gives the theme. */
+@Composable
+private fun CoverSwatch(
+  coverColor: CoverColor,
+  selected: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val colors = MaterialTheme.colorScheme
+  val label = stringResource(Res.string.theme_builder_use_cover_color, coverColor.item.media.metadata.title.orEmpty())
+  val shape = RoundedCornerShape(12.dp)
+  Box(
+    modifier = modifier
+      .size(56.dp)
+      .clip(shape)
+      .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+      .semantics { contentDescription = label }
+      .then(if (selected) Modifier.border(2.dp, colors.onSurface, shape) else Modifier)
+      .padding(if (selected) 4.dp else 0.dp),
+  ) {
+    PreviewCover(
+      imageUrl = coverColor.item.media.coverImageUrl,
+      size = 56.dp,
+      shape = RoundedCornerShape(if (selected) 8.dp else 12.dp),
+      modifier = Modifier.matchParentSize(),
+    )
+    ColorDot(
+      color = coverColor.color,
+      size = 20.dp,
+      modifier = Modifier
+        .align(Alignment.BottomEnd)
+        .padding(2.dp)
+        .border(2.dp, colors.surfaceContainer, CircleShape),
     )
   }
 }
