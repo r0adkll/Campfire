@@ -29,7 +29,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -134,8 +134,8 @@ private fun LazyListScope.header(key: String, text: StringResource) {
 }
 
 /**
- * A theme as a calm row: a radio button, its icon and name, and a strip of its colors. The
- * large preview beside the list shows how it looks.
+ * A theme as a calm row: its icon and name and a strip of its colors, outlined when it's the
+ * theme in use. The large preview beside the list shows how it looks.
  */
 @Composable
 internal fun ThemeRow(
@@ -150,18 +150,22 @@ internal fun ThemeRow(
   val container by animateColorAsState(
     targetValue = if (selected) colors.secondaryContainer else colors.surfaceContainerHigh,
   )
+  val outline by animateColorAsState(
+    targetValue = if (selected) colors.primary else Color.Transparent,
+  )
   Row(
     modifier = modifier
       .fillMaxWidth()
       .heightIn(min = RowHeight)
       .clip(RowShape)
       .background(container)
+      // The selected theme is outlined in its primary color, as the gallery rings its tile
+      .border(SelectedBorderWidth, outline, RowShape)
       .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
       .semantics { contentDescription = name }
-      .padding(start = 4.dp, end = 4.dp),
+      .padding(start = 16.dp, end = 4.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    RadioButton(selected = selected, onClick = null, modifier = Modifier.padding(horizontal = 8.dp))
     AppThemeImage(appTheme = theme, modifier = Modifier.size(28.dp))
     Spacer(Modifier.width(12.dp))
     Text(
@@ -232,5 +236,6 @@ private fun CreateThemeRow(
 }
 
 private val RowHeight = 64.dp
+private val SelectedBorderWidth = 2.dp
 private val RowCorner = 16.dp
 private val RowShape = RoundedCornerShape(RowCorner)
