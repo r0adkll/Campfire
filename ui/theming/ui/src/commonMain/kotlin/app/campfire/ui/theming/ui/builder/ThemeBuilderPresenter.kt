@@ -17,8 +17,11 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
+import app.campfire.ui.theming.api.RoleOverrides
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import app.campfire.ui.theming.ui.builder.color.fixContrast
+import app.campfire.ui.theming.ui.builder.color.mirror
 import app.campfire.ui.theming.ui.builder.color.specVersion
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewContentSource
@@ -76,16 +79,25 @@ class ThemeBuilderPresenter(
               errorColor = theme.errorColorOverride,
               neutralColor = theme.neutralColorOverride,
               neutralVariantColor = theme.neutralVariantColorOverride,
+              roleOverrides = theme.roleOverrides,
             )
           }
       }
     }
 
-    val colorPalette = remember(colors) { colors.toColorPalette() }
+    val picks = colors.copy(roleOverrides = RoleOverrides.None)
+    val generatedPalette = remember(picks) { picks.toGeneratedPalette() }
+    val colorPalette = remember(generatedPalette, colors.roleOverrides) {
+      colors.roleOverrides.applyTo(generatedPalette)
+    }
     val contrast = remember(colorPalette) { contrastStatuses(colorPalette) }
-    val palettes = remember(colors) { paletteRows(colors) }
-    val styles = remember(colors.copy(colorStyle = DefaultColorStyle, colorSpec = DefaultColorStyle.specVersion)) {
+    val palettes = remember(picks) { paletteRows(colors) }
+    val styles = remember(picks.copy(colorStyle = DefaultColorStyle, colorSpec = DefaultColorStyle.specVersion)) {
       styleOptions(colors)
+    }
+
+    fun tune(change: RoleOverrides.() -> RoleOverrides) {
+      colors = colors.copy(roleOverrides = colors.roleOverrides.change())
     }
 
     val theme = AppTheme.Fixed.Custom(
@@ -102,12 +114,14 @@ class ThemeBuilderPresenter(
       neutralColorOverride = colors.neutralColor,
       neutralVariantColorOverride = colors.neutralVariantColor,
       colorPalette = colorPalette,
+      roleOverrides = colors.roleOverrides,
     )
 
     val previewContent by remember { previewContentSource.observe() }.collectAsState(PreviewContent())
 
     return ThemeBuilderUiState(
       theme = theme,
+      generatedPalette = generatedPalette,
       name = name,
       styles = styles,
       palettes = palettes,
@@ -147,6 +161,12 @@ class ThemeBuilderPresenter(
         }
         is ThemeBuilderUiEvent.ContrastLevelClick -> {
           colors = colors.copy(contrastLevel = event.level.contrast.toDouble())
+        }
+        is ThemeBuilderUiEvent.RoleColorPicked -> tune { with(event.role, event.dark, event.color) }
+        is ThemeBuilderUiEvent.RolesReset -> tune { without(event.roles, event.dark) }
+        is ThemeBuilderUiEvent.FixContrast -> tune { fixContrast(event.check, event.dark, generatedPalette) }
+        is ThemeBuilderUiEvent.MirrorRoles -> tune {
+          mirror(event.roles, event.fromDark, generatedPalette, event.check)
         }
       }
     }

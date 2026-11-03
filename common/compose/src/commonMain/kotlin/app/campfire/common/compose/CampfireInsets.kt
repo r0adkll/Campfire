@@ -23,6 +23,7 @@ import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
+import app.campfire.common.compose.session.LocalPlaybackBarHidden
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
 
@@ -37,10 +38,12 @@ val CampfireWindowInsets: WindowInsets
     val session by rememberUpdatedState(LocalPlaybackSession.current)
     val contentLayout = LocalContentLayout.current
 
-    // Inset content if the playback bar floats over it (rather than docking below it or being
-    // replaced by a player of its own), the playback session is live, and this content is not in
-    // the supporting pane.
-    val floatingPlaybackBar = !windowSizeClass.usesBottomPlaybackBar && !LocalPlayerDocked.current
+    // Inset content if the playback bar floats over it (rather than docking below it, being
+    // replaced by a player of its own, or being hidden for this screen), the playback session is
+    // live, and this content is not in the supporting pane.
+    val floatingPlaybackBar = !windowSizeClass.usesBottomPlaybackBar &&
+      !LocalPlayerDocked.current &&
+      !LocalPlaybackBarHidden.current
     val playbackBarInsets = if (floatingPlaybackBar && session != null && contentLayout == ContentLayout.Root) {
       WindowInsets(bottom = PlaybackBarInsetSize)
     } else {

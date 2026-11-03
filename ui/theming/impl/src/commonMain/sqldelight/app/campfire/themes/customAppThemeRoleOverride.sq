@@ -1,0 +1,31 @@
+import androidx.compose.ui.graphics.Color;
+import app.campfire.ui.theming.api.ThemeRole;
+import kotlin.Boolean;
+
+-- An exact color the user fine-tuned for one role of a custom theme, in one mode.
+CREATE TABLE IF NOT EXISTS customAppThemeRoleOverride (
+  themeId TEXT NOT NULL REFERENCES customAppTheme(id) ON DELETE CASCADE,
+  role TEXT AS ThemeRole NOT NULL,
+  isDark INTEGER AS Boolean NOT NULL,
+  color INTEGER AS Color NOT NULL,
+  PRIMARY KEY (themeId, role, isDark)
+);
+
+-- Queries
+
+insert:
+INSERT OR REPLACE INTO customAppThemeRoleOverride
+VALUES ?;
+
+deleteForTheme:
+DELETE FROM customAppThemeRoleOverride
+WHERE themeId = ?;
+
+selectForTheme:
+SELECT *
+FROM customAppThemeRoleOverride
+WHERE themeId = ?;
+
+selectAll:
+SELECT *
+FROM customAppThemeRoleOverride;

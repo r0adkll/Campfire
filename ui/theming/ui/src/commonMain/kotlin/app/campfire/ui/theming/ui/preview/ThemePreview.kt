@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.ui.builder.composables.label
+import campfire.ui.theming.ui.generated.resources.Res
+import campfire.ui.theming.ui.generated.resources.theme_tune_part
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
 
 /** A Campfire screen the theme preview can draw. */
 enum class PreviewScene {
@@ -86,11 +90,17 @@ internal fun ThemePreviewContent(
     // than joining the screen's, and the elevation of a top-level screen.
     PreviewSharedElementTransitionLayout {
       CompositionLocalProvider(LocalContentLayout provides ContentLayout.Root) {
-        ScaledToFit(minSize = scene.minSize, modifier = Modifier.fillMaxSize()) {
-          when (scene) {
-            PreviewScene.Home -> HomeScene(content, icon, targets, onCoverThemingClick)
-            PreviewScene.Library -> LibraryScene(content, targets)
-            PreviewScene.Everywhere -> EverywhereScene(targets)
+        TappablePreviewParts(
+          targets = targets,
+          actionLabel = { stringResource(Res.string.theme_tune_part, it.label()) },
+          modifier = Modifier.fillMaxSize(),
+        ) {
+          ScaledToFit(minSize = scene.minSize, modifier = Modifier.fillMaxSize()) {
+            when (scene) {
+              PreviewScene.Home -> HomeScene(content, icon, targets, onCoverThemingClick)
+              PreviewScene.Library -> LibraryScene(content, targets)
+              PreviewScene.Everywhere -> EverywhereScene(targets)
+            }
           }
         }
       }

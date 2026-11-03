@@ -6,6 +6,7 @@ package app.campfire.ui.theming.ui.builder.color
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.extensions.asHct
 import app.campfire.common.compose.theme.ColorPalette
+import app.campfire.ui.theming.api.RoleOverrides
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpecs
@@ -40,7 +41,8 @@ internal val Variant.specVersion: SpecVersion
  * The seed color drives every palette that isn't overridden. A secondary, tertiary or error
  * override keeps the hue and chroma that was picked, so a vivid pick stays vivid; the scheme still
  * chooses each role's tone for light and dark mode. Neutral overrides only lend their hue, because
- * the style decides how much color backgrounds carry.
+ * the style decides how much color backgrounds carry. [roleOverrides] then set exact colors for
+ * single roles, per mode, on top of all that.
  */
 internal data class CustomThemeColors(
   val seedColor: Color,
@@ -52,9 +54,14 @@ internal data class CustomThemeColors(
   val errorColor: Color? = null,
   val neutralColor: Color? = null,
   val neutralVariantColor: Color? = null,
+  val roleOverrides: RoleOverrides = RoleOverrides.None,
 ) {
 
-  fun toColorPalette(): ColorPalette = ColorPalette(
+  /** The finished palette: what the picks generate, with the fine-tuned roles in place. */
+  fun toColorPalette(): ColorPalette = roleOverrides.applyTo(toGeneratedPalette())
+
+  /** What the picks generate, before any fine-tuning. */
+  fun toGeneratedPalette(): ColorPalette = ColorPalette(
     lightColorScheme = dynamicScheme(isDark = false).asColorScheme(),
     darkColorScheme = dynamicScheme(isDark = true).asColorScheme(),
   )

@@ -194,7 +194,7 @@ internal fun ColorPickerPanel(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GradientSlider(
+internal fun GradientSlider(
   label: String,
   value: Float,
   maxValue: Float,
@@ -234,7 +234,7 @@ private fun GradientSlider(
   }
 }
 
-private fun colorOf(hue: Double, chroma: Double, tone: Double): Color = Color(Hct.from(hue, chroma, tone).toInt())
+internal fun colorOf(hue: Double, chroma: Double, tone: Double): Color = Color(Hct.from(hue, chroma, tone).toInt())
 
 /** Colors that sit well next to [seed]: its neighbors, a triad and its complement. */
 private fun harmonies(seed: Color): List<Color> {

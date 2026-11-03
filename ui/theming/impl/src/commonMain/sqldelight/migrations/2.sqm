@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS customAppThemeRoleOverride (
+  themeId TEXT NOT NULL REFERENCES customAppTheme(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  isDark INTEGER NOT NULL,
+  color INTEGER NOT NULL,
+  PRIMARY KEY (themeId, role, isDark)
+);

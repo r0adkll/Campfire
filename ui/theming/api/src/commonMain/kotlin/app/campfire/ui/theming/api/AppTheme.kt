@@ -106,7 +106,10 @@ sealed interface AppTheme {
       val neutralColorOverride: Color?,
       val neutralVariantColorOverride: Color?,
       override val icon: Icon,
+      /** The finished palette, with [roleOverrides] applied. */
       override val colorPalette: ColorPalette,
+      /** Exact colors the user fine-tuned, kept so the builder can show and edit them. */
+      val roleOverrides: RoleOverrides = RoleOverrides.None,
     ) : Fixed(id, icon, colorPalette)
 
     data class Ai(

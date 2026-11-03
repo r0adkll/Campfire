@@ -3,6 +3,7 @@
 
 package app.campfire.ui.theming.ui.builder.composables
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CheckCircle
@@ -30,11 +32,15 @@ import campfire.ui.theming.ui.generated.resources.theme_readability_pass_detail
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** A one-line verdict for both modes, then each failing part with its ratios. */
+/**
+ * A one-line verdict for both modes, then each failing part with its ratios. Tapping a failing
+ * part calls [onCheckClick], to fine-tune it.
+ */
 @Composable
 internal fun ReadabilitySummary(
   contrast: List<ContrastStatus>,
   modifier: Modifier = Modifier,
+  onCheckClick: ((ContrastStatus) -> Unit)? = null,
 ) {
   val failing = contrast.filterNot { it.passesBoth }
   val colors = MaterialTheme.colorScheme
@@ -80,7 +86,9 @@ internal fun ReadabilitySummary(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 6.dp),
+          .clip(MaterialTheme.shapes.medium)
+          .then(if (onCheckClick != null) Modifier.clickable { onCheckClick(status) } else Modifier)
+          .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(

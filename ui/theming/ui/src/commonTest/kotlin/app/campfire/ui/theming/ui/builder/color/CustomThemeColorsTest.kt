@@ -5,6 +5,8 @@ package app.campfire.ui.theming.ui.builder.color
 
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.extensions.asHct
+import app.campfire.ui.theming.api.ThemeRole
+import app.campfire.ui.theming.api.colorFor
 import assertk.assertThat
 import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo

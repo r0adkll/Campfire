@@ -6,6 +6,8 @@ package app.campfire.ui.theming.ui.builder.color
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.extensions.asHct
+import app.campfire.ui.theming.api.ThemeRole
+import app.campfire.ui.theming.api.colorFor
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.each

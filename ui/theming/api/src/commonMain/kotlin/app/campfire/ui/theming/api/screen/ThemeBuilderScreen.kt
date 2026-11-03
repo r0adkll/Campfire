@@ -12,5 +12,8 @@ data class ThemeBuilderScreen(
   val customThemeId: String? = null,
 ) : BaseScreen(name = "ThemeBuilder") {
   override val presentation: Presentation
-    get() = Presentation(hideBottomNav = true)
+    get() = Presentation(
+      hideBottomNav = true,
+      hidePlaybackBar = true,
+    )
 }

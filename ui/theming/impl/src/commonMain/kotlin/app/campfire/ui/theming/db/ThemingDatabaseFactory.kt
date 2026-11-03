@@ -6,6 +6,7 @@ package app.campfire.ui.theming.db
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.ColorScheme
 import app.campfire.themes.CustomAppTheme
+import app.campfire.themes.CustomAppThemeRoleOverride
 import app.campfire.themes.Swatch
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.db.SqlDriver
@@ -83,6 +84,10 @@ class ThemingDatabaseFactory(
       colorSpecAdapter = EnumColumnAdapter(),
       colorStyleAdapter = EnumColumnAdapter(),
       styleAdapter = EnumColumnAdapter(),
+    ),
+    customAppThemeRoleOverrideAdapter = CustomAppThemeRoleOverride.Adapter(
+      roleAdapter = EnumColumnAdapter(),
+      colorAdapter = ColorColumnAdapter,
     ),
   )
 }

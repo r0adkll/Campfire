@@ -5,11 +5,13 @@ package app.campfire.ui.theming.db.mapping
 
 import androidx.compose.material3.ColorScheme
 import app.campfire.common.compose.theme.ColorPalette
+import app.campfire.themes.CustomAppThemeRoleOverride
 import app.campfire.themes.SelectAll
 import app.campfire.themes.SelectById
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.RoleOverrides
 
-fun SelectAll.asDomainModel(): AppTheme.Fixed {
+fun SelectAll.asDomainModel(roleOverrides: RoleOverrides = RoleOverrides.None): AppTheme.Fixed {
   if (isAi) {
     return AppTheme.Fixed.Ai(
       id = id,
@@ -34,6 +36,7 @@ fun SelectAll.asDomainModel(): AppTheme.Fixed {
       colorStyle = colorStyle,
       contrastLevel = contrastLevel.toFloat(),
       colorPalette = colorPalette(),
+      roleOverrides = roleOverrides,
     )
   }
 }
@@ -143,7 +146,7 @@ fun SelectAll.colorPalette(): ColorPalette {
   )
 }
 
-fun SelectById.asDomainModel(): AppTheme.Fixed {
+fun SelectById.asDomainModel(roleOverrides: RoleOverrides = RoleOverrides.None): AppTheme.Fixed {
   if (isAi) {
     return AppTheme.Fixed.Ai(
       id = id,
@@ -168,6 +171,7 @@ fun SelectById.asDomainModel(): AppTheme.Fixed {
       colorStyle = colorStyle,
       contrastLevel = contrastLevel.toFloat(),
       colorPalette = colorPalette(),
+      roleOverrides = roleOverrides,
     )
   }
 }
@@ -276,3 +280,13 @@ fun SelectById.colorPalette(): ColorPalette {
     ),
   )
 }
+
+/** One theme's stored overrides, split by mode. */
+fun List<CustomAppThemeRoleOverride>.asRoleOverrides(): RoleOverrides = RoleOverrides(
+  light = filterNot { it.isDark }.associate { it.role to it.color },
+  dark = filter { it.isDark }.associate { it.role to it.color },
+)
+
+fun RoleOverrides.asDbModels(themeId: String): List<CustomAppThemeRoleOverride> =
+  light.map { (role, color) -> CustomAppThemeRoleOverride(themeId, role, isDark = false, color = color) } +
+    dark.map { (role, color) -> CustomAppThemeRoleOverride(themeId, role, isDark = true, color = color) }
