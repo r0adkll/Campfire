@@ -3,71 +3,108 @@
 
 package app.campfire.ui.theming.ui.picker
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Surface
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AutoAwesome
+import app.campfire.common.compose.icons.rounded.Brightness6
+import app.campfire.common.compose.icons.rounded.Check
+import app.campfire.common.compose.icons.rounded.DarkMode
 import app.campfire.common.compose.icons.rounded.Edit
-import app.campfire.common.compose.icons.rounded.FormatPaint
+import app.campfire.common.compose.icons.rounded.LightMode
 import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
+import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.NavigationBackButton
-import app.campfire.core.coroutines.onError
-import app.campfire.core.coroutines.onLoaded
-import app.campfire.core.coroutines.onLoading
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
+import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.PreviewScene
+import app.campfire.ui.theming.ui.preview.ThemePreview
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.action_edit_theme
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
@@ -77,9 +114,24 @@ import campfire.ui.theming.ui.generated.resources.theme_name_mountain
 import campfire.ui.theming.ui.generated.resources.theme_name_rucksack
 import campfire.ui.theming.ui.generated.resources.theme_name_tent
 import campfire.ui.theming.ui.generated.resources.theme_name_water_bottle
+import campfire.ui.theming.ui.generated.resources.themes_built_in
+import campfire.ui.theming.ui.generated.resources.themes_create_ai
+import campfire.ui.theming.ui.generated.resources.themes_load_error
+import campfire.ui.theming.ui.generated.resources.themes_mode_dark
+import campfire.ui.theming.ui.generated.resources.themes_mode_light
+import campfire.ui.theming.ui.generated.resources.themes_mode_system
+import campfire.ui.theming.ui.generated.resources.themes_new
+import campfire.ui.theming.ui.generated.resources.themes_title
+import campfire.ui.theming.ui.generated.resources.themes_yours
 import com.slack.circuit.codegen.annotations.CircuitInject
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Every theme as a small copy of Home in its colors, built-in themes first and then the user's
+ * own, with the light and dark setting above them. Picking a theme applies it straight away, so
+ * the screen itself recolors.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(ThemePickerScreen::class, UserScope::class)
 @Composable
@@ -94,9 +146,7 @@ fun ThemePicker(
     Scaffold(
       topBar = {
         CampfireTopAppBar(
-          title = {
-            Text("Theme")
-          },
+          title = { Text(stringResource(Res.string.themes_title)) },
           navigationIcon = {
             NavigationBackButton(onClick = { state.eventSink(ThemePickerUiEvent.Back) })
           },
@@ -109,383 +159,380 @@ fun ThemePicker(
       modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       contentWindowInsets = CampfireWindowInsets,
     ) { paddingValues ->
+      ThemeGallery(state = state, contentPadding = paddingValues)
+    }
+  }
+}
 
-      LazyColumn(
-        modifier = Modifier,
-        contentPadding = paddingValues,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        item {
-          Text(
-            text = "Pick a built-in theme or create your own custom one to personalize your Campfire experience.",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(16.dp),
-          )
+@Composable
+private fun ThemeGallery(
+  state: ThemePickerUiState,
+  contentPadding: PaddingValues,
+  modifier: Modifier = Modifier,
+) {
+  val layoutDirection = LocalLayoutDirection.current
+  LazyVerticalGrid(
+    columns = GridCells.Adaptive(TileMinWidth),
+    modifier = modifier.fillMaxSize(),
+    contentPadding = PaddingValues(
+      start = contentPadding.calculateStartPadding(layoutDirection) + GalleryPadding,
+      top = contentPadding.calculateTopPadding() + 8.dp,
+      end = contentPadding.calculateEndPadding(layoutDirection) + GalleryPadding,
+      bottom = contentPadding.calculateBottomPadding() + 24.dp,
+    ),
+    horizontalArrangement = Arrangement.spacedBy(TileSpacing),
+    verticalArrangement = Arrangement.spacedBy(TileSpacing),
+  ) {
+    item(key = "mode", span = { GridItemSpan(maxLineSpan) }, contentType = "mode") {
+      ThemeModeButtons(
+        mode = state.themeMode,
+        onModeChange = { state.eventSink(ThemePickerUiEvent.SetThemeMode(it)) },
+        modifier = Modifier
+          .wrapContentWidth(Alignment.Start)
+          .widthIn(max = ModeButtonsMaxWidth),
+      )
+    }
+
+    header(key = "built-in", text = Res.string.themes_built_in)
+    items(state.builtInThemes, key = { "built-in:" + it.key }, contentType = { "theme" }) { theme ->
+      ThemeTile(
+        theme = theme,
+        selected = theme.key == state.currentTheme.key,
+        previewContent = state.previewContent,
+        onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
+      )
+    }
+
+    header(key = "yours", text = Res.string.themes_yours)
+    when (val customThemes = state.customThemes) {
+      LoadState.Loading -> item(key = "loading", span = { GridItemSpan(maxLineSpan) }) {
+        Box(Modifier.fillMaxWidth().height(96.dp), contentAlignment = Alignment.Center) {
+          CircularWavyProgressIndicator(Modifier.size(40.dp))
         }
+      }
+      LoadState.Error -> item(key = "error", span = { GridItemSpan(maxLineSpan) }) {
+        Text(
+          text = stringResource(Res.string.themes_load_error),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.padding(horizontal = 4.dp),
+        )
+      }
+      is LoadState.Loaded -> items(customThemes.data, key = { "custom:" + it.id }, contentType = { "theme" }) { theme ->
+        ThemeTile(
+          theme = theme,
+          selected = theme.key == state.currentTheme.key,
+          previewContent = state.previewContent,
+          onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
+          onEditClick = { state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme)) },
+        )
+      }
+    }
 
-        items(state.builtInThemes) { theme ->
-          ThemeOption(
-            theme = theme,
-            selected = theme == state.currentTheme,
-            onClick = {
-              state.eventSink(ThemePickerUiEvent.SelectTheme(theme))
-            },
-            modifier = Modifier.padding(horizontal = 16.dp),
-          )
-        }
-
-        item {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp),
-          ) {
-            HorizontalDivider(Modifier.weight(1f))
-            Text(
-              text = "Custom".uppercase(),
-              style = MaterialTheme.typography.titleMediumEmphasized,
-              color = DividerDefaults.color,
-              modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            HorizontalDivider(Modifier.weight(1f))
-          }
-        }
-
-        state.customThemes
-          .onLoading {
-            item {
-              Box(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .height(56.dp),
-                contentAlignment = Alignment.Center,
-              ) {
-                CircularWavyProgressIndicator(
-                  modifier = Modifier.size(40.dp),
-                )
-              }
-            }
-          }
-          .onLoaded { customThemes ->
-            items(customThemes) { customTheme ->
-              ThemeOption(
-                theme = customTheme,
-                selected = customTheme.id == (state.currentTheme as? AppTheme.Fixed)?.id,
-                onClick = {
-                  state.eventSink(ThemePickerUiEvent.SelectTheme(customTheme))
-                },
-                onEditClick = {
-                  state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(customTheme))
-                },
-                modifier = Modifier.padding(horizontal = 16.dp),
-              )
-            }
-          }
-          .onError {
-            item {
-              Box(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .height(56.dp)
-                  .padding(horizontal = 32.dp),
-                contentAlignment = Alignment.Center,
-              ) {
-                Text("Uh-oh! Unable to load custom themes")
-              }
-            }
-          }
-
-        item {
-          CreateCustomThemeOption(
-            modifier = Modifier.padding(
-              horizontal = 16.dp,
-            ),
-            onClick = {
-              state.eventSink(ThemePickerUiEvent.OpenThemeBuilder())
-            },
-          )
-        }
-
-        if (state.aiThemeBuilderAvailable) {
-          item {
-            CreateAiThemeOption(
-              modifier = Modifier.padding(
-                horizontal = 16.dp,
-              ),
-              onClick = {
-                state.eventSink(ThemePickerUiEvent.OpenAiThemeBuilder)
-              },
-            )
-          }
-        }
+    item(key = "new", contentType = "create") {
+      CreateThemeTile(
+        icon = CampfireIcons.Theme.Palette,
+        label = stringResource(Res.string.themes_new),
+        onClick = { state.eventSink(ThemePickerUiEvent.OpenThemeBuilder()) },
+      )
+    }
+    if (state.aiThemeBuilderAvailable) {
+      item(key = "ai", contentType = "create") {
+        CreateThemeTile(
+          icon = CampfireIcons.Theme.Ai,
+          label = stringResource(Res.string.themes_create_ai),
+          onClick = { state.eventSink(ThemePickerUiEvent.OpenAiThemeBuilder) },
+        )
       }
     }
   }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterialApi::class)
+private fun LazyGridScope.header(key: String, text: StringResource) {
+  item(key = key, span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
+    Text(
+      text = stringResource(text),
+      style = MaterialTheme.typography.titleSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier
+        .padding(start = 4.dp, top = 8.dp)
+        .semantics { heading() },
+    )
+  }
+}
+
+/** Light, Dark and System, as connected buttons. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ThemeOption(
+internal fun ThemeModeButtons(
+  mode: ThemeMode,
+  onModeChange: (ThemeMode) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+  ) {
+    ThemeMode.entries.forEachIndexed { index, option ->
+      OutlinedToggleButton(
+        checked = option == mode,
+        onCheckedChange = { onModeChange(option) },
+        shapes = when (index) {
+          0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+          ThemeMode.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+          else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+        },
+        colors = ToggleButtonDefaults.outlinedToggleButtonColors(
+          checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+          checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ),
+        // Narrow padding, so "System" fits beside its icon on a 360dp phone
+        contentPadding = PaddingValues(horizontal = 8.dp),
+        modifier = Modifier
+          .weight(1f)
+          .semantics { role = Role.RadioButton },
+      ) {
+        Icon(option.icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(option.label(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+      }
+    }
+  }
+}
+
+private val ThemeMode.icon: ImageVector
+  get() = when (this) {
+    ThemeMode.LIGHT -> CampfireIcons.Rounded.LightMode
+    ThemeMode.DARK -> CampfireIcons.Rounded.DarkMode
+    ThemeMode.SYSTEM -> CampfireIcons.Rounded.Brightness6
+  }
+
+@Composable
+private fun ThemeMode.label(): String = stringResource(
+  when (this) {
+    ThemeMode.LIGHT -> Res.string.themes_mode_light
+    ThemeMode.DARK -> Res.string.themes_mode_dark
+    ThemeMode.SYSTEM -> Res.string.themes_mode_system
+  },
+)
+
+/**
+ * A theme as Home drawn in its colors, over its icon and name. The whole tile picks the theme;
+ * the preview's own cards don't take taps.
+ */
+@Composable
+internal fun ThemeTile(
   theme: AppTheme,
   selected: Boolean,
+  previewContent: PreviewContent,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   onEditClick: (() -> Unit)? = null,
 ) {
-  MaterialExpressiveTheme(
-    colorScheme = colorScheme(theme),
-  ) {
-    val borderStrokeWidth = if (selected) 2.dp else 1.dp
-    val cornerRadius by animateDpAsState(
-      targetValue = if (selected) 40.dp else 12.dp,
-      animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(),
-    )
-    Surface(
-      modifier = modifier
-        .fillMaxWidth(),
-      shape = RoundedCornerShape(cornerRadius),
-      color = MaterialTheme.colorScheme.primaryContainer,
-      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-      border = BorderStroke(borderStrokeWidth, MaterialTheme.colorScheme.primary),
-      onClick = onClick,
-    ) {
-      Row(
-        modifier = Modifier
-          .padding(
-            horizontal = 8.dp,
-            vertical = 8.dp,
-          ),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        // Theme Icon,
-        Box(
-          modifier = Modifier
-            .background(
-              color = MaterialTheme.colorScheme.surfaceContainerLow,
-              shape = CircleShape,
-            )
-            .padding(6.dp),
-        ) {
-          AppThemeImage(
-            appTheme = theme,
-            modifier = Modifier.size(32.dp),
-          )
-        }
-
-        Spacer(Modifier.size(16.dp))
-
-        // Theme Name
-        Text(
-          text = when (theme) {
-            is AppTheme.Fixed.Custom -> theme.name
-            is AppTheme.Fixed.Ai -> theme.name
-            AppTheme.Fixed.Tent -> stringResource(Res.string.theme_name_tent)
-            AppTheme.Fixed.Forest -> stringResource(Res.string.theme_name_forest)
-            AppTheme.Fixed.WaterBottle -> stringResource(Res.string.theme_name_water_bottle)
-            AppTheme.Fixed.Rucksack -> stringResource(Res.string.theme_name_rucksack)
-            AppTheme.Fixed.LifeFloat -> stringResource(Res.string.theme_name_life_float)
-            AppTheme.Fixed.Mountain -> stringResource(Res.string.theme_name_mountain)
-            AppTheme.Dynamic -> stringResource(Res.string.theme_name_dynamic)
-          },
-          style = if (selected) {
-            MaterialTheme.typography.titleMediumEmphasized
-          } else {
-            MaterialTheme.typography.titleMedium
-          },
-          color = MaterialTheme.colorScheme.onPrimaryContainer,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.weight(1f),
-        )
-
-        Spacer(Modifier.width(16.dp))
-
-        if (onEditClick != null) {
-          val editLabel = stringResource(Res.string.action_edit_theme)
-          IconButtonTooltip(text = editLabel) {
-            IconButton(onClick = onEditClick) {
-              Icon(
-                if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
-                contentDescription = editLabel,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-              )
-            }
-          }
-          Spacer(Modifier.size(8.dp))
-        }
-
-        AnimatedPalettePreview(selected)
-      }
-    }
-  }
-}
-
-@Composable
-private fun AnimatedPalettePreview(
-  selected: Boolean,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    contentAlignment = Alignment.Center,
-    modifier = modifier,
-  ) {
-    PalettePreview()
-
-    AnimatedVisibility(
-      visible = selected,
-      enter = expandIn(
-        expandFrom = Alignment.Center,
-      ) + fadeIn(),
-      exit = shrinkOut(
-        shrinkTowards = Alignment.Center,
-      ) + fadeOut(),
-    ) {
-      Icon(
-        CampfireIcons.Rounded.FormatPaint,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.surface,
-      )
-    }
-  }
-}
-
-@Composable
-private fun PalettePreview(
-  modifier: Modifier = Modifier,
-) {
-  val shape = CircleShape
+  val interactionSource = remember { MutableInteractionSource() }
+  val ringColor by animateColorAsState(
+    targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+  )
+  val name = theme.displayName()
   Column(
     modifier = modifier
-      .size(48.dp)
-      .clip(shape)
-      .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
+      .selectable(
+        selected = selected,
+        interactionSource = interactionSource,
+        indication = null,
+        role = Role.RadioButton,
+        onClick = onClick,
+      )
+      // The tile carries its name itself, so screen readers announce a named choice
+      .semantics { contentDescription = name },
+    verticalArrangement = Arrangement.spacedBy(4.dp),
   ) {
     Box(
-      Modifier
-        .weight(1f)
+      modifier = Modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.primary),
-    )
-
-    HorizontalDivider()
-
-    Row(
-      modifier = Modifier.weight(1f),
+        .selectionRing { ringColor }
+        .padding(RingInset),
     ) {
+      // A thumbnail keeps the default text size: larger text only crowds and clips at this size.
+      val density = LocalDensity.current
+      CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+        MaterialTheme(colorScheme = colorScheme(theme)) {
+          ThemePreview(
+            scene = PreviewScene.Home,
+            content = previewContent,
+            icon = themeIcon(theme),
+            shape = RoundedCornerShape(TileCorner),
+            coverColorsNote = false,
+            modifier = Modifier
+              .fillMaxWidth()
+              .aspectRatio(TileAspectRatio)
+              .clearAndSetSemantics {},
+          )
+        }
+      }
+      // On top of the preview, so a tap on one of its cards picks the theme instead.
       Box(
         Modifier
-          .weight(1f)
-          .fillMaxHeight()
-          .background(MaterialTheme.colorScheme.secondary),
-      )
-
-      VerticalDivider()
-
-      Box(
-        Modifier
-          .weight(1f)
-          .fillMaxHeight()
-          .background(MaterialTheme.colorScheme.tertiary),
-      )
+          .matchParentSize()
+          .clearAndSetSemantics {},
+      ) {
+        Box(
+          Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(TileCorner))
+            .indication(interactionSource, ripple())
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
+        )
+      }
+      if (selected) {
+        // On the ring's corner, clear of the preview's search bar
+        SelectedBadge(
+          Modifier
+            .align(Alignment.TopEnd)
+            .offset(x = BadgeOffset, y = -BadgeOffset),
+        )
+      }
     }
-  }
-}
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterialApi::class)
-@Composable
-private fun CreateCustomThemeOption(
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Surface(
-    modifier = modifier
-      .fillMaxWidth(),
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    contentColor = MaterialTheme.colorScheme.onSurface,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    onClick = onClick,
-  ) {
     Row(
       modifier = Modifier
-        .padding(
-          horizontal = 8.dp,
-          vertical = 8.dp,
-        ),
+        .heightIn(min = 40.dp)
+        .padding(start = RingInset),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      // Theme Icon,
-      Box(
-        modifier = Modifier
-          .background(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = CircleShape,
-          )
-          .padding(6.dp),
-      ) {
-        Image(
-          CampfireIcons.Theme.Palette,
-          contentDescription = null,
-          modifier = Modifier
-            .size(32.dp),
-        )
-      }
-
-      Spacer(Modifier.size(16.dp))
-
-      // Theme Name
+      AppThemeImage(appTheme = theme, modifier = Modifier.size(24.dp))
+      Spacer(Modifier.width(8.dp))
       Text(
-        text = "Create a custom theme",
-        style = MaterialTheme.typography.titleMediumEmphasized,
+        text = name,
+        style = MaterialTheme.typography.labelLarge,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+          .weight(1f)
+          .clearAndSetSemantics {},
+      )
+      if (onEditClick != null) {
+        val editLabel = stringResource(Res.string.action_edit_theme)
+        IconButtonTooltip(text = editLabel) {
+          IconButton(onClick = onEditClick) {
+            Icon(
+              if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
+              contentDescription = editLabel,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun SelectedBadge(modifier: Modifier = Modifier) {
+  Box(
+    modifier = modifier
+      .size(24.dp)
+      .background(MaterialTheme.colorScheme.primary, CircleShape),
+    contentAlignment = Alignment.Center,
+  ) {
+    Icon(
+      CampfireIcons.Rounded.Check,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.onPrimary,
+      modifier = Modifier.size(16.dp),
+    )
+  }
+}
+
+/** A tile the size of a theme's preview, outlined in dashes, that starts a new theme. */
+@Composable
+private fun CreateThemeTile(
+  icon: ImageVector,
+  label: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val outline = MaterialTheme.colorScheme.outline
+  Box(modifier.padding(RingInset)) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .aspectRatio(TileAspectRatio)
+        .clip(RoundedCornerShape(TileCorner))
+        .dashedOutline(outline, TileCorner)
+        .clickable(role = Role.Button, onClick = onClick)
+        .padding(12.dp),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Image(icon, contentDescription = null, modifier = Modifier.size(48.dp))
+      Spacer(Modifier.height(12.dp))
+      Text(
+        text = label,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.Center,
       )
     }
   }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterialApi::class)
-@Composable
-private fun CreateAiThemeOption(
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Surface(
-    modifier = modifier
-      .fillMaxWidth(),
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    contentColor = MaterialTheme.colorScheme.onSurface,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    onClick = onClick,
-  ) {
-    Row(
-      modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Box(
-        modifier = Modifier
-          .background(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = CircleShape,
-          )
-          .padding(6.dp),
-      ) {
-        Image(
-          CampfireIcons.Theme.Ai,
-          contentDescription = null,
-          modifier = Modifier
-            .size(32.dp),
-        )
-      }
-
-      Spacer(Modifier.size(16.dp))
-
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-          text = "Create with AI",
-          style = MaterialTheme.typography.titleMediumEmphasized,
-        )
-      }
-    }
-  }
+/** The ring around the selected theme, drawn behind the tile so its check sits on top. */
+private fun Modifier.selectionRing(color: () -> Color): Modifier = drawBehind {
+  val width = SelectionRingWidth.toPx()
+  drawRoundRect(
+    color = color(),
+    topLeft = Offset(width / 2, width / 2),
+    size = Size(size.width - width, size.height - width),
+    cornerRadius = CornerRadius((TileCorner + RingInset).toPx() - width / 2),
+    style = Stroke(width = width),
+  )
 }
+
+private fun Modifier.dashedOutline(color: Color, corner: Dp): Modifier = drawBehind {
+  val width = 2.dp.toPx()
+  val dash = 8.dp.toPx()
+  drawRoundRect(
+    color = color,
+    topLeft = Offset(width / 2, width / 2),
+    size = Size(size.width - width, size.height - width),
+    cornerRadius = CornerRadius(corner.toPx() - width / 2),
+    style = Stroke(width = width, pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash * 0.75f))),
+  )
+}
+
+/** The icon the theme shows in the app's search bar, in the surrounding theme's colors. */
+@Composable
+private fun themeIcon(theme: AppTheme): Painter = when (theme) {
+  is AppTheme.Fixed -> rememberVectorPainter(theme.icon.icon())
+  AppTheme.Dynamic -> rememberWallVectorPainter()
+}
+
+@Composable
+internal fun AppTheme.displayName(): String = when (this) {
+  is AppTheme.Fixed.Custom -> name
+  is AppTheme.Fixed.Ai -> name
+  AppTheme.Fixed.Tent -> stringResource(Res.string.theme_name_tent)
+  AppTheme.Fixed.Forest -> stringResource(Res.string.theme_name_forest)
+  AppTheme.Fixed.WaterBottle -> stringResource(Res.string.theme_name_water_bottle)
+  AppTheme.Fixed.Rucksack -> stringResource(Res.string.theme_name_rucksack)
+  AppTheme.Fixed.LifeFloat -> stringResource(Res.string.theme_name_life_float)
+  AppTheme.Fixed.Mountain -> stringResource(Res.string.theme_name_mountain)
+  AppTheme.Dynamic -> stringResource(Res.string.theme_name_dynamic)
+}
+
+/** Two tiles across any phone, from 360dp wide. */
+private val TileMinWidth = 148.dp
+private val TileSpacing = 12.dp
+private val GalleryPadding = 16.dp
+private val ModeButtonsMaxWidth = 480.dp
+
+/** The Home preview's own proportions, so it draws whole without empty space. */
+private const val TileAspectRatio = 360f / 380f
+private val TileCorner = 16.dp
+private val SelectionRingWidth = 3.dp
+
+/** The ring sits a little off the preview, with this much from its outside to the preview. */
+private val RingInset = 6.dp
+
+/** How far the selected check moves out from the preview's corner, onto the ring. */
+private val BadgeOffset = 8.dp

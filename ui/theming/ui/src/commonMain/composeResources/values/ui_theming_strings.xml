@@ -6,6 +6,15 @@
   <string name="theme_name_life_float">Life Float Orange</string>
   <string name="theme_name_mountain">Mountain Range Purple</string>
   <string name="theme_name_dynamic">System Wallpaper Dynamic</string>
+  <string name="themes_title">Theme</string>
+  <string name="themes_built_in">Built-in</string>
+  <string name="themes_yours">Your themes</string>
+  <string name="themes_new">New theme</string>
+  <string name="themes_create_ai">Create with AI</string>
+  <string name="themes_load_error">Your themes couldn't be loaded</string>
+  <string name="themes_mode_light">Light</string>
+  <string name="themes_mode_dark">Dark</string>
+  <string name="themes_mode_system">System</string>
   <string name="action_back">Back</string>
   <string name="action_edit_theme">Edit theme</string>
   <string name="action_delete_theme">Delete theme</string>

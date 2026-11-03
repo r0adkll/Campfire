@@ -15,6 +15,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
@@ -118,7 +119,7 @@ class ThemePreviewRenderTest {
           ThemePreviewContent(
             scene = scene,
             content = PreviewContent(previewLibrary(), playerUsesCoverColors),
-            icon = AppTheme.Icon.Tent,
+            icon = rememberVectorPainter(AppTheme.Icon.Tent.icon()),
             targets = targets,
             focus = focus(scene),
             modifier = Modifier.size(width = sceneWidth.dp, height = sceneHeight.dp),

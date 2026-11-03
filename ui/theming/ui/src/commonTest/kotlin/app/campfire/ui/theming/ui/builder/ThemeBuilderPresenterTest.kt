@@ -6,11 +6,11 @@ package app.campfire.ui.theming.ui.builder
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.ui.theming.api.AppTheme
-import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.RoleOverrides
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
+import app.campfire.ui.theming.test.FakeAppThemeRepository
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
@@ -39,7 +39,6 @@ import com.slack.circuit.test.test
 import kotlin.test.Test
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 
 class ThemeBuilderPresenterTest {
@@ -468,35 +467,6 @@ class ThemeBuilderPresenterTest {
       icon = AppTheme.Icon.Campfire,
       colorPalette = CustomThemeColors(seed, style, spec, tertiaryColor = tertiary).toColorPalette(),
     )
-  }
-}
-
-private class FakeAppThemeRepository : AppThemeRepository {
-  val themes = mutableMapOf<String, AppTheme.Fixed>()
-  val saved = mutableListOf<AppTheme.Fixed>()
-  val deleted = mutableListOf<String>()
-  private val customThemes = MutableStateFlow<List<AppTheme.Fixed>>(emptyList())
-
-  override fun observeCurrentAppTheme(): StateFlow<AppTheme> = MutableStateFlow(AppTheme.Fixed.Tent)
-
-  override fun observeCustomThemes(): Flow<List<AppTheme.Fixed>> {
-    customThemes.value = themes.values.toList()
-    return customThemes
-  }
-
-  override fun setCurrentTheme(theme: AppTheme) = Unit
-
-  override suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed> =
-    themes[id]?.let { Result.success(it) } ?: Result.failure(NoSuchElementException(id))
-
-  override suspend fun saveCustomTheme(theme: AppTheme.Fixed) {
-    saved += theme
-    themes[theme.id] = theme
-  }
-
-  override suspend fun deleteCustomTheme(id: String) {
-    deleted += id
-    themes.remove(id)
   }
 }
 

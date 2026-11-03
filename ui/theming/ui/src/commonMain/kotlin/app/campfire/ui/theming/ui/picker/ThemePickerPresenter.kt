@@ -11,12 +11,16 @@ import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
+import app.campfire.settings.api.ThemeMode
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AiThemeBuilder
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
+import app.campfire.ui.theming.ui.preview.PreviewContent
+import app.campfire.ui.theming.ui.preview.PreviewContentSource
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
@@ -29,6 +33,8 @@ import kotlinx.coroutines.flow.map
 @Inject
 class ThemePickerPresenter(
   private val appThemeRepository: AppThemeRepository,
+  private val themeSettings: ThemeSettings,
+  private val previewContentSource: PreviewContentSource,
   private val navigator: Navigator,
   // Defaults to NoOp when the optional :ui:theming:ai module isn't in this build.
   private val aiThemeBuilder: AiThemeBuilder,
@@ -64,11 +70,17 @@ class ThemePickerPresenter(
     val aiThemeBuilderAvailable: Boolean by aiThemeBuilder.observeIsAvailable()
       .collectAsState()
 
+    val themeMode: ThemeMode by remember { themeSettings.observeTheme() }.collectAsState()
+
+    val previewContent by remember { previewContentSource.observe() }.collectAsState(PreviewContent())
+
     return ThemePickerUiState(
       currentTheme = currentTheme,
+      themeMode = themeMode,
       builtInThemes = builtInThemes,
       customThemes = customThemes,
       aiThemeBuilderAvailable = aiThemeBuilderAvailable,
+      previewContent = previewContent,
     ) { event ->
       when (event) {
         ThemePickerUiEvent.Back -> navigator.pop()
@@ -87,6 +99,7 @@ class ThemePickerPresenter(
         }
         ThemePickerUiEvent.OpenAiThemeBuilder -> navigator.goTo(AiThemeBuilderScreen())
         is ThemePickerUiEvent.SelectTheme -> appThemeRepository.setCurrentTheme(event.theme)
+        is ThemePickerUiEvent.SetThemeMode -> themeSettings.themeMode = event.mode
       }
     }
   }
