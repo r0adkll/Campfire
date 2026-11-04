@@ -5,11 +5,14 @@ package app.campfire.ui.theming.ui.picker
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
@@ -68,9 +71,11 @@ private fun ThemeMenuButton(
 }
 
 /**
- * The action at the end of a theme's tile or row. A built-in theme can only be customized into a
- * new one, so it gets that as a button of its own; the user's themes get the ⋮ menu.
+ * The action at the end of a theme's tile, or of a row of the user's own. A built-in theme can only
+ * be customized into a new one, so its tile gets that as an extra small button of its own; the list
+ * leaves it to the header beside it. The user's themes get the ⋮ menu.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ThemeAction(
   theme: AppTheme,
@@ -87,8 +92,17 @@ internal fun ThemeAction(
     val seedColor = theme.seedColor()
     val label = stringResource(Res.string.themes_customize_theme, name)
     IconButtonTooltip(text = label, modifier = modifier) {
-      IconButton(onClick = { eventSink(ThemePickerUiEvent.Customize(theme, seedColor)) }) {
-        Icon(CampfireIcons.Rounded.FormatPaint, contentDescription = label)
+      // Extra small, so it reads as secondary to choosing the theme.
+      IconButton(
+        onClick = { eventSink(ThemePickerUiEvent.Customize(theme, seedColor)) },
+        shapes = IconButtonDefaults.shapes(),
+        modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+      ) {
+        Icon(
+          CampfireIcons.Rounded.FormatPaint,
+          contentDescription = label,
+          modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+        )
       }
     }
   }
