@@ -4,8 +4,11 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasText
@@ -13,6 +16,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.dp
 import app.campfire.common.test.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -20,6 +25,7 @@ import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.dates.ListeningDate
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
@@ -94,6 +100,36 @@ class ProgressSlotTest {
     onNodeWithText("Chapter 7").assertExists()
     onNodeWithText("22.5%").assertExists()
     onNodeWithText("left", substring = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun longChapterLeavesRoomForThePercentTest() = runComposeUiTest {
+    val libraryItem = libraryItem(
+      media = media(numTracks = 0, numAudioFiles = 0, durationInMillis = 0L, ebookFormat = "epub"),
+    )
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 0f,
+      duration = 0f,
+      ebookProgress = 0.122f,
+      lastUpdate = Clock.System.now().toEpochMilliseconds(),
+    )
+    val slot = ProgressSlot(
+      isPlaying = false,
+      playbackSpeed = 1f,
+      mediaProgress = mediaProgress,
+      libraryItem = libraryItem,
+      chapter = "The Dead Girl And the Parents That Didn't Love Her",
+    )
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier.width(360.dp)) {}
+      }
+    }
+
+    onNodeWithText("Last read just now", substring = true).assertExists()
+    assertThat(onNodeWithText("12.2%").lineCount()).isEqualTo(1)
   }
 
   @Test
@@ -233,6 +269,12 @@ class ProgressSlotTest {
 
     assertThat(slot.canEditDates).isFalse()
     onNodeWithTag("progress_edit_dates").assertDoesNotExist()
+  }
+
+  private fun SemanticsNodeInteraction.lineCount(): Int {
+    val layouts = mutableListOf<TextLayoutResult>()
+    fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action!!(layouts)
+    return layouts.single().lineCount
   }
 
   private fun finishedProgress() = mediaProgress(

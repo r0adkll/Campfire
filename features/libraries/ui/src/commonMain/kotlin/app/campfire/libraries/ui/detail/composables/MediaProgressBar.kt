@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.readoutFormat
@@ -170,8 +171,10 @@ internal fun MediaProgressBar(
           }
         }
       }
+      // Takes only what the percent leaves, so a long chapter wraps instead of crushing it
       Row(
         verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.weight(1f),
       ) {
         val isAccelerated = playbackSpeed != 1f && !progress.isFinished
         AnimatedVisibility(
@@ -187,6 +190,9 @@ internal fun MediaProgressBar(
         }
         Text(
           text = remainingText,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          modifier = Modifier.weight(1f, fill = false),
           style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
             copy(
               fontWeight = FontWeight.Bold,
@@ -207,7 +213,7 @@ internal fun MediaProgressBar(
         }
       }
 
-      Spacer(Modifier.weight(1f))
+      Spacer(Modifier.width(8.dp))
 
       // How far through is all an ebook has to show, so it reads to the tenth
       val percent = if (duration <= 0f) {
