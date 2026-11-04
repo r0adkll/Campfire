@@ -211,6 +211,8 @@ class EbookDownloaderTest {
     downloader.awaitState(Download.State.Queued)
 
     downloader.delete(ebook)
+    // The delete runs in the background; it's done once the download is gone
+    downloader.observe(setOf(ebook)).first { it.isEmpty() }
     fixture.conditions.allowed.value = true
     realDelay()
 
