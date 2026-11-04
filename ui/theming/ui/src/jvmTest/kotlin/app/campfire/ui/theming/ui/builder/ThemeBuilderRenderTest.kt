@@ -14,6 +14,17 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
@@ -40,6 +51,7 @@ import app.campfire.ui.theming.ui.preview.testCoverColor
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.r0adkll.swatchbuckler.color.hct.Hct
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -151,6 +163,41 @@ class ThemeBuilderRenderTest {
   }
 
   @Test
+  fun `tuning book cards on a phone`() {
+    renderTuning("theme-builder-tune-cards-phone", width = 412, height = 915, part = "Book cards")
+  }
+
+  @Test
+  fun `tuning screen text on a phone`() {
+    renderTuning("theme-builder-tune-screen-text-phone", width = 412, height = 915, part = "Screen text")
+  }
+
+  @Test
+  fun `tuning book cards on a mid-size phone`() {
+    renderTuning("theme-builder-tune-cards-mid-phone", width = 393, height = 852, part = "Book cards")
+  }
+
+  @Test
+  fun `tuning the search bar on a small phone`() {
+    renderTuning(
+      "theme-builder-tune-search-small-phone",
+      width = 360,
+      height = 640,
+      part = "Search bar and dialog text",
+    )
+  }
+
+  @Test
+  fun `tuning progress on a small phone`() {
+    renderTuning("theme-builder-tune-progress-small-phone", width = 360, height = 640, part = "Progress on covers")
+  }
+
+  @Test
+  fun `tuning a settings switch on a small phone`() {
+    renderTuning("theme-builder-tune-buttons-small-phone", width = 360, height = 640, part = "Buttons and switches")
+  }
+
+  @Test
   fun `fine-tune parts`() {
     render("theme-builder-fine-tune-parts", width = 412, height = 420) {
       Controls { state, modifier ->
@@ -219,6 +266,28 @@ class ThemeBuilderRenderTest {
       }
     }
   }
+
+  /**
+   * Renders the builder with [part]'s fine-tuning page open, picked from the Fine-tune tool as the
+   * user would, so the preview is zoomed in on the part over the page.
+   */
+  @OptIn(ExperimentalTestApi::class)
+  private fun renderTuning(name: String, width: Int, height: Int, part: String) =
+    runDesktopComposeUiTest(width = width * 2, height = height * 2) {
+      setContent {
+        CompositionLocalProvider(LocalDensity provides Density(2f)) {
+          Builder(dark = false)
+        }
+      }
+      onNode(hasText("Fine-tune") and isSelectable()).performClick()
+      onNodeWithText(part).performScrollTo().performClick()
+      waitForIdle()
+      mainClock.advanceTimeBy(1_000)
+      waitForIdle()
+      val file = File(renders, "$name.png")
+      ImageIO.write(onRoot().captureToImage().toAwtImage(), "png", file)
+      println("rendered ${file.absolutePath}")
+    }
 
   private fun render(name: String, width: Int, height: Int, content: @Composable () -> Unit) {
     ImageComposeScene(

@@ -99,15 +99,17 @@ internal fun ThemePreviewContent(
         TappablePreviewParts(
           targets = targets,
           actionLabel = { stringResource(Res.string.theme_tune_part, it.label()) },
-          focus = focus,
+          minSize = scene.minSize,
+          focusSize = scene.focusSize,
+          // A scene that doesn't draw the part has nothing to zoom in on, so it shows whole.
+          focus = focus?.takeIf { scene in it.scenes },
+          contentKey = scene,
           modifier = Modifier.fillMaxSize(),
         ) {
-          ScaledToFit(minSize = scene.minSize, modifier = Modifier.fillMaxSize()) {
-            when (scene) {
-              PreviewScene.Home -> HomeScene(content, icon, targets, onCoverThemingClick)
-              PreviewScene.Library -> LibraryScene(content, targets)
-              PreviewScene.Everywhere -> EverywhereScene(targets)
-            }
+          when (scene) {
+            PreviewScene.Home -> HomeScene(content, icon, targets, onCoverThemingClick)
+            PreviewScene.Library -> LibraryScene(content, targets)
+            PreviewScene.Everywhere -> EverywhereScene(targets)
           }
         }
       }
@@ -151,6 +153,18 @@ private val PreviewScene.minSize: DpSize
     // Home and Library share a size, so they draw at the same scale and their navigation bars match.
     PreviewScene.Home -> DpSize(360.dp, 380.dp)
     PreviewScene.Library -> DpSize(360.dp, 380.dp)
+    PreviewScene.Everywhere -> DpSize(480.dp, 500.dp)
+  }
+
+/**
+ * The smallest space each scene is laid out in while the preview zooms in on one of its parts,
+ * whatever the preview's shape: a phone's screen, so Home's shelves keep their names and titles
+ * and wide parts like the search bar keep a phone's width (see [canvasSize]).
+ */
+private val PreviewScene.focusSize: DpSize
+  get() = when (this) {
+    PreviewScene.Home -> DpSize(360.dp, 640.dp)
+    PreviewScene.Library -> DpSize(360.dp, 640.dp)
     PreviewScene.Everywhere -> DpSize(480.dp, 500.dp)
   }
 
