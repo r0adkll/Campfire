@@ -10,7 +10,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -90,7 +89,7 @@ internal fun ThemeList(
         theme = theme,
         selected = theme.key == state.currentTheme.key,
         onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-        menu = { close -> ThemeMenuItems(theme, state.eventSink, onDeleteClick, close) },
+        action = { ThemeAction(theme, state.eventSink, onDeleteClick) },
       )
     }
 
@@ -103,7 +102,7 @@ internal fun ThemeList(
           theme = theme,
           selected = theme.key == state.currentTheme.key,
           onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-          menu = { close -> ThemeMenuItems(theme, state.eventSink, onDeleteClick, close) },
+          action = { ThemeAction(theme, state.eventSink, onDeleteClick) },
         )
       }
     }
@@ -143,7 +142,7 @@ internal fun ThemeRow(
   selected: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  menu: (@Composable ColumnScope.(close: () -> Unit) -> Unit)? = null,
+  action: (@Composable () -> Unit)? = null,
 ) {
   val name = theme.displayName()
   val colors = MaterialTheme.colorScheme
@@ -180,8 +179,8 @@ internal fun ThemeRow(
         .clearAndSetSemantics {},
     )
     ColorStrip(theme, Modifier.padding(start = 8.dp))
-    if (menu != null) {
-      ThemeMenuButton(name = name, menu = menu)
+    if (action != null) {
+      action()
     } else {
       Spacer(Modifier.width(12.dp))
     }

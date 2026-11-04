@@ -35,7 +35,7 @@ import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.colorScheme
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.themes_copy_name
-import campfire.ui.theming.ui.generated.resources.themes_customize
+import campfire.ui.theming.ui.generated.resources.themes_customize_theme
 import campfire.ui.theming.ui.generated.resources.themes_delete
 import campfire.ui.theming.ui.generated.resources.themes_delete_body
 import campfire.ui.theming.ui.generated.resources.themes_delete_cancel
@@ -46,9 +46,9 @@ import campfire.ui.theming.ui.generated.resources.themes_edit
 import campfire.ui.theming.ui.generated.resources.themes_more_options
 import org.jetbrains.compose.resources.stringResource
 
-/** The ⋮ button on a theme's tile or row, opening its [menu]. */
+/** The ⋮ button on one of the user's themes, opening its [menu]. */
 @Composable
-internal fun ThemeMenuButton(
+private fun ThemeMenuButton(
   name: String,
   modifier: Modifier = Modifier,
   menu: @Composable ColumnScope.(close: () -> Unit) -> Unit,
@@ -68,54 +68,66 @@ internal fun ThemeMenuButton(
 }
 
 /**
- * What can be done with [theme]: a built-in theme can be customized into a new one, and the
- * user's own can be edited, duplicated or deleted ([onDeleteClick] asks first).
+ * The action at the end of a theme's tile or row. A built-in theme can only be customized into a
+ * new one, so it gets that as a button of its own; the user's themes get the ⋮ menu.
  */
 @Composable
-internal fun ThemeMenuItems(
+internal fun ThemeAction(
   theme: AppTheme,
+  eventSink: (ThemePickerUiEvent) -> Unit,
+  onDeleteClick: (AppTheme.Fixed) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val name = theme.displayName()
+  if (theme is AppTheme.Fixed && theme.isUserTheme) {
+    ThemeMenuButton(name = name, modifier = modifier) { close ->
+      ThemeMenuItems(theme, eventSink, onDeleteClick, close)
+    }
+  } else {
+    val seedColor = theme.seedColor()
+    val label = stringResource(Res.string.themes_customize_theme, name)
+    IconButtonTooltip(text = label, modifier = modifier) {
+      IconButton(onClick = { eventSink(ThemePickerUiEvent.Customize(theme, seedColor)) }) {
+        Icon(CampfireIcons.Rounded.FormatPaint, contentDescription = label)
+      }
+    }
+  }
+}
+
+/** One of the user's themes can be edited, duplicated or deleted ([onDeleteClick] asks first). */
+@Composable
+private fun ThemeMenuItems(
+  theme: AppTheme.Fixed,
   eventSink: (ThemePickerUiEvent) -> Unit,
   onDeleteClick: (AppTheme.Fixed) -> Unit,
   close: () -> Unit,
 ) {
-  if (theme is AppTheme.Fixed && theme.isUserTheme) {
-    ThemeMenuItem(
-      text = stringResource(Res.string.themes_edit),
-      icon = if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
-      onClick = {
-        close()
-        eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme))
-      },
-    )
-    val copyName = stringResource(Res.string.themes_copy_name, theme.displayName())
-    ThemeMenuItem(
-      text = stringResource(Res.string.themes_duplicate),
-      icon = CampfireIcons.Rounded.ContentCopy,
-      onClick = {
-        close()
-        eventSink(ThemePickerUiEvent.Duplicate(theme, copyName))
-      },
-    )
-    ThemeMenuItem(
-      text = stringResource(Res.string.themes_delete),
-      icon = CampfireIcons.Rounded.Delete,
-      destructive = true,
-      onClick = {
-        close()
-        onDeleteClick(theme)
-      },
-    )
-  } else {
-    val seedColor = theme.seedColor()
-    ThemeMenuItem(
-      text = stringResource(Res.string.themes_customize),
-      icon = CampfireIcons.Rounded.FormatPaint,
-      onClick = {
-        close()
-        eventSink(ThemePickerUiEvent.Customize(theme, seedColor))
-      },
-    )
-  }
+  ThemeMenuItem(
+    text = stringResource(Res.string.themes_edit),
+    icon = if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
+    onClick = {
+      close()
+      eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme))
+    },
+  )
+  val copyName = stringResource(Res.string.themes_copy_name, theme.displayName())
+  ThemeMenuItem(
+    text = stringResource(Res.string.themes_duplicate),
+    icon = CampfireIcons.Rounded.ContentCopy,
+    onClick = {
+      close()
+      eventSink(ThemePickerUiEvent.Duplicate(theme, copyName))
+    },
+  )
+  ThemeMenuItem(
+    text = stringResource(Res.string.themes_delete),
+    icon = CampfireIcons.Rounded.Delete,
+    destructive = true,
+    onClick = {
+      close()
+      onDeleteClick(theme)
+    },
+  )
 }
 
 @Composable

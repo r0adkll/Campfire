@@ -17,6 +17,7 @@
   <string name="themes_mode_system">System</string>
   <string name="themes_more_options">More options for %1$s</string>
   <string name="themes_customize">Customize</string>
+  <string name="themes_customize_theme">Customize %1$s</string>
   <string name="themes_edit">Edit</string>
   <string name="themes_duplicate">Duplicate</string>
   <string name="themes_delete">Delete</string>

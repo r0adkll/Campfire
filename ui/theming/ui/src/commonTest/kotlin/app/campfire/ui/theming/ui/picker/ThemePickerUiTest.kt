@@ -117,6 +117,10 @@ class ThemePickerUiTest {
     // One preview, in the app's own mode: no light and dark labels beside the mode buttons.
     onAllNodesWithText("Light").assertCountEquals(1)
 
+    // Built-in rows offer Customize as a button, as their tiles do.
+    onNodeWithContentDescription("Customize Forest Green").assertExists()
+    onNodeWithContentDescription("More options for Forest Green").assertDoesNotExist()
+
     onNode(hasContentDescription("Forest Green") and isSelectable()).performClick()
     assertThat(events).containsExactly(ThemePickerUiEvent.SelectTheme(AppTheme.Fixed.Forest))
   }
@@ -234,10 +238,9 @@ class ThemePickerUiTest {
   fun builtInThemes_canBeCustomized() = runComposeUiTest {
     setContent { Picker(state()) }
 
-    onNodeWithContentDescription("More options for Forest Green").performClick()
-    onNodeWithText("Duplicate").assertDoesNotExist()
-    onNodeWithText("Delete").assertDoesNotExist()
-    onNodeWithText("Customize").performClick()
+    // Customizing is a built-in theme's only action, so it's a button, not a menu of one.
+    onNodeWithContentDescription("More options for Forest Green").assertDoesNotExist()
+    onNodeWithContentDescription("Customize Forest Green").performClick()
 
     assertThat(events.single()).isInstanceOf<ThemePickerUiEvent.Customize>().all {
       prop(ThemePickerUiEvent.Customize::theme).isEqualTo(AppTheme.Fixed.Forest)

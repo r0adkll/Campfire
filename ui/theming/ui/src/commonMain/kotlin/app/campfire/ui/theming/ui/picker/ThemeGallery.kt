@@ -12,7 +12,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -133,7 +132,7 @@ internal fun ThemeGallery(
         selected = theme.key == state.currentTheme.key,
         previewContent = state.previewContent,
         onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-        menu = { close -> ThemeMenuItems(theme, state.eventSink, onDeleteClick, close) },
+        action = { ThemeAction(theme, state.eventSink, onDeleteClick) },
       )
     }
 
@@ -151,7 +150,7 @@ internal fun ThemeGallery(
           selected = theme.key == state.currentTheme.key,
           previewContent = state.previewContent,
           onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-          menu = { close -> ThemeMenuItems(theme, state.eventSink, onDeleteClick, close) },
+          action = { ThemeAction(theme, state.eventSink, onDeleteClick) },
         )
       }
     }
@@ -222,7 +221,7 @@ internal fun ThemeTile(
   previewContent: PreviewContent,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  menu: (@Composable ColumnScope.(close: () -> Unit) -> Unit)? = null,
+  action: (@Composable () -> Unit)? = null,
 ) {
   val interactionSource = remember { MutableInteractionSource() }
   val ringColor by animateColorAsState(
@@ -306,9 +305,7 @@ internal fun ThemeTile(
           .weight(1f)
           .clearAndSetSemantics {},
       )
-      if (menu != null) {
-        ThemeMenuButton(name = name, menu = menu)
-      }
+      action?.invoke()
     }
   }
 }
