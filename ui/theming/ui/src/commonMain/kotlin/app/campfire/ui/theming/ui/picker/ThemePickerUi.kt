@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -385,11 +384,11 @@ internal fun ThemeTile(
         )
       }
       if (selected) {
-        // On the ring's corner, clear of the preview's search bar
+        // Inside the selected preview's top corner
         SelectedBadge(
           Modifier
             .align(Alignment.TopEnd)
-            .offset(x = BadgeOffset, y = -BadgeOffset),
+            .padding(BadgeInset),
         )
       }
     }
@@ -534,5 +533,5 @@ private val SelectionRingWidth = 3.dp
 /** The ring sits a little off the preview, with this much from its outside to the preview. */
 private val RingInset = 6.dp
 
-/** How far the selected check moves out from the preview's corner, onto the ring. */
-private val BadgeOffset = 8.dp
+/** How far the selected check sits in from the preview's corner. */
+private val BadgeInset = 8.dp
