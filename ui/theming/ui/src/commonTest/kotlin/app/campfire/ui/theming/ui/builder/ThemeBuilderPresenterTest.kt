@@ -4,6 +4,7 @@
 package app.campfire.ui.theming.ui.builder
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.RoleOverrides
@@ -63,6 +64,19 @@ class ThemeBuilderPresenterTest {
         prop(ThemeBuilderUiState::colorStyle).isEqualTo(Variant.EXPRESSIVE)
         prop(ThemeBuilderUiState::colorSpec).isEqualTo(SpecVersion.SPEC_2025)
         prop(ThemeBuilderUiState::isNew).isTrue()
+      }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun newTheme_fromABuiltInTheme_startsWithItsColorAndIcon() = runTest {
+    val green = Color(0xFF026B00)
+    presenter(ThemeBuilderScreen(seedColor = green.toArgb(), icon = AppTheme.Icon.Forest)).test {
+      assertThat(awaitItem()).all {
+        prop(ThemeBuilderUiState::seedColor).isEqualTo(green)
+        prop(ThemeBuilderUiState::isNew).isTrue()
+        prop(ThemeBuilderUiState::theme).prop(AppTheme.Fixed.Custom::icon).isEqualTo(AppTheme.Icon.Forest)
       }
       cancelAndIgnoreRemainingEvents()
     }

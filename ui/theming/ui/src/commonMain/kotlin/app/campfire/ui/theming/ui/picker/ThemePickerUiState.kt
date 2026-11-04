@@ -3,6 +3,7 @@
 
 package app.campfire.ui.theming.ui.picker
 
+import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.LoadState
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
@@ -33,6 +34,15 @@ sealed interface ThemePickerUiEvent : CircuitUiEvent {
   data class SelectTheme(val theme: AppTheme) : ThemePickerUiEvent
 
   data class SetThemeMode(val mode: ThemeMode) : ThemePickerUiEvent
+
+  /** Starts a new custom theme from [theme], seeded with [seedColor], its main color. */
+  data class Customize(val theme: AppTheme, val seedColor: Color) : ThemePickerUiEvent
+
+  /** Saves a copy of one of the user's themes as [name]. */
+  data class Duplicate(val theme: AppTheme.Fixed, val name: String) : ThemePickerUiEvent
+
+  /** Deletes one of the user's themes, once the user has confirmed it. */
+  data class Delete(val theme: AppTheme.Fixed) : ThemePickerUiEvent
 }
 
 /** Identifies a theme across reloads, where a custom theme's palette may compare unequal. */

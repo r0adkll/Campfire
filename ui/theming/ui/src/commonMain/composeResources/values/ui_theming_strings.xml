@@ -15,6 +15,17 @@
   <string name="themes_mode_light">Light</string>
   <string name="themes_mode_dark">Dark</string>
   <string name="themes_mode_system">System</string>
+  <string name="themes_more_options">More options for %1$s</string>
+  <string name="themes_customize">Customize</string>
+  <string name="themes_customize_theme">Customize %1$s</string>
+  <string name="themes_edit">Edit</string>
+  <string name="themes_duplicate">Duplicate</string>
+  <string name="themes_delete">Delete</string>
+  <string name="themes_copy_name">%1$s copy</string>
+  <string name="themes_delete_title">Delete %1$s?</string>
+  <string name="themes_delete_body">This can't be undone.</string>
+  <string name="themes_delete_current_body">This can't be undone, and Campfire switches back to Camping Tent Red.</string>
+  <string name="themes_delete_cancel">Cancel</string>
   <string name="action_back">Back</string>
   <string name="action_edit_theme">Edit theme</string>
   <string name="action_delete_theme">Delete theme</string>

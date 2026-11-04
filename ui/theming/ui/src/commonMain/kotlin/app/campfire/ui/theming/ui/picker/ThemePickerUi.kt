@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,24 +36,33 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,9 +95,13 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.Brightness6
 import app.campfire.common.compose.icons.rounded.Check
+import app.campfire.common.compose.icons.rounded.ContentCopy
 import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.Delete
 import app.campfire.common.compose.icons.rounded.Edit
+import app.campfire.common.compose.icons.rounded.FormatPaint
 import app.campfire.common.compose.icons.rounded.LightMode
+import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
@@ -105,7 +119,6 @@ import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewScene
 import app.campfire.ui.theming.ui.preview.ThemePreview
 import campfire.ui.theming.ui.generated.resources.Res
-import campfire.ui.theming.ui.generated.resources.action_edit_theme
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
 import campfire.ui.theming.ui.generated.resources.theme_name_forest
 import campfire.ui.theming.ui.generated.resources.theme_name_life_float
@@ -114,11 +127,21 @@ import campfire.ui.theming.ui.generated.resources.theme_name_rucksack
 import campfire.ui.theming.ui.generated.resources.theme_name_tent
 import campfire.ui.theming.ui.generated.resources.theme_name_water_bottle
 import campfire.ui.theming.ui.generated.resources.themes_built_in
+import campfire.ui.theming.ui.generated.resources.themes_copy_name
 import campfire.ui.theming.ui.generated.resources.themes_create_ai
+import campfire.ui.theming.ui.generated.resources.themes_customize_theme
+import campfire.ui.theming.ui.generated.resources.themes_delete
+import campfire.ui.theming.ui.generated.resources.themes_delete_body
+import campfire.ui.theming.ui.generated.resources.themes_delete_cancel
+import campfire.ui.theming.ui.generated.resources.themes_delete_current_body
+import campfire.ui.theming.ui.generated.resources.themes_delete_title
+import campfire.ui.theming.ui.generated.resources.themes_duplicate
+import campfire.ui.theming.ui.generated.resources.themes_edit
 import campfire.ui.theming.ui.generated.resources.themes_load_error
 import campfire.ui.theming.ui.generated.resources.themes_mode_dark
 import campfire.ui.theming.ui.generated.resources.themes_mode_light
 import campfire.ui.theming.ui.generated.resources.themes_mode_system
+import campfire.ui.theming.ui.generated.resources.themes_more_options
 import campfire.ui.theming.ui.generated.resources.themes_new
 import campfire.ui.theming.ui.generated.resources.themes_title
 import campfire.ui.theming.ui.generated.resources.themes_yours
@@ -170,6 +193,22 @@ private fun ThemeGallery(
   modifier: Modifier = Modifier,
 ) {
   val layoutDirection = LocalLayoutDirection.current
+
+  // The theme waiting on the user to confirm its deletion, by id so it survives recreation.
+  var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+  val pendingDelete = (state.customThemes as? LoadState.Loaded)?.data?.find { it.id == pendingDeleteId }
+  if (pendingDelete != null) {
+    DeleteThemeDialog(
+      theme = pendingDelete,
+      isCurrent = pendingDelete.key == state.currentTheme.key,
+      onConfirm = {
+        pendingDeleteId = null
+        state.eventSink(ThemePickerUiEvent.Delete(pendingDelete))
+      },
+      onDismiss = { pendingDeleteId = null },
+    )
+  }
+
   LazyVerticalGrid(
     columns = GridCells.Adaptive(TileMinWidth),
     modifier = modifier.fillMaxSize(),
@@ -199,6 +238,14 @@ private fun ThemeGallery(
         selected = theme.key == state.currentTheme.key,
         previewContent = state.previewContent,
         onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
+        action = {
+          // Its main color in light mode seeds the new theme, as a theme's seed sets its accent.
+          val seedColor = colorScheme(theme, useDarkColors = false).primary
+          CustomizeThemeButton(
+            name = theme.displayName(),
+            onClick = { state.eventSink(ThemePickerUiEvent.Customize(theme, seedColor)) },
+          )
+        },
       )
     }
 
@@ -223,7 +270,39 @@ private fun ThemeGallery(
           selected = theme.key == state.currentTheme.key,
           previewContent = state.previewContent,
           onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-          onEditClick = { state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme)) },
+          action = {
+            ThemeMenuButton(name = theme.displayName()) { close ->
+              TileMenuItem(
+                text = stringResource(Res.string.themes_edit),
+                icon = when (theme) {
+                  is AppTheme.Fixed.Ai -> CampfireIcons.Rounded.AutoAwesome
+                  else -> CampfireIcons.Rounded.Edit
+                },
+                onClick = {
+                  close()
+                  state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme))
+                },
+              )
+              val copyName = stringResource(Res.string.themes_copy_name, theme.displayName())
+              TileMenuItem(
+                text = stringResource(Res.string.themes_duplicate),
+                icon = CampfireIcons.Rounded.ContentCopy,
+                onClick = {
+                  close()
+                  state.eventSink(ThemePickerUiEvent.Duplicate(theme, copyName))
+                },
+              )
+              TileMenuItem(
+                text = stringResource(Res.string.themes_delete),
+                icon = CampfireIcons.Rounded.Delete,
+                destructive = true,
+                onClick = {
+                  close()
+                  pendingDeleteId = theme.id
+                },
+              )
+            }
+          },
         )
       }
     }
@@ -326,7 +405,7 @@ internal fun ThemeTile(
   previewContent: PreviewContent,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  onEditClick: (() -> Unit)? = null,
+  action: (@Composable () -> Unit)? = null,
 ) {
   val interactionSource = remember { MutableInteractionSource() }
   val ringColor by animateColorAsState(
@@ -410,19 +489,112 @@ internal fun ThemeTile(
           .weight(1f)
           .clearAndSetSemantics {},
       )
-      if (onEditClick != null) {
-        val editLabel = stringResource(Res.string.action_edit_theme)
-        IconButtonTooltip(text = editLabel) {
-          IconButton(onClick = onEditClick) {
-            Icon(
-              if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
-              contentDescription = editLabel,
-            )
-          }
-        }
-      }
+      action?.invoke()
     }
   }
+}
+
+/** The ⋮ button on one of the user's themes, opening its [menu]. */
+@Composable
+private fun ThemeMenuButton(
+  name: String,
+  modifier: Modifier = Modifier,
+  menu: @Composable ColumnScope.(close: () -> Unit) -> Unit,
+) {
+  Box(modifier) {
+    var expanded by remember { mutableStateOf(false) }
+    val menuLabel = stringResource(Res.string.themes_more_options, name)
+    IconButtonTooltip(text = menuLabel) {
+      IconButton(onClick = { expanded = true }) {
+        Icon(CampfireIcons.Rounded.MoreVert, contentDescription = menuLabel)
+      }
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      menu { expanded = false }
+    }
+  }
+}
+
+/**
+ * Starts a new theme from a built-in one. Built-in themes have only this action, so it's a button
+ * of its own rather than a menu of one.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun CustomizeThemeButton(
+  name: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val label = stringResource(Res.string.themes_customize_theme, name)
+  IconButtonTooltip(text = label, modifier = modifier) {
+    // Extra small, so it reads as secondary to choosing the theme.
+    IconButton(
+      onClick = onClick,
+      shapes = IconButtonDefaults.shapes(),
+      modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+    ) {
+      Icon(
+        CampfireIcons.Rounded.FormatPaint,
+        contentDescription = label,
+        modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+      )
+    }
+  }
+}
+
+@Composable
+private fun TileMenuItem(
+  text: String,
+  icon: ImageVector,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  destructive: Boolean = false,
+) {
+  val colors = if (destructive) {
+    MenuDefaults.itemColors(
+      textColor = MaterialTheme.colorScheme.error,
+      leadingIconColor = MaterialTheme.colorScheme.error,
+    )
+  } else {
+    MenuDefaults.itemColors()
+  }
+  DropdownMenuItem(
+    text = { Text(text) },
+    leadingIcon = { Icon(icon, contentDescription = null) },
+    onClick = onClick,
+    colors = colors,
+    modifier = modifier,
+  )
+}
+
+/** Asks before deleting one of the user's themes, saying when it's the theme in use. */
+@Composable
+private fun DeleteThemeDialog(
+  theme: AppTheme.Fixed,
+  isCurrent: Boolean,
+  onConfirm: () -> Unit,
+  onDismiss: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(stringResource(Res.string.themes_delete_title, theme.displayName())) },
+    text = {
+      Text(
+        stringResource(if (isCurrent) Res.string.themes_delete_current_body else Res.string.themes_delete_body),
+      )
+    },
+    confirmButton = {
+      TextButton(onClick = onConfirm) {
+        Text(stringResource(Res.string.themes_delete), color = MaterialTheme.colorScheme.error)
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) { Text(stringResource(Res.string.themes_delete_cancel)) }
+    },
+    modifier = modifier,
+  )
 }
 
 @Composable

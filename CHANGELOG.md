@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The custom theme builder shows Campfire's screens as you edit, with one tool at a time on phones and every control beside the preview on foldables and tablets. It lets you start from the colors of your own books' covers, pick a style by how it looks, choose any palette color and fine-tune the exact colors of any part of the app in light and dark mode, zooming in on the part, and warns when parts become hard to read, with a one-tap fix
-- The theme picker shows each theme as a small copy of Home with your own books, and lets you switch between light, dark and the system setting at the top
+- The theme picker shows each theme as a small copy of Home with your own books, lets you switch between light, dark and the system setting at the top, and lets you edit, duplicate or delete your themes, or start a new one from a built-in theme
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
 - [Android] Check for app updates when you come back to Campfire, not only when it starts
 - [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update

@@ -67,8 +67,10 @@ class ThemeBuilderPresenter(
 
     val id by remember { mutableStateOf(screen.customThemeId ?: NEW_THEME_ID) }
     val name = rememberTextFieldState()
-    var icon by remember { mutableStateOf(AppTheme.Icon.Tent) }
-    var colors by remember { mutableStateOf(CustomThemeColors(DefaultSeedColor, DefaultColorStyle)) }
+    var icon by remember { mutableStateOf(screen.icon ?: AppTheme.Icon.Tent) }
+    var colors by remember {
+      mutableStateOf(CustomThemeColors(screen.seedColor?.let(::Color) ?: DefaultSeedColor, DefaultColorStyle))
+    }
 
     val customThemes by remember { themeRepository.observeCustomThemes() }.collectAsState(emptyList())
 

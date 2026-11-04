@@ -19,7 +19,6 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -36,11 +35,17 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.core.coroutines.LoadState
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.platformColorPalette
 import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.PreviewLibrary
 import app.campfire.ui.theming.ui.preview.PreviewShelf
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.assertions.prop
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
@@ -54,8 +59,9 @@ class ThemePickerUiTest {
     customThemes: LoadState<out List<AppTheme.Fixed>> = LoadState.Loaded(listOf(ember, aiTheme())),
     aiThemeBuilderAvailable: Boolean = true,
     themeMode: ThemeMode = ThemeMode.SYSTEM,
+    currentTheme: AppTheme = AppTheme.Fixed.Tent,
   ) = ThemePickerUiState(
-    currentTheme = AppTheme.Fixed.Tent,
+    currentTheme = currentTheme,
     themeMode = themeMode,
     builtInThemes = BuiltInThemes,
     customThemes = customThemes,
@@ -133,16 +139,70 @@ class ThemePickerUiTest {
   }
 
   @Test
-  fun yourThemes_canBeEdited() = runComposeUiTest {
+  fun builtInThemes_canBeCustomized() = runComposeUiTest {
+    setContent { Picker(state()) }
+
+    // Customizing is a built-in theme's only action, so it's a button, not a menu of one.
+    onNodeWithContentDescription("More options for Forest Green").assertDoesNotExist()
+    onNodeWithContentDescription("Customize Forest Green").performClick()
+
+    assertThat(events.single()).isInstanceOf<ThemePickerUiEvent.Customize>().all {
+      prop(ThemePickerUiEvent.Customize::theme).isEqualTo(AppTheme.Fixed.Forest)
+      prop(ThemePickerUiEvent.Customize::seedColor).isEqualTo(
+        AppTheme.Fixed.Forest.platformColorPalette.lightColorScheme.primary,
+      )
+    }
+  }
+
+  @Test
+  fun yourThemes_canBeEditedAndDuplicated() = runComposeUiTest {
     setContent { Picker(state()) }
 
     onNode(hasScrollAction()).performScrollToKey("custom:ember")
     onNodeWithText("Your themes").assertExists()
     onNode(hasContentDescription("Ember") and isSelectable()).assertIsNotSelected()
-    onAllNodesWithContentDescription("Edit theme").assertCountEquals(2)
-    onAllNodesWithContentDescription("Edit theme")[0].performClick()
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Customize").assertDoesNotExist()
+    onNodeWithText("Edit").performClick()
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Duplicate").performClick()
 
-    assertThat(events).containsExactly(ThemePickerUiEvent.OpenThemeBuilder(ember))
+    assertThat(events).containsExactly(
+      ThemePickerUiEvent.OpenThemeBuilder(ember),
+      ThemePickerUiEvent.Duplicate(ember, "Ember copy"),
+    )
+  }
+
+  @Test
+  fun deletingATheme_asksFirst() = runComposeUiTest {
+    setContent { Picker(state()) }
+
+    onNode(hasScrollAction()).performScrollToKey("custom:ember")
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Delete").performClick()
+    onNodeWithText("Delete Ember?").assertExists()
+    onNodeWithText("This can't be undone.").assertExists()
+    onNodeWithText("Cancel").performClick()
+    onNodeWithText("Delete Ember?").assertDoesNotExist()
+    assertThat(events).isEmpty()
+
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Delete").performClick()
+    onNodeWithText("Delete").performClick()
+
+    assertThat(events).containsExactly(ThemePickerUiEvent.Delete(ember))
+    onNodeWithText("Delete Ember?").assertDoesNotExist()
+  }
+
+  @Test
+  fun deletingTheThemeInUse_saysWhatTheAppSwitchesTo() = runComposeUiTest {
+    setContent { Picker(state(currentTheme = ember)) }
+
+    onNode(hasScrollAction()).performScrollToKey("custom:ember")
+    onNodeWithContentDescription("More options for Ember").performClick()
+    onNodeWithText("Delete").performClick()
+
+    onNodeWithText("This can't be undone, and Campfire switches back to Camping Tent Red.").assertExists()
   }
 
   @Test
@@ -174,6 +234,6 @@ class ThemePickerUiTest {
 
     onNode(hasScrollAction()).performScrollToKey("error")
     onNodeWithText("Your themes couldn't be loaded").assertExists()
-    onNodeWithContentDescription("Edit theme").assertDoesNotExist()
+    onNodeWithContentDescription("More options for Ember").assertDoesNotExist()
   }
 }
