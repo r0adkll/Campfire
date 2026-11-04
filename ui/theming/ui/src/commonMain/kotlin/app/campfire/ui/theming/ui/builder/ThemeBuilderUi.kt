@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -868,7 +869,7 @@ private fun PreviewFrame(
     ThemePreviewContent(
       scene = scene,
       content = state.previewContent,
-      icon = state.theme.icon,
+      icon = rememberVectorPainter(state.theme.icon.icon()),
       targets = ThemeTargets(failing = state.failingChecks(dark), onClick = onPartClick),
       focus = focus,
       onCoverThemingClick = { state.eventSink(ThemeBuilderUiEvent.CoverThemingSettings) },

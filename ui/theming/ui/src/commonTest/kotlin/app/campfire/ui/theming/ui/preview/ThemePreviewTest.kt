@@ -6,6 +6,7 @@ package app.campfire.ui.theming.ui.preview
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -72,7 +73,7 @@ class ThemePreviewTest {
       ThemePreview(
         scene = PreviewScene.Home,
         content = PreviewContent(previewLibrary()),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         modifier = previewSize,
         onCoverThemingClick = { opened = true },
       )
@@ -199,7 +200,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = scene.value,
         content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets(failing = ContrastCheck.entries.toSet()),
         modifier = previewSize,
       )
@@ -219,7 +220,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = PreviewScene.Everywhere,
         content = PreviewContent(),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets(onClick = { tapped = it }),
         modifier = previewSize,
       )
@@ -239,7 +240,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = PreviewScene.Home,
         content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets(onClick = { tapped = it }),
         modifier = previewSize,
       )
@@ -260,7 +261,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = PreviewScene.Everywhere,
         content = PreviewContent(),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets(onClick = { tapped = it }),
         modifier = previewSize,
       )
@@ -280,7 +281,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = scene.value,
         content = PreviewContent(previewLibrary(), playerUsesCoverColors = false),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets(onClick = {}),
         modifier = previewSize,
       )
@@ -305,7 +306,7 @@ class ThemePreviewTest {
       ThemePreviewContent(
         scene = PreviewScene.Everywhere,
         content = PreviewContent(),
-        icon = icon,
+        icon = rememberVectorPainter(icon.icon()),
         targets = ThemeTargets.None,
         modifier = previewSize,
       )

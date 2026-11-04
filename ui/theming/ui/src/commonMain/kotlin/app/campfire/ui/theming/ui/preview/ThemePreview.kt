@@ -14,7 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
@@ -61,11 +64,41 @@ fun ThemePreview(
   modifier: Modifier = Modifier,
   onCoverThemingClick: (() -> Unit)? = null,
 ) {
+  ThemePreview(
+    scene = scene,
+    content = content,
+    icon = rememberVectorPainter(icon.icon()),
+    onCoverThemingClick = onCoverThemingClick,
+    modifier = modifier,
+  )
+}
+
+/**
+ * [ThemePreview] with the search bar's [icon] drawn by a painter, for themes without an
+ * [AppTheme.Icon] such as the wallpaper theme.
+ *
+ * @param shape the preview's outline. Smaller previews want a smaller corner, as the scene inside
+ *   scales down but the corner doesn't.
+ * @param coverColorsNote whether Home shows the note about the player's cover colors while they
+ *   apply. Without it, Home leaves the mini player out, as its colors don't come from the theme.
+ */
+@Composable
+fun ThemePreview(
+  scene: PreviewScene,
+  content: PreviewContent,
+  icon: Painter,
+  modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.extraLarge,
+  coverColorsNote: Boolean = true,
+  onCoverThemingClick: (() -> Unit)? = null,
+) {
   ThemePreviewContent(
     scene = scene,
     content = content,
     icon = icon,
     targets = ThemeTargets.None,
+    shape = shape,
+    coverColorsNote = coverColorsNote,
     onCoverThemingClick = onCoverThemingClick,
     modifier = modifier,
   )
@@ -79,15 +112,17 @@ fun ThemePreview(
 internal fun ThemePreviewContent(
   scene: PreviewScene,
   content: PreviewContent,
-  icon: AppTheme.Icon,
+  icon: Painter,
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
   focus: ContrastCheck? = null,
+  shape: Shape = MaterialTheme.shapes.extraLarge,
+  coverColorsNote: Boolean = true,
   onCoverThemingClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier,
-    shape = MaterialTheme.shapes.extraLarge,
+    shape = shape,
     color = MaterialTheme.colorScheme.surface,
     contentColor = MaterialTheme.colorScheme.onSurface,
     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -107,7 +142,7 @@ internal fun ThemePreviewContent(
           modifier = Modifier.fillMaxSize(),
         ) {
           when (scene) {
-            PreviewScene.Home -> HomeScene(content, icon, targets, onCoverThemingClick)
+            PreviewScene.Home -> HomeScene(content, icon, targets, coverColorsNote, onCoverThemingClick)
             PreviewScene.Library -> LibraryScene(content, targets)
             PreviewScene.Everywhere -> EverywhereScene(targets)
           }

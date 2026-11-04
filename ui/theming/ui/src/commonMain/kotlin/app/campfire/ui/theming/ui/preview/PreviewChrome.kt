@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,7 +61,6 @@ import app.campfire.common.compose.icons.rounded.Replay10
 import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
-import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_preview_chapter
@@ -86,7 +86,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun PreviewAppBar(
-  icon: AppTheme.Icon,
+  icon: Painter,
   targets: ThemeTargets,
   modifier: Modifier = Modifier,
 ) {
@@ -98,7 +98,7 @@ internal fun PreviewAppBar(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Image(
-      imageVector = icon.icon(),
+      painter = icon,
       contentDescription = null,
       modifier = Modifier
         .padding(horizontal = 4.dp)

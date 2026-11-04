@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,6 @@ import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryItemListItem
 import app.campfire.core.settings.ItemDisplayState
-import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_preview_book_count
@@ -50,8 +50,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun HomeScene(
   content: PreviewContent,
-  icon: AppTheme.Icon,
+  icon: Painter,
   targets: ThemeTargets,
+  coverColorsNote: Boolean,
   onCoverThemingClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
@@ -63,7 +64,9 @@ internal fun HomeScene(
 
     val nowPlaying = library.nowPlaying
     if (content.playerUsesCoverColors) {
-      CoverColorsNote(onSettingsClick = onCoverThemingClick, modifier = Modifier.padding(8.dp))
+      if (coverColorsNote) {
+        CoverColorsNote(onSettingsClick = onCoverThemingClick, modifier = Modifier.padding(8.dp))
+      }
     } else if (nowPlaying != null) {
       PreviewMiniPlayer(nowPlaying, targets, Modifier.padding(8.dp))
     }
