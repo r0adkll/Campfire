@@ -89,7 +89,7 @@ internal fun ThemeList(
         theme = theme,
         selected = theme.key == state.currentTheme.key,
         onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-        action = { ThemeAction(theme, state.eventSink, onDeleteClick) },
+        // No Customize button: the header beside the list has it, and the row keeps the room.
       )
     }
 

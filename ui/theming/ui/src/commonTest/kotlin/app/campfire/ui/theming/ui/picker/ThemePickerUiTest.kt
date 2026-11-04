@@ -117,8 +117,8 @@ class ThemePickerUiTest {
     // One preview, in the app's own mode: no light and dark labels beside the mode buttons.
     onAllNodesWithText("Light").assertCountEquals(1)
 
-    // Built-in rows offer Customize as a button, as their tiles do.
-    onNodeWithContentDescription("Customize Forest Green").assertExists()
+    // Built-in rows leave Customize to the header beside them, so the name keeps the room.
+    onNodeWithContentDescription("Customize Forest Green").assertDoesNotExist()
     onNodeWithContentDescription("More options for Forest Green").assertDoesNotExist()
 
     onNode(hasContentDescription("Forest Green") and isSelectable()).performClick()
