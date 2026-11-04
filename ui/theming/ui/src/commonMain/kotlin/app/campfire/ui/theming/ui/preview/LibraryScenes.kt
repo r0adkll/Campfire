@@ -154,13 +154,13 @@ private fun ColumnScope.ClippedArea(
   }
 }
 
-/** A Home shelf: its name over a row of cards, as `ShelfListItem` draws it. */
 /**
  * Home's shelves, in the space between the search bar and the mini player. Cards never show cut
- * off: as the space gets shorter, the first shelf drops its name, then its cards shrink, down to
- * [MinShelfCardWidth], and then they drop their titles and show just covers and progress, as the
- * dense grid does (Library still shows titles). With room to spare, the cards stay the app's size
- * and a second shelf follows.
+ * off: as many shelves show as fit whole, with their names and titles, their cards sharing a size
+ * between [MinShelfCardWidth] and the app's. A shelf that doesn't fit is left out rather than cut
+ * off. As the space gets too short for even one, the first shelf drops its name, then its cards
+ * drop their titles and show just covers and progress, as the dense grid does (Library still shows
+ * titles).
  */
 @Composable
 private fun ColumnScope.HomeShelves(
@@ -169,50 +169,59 @@ private fun ColumnScope.HomeShelves(
   modifier: Modifier = Modifier,
 ) {
   val information = cardInformationHeight()
+  val continueListening = library.continueListening.label
+    ?: stringResource(Res.string.theme_preview_continue_listening)
+  val recentlyAdded = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added)
+  val shelves = listOf(
+    continueListening to library.continueListening.items,
+    recentlyAdded to library.recentlyAdded.items,
+  ).filter { (_, items) -> items.isNotEmpty() }
   BoxWithConstraints(
     modifier
       .weight(1f)
       .fillMaxWidth()
       .clipToBounds(),
   ) {
+    // A named shelf with titles, around its covers.
+    val shelfChrome = ShelfLabelHeight + information + ShelfBottomPadding
+    val whole = (shelves.size downTo 1).firstOrNull { count ->
+      (maxHeight - shelfChrome * count) / count >= MinShelfCardWidth
+    }
     val space = maxHeight - ShelfBottomPadding
     val fit = when {
-      space - ShelfLabelHeight - information >= MinShelfCardWidth -> ShelfFit(
+      whole != null -> ShelfFit(
+        shelves = whole,
         showName = true,
         showInformation = true,
-        cardWidth = space - ShelfLabelHeight - information,
+        cardWidth = (maxHeight - shelfChrome * whole) / whole,
       )
       space - information >= MinShelfCardWidth -> ShelfFit(
+        shelves = 1,
         showName = false,
         showInformation = true,
         cardWidth = space - information,
       )
-      else -> ShelfFit(showName = false, showInformation = false, cardWidth = space)
+      else -> ShelfFit(shelves = 1, showName = false, showInformation = false, cardWidth = space)
     }
     val cardWidth = fit.cardWidth.coerceAtMost(ShelfCardWidth)
 
     Column {
-      PreviewShelfRow(
-        label = (library.continueListening.label ?: stringResource(Res.string.theme_preview_continue_listening))
-          .takeIf { fit.showName },
-        items = library.continueListening.items,
-        cardWidth = cardWidth,
-        showInformation = fit.showInformation,
-        targets = targets,
-      )
-      PreviewShelfRow(
-        label = library.recentlyAdded.label ?: stringResource(Res.string.theme_preview_recently_added),
-        items = library.recentlyAdded.items,
-        cardWidth = cardWidth,
-        showInformation = fit.showInformation,
-        targets = targets,
-      )
+      shelves.take(fit.shelves).forEach { (label, items) ->
+        PreviewShelfRow(
+          label = label.takeIf { fit.showName },
+          items = items,
+          cardWidth = cardWidth,
+          showInformation = fit.showInformation,
+          targets = targets,
+        )
+      }
     }
   }
 }
 
 /** How Home's shelves fit their space: see [HomeShelves]. */
 private data class ShelfFit(
+  val shelves: Int,
   val showName: Boolean,
   val showInformation: Boolean,
   val cardWidth: Dp,
