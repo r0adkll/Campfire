@@ -128,7 +128,7 @@ import campfire.ui.theming.ui.generated.resources.theme_name_water_bottle
 import campfire.ui.theming.ui.generated.resources.themes_built_in
 import campfire.ui.theming.ui.generated.resources.themes_copy_name
 import campfire.ui.theming.ui.generated.resources.themes_create_ai
-import campfire.ui.theming.ui.generated.resources.themes_customize
+import campfire.ui.theming.ui.generated.resources.themes_customize_theme
 import campfire.ui.theming.ui.generated.resources.themes_delete
 import campfire.ui.theming.ui.generated.resources.themes_delete_body
 import campfire.ui.theming.ui.generated.resources.themes_delete_cancel
@@ -237,16 +237,12 @@ private fun ThemeGallery(
         selected = theme.key == state.currentTheme.key,
         previewContent = state.previewContent,
         onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-        menu = { close ->
+        action = {
           // Its main color in light mode seeds the new theme, as a theme's seed sets its accent.
           val seedColor = colorScheme(theme, useDarkColors = false).primary
-          TileMenuItem(
-            text = stringResource(Res.string.themes_customize),
-            icon = CampfireIcons.Rounded.FormatPaint,
-            onClick = {
-              close()
-              state.eventSink(ThemePickerUiEvent.Customize(theme, seedColor))
-            },
+          CustomizeThemeButton(
+            name = theme.displayName(),
+            onClick = { state.eventSink(ThemePickerUiEvent.Customize(theme, seedColor)) },
           )
         },
       )
@@ -273,33 +269,38 @@ private fun ThemeGallery(
           selected = theme.key == state.currentTheme.key,
           previewContent = state.previewContent,
           onClick = { state.eventSink(ThemePickerUiEvent.SelectTheme(theme)) },
-          menu = { close ->
-            TileMenuItem(
-              text = stringResource(Res.string.themes_edit),
-              icon = if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
-              onClick = {
-                close()
-                state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme))
-              },
-            )
-            val copyName = stringResource(Res.string.themes_copy_name, theme.displayName())
-            TileMenuItem(
-              text = stringResource(Res.string.themes_duplicate),
-              icon = CampfireIcons.Rounded.ContentCopy,
-              onClick = {
-                close()
-                state.eventSink(ThemePickerUiEvent.Duplicate(theme, copyName))
-              },
-            )
-            TileMenuItem(
-              text = stringResource(Res.string.themes_delete),
-              icon = CampfireIcons.Rounded.Delete,
-              destructive = true,
-              onClick = {
-                close()
-                pendingDeleteId = theme.id
-              },
-            )
+          action = {
+            ThemeMenuButton(name = theme.displayName()) { close ->
+              TileMenuItem(
+                text = stringResource(Res.string.themes_edit),
+                icon = when (theme) {
+                  is AppTheme.Fixed.Ai -> CampfireIcons.Rounded.AutoAwesome
+                  else -> CampfireIcons.Rounded.Edit
+                },
+                onClick = {
+                  close()
+                  state.eventSink(ThemePickerUiEvent.OpenThemeBuilder(theme))
+                },
+              )
+              val copyName = stringResource(Res.string.themes_copy_name, theme.displayName())
+              TileMenuItem(
+                text = stringResource(Res.string.themes_duplicate),
+                icon = CampfireIcons.Rounded.ContentCopy,
+                onClick = {
+                  close()
+                  state.eventSink(ThemePickerUiEvent.Duplicate(theme, copyName))
+                },
+              )
+              TileMenuItem(
+                text = stringResource(Res.string.themes_delete),
+                icon = CampfireIcons.Rounded.Delete,
+                destructive = true,
+                onClick = {
+                  close()
+                  pendingDeleteId = theme.id
+                },
+              )
+            }
           },
         )
       }
@@ -403,7 +404,7 @@ internal fun ThemeTile(
   previewContent: PreviewContent,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  menu: (@Composable ColumnScope.(close: () -> Unit) -> Unit)? = null,
+  action: (@Composable () -> Unit)? = null,
 ) {
   val interactionSource = remember { MutableInteractionSource() }
   val ringColor by animateColorAsState(
@@ -487,20 +488,46 @@ internal fun ThemeTile(
           .weight(1f)
           .clearAndSetSemantics {},
       )
-      if (menu != null) {
-        Box {
-          var expanded by remember { mutableStateOf(false) }
-          val menuLabel = stringResource(Res.string.themes_more_options, name)
-          IconButtonTooltip(text = menuLabel) {
-            IconButton(onClick = { expanded = true }) {
-              Icon(CampfireIcons.Rounded.MoreVert, contentDescription = menuLabel)
-            }
-          }
-          DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            menu { expanded = false }
-          }
-        }
+      action?.invoke()
+    }
+  }
+}
+
+/** The ⋮ button on one of the user's themes, opening its [menu]. */
+@Composable
+private fun ThemeMenuButton(
+  name: String,
+  modifier: Modifier = Modifier,
+  menu: @Composable ColumnScope.(close: () -> Unit) -> Unit,
+) {
+  Box(modifier) {
+    var expanded by remember { mutableStateOf(false) }
+    val menuLabel = stringResource(Res.string.themes_more_options, name)
+    IconButtonTooltip(text = menuLabel) {
+      IconButton(onClick = { expanded = true }) {
+        Icon(CampfireIcons.Rounded.MoreVert, contentDescription = menuLabel)
       }
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      menu { expanded = false }
+    }
+  }
+}
+
+/**
+ * Starts a new theme from a built-in one. Built-in themes have only this action, so it's a button
+ * of its own rather than a menu of one.
+ */
+@Composable
+private fun CustomizeThemeButton(
+  name: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val label = stringResource(Res.string.themes_customize_theme, name)
+  IconButtonTooltip(text = label, modifier = modifier) {
+    IconButton(onClick = onClick) {
+      Icon(CampfireIcons.Rounded.FormatPaint, contentDescription = label)
     }
   }
 }

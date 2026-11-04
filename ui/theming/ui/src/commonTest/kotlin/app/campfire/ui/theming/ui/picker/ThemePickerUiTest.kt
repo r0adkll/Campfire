@@ -142,10 +142,9 @@ class ThemePickerUiTest {
   fun builtInThemes_canBeCustomized() = runComposeUiTest {
     setContent { Picker(state()) }
 
-    onNodeWithContentDescription("More options for Forest Green").performClick()
-    onNodeWithText("Duplicate").assertDoesNotExist()
-    onNodeWithText("Delete").assertDoesNotExist()
-    onNodeWithText("Customize").performClick()
+    // Customizing is a built-in theme's only action, so it's a button, not a menu of one.
+    onNodeWithContentDescription("More options for Forest Green").assertDoesNotExist()
+    onNodeWithContentDescription("Customize Forest Green").performClick()
 
     assertThat(events.single()).isInstanceOf<ThemePickerUiEvent.Customize>().all {
       prop(ThemePickerUiEvent.Customize::theme).isEqualTo(AppTheme.Fixed.Forest)
