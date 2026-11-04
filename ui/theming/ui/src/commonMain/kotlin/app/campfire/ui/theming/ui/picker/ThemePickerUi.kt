@@ -45,6 +45,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -518,6 +519,7 @@ private fun ThemeMenuButton(
  * Starts a new theme from a built-in one. Built-in themes have only this action, so it's a button
  * of its own rather than a menu of one.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CustomizeThemeButton(
   name: String,
@@ -526,8 +528,17 @@ private fun CustomizeThemeButton(
 ) {
   val label = stringResource(Res.string.themes_customize_theme, name)
   IconButtonTooltip(text = label, modifier = modifier) {
-    IconButton(onClick = onClick) {
-      Icon(CampfireIcons.Rounded.FormatPaint, contentDescription = label)
+    // Extra small, so it reads as secondary to choosing the theme.
+    IconButton(
+      onClick = onClick,
+      shapes = IconButtonDefaults.shapes(),
+      modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+    ) {
+      Icon(
+        CampfireIcons.Rounded.FormatPaint,
+        contentDescription = label,
+        modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+      )
     }
   }
 }
