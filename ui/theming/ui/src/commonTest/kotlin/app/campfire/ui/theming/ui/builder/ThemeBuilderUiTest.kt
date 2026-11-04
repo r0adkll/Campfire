@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
@@ -27,6 +28,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
@@ -36,7 +38,9 @@ import app.campfire.ui.theming.api.RoleOverrides
 import app.campfire.ui.theming.api.ThemeRole
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import app.campfire.ui.theming.ui.builder.color.CustomThemeColors
+import app.campfire.ui.theming.ui.preview.PreviewContent
 import app.campfire.ui.theming.ui.preview.previewBook
+import app.campfire.ui.theming.ui.preview.previewLibrary
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -57,6 +61,10 @@ class ThemeBuilderUiTest {
   }
 
   private val phone = Modifier.size(width = 400.dp, height = 900.dp)
+  private val smallPhone = Modifier.size(width = 360.dp, height = 640.dp)
+
+  /** The test library with the player's cover colors off, so the mini player shows in the theme. */
+  private val playerInTheme = PreviewContent(previewLibrary(), playerUsesCoverColors = false)
 
   /** An unfolded foldable held upright: the controls fit beside one preview. */
   private val foldable = Modifier.size(width = 700.dp, height = 840.dp)
@@ -319,6 +327,49 @@ class ThemeBuilderUiTest {
     onNodeWithContentDescription("Zoom to this part").performClick()
     waitForIdle()
     assertEquals(zoomed, status.getBoundsInRoot().width)
+  }
+
+  @Test
+  fun fineTuningBookCards_onAPhone_zoomsToTheirTitles() = runComposeUiTest {
+    // The mini player shows, leaving Home's shelves the least room.
+    setContent { Builder(rememberSampleThemeBuilderState(previewContent = playerInTheme), phone) }
+
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Book cards").performScrollTo().performClick()
+    waitForIdle()
+
+    // The tune page leaves the preview too short for Home to show its titles whole, so the scene
+    // gets a phone's room while zoomed, and the title shows larger than in the app.
+    val title = onNodeWithText("Project Hail Mary", useUnmergedTree = true).assertIsDisplayed()
+    assertTrue(title.getBoundsInRoot().height >= 20.dp, "The title is ${title.getBoundsInRoot().height} tall")
+  }
+
+  @Test
+  fun fineTuningScreenText_onAPhone_zoomsToTheFirstShelfsName() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(previewContent = playerInTheme), phone) }
+
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Screen text").performScrollTo().performClick()
+    waitForIdle()
+
+    onNodeWithText("Continue Listening", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun fineTuningTheSearchBar_onASmallPhone_zoomsItToAReadableSize() = runComposeUiTest {
+    setContent { Builder(rememberSampleThemeBuilderState(previewContent = playerInTheme), smallPhone) }
+
+    onNode(hasText("Fine-tune") and isSelectable()).performClick()
+    onNodeWithText("Search bar and dialog text").performScrollTo().performClick()
+    waitForIdle()
+    val search = onNodeWithText("Search for your next story", useUnmergedTree = true).assertIsDisplayed()
+    val zoomed = search.getBoundsInRoot().width
+
+    onNodeWithContentDescription("Show the whole screen").performClick()
+    waitForIdle()
+    val whole = search.getBoundsInRoot().width
+    // The bar is as wide as the scene, which the short preview shrinks to under half its size.
+    assertTrue(zoomed > whole * 1.5f, "The search text is $zoomed wide zoomed in and $whole zoomed out")
   }
 
   @Test

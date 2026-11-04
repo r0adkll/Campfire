@@ -26,6 +26,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
@@ -134,6 +135,33 @@ class ThemePreviewTest {
     onNodeWithContentDescription("Project Hail Mary").assertExists()
     onNodeWithText("Andy Weir").assertDoesNotExist()
     onNodeWithText("Chapter 5").assertExists()
+  }
+
+  @Test
+  fun home_showsTheNextShelfWhole_withCardsTheSameSize() = runComposeUiTest {
+    // Too short for two shelves of the app's size, tall enough for two of smaller cards.
+    setContent { ThemePreview(PreviewScene.Home, PreviewContent(previewLibrary()), icon, previewSize) }
+
+    val first = onNodeWithContentDescription("Project Hail Mary").getBoundsInRoot()
+    val next = onNodeWithContentDescription("Circe").getBoundsInRoot()
+    assertEquals(first.width, next.width)
+    // The next shelf's titles show above the note, not cut off by it.
+    val author = onNodeWithText("Madeline Miller", useUnmergedTree = true).getBoundsInRoot()
+    val note = onNodeWithText("The player uses cover colors", useUnmergedTree = true).getBoundsInRoot()
+    assertTrue(author.bottom <= note.top, "The author ends at ${author.bottom}, below the note at ${note.top}")
+  }
+
+  @Test
+  fun home_leavesOutAShelfThatDoesNotFitWhole() = runComposeUiTest {
+    setContent {
+      ThemePreview(PreviewScene.Home, PreviewContent(previewLibrary()), icon, Modifier.size(400.dp, 560.dp))
+    }
+
+    onNodeWithText("Continue Listening").assertExists()
+    onNodeWithText("Andy Weir").assertExists()
+    // Rather than its name over a sliver of covers.
+    onNodeWithText("Recently Added").assertDoesNotExist()
+    onNodeWithContentDescription("Circe").assertDoesNotExist()
   }
 
   @Test
