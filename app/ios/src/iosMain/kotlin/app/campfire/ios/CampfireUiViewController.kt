@@ -22,7 +22,14 @@ import platform.SafariServices.SFSafariViewController
 import platform.UIKit.UIViewController
 
 @Inject
-fun CampfireUiViewController(
+class CampfireUiViewController(
+  private val campfireContent: CampfireContent,
+  private val windowScreenContent: WindowScreenContent,
+) {
+  operator fun invoke(): UIViewController = createUiViewController(campfireContent, windowScreenContent)
+}
+
+private fun createUiViewController(
   campfireContent: CampfireContent,
   windowScreenContent: WindowScreenContent,
 ): UIViewController = ComposeUIViewController {
