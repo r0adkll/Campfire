@@ -10,10 +10,11 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import app.campfire.common.compose.theme.color.CampfireColorScheme
 import app.campfire.common.compose.theme.color.LocalCampfireColorScheme
-import app.campfire.common.compose.theme.color.darkCampfireColorScheme
-import app.campfire.common.compose.theme.color.lightCampfireColorScheme
+import app.campfire.common.compose.theme.color.campfireColorScheme
+import app.campfire.common.compose.theme.color.harmonizedWith
 import app.campfire.common.compose.theme.tents.RedColorPalette
 import com.r0adkll.swatchbuckler.compose.Theme
 
@@ -27,18 +28,10 @@ fun CampfireTheme(
 ) {
   ApplyStatusBar(useDarkColors)
 
-  val campfireColorScheme = if (useDarkColors) darkCampfireColorScheme() else lightCampfireColorScheme()
-
-  CompositionLocalProvider(
-    LocalUseDarkColors provides useDarkColors,
-    LocalCampfireColorScheme provides campfireColorScheme,
-  ) {
-    val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
-
-    MaterialExpressiveTheme(
-      colorScheme = colorScheme,
-      typography = CampfireTypography,
-      shapes = CampfireShapes,
+  CompositionLocalProvider(LocalUseDarkColors provides useDarkColors) {
+    CampfireMaterialTheme(
+      colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors),
+      useDarkColors = useDarkColors,
       content = content,
     )
   }
@@ -53,14 +46,32 @@ fun CampfireTheme(
 ) {
   ApplyStatusBar(useDarkColors)
 
-  val campfireColorScheme = if (useDarkColors) darkCampfireColorScheme() else lightCampfireColorScheme()
+  // The color scheme may read LocalUseDarkColors, so it's built inside the provider.
+  CompositionLocalProvider(LocalUseDarkColors provides useDarkColors) {
+    CampfireMaterialTheme(
+      colorScheme = colorScheme(),
+      useDarkColors = useDarkColors,
+      content = content,
+    )
+  }
+}
 
-  CompositionLocalProvider(
-    LocalUseDarkColors provides useDarkColors,
-    LocalCampfireColorScheme provides campfireColorScheme,
-  ) {
-    val colorScheme = colorScheme()
+/**
+ * Material's theme with Campfire's type and shapes, plus success and loading colors harmonized
+ * with [colorScheme]'s primary color.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun CampfireMaterialTheme(
+  colorScheme: ColorScheme,
+  useDarkColors: Boolean,
+  content: @Composable () -> Unit,
+) {
+  val campfireColorScheme = remember(useDarkColors, colorScheme.primary) {
+    campfireColorScheme(useDarkColors).harmonizedWith(colorScheme.primary)
+  }
 
+  CompositionLocalProvider(LocalCampfireColorScheme provides campfireColorScheme) {
     MaterialExpressiveTheme(
       colorScheme = colorScheme,
       typography = CampfireTypography,
