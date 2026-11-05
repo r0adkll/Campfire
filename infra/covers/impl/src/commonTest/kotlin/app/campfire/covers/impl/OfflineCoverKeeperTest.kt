@@ -9,6 +9,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.RescanResult
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
@@ -173,6 +174,7 @@ class OfflineCoverKeeperTest {
       items[itemId] ?: throw NoSuchElementException(itemId)
 
     override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean) = Result.success(Unit)
+    override suspend fun rescanLibraryItem(itemId: LibraryItemId) = Result.success(RescanResult.UpToDate)
   }
 
   private companion object {

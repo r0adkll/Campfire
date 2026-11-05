@@ -16,6 +16,8 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
+import app.campfire.libraries.api.ItemChangeNotAllowedException
+import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
@@ -39,7 +41,12 @@ import assertk.assertions.prop
 import assertk.assertions.single
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
@@ -171,7 +178,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun deleteItemClick_onFailure_setsErrorMessage_andClearErrorResetsIt() = runTest {
+  fun deleteItemClick_onFailure_saysSoInTheSnackbar() = runTest {
     val libraryItem = emptyLibraryItem()
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
     libraryItemRepository.deleteResult = Result.failure(IllegalStateException("boom"))
@@ -182,23 +189,76 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
       item.eventSink(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
 
-      // Drain until the launched coroutine completes and writes errorMessage
-      var withError = awaitItem()
-      while (withError.errorMessage == null) {
-        withError = awaitItem()
-      }
-      assertThat(withError.errorMessage).isEqualTo("boom")
-
-      withError.eventSink(LibraryItemUiEvent.ClearError)
-      val cleared = awaitItem()
-      assertThat(cleared.errorMessage).isNull()
-
+      awaitSnackbar("Couldn't delete this. Check your connection and try again.")
       assertThat(libraryItemRepository.deleteInvocations).hasSize(1)
 
       cancelAndIgnoreRemainingEvents()
     }
   }
+
+  @Test
+  fun deleteItemClick_whenNotAllowed_saysToAskAnAdmin() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    libraryItemRepository.deleteResult = Result.failure(ItemChangeNotAllowedException())
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.DeleteItemClick(hardDelete = true))
+
+      awaitSnackbar("Your account isn't allowed to delete this. Ask your server's admin.")
+      // Still here, as nothing was deleted
+      navigator.expectNoEvents()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Burst
+  @Test
+  fun rescanClick_saysWhatTheServerFound(
+    outcome: RescanOutcome = burstValues(
+      RescanOutcome(Result.success(RescanResult.Updated), "Rescanned, and updated from its files"),
+      RescanOutcome(Result.success(RescanResult.UpToDate), "Rescanned. It already matched its files."),
+      RescanOutcome(Result.success(RescanResult.Nothing), "Your server couldn't find this to rescan it"),
+      RescanOutcome(
+        Result.failure(ItemChangeNotAllowedException()),
+        "Your account isn't allowed to rescan this. Ask your server's admin.",
+      ),
+      RescanOutcome(
+        Result.failure(IllegalStateException("offline")),
+        "Couldn't rescan this. Check your connection and try again.",
+      ),
+    ),
+  ) = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    libraryItemRepository.rescanResult = outcome.result
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.RescanClick)
+
+      awaitSnackbar(outcome.message)
+      assertThat(libraryItemRepository.rescanInvocations).containsExactly(TestLibraryItemId)
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  /**
+   * Waits for the app's snackbar to say [message]. Its words load off the test's own thread, so
+   * this polls from another, reading only the snackbar host's state there.
+   */
+  private suspend fun awaitSnackbar(message: String) = withContext(Dispatchers.Default) {
+    withTimeout(5.seconds) {
+      while (snackbarHost.currentSnackbarData?.visuals?.message != message) delay(10)
+    }
+  }
 }
+
+data class RescanOutcome(
+  val result: Result<RescanResult>,
+  val message: String,
+)
 
 data class EventTest(
   val event: LibraryItemUiEvent,

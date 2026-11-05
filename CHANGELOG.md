@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcast libraries have their own sort options, matching the web app (title, author, date added, size, number of episodes, file created and file modified), and sort by title by default instead of in no particular order
 - Each podcast's cover in Shows counts the episodes you haven't finished, and Shows refreshes every time you open it to keep the counts current
 - Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
+- Delete a book or podcast from your server, or have your server rescan its files, from its menu, when your account is allowed to
 
 ### Changed
 

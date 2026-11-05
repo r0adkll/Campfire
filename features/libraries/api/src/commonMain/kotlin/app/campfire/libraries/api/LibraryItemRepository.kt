@@ -20,6 +20,16 @@ interface LibraryItemRepository {
    *
    * On success the local cache for this item is cleared. Cleanup of any
    * locally-downloaded audio files is the caller's responsibility.
+   *
+   * @return a failure, an [ItemChangeNotAllowedException] when the account may not delete items
    */
   suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit>
+
+  /**
+   * Have the server scan the item's files again, picking up files added, removed or changed on
+   * disk since its last scan. An updated item is fetched again here.
+   *
+   * @return a failure, an [ItemChangeNotAllowedException] when the account may not rescan items
+   */
+  suspend fun rescanLibraryItem(itemId: LibraryItemId): Result<RescanResult>
 }

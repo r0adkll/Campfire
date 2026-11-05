@@ -12,8 +12,11 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.dao.SqlDelightLibraryItemDao
 import app.campfire.db.DatabaseFactory
 import app.campfire.db.test.createDriver
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemPurger
+import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.item.LibraryItemStore
+import app.campfire.network.ApiException
 import app.campfire.network.RequestOrigin
 import app.campfire.network.models.AudioFile
 import app.campfire.network.models.AudioMetaTags
@@ -33,6 +36,8 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
 import kotlin.test.Test
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -104,6 +109,59 @@ class StoreLibraryItemRepositoryTest {
     val item = repository().getLibraryItem(ITEM)
 
     assertThat(item.media.metadata.title).isEqualTo("Cached")
+  }
+
+  @Test
+  fun `a rescan that updates the item fetches it again`() = repositoryTest { cache ->
+    cache(audiobook(title = "Before"))
+    api.scanLibraryItemResult = { Result.success("UPDATED") }
+    api.libraryItemResult = { Result.success(audiobook(title = "After")) }
+
+    val result = repository().rescanLibraryItem(ITEM)
+
+    assertThat(result.getOrNull()).isEqualTo(RescanResult.Updated)
+    assertThat(api.scannedLibraryItems).containsExactly(ITEM)
+    assertThat(api.libraryItemRequests).containsExactly(ITEM)
+    assertThat(repository().getLibraryItem(ITEM).media.metadata.title).isEqualTo("After")
+  }
+
+  @Test
+  fun `an item already up to date isn't fetched again`() = repositoryTest {
+    api.scanLibraryItemResult = { Result.success("UPTODATE") }
+
+    val result = repository().rescanLibraryItem(ITEM)
+
+    assertThat(result.getOrNull()).isEqualTo(RescanResult.UpToDate)
+    assertThat(api.libraryItemRequests).isEmpty()
+  }
+
+  @Test
+  fun `a rescan the server couldn't do says so`() = repositoryTest {
+    api.scanLibraryItemResult = { Result.success("NOTHING") }
+
+    assertThat(repository().rescanLibraryItem(ITEM).getOrNull()).isEqualTo(RescanResult.Nothing)
+  }
+
+  @Test
+  fun `a refused rescan or delete is explained as not allowed`() = repositoryTest {
+    api.scanLibraryItemResult = { Result.failure(ApiException(403)) }
+    api.deleteLibraryItemResult = { Result.failure(ApiException(403)) }
+
+    val rescan = repository().rescanLibraryItem(ITEM)
+    val delete = repository().deleteLibraryItem(ITEM, hardDelete = false)
+
+    assertThat(rescan.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
+    assertThat(delete.exceptionOrNull()).isNotNull().isInstanceOf<ItemChangeNotAllowedException>()
+  }
+
+  @Test
+  fun `other failures come back as they were`() = repositoryTest {
+    api.deleteLibraryItemResult = { Result.failure(ApiException(500)) }
+
+    val delete = repository().deleteLibraryItem(ITEM, hardDelete = true)
+
+    assertThat(delete.exceptionOrNull()).isNotNull().isInstanceOf<ApiException>()
+    assertThat(api.deletedLibraryItems).containsExactly(ITEM to true)
   }
 
   private fun TestScope.dao() = SqlDelightLibraryItemDao(

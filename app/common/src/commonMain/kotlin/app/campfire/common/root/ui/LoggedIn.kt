@@ -50,6 +50,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
@@ -212,9 +213,13 @@ internal fun LoggedInWindow(
         // The entire Compose hierarchy under this should be keyed and
         // unique per-user.
         key(userComponent.currentUserSession.requiredUserId) {
+          // The app's own snackbar, so screens tell what an action did without passing it through
+          // their state, such as how a rescan went
+          val snackbarHostState = remember { SnackbarHostState() }
           CompositionLocalProvider(
             LocalWindowSizeClass provides (tabletopSplit?.topSizeClass ?: LocalWindowSizeClass.current),
             LocalPlayerDocked provides (tabletopSplit != null),
+            LocalSnackBarHost provides snackbarHostState,
           ) {
             LoggedInUi(
               backstack = backStack,
@@ -343,7 +348,7 @@ private fun LoggedInUi(
 
   val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-  val snackbarHostState = remember { SnackbarHostState() }
+  val snackbarHostState = LocalSnackBarHost.current
   BackOnlineSnackbarEffect(workOffline, snackbarHostState)
   LaunchedEffect(drawerState.currentValue) {
     if (drawerState.currentValue == DrawerValue.Open) {
