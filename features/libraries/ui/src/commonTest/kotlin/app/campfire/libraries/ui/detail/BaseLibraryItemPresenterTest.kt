@@ -121,7 +121,6 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     dispatcherProvider = dispatcherProvider,
-    downloads = downloads,
   )
 
   internal val presenter: Presenter<LibraryItemUiState> = object : Presenter<LibraryItemUiState> {
