@@ -209,9 +209,13 @@ internal fun LoggedInWindow(
         // The entire Compose hierarchy under this should be keyed and
         // unique per-user.
         key(userComponent.currentUserSession.requiredUserId) {
+          // The app's own snackbar, so screens tell what an action did without passing it through
+          // their state, such as how a rescan went
+          val snackbarHostState = remember { SnackbarHostState() }
           CompositionLocalProvider(
             LocalWindowSizeClass provides (tabletopSplit?.topSizeClass ?: LocalWindowSizeClass.current),
             LocalPlayerDocked provides (tabletopSplit != null),
+            LocalSnackBarHost provides snackbarHostState,
           ) {
             LoggedInUi(
               backstack = backStack,
@@ -340,7 +344,7 @@ private fun LoggedInUi(
 
   val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-  val snackbarHostState = remember { SnackbarHostState() }
+  val snackbarHostState = LocalSnackBarHost.current
   BackOnlineSnackbarEffect(workOffline, snackbarHostState)
   LaunchedEffect(drawerState.currentValue) {
     if (drawerState.currentValue == DrawerValue.Open) {
@@ -591,32 +595,28 @@ private fun LoggedInUi(
     )
   }
 
-  // The app's own snackbar, so screens tell what an action did without passing it through their
-  // state, such as how a rescan went
-  CompositionLocalProvider(LocalSnackBarHost provides snackbarHostState) {
-    if (tabletopSplit != null) {
-      TabletopSplitLayout(
-        split = tabletopSplit,
-        bottomContent = {
-          DedicatedPlayer(
-            onItemClick = { session ->
-              homeNavigator.goTo(
-                LibraryItemScreen(
-                  libraryItemId = session.libraryItem.id,
-                  episodeId = session.episodeId,
-                ),
-              )
-            },
-            modifier = Modifier.fillMaxSize(),
-          )
-        },
-        modifier = modifier,
-      ) {
-        adaptiveLayout(Modifier.fillMaxSize())
-      }
-    } else {
-      adaptiveLayout(modifier)
+  if (tabletopSplit != null) {
+    TabletopSplitLayout(
+      split = tabletopSplit,
+      bottomContent = {
+        DedicatedPlayer(
+          onItemClick = { session ->
+            homeNavigator.goTo(
+              LibraryItemScreen(
+                libraryItemId = session.libraryItem.id,
+                episodeId = session.episodeId,
+              ),
+            )
+          },
+          modifier = Modifier.fillMaxSize(),
+        )
+      },
+      modifier = modifier,
+    ) {
+      adaptiveLayout(Modifier.fillMaxSize())
     }
+  } else {
+    adaptiveLayout(modifier)
   }
 }
 
