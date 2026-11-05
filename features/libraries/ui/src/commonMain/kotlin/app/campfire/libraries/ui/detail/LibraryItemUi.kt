@@ -96,7 +96,6 @@ import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.manage.DeleteItemDialog
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
-import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -149,7 +148,6 @@ fun LibraryItemContent(
   val snackBarHost = remember { SnackbarHostState() }
   val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
 
-  val itemActions = state.libraryItem?.let { state.user.itemActions(it) }.orEmpty()
   Scaffold(
     containerColor = surfaceColor,
     snackbarHost = {
@@ -204,7 +202,7 @@ fun LibraryItemContent(
             }
           }
 
-          if (itemActions.isNotEmpty()) {
+          if (state.itemActions.isNotEmpty()) {
             // Anchors the menu under its button
             Box {
               val moreActionsLabel = stringResource(Res.string.cd_more_actions)
@@ -221,7 +219,7 @@ fun LibraryItemContent(
               }
               ItemActionsMenu(
                 expanded = showOverflowMenu,
-                actions = itemActions,
+                actions = state.itemActions,
                 onAction = { action ->
                   showOverflowMenu = false
                   when (action) {

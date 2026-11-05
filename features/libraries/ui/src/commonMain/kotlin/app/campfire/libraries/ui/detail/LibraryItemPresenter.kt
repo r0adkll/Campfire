@@ -23,6 +23,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.offline.Downloads
 import app.campfire.settings.api.ThemeSettings
@@ -107,12 +108,17 @@ class LibraryItemPresenter(
     // The app's own, so what a change did is told without passing it through the screen's state
     val snackbarHost = LocalSnackBarHost.current
 
+    val user = userSession.requiredUser
+    val libraryItem = libraryItemContentState.dataOrNull
+    val itemActions = remember(user, libraryItem) { libraryItem?.let { user.itemActions(it) }.orEmpty() }
+
     return LibraryItemUiState(
-      user = userSession.requiredUser,
-      libraryItem = libraryItemContentState.dataOrNull,
+      user = user,
+      libraryItem = libraryItem,
       theme = theme,
       swatch = swatch,
       contentState = contentState,
+      itemActions = itemActions,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()

@@ -17,6 +17,7 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.manage.ItemAction
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -29,6 +30,8 @@ data class LibraryItemUiState(
   val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out ContentUiState>,
+  /** What the account may do to the item on the server, in the order its menu shows them. */
+  val itemActions: List<ItemAction> = emptyList(),
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 

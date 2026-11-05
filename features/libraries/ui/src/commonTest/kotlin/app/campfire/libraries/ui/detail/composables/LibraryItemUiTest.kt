@@ -27,7 +27,6 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.User
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.ContentUiState
@@ -35,6 +34,7 @@ import app.campfire.libraries.ui.detail.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.manage.ItemAction
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
@@ -192,7 +192,7 @@ class LibraryItemUiTest {
 
   @Test
   fun anAccountThatCanManageItems_rescansFromTheMenu() = runComposeUiTest {
-    setContent { TestLibraryItem(loadedState(user)) }
+    setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
 
     onNodeWithTag("item_actions_button").performClick()
     onNodeWithTag("item_action_rescan").performClick()
@@ -202,7 +202,7 @@ class LibraryItemUiTest {
 
   @Test
   fun deletingFiles_takesASecondPress() = runComposeUiTest {
-    setContent { TestLibraryItem(loadedState(user)) }
+    setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
 
     onNodeWithTag("item_actions_button").performClick()
     onNodeWithTag("item_action_delete").performClick()
@@ -218,7 +218,7 @@ class LibraryItemUiTest {
 
   @Test
   fun removingFromTheLibrary_isTheDefaultAndTakesOnePress() = runComposeUiTest {
-    setContent { TestLibraryItem(loadedState(user)) }
+    setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
 
     onNodeWithTag("item_actions_button").performClick()
     onNodeWithTag("item_action_delete").performClick()
@@ -228,22 +228,16 @@ class LibraryItemUiTest {
   }
 
   @Test
-  fun anAccountThatCantManageItems_hasNoMenu() = runComposeUiTest {
-    val listener = user(
-      id = "listener",
-      type = User.Type.User,
-      permissions = user.permissions.copy(update = false, delete = false),
-    )
-
-    setContent { TestLibraryItem(loadedState(listener)) }
+  fun noItemActions_meansNoMenu() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(itemActions = emptyList())) }
 
     onNodeWithTag("item_actions_button").assertDoesNotExist()
   }
 
-  private fun loadedState(user: User) = LibraryItemUiState(
+  private fun loadedState(itemActions: List<ItemAction>) = LibraryItemUiState(
     user = user,
-    // A folder, as a single file can't be rescanned
-    libraryItem = libraryItem().copy(isFile = false),
+    libraryItem = libraryItem(),
+    itemActions = itemActions,
     contentState = LoadState.Loaded(
       data = ContentUiState(
         slots = listOf(TestContentSlot("slot")),

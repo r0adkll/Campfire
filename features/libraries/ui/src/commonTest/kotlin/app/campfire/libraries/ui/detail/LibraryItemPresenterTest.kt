@@ -25,6 +25,7 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
+import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.reader.api.EbookContentsEntry
@@ -54,6 +55,27 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         prop(LibraryItemUiState::libraryItem).isNull()
         prop(LibraryItemUiState::contentState).isInstanceOf<LoadState.Loading>()
       }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_ItemActions_AreWhatTheAccountMayDoToTheItem() = runTest {
+    // The test account is an admin with the update and delete permissions
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem().copy(isFile = false))
+
+    presenter.test {
+      assertThat(awaitLoadedItem().itemActions).containsExactly(ItemAction.Rescan, ItemAction.Delete)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_ItemActions_LeaveOutRescanningASingleFile() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem().copy(isFile = true))
+
+    presenter.test {
+      assertThat(awaitLoadedItem().itemActions).containsExactly(ItemAction.Delete)
       cancelAndIgnoreRemainingEvents()
     }
   }
