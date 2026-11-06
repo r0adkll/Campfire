@@ -173,6 +173,7 @@
   <string name="action_episode_download_in_progress">Episode downloading</string>
 
   <string name="cd_more_actions">More actions</string>
+  <string name="menu_item_edit_details">Edit details</string>
   <string name="menu_item_rescan">Rescan files</string>
   <string name="menu_item_delete_from_server">Delete from server…</string>
   <string name="item_rescan_updated">Rescanned, and updated from its files</string>

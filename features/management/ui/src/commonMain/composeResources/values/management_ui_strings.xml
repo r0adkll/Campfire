@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="editor_title">Edit details</string>
+  <string name="editor_subtitle">%1$s · %2$s</string>
+  <string name="action_close_editor">Close editor</string>
+  <string name="action_save">Save</string>
+  <string name="action_discard">Discard</string>
+  <plurals name="editor_changes">
+    <item quantity="one">%1$d change</item>
+    <item quantity="other">%1$d changes</item>
+  </plurals>
+
+  <string name="label_title">Title</string>
+  <string name="label_subtitle">Subtitle</string>
+  <string name="placeholder_optional">Optional</string>
+  <string name="label_description">Description</string>
+  <string name="label_publisher">Publisher</string>
+  <string name="label_published_year">Year</string>
+  <string name="label_language">Language</string>
+  <string name="label_isbn">ISBN</string>
+  <string name="label_asin">ASIN</string>
+  <string name="label_explicit">Explicit</string>
+  <string name="label_abridged">Abridged</string>
+  <string name="cd_changed">Changed</string>
+
+  <string name="section_publishing">Publishing</string>
+  <string name="section_identifiers">Identifiers</string>
+
+  <string name="error_title_required">A book needs a title</string>
+  <string name="error_year_invalid">Use four digits, like 2019</string>
+  <string name="warning_explicit_hidden">Your account can't see explicit books, so you won't see this one once it's saved</string>
+  <string name="editor_footer">Changes are saved to the book on your server and kept when it's rescanned. A detail you clear can come back with a scan if the book's files have it.</string>
+
+  <string name="banner_cant_edit">Your account isn't allowed to change items. Ask your server's admin.</string>
+  <string name="banner_behind_server">This book was changed on your server while you were editing it</string>
+  <string name="action_reload">Reload</string>
+  <string name="action_keep_mine">Keep mine</string>
+
+  <string name="dialog_discard_title">Discard your changes?</string>
+  <string name="dialog_discard_message">Your changes to this book's details won't be saved.</string>
+  <string name="dialog_discard_confirm">Discard</string>
+  <string name="dialog_discard_cancel">Keep editing</string>
+
+  <string name="editor_load_failed">Couldn't load this book's details</string>
+  <string name="editor_save_not_allowed">Your account isn't allowed to change this. Ask your server's admin.</string>
+  <string name="editor_save_failed">Couldn't save. Check your connection and try again.</string>
+  <string name="editor_saved">Saved the details of %1$s</string>
+  <string name="editor_already_saved">Your server already had these details</string>
+  <string name="action_undo">Undo</string>
+  <string name="editor_undone">Put the details of %1$s back</string>
+  <string name="editor_undo_failed">Couldn't undo. Check your connection and try again.</string>
+</resources>

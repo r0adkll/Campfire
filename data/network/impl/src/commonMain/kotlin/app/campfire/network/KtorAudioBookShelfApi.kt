@@ -33,6 +33,8 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncPlaybackSessionRequest
 import app.campfire.network.envelopes.SyncSessionRequest
 import app.campfire.network.envelopes.UpdateCollectionRequest
+import app.campfire.network.envelopes.UpdateMediaRequest
+import app.campfire.network.envelopes.UpdateMediaResponse
 import app.campfire.network.envelopes.UpdatePlaylistRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
@@ -443,6 +445,15 @@ class KtorAudioBookShelfApi(
     return trySendRequest({ it.body<ScanItemResponse>().result }) {
       hydratedClientRequest("/api/items/$itemId/scan") {
         method = HttpMethod.Post
+      }
+    }
+  }
+
+  override suspend fun updateLibraryItemMedia(itemId: String, request: UpdateMediaRequest): Result<Boolean> {
+    return trySendRequest({ it.body<UpdateMediaResponse>().updated }) {
+      hydratedClientRequest("/api/items/$itemId/media") {
+        method = HttpMethod.Patch
+        setBody(request)
       }
     }
   }

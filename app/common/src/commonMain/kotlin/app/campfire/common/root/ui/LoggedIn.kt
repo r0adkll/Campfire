@@ -62,6 +62,7 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.util.withDensity
+import app.campfire.common.compose.widgets.LibraryItemActionsFactory
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.compose.widgets.LocalLibraryItemActions
 import app.campfire.common.compose.window.LocalWindowScreenLauncher
@@ -69,11 +70,13 @@ import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.common.navigator.WindowScreenInterceptor
+import app.campfire.common.navigator.WorkspaceScreenInterceptor
 import app.campfire.common.root.automation.AutomationScreens
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.LoginScreen
+import app.campfire.common.screens.WorkspaceScreen
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.requiredUserId
@@ -204,7 +207,6 @@ internal fun LoggedInWindow(
         LocalPlaybackSession provides currentSession,
         LocalThemeDispatcher provides themeManagerDispatcher,
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
-        LocalLibraryItemActions provides userComponent.libraryItemActions,
       ) {
         // A half-open foldable on a table gives the app only the region above the hinge, and
         // the player the region below. Everything under here — navigation type, pane routing,
@@ -232,6 +234,7 @@ internal fun LoggedInWindow(
               supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
               onSupportingPaneWidthChange = { layoutSettings.supportingPaneWidth = it.value },
               tabletopSplit = tabletopSplit,
+              libraryItemActionsFactory = userComponent.libraryItemActionsFactory,
               modifier = modifier,
             )
           }
@@ -253,6 +256,7 @@ private fun LoggedInUi(
   workOffline: WorkOffline,
   supportingPaneWidth: Dp?,
   onSupportingPaneWidthChange: (Dp) -> Unit,
+  libraryItemActionsFactory: LibraryItemActionsFactory,
   modifier: Modifier = Modifier,
   /** Non-null while the device is half-open on a table; the player then docks below the hinge. */
   tabletopSplit: TabletopSplit? = null,
@@ -287,12 +291,19 @@ private fun LoggedInUi(
 
   val detailBackStack = rememberSaveableBackStack(EmptyScreen(stringResource(Res.string.empty_supporting_pane_message)))
   val baseDetailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
+  val windowScreenInterceptors = rememberWindowScreenInterceptors()
   val detailNavigator = rememberInterceptingNavigator(
     navigator = baseDetailNavigator,
-    interceptors = rememberWindowScreenInterceptors(),
+    interceptors = remember(windowScreenInterceptors, navigator) {
+      windowScreenInterceptors + WorkspaceScreenInterceptor(navigator)
+    },
     eventListeners = navigationEventListeners,
     enableBackHandler = false,
   )
+
+  val workspace by remember(backstack) {
+    derivedStateOf { backstack.topRecord?.screen as? WorkspaceScreen }
+  }
 
   // If the user is switching between form factors, i.e. opening/closing a foldable
   // then we'll want to re-orientate the root and detail back stacks so the content
@@ -303,6 +314,12 @@ private fun LoggedInUi(
       val detailScreens = backstack.popUntil { it.screen !is DetailScreen }
       detailScreens.asReversed().forEach {
         detailBackStack.push(it)
+      }
+
+      // A workspace opened on the narrower window has no preview beside it yet
+      val preview = workspace?.preview
+      if (preview != null && detailBackStack.topRecord?.screen is EmptyScreen) {
+        detailBackStack.push(preview)
       }
 
       when (deepLink) {
@@ -316,7 +333,7 @@ private fun LoggedInUi(
         }
         else -> Unit
       }
-    } else {
+    } else if (workspace == null) {
       val detailScreens = detailBackStack.popUntil { it.screen is EmptyScreen }
       detailScreens.asReversed().forEach {
         backstack.push(it)
@@ -330,6 +347,24 @@ private fun LoggedInUi(
           }
         }
         else -> Unit
+      }
+    }
+  }
+
+  // Screens wait where they are while a workspace is open, rather than cover it, and move once it
+  // closes: folded, the pane's screens come over to the main stack; unfolded, detail screens left
+  // under the workspace go to the pane, unless it already shows them as the workspace's preview
+  LaunchedEffect(windowSizeClass.isSupportingPaneEnabled, workspace == null) {
+    if (workspace != null) return@LaunchedEffect
+    if (windowSizeClass.isSupportingPaneEnabled) {
+      val detailScreens = backstack.popUntil { it.screen !is DetailScreen }
+      detailScreens.asReversed().forEach {
+        if (detailBackStack.topRecord?.screen != it.screen) detailBackStack.push(it)
+      }
+    } else {
+      val detailScreens = detailBackStack.popUntil { it.screen is EmptyScreen }
+      detailScreens.asReversed().forEach {
+        backstack.push(it)
       }
     }
   }
@@ -403,10 +438,12 @@ private fun LoggedInUi(
   // OverlayPriorityBackHandler) so it always takes precedence over Circuit's main back stack
   // pop, regardless of composition order. Circuit still animates the pop when nothing here is
   // active.
+  // A workspace in the main area is closed before the pane beside it, which only previews it
+  val paneTakesBack = detailRootScreen !is EmptyScreen && workspace == null
   OverlayPriorityBackHandler(
     enabled = overlayHost.currentOverlayData != null ||
       playbackBarExpanded ||
-      detailRootScreen !is EmptyScreen,
+      paneTakesBack,
     onBack = {
       when {
         overlayHost.currentOverlayData != null -> overlayHost.currentOverlayData?.finish(Unit)
@@ -416,7 +453,7 @@ private fun LoggedInUi(
           playbackBarExpanded = false
         }
 
-        detailRootScreen !is EmptyScreen -> detailNavigator.pop()
+        paneTakesBack -> detailNavigator.pop()
       }
     },
   )
@@ -611,28 +648,34 @@ private fun LoggedInUi(
     )
   }
 
-  if (tabletopSplit != null) {
-    TabletopSplitLayout(
-      split = tabletopSplit,
-      bottomContent = {
-        DedicatedPlayer(
-          onItemClick = { session ->
-            homeNavigator.goTo(
-              LibraryItemScreen(
-                libraryItemId = session.libraryItem.id,
-                episodeId = session.episodeId,
-              ),
-            )
-          },
-          modifier = Modifier.fillMaxSize(),
-        )
-      },
-      modifier = modifier,
-    ) {
-      adaptiveLayout(Modifier.fillMaxSize())
+  // The actions a list's long press offers, which navigate from here
+  val libraryItemActions = remember(libraryItemActionsFactory, homeNavigator) {
+    libraryItemActionsFactory.create(homeNavigator)
+  }
+  CompositionLocalProvider(LocalLibraryItemActions provides libraryItemActions) {
+    if (tabletopSplit != null) {
+      TabletopSplitLayout(
+        split = tabletopSplit,
+        bottomContent = {
+          DedicatedPlayer(
+            onItemClick = { session ->
+              homeNavigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = session.libraryItem.id,
+                  episodeId = session.episodeId,
+                ),
+              )
+            },
+            modifier = Modifier.fillMaxSize(),
+          )
+        },
+        modifier = modifier,
+      ) {
+        adaptiveLayout(Modifier.fillMaxSize())
+      }
+    } else {
+      adaptiveLayout(modifier)
     }
-  } else {
-    adaptiveLayout(modifier)
   }
 }
 

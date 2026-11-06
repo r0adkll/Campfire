@@ -8,6 +8,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
@@ -25,6 +28,7 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
+import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -149,6 +153,11 @@ class LibraryItemPresenter(
                 )
               }
           }
+        }
+
+        LibraryItemUiEvent.EditClick -> {
+          Analytics.send(ActionEvent("edit_item", Click))
+          navigator.goTo(ItemEditorScreen(screen.libraryItemId))
         }
 
         LibraryItemUiEvent.RescanClick -> {
