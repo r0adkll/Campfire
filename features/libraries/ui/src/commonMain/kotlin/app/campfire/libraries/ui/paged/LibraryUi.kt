@@ -204,11 +204,16 @@ private fun LoadedContent(
   listState: LazyListState = rememberLazyListState(),
   gridState: LazyGridState = rememberLazyGridState(),
 ) {
+  // Scaffold's padding changes every frame the bottom bars slide; only follow the top edge here
+  val indicatorPadding by remember(contentPadding) {
+    derivedStateOf { contentPadding.calculateTopPadding() }
+  }
+
   ContentPagingScaffold(
     modifier = modifier,
     lazyPagingItems = lazyPagingItems,
     emptyMessage = stringResource(Res.string.empty_library_items_message),
-    indicatorPadding = contentPadding.calculateTopPadding(),
+    indicatorPadding = indicatorPadding,
   ) {
     when (itemDisplayState) {
       ItemDisplayState.List -> LibraryList(

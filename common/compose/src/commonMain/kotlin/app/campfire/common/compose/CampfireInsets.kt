@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -23,8 +21,8 @@ import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
+import app.campfire.common.compose.session.LocalHasPlaybackSession
 import app.campfire.common.compose.session.LocalPlaybackBarHidden
-import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
 
 /**
@@ -35,7 +33,7 @@ import app.campfire.common.compose.session.LocalPlayerDocked
 val CampfireWindowInsets: WindowInsets
   @Composable get() {
     val windowSizeClass = LocalWindowSizeClass.current
-    val session by rememberUpdatedState(LocalPlaybackSession.current)
+    val hasSession = LocalHasPlaybackSession.current
     val contentLayout = LocalContentLayout.current
 
     // Inset content if the playback bar floats over it (rather than docking below it, being
@@ -44,7 +42,7 @@ val CampfireWindowInsets: WindowInsets
     val floatingPlaybackBar = !windowSizeClass.usesBottomPlaybackBar &&
       !LocalPlayerDocked.current &&
       !LocalPlaybackBarHidden.current
-    val playbackBarInsets = if (floatingPlaybackBar && session != null && contentLayout == ContentLayout.Root) {
+    val playbackBarInsets = if (floatingPlaybackBar && hasSession && contentLayout == ContentLayout.Root) {
       WindowInsets(bottom = PlaybackBarInsetSize)
     } else {
       WindowInsets(0.dp)
