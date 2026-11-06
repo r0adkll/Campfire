@@ -166,7 +166,7 @@ internal fun LoggedInWindow(
   // Only whether there is a session: its position changes on every player tick, and anything this
   // root reads recomposes with it
   val hasPlaybackSession by remember(userComponent) {
-    userComponent.sessionsRepository.observeCurrentSession()
+    userComponent.sessionsRepository.observePlayingItem()
       .map { it != null }
       .distinctUntilChanged()
   }.collectAsState(false)

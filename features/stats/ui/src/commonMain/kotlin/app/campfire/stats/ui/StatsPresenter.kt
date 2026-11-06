@@ -36,6 +36,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -71,7 +72,11 @@ class StatsPresenter(
         // Start with an empty list so a progress store that never emits can't
         // hold the whole stats screen in its loading state
         mediaProgressRepository.observeAllProgress()
-          .onStart { emit(emptyList()) },
+          .map { ProgressActivity(it) }
+          // Only finished items count here, so the playing book saving its position doesn't
+          // recompute every stat
+          .distinctUntilChanged()
+          .onStart { emit(ProgressActivity()) },
       ) { stats, progress ->
         LoadState.Loaded(processStats(stats, progress))
       }.catch<LoadState<out List<StatsUiModel>>> { emit(LoadState.Error) }
@@ -110,7 +115,7 @@ class StatsPresenter(
 
   private suspend fun processStats(
     stats: ListeningStats,
-    allProgress: List<MediaProgress>,
+    progress: ProgressActivity,
   ): List<StatsUiModel> = withContext(dispatcherProvider.computation) {
     buildList {
       // Total time
@@ -133,7 +138,7 @@ class StatsPresenter(
 
       // Activity
       add(StatsUiModel.Header(Res.string.user_stats_activity_header))
-      add(computeActivity(stats, allProgress))
+      add(computeActivity(stats, progress))
 
       // Weekly listening
       val today = fatherTime.today()
@@ -189,7 +194,7 @@ class StatsPresenter(
 
   private fun computeActivity(
     stats: ListeningStats,
-    allProgress: List<MediaProgress>,
+    progress: ProgressActivity,
   ): StatsUiModel.Activity {
     val today = fatherTime.today()
     val listenedDates = stats.days
@@ -231,7 +236,7 @@ class StatsPresenter(
     fun MediaProgress.finishedYear(): Int? = finishedAt
       ?.let { Instant.fromEpochMilliseconds(it).toLocalDateTime(timeZone).date.year }
 
-    val finished = allProgress.filter { it.isFinished }
+    val finished = progress.finished
     val finishedBooks = finished.filter { it.episodeId == null && it.mediaItemType == MediaType.Book }
     val finishedEpisodes = finished.filter { it.episodeId != null }
 
@@ -242,7 +247,7 @@ class StatsPresenter(
       bestDay = listenedDurations.maxOrNull() ?: Duration.ZERO,
       booksFinished = finishedBooks.size,
       booksFinishedThisYear = finishedBooks.count { it.finishedYear() == today.year },
-      hasPodcastActivity = allProgress.any { it.episodeId != null },
+      hasPodcastActivity = progress.hasPodcastActivity,
       episodesFinished = finishedEpisodes.size,
       episodesFinishedThisYear = finishedEpisodes.count { it.finishedYear() == today.year },
     )
@@ -289,4 +294,15 @@ class StatsPresenter(
       }
     }
   }
+}
+
+/** The part of the user's progress the activity stats read: what is finished, and whether any of it is a podcast. */
+private data class ProgressActivity(
+  val finished: List<MediaProgress> = emptyList(),
+  val hasPodcastActivity: Boolean = false,
+) {
+  constructor(allProgress: List<MediaProgress>) : this(
+    finished = allProgress.filter { it.isFinished },
+    hasPodcastActivity = allProgress.any { it.episodeId != null },
+  )
 }

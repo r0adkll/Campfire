@@ -15,6 +15,7 @@ import app.campfire.home.ui.libraryItem
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.sync.ServerSessionAttacher
 import app.campfire.sessions.test.FakeStreamingRoutePredictor
@@ -29,6 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 
 class DefaultSessionsRepositoryTest {
@@ -172,6 +174,8 @@ private class FakeSessionDataSource : SessionDataSource {
   private val current = MutableStateFlow<Session?>(null)
 
   override fun observeCurrentSession(): Flow<Session?> = current
+  override fun observePlayingItem(): Flow<PlayingItem?> =
+    current.map { s -> s?.let { PlayingItem(it.libraryItem.id, it.episodeId) } }
   override suspend fun getCurrentSession(): Session? = current.value
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? = sessions[libraryItemId]
   override suspend fun getSessions(userId: UserId): List<Session> = sessions.values.toList()

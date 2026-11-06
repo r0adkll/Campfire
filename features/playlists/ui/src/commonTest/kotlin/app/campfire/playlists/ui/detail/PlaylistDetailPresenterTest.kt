@@ -148,7 +148,7 @@ class PlaylistDetailPresenterTest {
     sessionsRepository.currentSessionFlow.value = session(libraryItem = libraryItem(id = "elsewhere"))
 
     presenter.test {
-      val state = awaitItemMatching { it.playlistItems.size == 1 && it.currentSession != null }
+      val state = awaitItemMatching { it.playlistItems.size == 1 && it.playingItem != null }
 
       state.eventSink(PlaylistDetailUiEvent.MarkAllFinished)
       awaitItemMatching { it.isUpdatingProgress }

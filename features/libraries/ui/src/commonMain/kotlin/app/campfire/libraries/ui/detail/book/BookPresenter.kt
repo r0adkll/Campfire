@@ -35,7 +35,6 @@ import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
-import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -77,6 +76,7 @@ import app.campfire.reader.api.EbookContentsRepository
 import app.campfire.reader.api.entryAt
 import app.campfire.reader.api.screen.ReaderScreen
 import app.campfire.series.api.SeriesRepository
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.StreamingRoutePredictor
@@ -137,14 +137,15 @@ class BookPresenter(
   ): ContentUiState {
     val scope = rememberCoroutineScope()
 
-    val currentSession by remember {
-      sessionsRepository.observeCurrentSession()
+    // Only which item is playing: the session itself changes with every saved position
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
     }.collectAsState(null)
 
     val itemSession by remember {
       derivedStateOf {
-        currentSession
-          ?.takeIf { it.libraryItem.id == screen.libraryItemId }
+        playingItem
+          ?.takeIf { it.libraryItemId == screen.libraryItemId }
           ?.let { SessionUiState.Current(it) }
           ?: SessionUiState.None
       }
@@ -285,8 +286,8 @@ class BookPresenter(
       showTimeInBook = showTimeInBook,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       canDownload = canDownload,
-      hasSession = currentSession != null,
-      session = itemSession.sessionOrNull(),
+      hasSession = playingItem != null,
+      playingItem = itemSession.itemOrNull(),
       isQueued = isQueued,
       addToPlaylistDialog = addToPlaylistDialog,
       listeningDatesEditor = listeningDatesEditor,
@@ -344,7 +345,7 @@ class BookPresenter(
           analytics.send(ActionEvent("discard_progress", Click))
 
           // Only stop session if this item is the current playing item
-          if (currentSession?.libraryItem?.id == event.item.id) {
+          if (playingItem?.libraryItemId == event.item.id) {
             playbackController.stopSession(event.item.id)
           }
 
@@ -359,7 +360,7 @@ class BookPresenter(
           analytics.send(ActionEvent("mark_finished", Click))
 
           // Only stop session if this item is the current playing item
-          if (currentSession?.libraryItem?.id == event.item.id) {
+          if (playingItem?.libraryItemId == event.item.id) {
             playbackController.stopSession(event.item.id)
           }
 
@@ -379,9 +380,9 @@ class BookPresenter(
 
         is LibraryItemUiEvent.ChapterClick -> {
           analytics.send(ActionEvent("chapter", Click))
-          val session = itemSession.sessionOrNull()
+          val playing = itemSession.itemOrNull()
           val currentPlayer = audioPlayerHolder.currentPlayer.value
-          if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
+          if (event.item.id == playing?.libraryItemId && currentPlayer != null) {
             // Just seek to the chapter id
             audioPlayerHolder.currentPlayer.value?.seekTo(event.chapter.id)
               ?: throw IllegalStateException("Current session doesn't have a player")
@@ -398,9 +399,9 @@ class BookPresenter(
 
         is LibraryItemUiEvent.AudioTrackClick -> {
           analytics.send(ActionEvent("track", Click))
-          val session = itemSession.sessionOrNull()
+          val playing = itemSession.itemOrNull()
           val currentPlayer = audioPlayerHolder.currentPlayer.value
-          if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
+          if (event.item.id == playing?.libraryItemId && currentPlayer != null) {
             // Just seek to the track index
             audioPlayerHolder.currentPlayer.value?.seekTo(event.track.index - 1)
               ?: throw IllegalStateException("Current session doesn't have a player")
@@ -491,7 +492,7 @@ private fun buildSlots(
   canDownload: Boolean,
   hasSession: Boolean,
   isQueued: Boolean,
-  session: Session?,
+  playingItem: PlayingItem?,
   addToPlaylistDialog: AddToPlaylistDialog,
   listeningDatesEditor: ListeningDatesEditor,
   collapseListenedChapters: Boolean,
@@ -599,7 +600,7 @@ private fun buildSlots(
       libraryItem = libraryItem,
       offlineDownload = offlineDownloadState,
       mediaProgress = mediaProgressState.dataOrNull,
-      isCurrentSession = session != null,
+      isCurrentSession = playingItem != null,
       hasSession = hasSession,
       isQueued = isQueued,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,

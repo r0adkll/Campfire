@@ -18,6 +18,7 @@ import app.campfire.crashreporting.CrashReporter
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.mapToEpisodeShelfRow
+import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.model.mapToPodcastLibraryItem
 import app.campfire.home.api.model.ShelfId
@@ -57,12 +58,10 @@ class ShelfSourceOfTruthFactory(
   }
 
   private fun readLibraryItems(shelfId: ShelfId): Flow<List<LibraryItem>> {
+    // Items carry no progress: readers pair them with the progress repository, so saving the
+    // playing book's position doesn't re-read and re-hydrate every shelf
     return db.libraryItemsQueries
-      .selectForShelf(
-        userId = userSession.requiredUserId,
-        shelfId = shelfId,
-        mapper = ::mapToLibraryItemWithProgress,
-      )
+      .selectForShelf(shelfId, ::mapToLibraryItem)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { items -> items.map { libraryItemDao.hydrateItem(it) } }

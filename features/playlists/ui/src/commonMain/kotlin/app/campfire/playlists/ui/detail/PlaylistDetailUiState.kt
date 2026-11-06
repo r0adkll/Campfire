@@ -8,8 +8,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
-import app.campfire.core.model.Session
 import app.campfire.offline.ItemDownloads
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.user.api.MediaProgressKey
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -18,7 +18,7 @@ import com.slack.circuit.runtime.CircuitUiState
 data class PlaylistDetailUiState(
   val name: String,
   val description: String?,
-  val currentSession: Session?,
+  val playingItem: PlayingItem?,
   val showConfirmDownloadDialog: Boolean,
   val canDownload: Boolean,
   val playlistState: LoadState<out Playlist>,

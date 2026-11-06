@@ -14,6 +14,7 @@ kotlin {
         implementation(projects.features.home.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.settings.api)
+        implementation(projects.features.user.api)
 
         implementation(libs.compose.components.resources)
 
@@ -24,6 +25,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.features.settings.test)
+        implementation(projects.features.user.test)
         implementation(projects.ui.theming.test)
       }
     }

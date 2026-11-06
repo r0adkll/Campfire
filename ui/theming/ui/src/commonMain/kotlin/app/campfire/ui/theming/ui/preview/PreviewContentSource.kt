@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.ShelfEntity
 import app.campfire.home.api.HomeRepository
@@ -15,6 +16,8 @@ import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.ThemeSettings
+import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.api.MediaProgressRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,6 +45,7 @@ fun interface PreviewContentSource {
 class DefaultPreviewContentSource(
   private val homeRepository: HomeRepository,
   private val libraryRepository: LibraryRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val themeSettings: ThemeSettings,
 ) : PreviewContentSource {
@@ -116,13 +120,14 @@ class DefaultPreviewContentSource(
 
   private fun observeShelf(shelf: Shelf?): Flow<PreviewShelf> {
     if (shelf == null) return flowOf(PreviewShelf(label = null, items = emptyList()))
-    return homeRepository.observeShelf(shelf.id, shelf.type)
-      .map { entities ->
-        PreviewShelf(
-          label = shelf.label,
-          items = entities.mapNotNull { it.toPreviewItem() },
-        )
-      }
+    // Shelf items carry no progress of their own, so the preview pairs them with it here, as the
+    // home feed does
+    return combine(homeRepository.observeShelf(shelf.id, shelf.type), observeProgress()) { entities, progress ->
+      PreviewShelf(
+        label = shelf.label,
+        items = entities.mapNotNull { it.toPreviewItem(progress) },
+      )
+    }
       .onStart { emit(PreviewShelf(label = shelf.label, items = emptyList())) }
       .orFallback("the ${shelf.id} shelf", PreviewShelf(label = shelf.label, items = emptyList()))
   }
@@ -147,8 +152,18 @@ class DefaultPreviewContentSource(
     const val TAG = "PreviewContentSource"
   }
 
-  private fun ShelfEntity.toPreviewItem(): PreviewShelfItem? = when (this) {
-    is LibraryItem -> PreviewShelfItem(this)
+  private fun observeProgress(): Flow<Map<MediaProgressKey, MediaProgress>> =
+    mediaProgressRepository.observeAllProgress()
+      .map { all -> all.associateBy { MediaProgressKey(it) } }
+      .onStart { emit(emptyMap()) }
+      .orFallback("listening progress", emptyMap())
+
+  private fun ShelfEntity.toPreviewItem(
+    progress: Map<MediaProgressKey, MediaProgress>,
+  ): PreviewShelfItem? = when (this) {
+    is LibraryItem -> PreviewShelfItem(
+      copy(userMediaProgress = progress[MediaProgressKey(id, null)] ?: userMediaProgress),
+    )
     is ShelfEntity.EpisodeShelfEntry -> PreviewShelfItem(libraryItem, recentEpisode)
     else -> null
   }

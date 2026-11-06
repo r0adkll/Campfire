@@ -99,10 +99,10 @@ fun LatestEpisodesUi(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
-    // change (the session's position included), and every row it reaches then recomposes
+    // change, and every row it reaches then recomposes
     val eventSink = state.eventSink
     val mediaProgress = state.mediaProgress
-    val playingEpisode = state.currentSession?.let { it.libraryItem.id to it.episodeId }
+    val playingItem = state.playingItem
     ContentPagingScaffold(
       lazyPagingItems = state.episodes,
       emptyMessage = stringResource(Res.string.latest_episodes_empty),
@@ -136,7 +136,7 @@ fun LatestEpisodesUi(
           mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
         },
         hasSessionForEpisode = { episode ->
-          playingEpisode == (episode.libraryItemId to episode.id)
+          playingItem?.matches(episode.libraryItemId, episode.id) == true
         },
         contentPadding = paddingValues + PaddingValues(horizontal = 16.dp),
       )
