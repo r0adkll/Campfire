@@ -110,31 +110,36 @@ fun HomeScreen(
         is FeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
           EmptyState(randomEmptyMessage())
         } else {
+          // Capture only what each callback reads: a lambda capturing the whole state is rebuilt on
+          // every state change, and every shelf and card it reaches then recomposes
+          val offlineStates = state.offlineStates
+          val progressStates = state.progressStates
+          val eventSink = state.eventSink
           LoadedState(
             shelves = state.homeFeed.data,
             offlineStatus = { libraryItemId, podcastEpisodeId ->
-              state.offlineStates.statusOf(libraryItemId, podcastEpisodeId)
+              offlineStates.statusOf(libraryItemId, podcastEpisodeId)
             },
             progressStatus = { libraryItemId, podcastEpisodeId ->
-              state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
+              progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
             },
             contentPadding = paddingValues,
             modifier = Modifier.fillMaxSize(),
-            onViewAllUpcomingClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
+            onViewAllUpcomingClick = { eventSink(HomeUiEvent.OpenUpcomingScreen) },
             onItemClick = { shelf, item ->
               when (item) {
-                is LibraryItem -> state.eventSink(
+                is LibraryItem -> eventSink(
                   HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
                 )
 
-                is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
-                is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+                is Author -> eventSink(HomeUiEvent.OpenAuthor(item))
+                is Series -> eventSink(HomeUiEvent.OpenSeries(item))
 
                 is ShelfEntity.UpcomingBookShelfEntry -> item.providerUrl?.let { url ->
-                  state.eventSink(HomeUiEvent.OpenUpcomingBook(url))
+                  eventSink(HomeUiEvent.OpenUpcomingBook(url))
                 }
 
-                is ShelfEntity.EpisodeShelfEntry -> state.eventSink(
+                is ShelfEntity.EpisodeShelfEntry -> eventSink(
                   HomeUiEvent.OpenLibraryItemWithEpisode(
                     item = item.libraryItem,
                     episodeId = item.recentEpisode.id,

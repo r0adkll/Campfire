@@ -334,6 +334,8 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
   /** Holds the current actions layout; see [rememberUseCompact]. */
   freezeActionsLayout: Boolean = false,
 ) {
+  // Stable across ticks, unlike playerState; callbacks capturing it keep their identity
+  val playerEvents = playerState.eventSink
   val actionsFit = remember { PlaybackActionsFit() }
   val useCompactActions = actionsFit.rememberUseCompact(
     threshold = compactActionsThreshold,
@@ -477,7 +479,7 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
         currentDuration = playerState.duration,
         playbackSpeed = playerState.speed,
         onSeek = { percent ->
-          playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
+          playerEvents(PlayerUiEvent.Seek.Percent(percent))
         },
         interactionSource = interactionSource,
         waveEnabled = playerState.wavySliderEnabled,
@@ -496,19 +498,19 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
             state = playerState.state,
             isInteracting = isInteracting,
             onSkipPreviousClick = {
-              playerState.eventSink(PlayerUiEvent.PreviousClick)
+              playerEvents(PlayerUiEvent.PreviousClick)
             },
             onRewindClick = {
-              playerState.eventSink(PlayerUiEvent.RewindClick)
+              playerEvents(PlayerUiEvent.RewindClick)
             },
             onPlayPauseClick = {
-              playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+              playerEvents(PlayerUiEvent.PlayPauseClick)
             },
             onForwardClick = {
-              playerState.eventSink(PlayerUiEvent.FastForwardClick)
+              playerEvents(PlayerUiEvent.FastForwardClick)
             },
             onSkipNextClick = {
-              playerState.eventSink(PlayerUiEvent.NextClick)
+              playerEvents(PlayerUiEvent.NextClick)
             },
             size = PlaybackActionSize.compact(),
             modifier = Modifier
@@ -520,19 +522,19 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
             state = playerState.state,
             isInteracting = isInteracting,
             onSkipPreviousClick = {
-              playerState.eventSink(PlayerUiEvent.PreviousClick)
+              playerEvents(PlayerUiEvent.PreviousClick)
             },
             onRewindClick = {
-              playerState.eventSink(PlayerUiEvent.RewindClick)
+              playerEvents(PlayerUiEvent.RewindClick)
             },
             onPlayPauseClick = {
-              playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+              playerEvents(PlayerUiEvent.PlayPauseClick)
             },
             onForwardClick = {
-              playerState.eventSink(PlayerUiEvent.FastForwardClick)
+              playerEvents(PlayerUiEvent.FastForwardClick)
             },
             onSkipNextClick = {
-              playerState.eventSink(PlayerUiEvent.NextClick)
+              playerEvents(PlayerUiEvent.NextClick)
             },
           )
         }

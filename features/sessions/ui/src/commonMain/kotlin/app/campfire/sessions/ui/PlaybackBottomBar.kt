@@ -175,6 +175,8 @@ private fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
 ) {
   val playerState = uiState.playerState
+  // Stable across ticks, unlike playerState; callbacks capturing it keep their identity
+  val playerEvents = playerState.eventSink
   val miniPlayerHost = LocalMiniPlayerHost.current
   MaterialExpressiveTheme(
     colorScheme = uiState.themeState.theme?.colorScheme,
@@ -208,17 +210,17 @@ private fun PlaybackBottomBar(
       scrollingTitles = playerState.scrollingTitlesEnabled,
       volume = uiState.volume,
       outputDevices = uiState.outputDevices,
-      onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
-      onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
-      onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
-      onSkipPreviousClick = { playerState.eventSink(PlayerUiEvent.PreviousClick) },
-      onSkipNextClick = { playerState.eventSink(PlayerUiEvent.NextClick) },
-      onSeekTo = { time -> playerState.eventSink(PlayerUiEvent.Seek.Position(time)) },
-      onTimerCleared = { playerState.eventSink(PlayerUiEvent.ClearTimer) },
-      onTimerSelected = { timer -> playerState.eventSink(PlayerUiEvent.TimerSelected(timer)) },
-      onChapterSelected = { chapter -> playerState.eventSink(PlayerUiEvent.ChapterSelected(chapter)) },
-      onAudioTrackSelected = { track -> playerState.eventSink(PlayerUiEvent.AudioTrackSelected(track)) },
-      onBookmarkSelected = { bookmark -> playerState.eventSink(PlayerUiEvent.BookmarkSelected(bookmark)) },
+      onPlayPauseClick = { playerEvents(PlayerUiEvent.PlayPauseClick) },
+      onRewindClick = { playerEvents(PlayerUiEvent.RewindClick) },
+      onForwardClick = { playerEvents(PlayerUiEvent.FastForwardClick) },
+      onSkipPreviousClick = { playerEvents(PlayerUiEvent.PreviousClick) },
+      onSkipNextClick = { playerEvents(PlayerUiEvent.NextClick) },
+      onSeekTo = { time -> playerEvents(PlayerUiEvent.Seek.Position(time)) },
+      onTimerCleared = { playerEvents(PlayerUiEvent.ClearTimer) },
+      onTimerSelected = { timer -> playerEvents(PlayerUiEvent.TimerSelected(timer)) },
+      onChapterSelected = { chapter -> playerEvents(PlayerUiEvent.ChapterSelected(chapter)) },
+      onAudioTrackSelected = { track -> playerEvents(PlayerUiEvent.AudioTrackSelected(track)) },
+      onBookmarkSelected = { bookmark -> playerEvents(PlayerUiEvent.BookmarkSelected(bookmark)) },
       modifier = modifier,
     )
   }

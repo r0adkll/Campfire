@@ -141,39 +141,46 @@ fun LibraryUi(
       .exclude(OverlappedNavigationBarInsets)
       .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
+    // Capture only what each callback reads: a lambda capturing the whole state is rebuilt on every
+    // state change, and every card it reaches then recomposes
+    val eventSink = state.eventSink
+    val totalItemCount = state.totalItemCount
+    val isPodcastLibrary = state.isPodcastLibrary
+    val filter = state.filter
+    val sort = state.sort
     LoadedContent(
-      count = { ItemCount(state.totalItemCount, state.isPodcastLibrary) },
+      count = { ItemCount(totalItemCount, isPodcastLibrary) },
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
       unfinishedEpisodes = state.unfinishedEpisodes,
-      onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
+      onItemClick = { eventSink(LibraryUiEvent.ItemClick(it)) },
       itemDisplayState = state.itemDisplayState,
-      onDisplayStateClick = { state.eventSink(LibraryUiEvent.ToggleItemDisplayState) },
-      filter = state.filter,
+      onDisplayStateClick = { eventSink(LibraryUiEvent.ToggleItemDisplayState) },
+      filter = filter,
       onFilterClick = {
         coroutineScope.launch {
           val result = contentFilterUi.showContentFilterBottomSheet(
             overlayHost = overlayHost,
-            current = state.filter,
+            current = filter,
             allowedCategories = contentFilterUi.libraryItemFilterCategories,
           )
           if (result is ContentFilterResult.Selected) {
-            state.eventSink(LibraryUiEvent.ItemFilterSelected(result.filter))
+            eventSink(LibraryUiEvent.ItemFilterSelected(result.filter))
           }
         }
       },
-      sortMode = state.sort.mode,
-      sortDirection = state.sort.direction,
+      sortMode = sort.mode,
+      sortDirection = sort.direction,
       onSortClick = {
         coroutineScope.launch {
           val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
             overlayHost,
-            state.sort.mode,
-            state.sort.direction,
-            state.sort.config,
+            sort.mode,
+            sort.direction,
+            sort.config,
           )
           if (updatedSortMode != null) {
-            state.eventSink(LibraryUiEvent.SortModeSelected(updatedSortMode))
+            eventSink(LibraryUiEvent.SortModeSelected(updatedSortMode))
           }
         }
       },

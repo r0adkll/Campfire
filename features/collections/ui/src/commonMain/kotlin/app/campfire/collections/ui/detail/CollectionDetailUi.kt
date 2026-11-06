@@ -92,6 +92,11 @@ fun CollectionDetail(
   state: CollectionDetailUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
+  // change, and every item it reaches then recomposes
+  val eventSink = state.eventSink
+  val offlineStates = state.offlineStates
+
   val scope = rememberCoroutineScope()
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   val gridState = rememberLazyGridState()
@@ -136,7 +141,7 @@ fun CollectionDetail(
               IconButtonTooltip(text = deleteSelectedLabel) {
                 IconButton(
                   onClick = {
-                    state.eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
+                    eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
                     isItemEditing = false
                     selectedItems.clear()
                   },
@@ -160,7 +165,7 @@ fun CollectionDetail(
             canEdit = state.canEdit,
             name = state.collection?.name ?: screen.collectionName,
             scrollBehavior = scrollBehavior,
-            onBack = { state.eventSink(CollectionDetailUiEvent.Back) },
+            onBack = { eventSink(CollectionDetailUiEvent.Back) },
             onDelete = { showDeleteConfirmation = true },
           )
         }
@@ -221,7 +226,7 @@ fun CollectionDetail(
         isEditing = isItemEditing,
         selectedItems = selectedItems,
         items = state.collectionContentState.data,
-        offlineStatus = { state.offlineStates.statusOf(it) },
+        offlineStatus = { offlineStates.statusOf(it) },
         onLibraryItemClick = { item ->
           if (isItemEditing) {
             if (selectedItems.contains(item)) {
@@ -230,7 +235,7 @@ fun CollectionDetail(
               selectedItems.add(item)
             }
           } else {
-            state.eventSink(CollectionDetailUiEvent.LibraryItemClick(item))
+            eventSink(CollectionDetailUiEvent.LibraryItemClick(item))
           }
         },
         onLibraryItemLongClick = { item ->
@@ -250,7 +255,7 @@ fun CollectionDetail(
       onDismiss = { showDeleteConfirmation = false },
       onConfirm = {
         showDeleteConfirmation = false
-        state.eventSink(CollectionDetailUiEvent.Delete)
+        eventSink(CollectionDetailUiEvent.Delete)
       },
     )
   }

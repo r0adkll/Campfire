@@ -30,7 +30,7 @@ fun Project.configureCompose() {
       metricsDestination.set(composeReports)
     }
 
-//    stabilityConfigurationFile.set(rootProject.file("compose-stability.conf"))
+    stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("compose-stability.conf"))
   }
 
   // Workaround for:

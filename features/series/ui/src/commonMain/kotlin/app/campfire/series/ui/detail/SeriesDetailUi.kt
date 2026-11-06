@@ -71,6 +71,11 @@ fun SeriesDetail(
   state: SeriesDetailUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
+  // change, and every item it reaches then recomposes
+  val eventSink = state.eventSink
+  val offlineStates = state.offlineStates
+
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   var confirmProgressAction by remember { mutableStateOf<SeriesProgressAction?>(null) }
 
@@ -83,7 +88,7 @@ fun SeriesDetail(
         contentPadding = WindowInsets.statusBars
           .asPaddingValues(),
         navigationIcon = {
-          NavigationBackButton(onClick = { state.eventSink(SeriesDetailUiEvent.Back) })
+          NavigationBackButton(onClick = { eventSink(SeriesDetailUiEvent.Back) })
         },
         actions = {
           if (state.unfinishedCount > 0 || state.finishedCount > 0) {
@@ -123,9 +128,9 @@ fun SeriesDetail(
         seriesName = screen.seriesName,
         items = state.seriesContentState.data,
         missingSection = state.missingSection,
-        offlineStatus = { state.offlineStates.statusOf(it) },
-        onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
-        onMissingBookClick = { url -> state.eventSink(SeriesDetailUiEvent.MissingBookClick(url)) },
+        offlineStatus = { offlineStates.statusOf(it) },
+        onLibraryItemClick = { eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
+        onMissingBookClick = { url -> eventSink(SeriesDetailUiEvent.MissingBookClick(url)) },
         contentPadding = paddingValues,
       )
     }
@@ -140,7 +145,7 @@ fun SeriesDetail(
       },
       onConfirm = {
         confirmProgressAction = null
-        state.eventSink(
+        eventSink(
           when (action) {
             SeriesProgressAction.MarkFinished -> SeriesDetailUiEvent.MarkSeriesFinished
             SeriesProgressAction.MarkNotFinished -> SeriesDetailUiEvent.MarkSeriesNotFinished

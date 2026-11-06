@@ -94,6 +94,12 @@ fun PlaylistDetail(
   state: PlaylistDetailUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
+  // change, and every item it reaches then recomposes
+  val eventSink = state.eventSink
+  val offlineStates = state.offlineStates
+  val progressStates = state.progressStates
+
   val scope = rememberCoroutineScope()
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
 
@@ -103,7 +109,7 @@ fun PlaylistDetail(
       playlistName = state.name,
       onDismiss = { showDeleteConfirmation = false },
       onConfirm = {
-        state.eventSink(PlaylistDetailUiEvent.Delete)
+        eventSink(PlaylistDetailUiEvent.Delete)
         showDeleteConfirmation = false
       },
     )
@@ -119,7 +125,7 @@ fun PlaylistDetail(
       },
       onConfirm = {
         confirmProgressAction = null
-        state.eventSink(
+        eventSink(
           when (action) {
             PlaylistProgressAction.MarkFinished -> PlaylistDetailUiEvent.MarkAllFinished
             PlaylistProgressAction.MarkNotFinished -> PlaylistDetailUiEvent.MarkAllNotFinished
@@ -134,7 +140,7 @@ fun PlaylistDetail(
   var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
   val postNotificationPermissionState = rememberPostNotificationPermissionState {
     if (it) {
-      state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowDownloadConfirmationAgain))
+      eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowDownloadConfirmationAgain))
       showConfirmDownloadDialog = false
     }
   }
@@ -152,7 +158,7 @@ fun PlaylistDetail(
       sizeInBytes = downloadSize,
       onConfirm = { doNotShowAgain ->
         if (postNotificationPermissionState is PermissionState.Granted) {
-          state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowAgain))
+          eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowAgain))
           showConfirmDownloadDialog = false
         } else {
           doNotShowDownloadConfirmationAgain = doNotShowAgain
@@ -171,7 +177,7 @@ fun PlaylistDetail(
       PlaylistTopBar(
         name = state.name,
         scrollBehavior = scrollBehavior,
-        onBack = { state.eventSink(PlaylistDetailUiEvent.Back) },
+        onBack = { eventSink(PlaylistDetailUiEvent.Back) },
         actions = {
           if (state.unfinishedCount > 0 || state.finishedCount > 0) {
             PlaylistProgressMenu(
@@ -187,7 +193,7 @@ fun PlaylistDetail(
     floatingActionButton = {
       PlaylistFloatingToolbar(
         onPlayAllClick = {
-          state.eventSink(PlaylistDetailUiEvent.PlayAll)
+          eventSink(PlaylistDetailUiEvent.PlayAll)
         },
         onEditClick = {
           val playlist = state.playlistState.dataOrNull ?: return@PlaylistFloatingToolbar
@@ -201,7 +207,7 @@ fun PlaylistDetail(
           if (state.showConfirmDownloadDialog) {
             showConfirmDownloadDialog = true
           } else {
-            state.eventSink(PlaylistDetailUiEvent.DownloadAll())
+            eventSink(PlaylistDetailUiEvent.DownloadAll())
           }
         }.takeIf { state.canDownload },
         isReordering = isReordering,
@@ -238,22 +244,22 @@ fun PlaylistDetail(
         description = state.description,
         items = state.playlistItems,
         onItemClick = { item ->
-          state.eventSink(PlaylistDetailUiEvent.ItemClick(item))
+          eventSink(PlaylistDetailUiEvent.ItemClick(item))
         },
         onPlayClick = { item ->
-          state.eventSink(PlaylistDetailUiEvent.PlayClick(item))
+          eventSink(PlaylistDetailUiEvent.PlayClick(item))
         },
         onRemove = { item ->
-          state.eventSink(PlaylistDetailUiEvent.RemoveItem(item))
+          eventSink(PlaylistDetailUiEvent.RemoveItem(item))
         },
         onReorderItem = { from, to ->
           state.reorderSink(from, to)
         },
         onReorderStopped = {
-          state.eventSink(PlaylistDetailUiEvent.ReorderStopped)
+          eventSink(PlaylistDetailUiEvent.ReorderStopped)
         },
-        offlineStateSelector = { item -> state.offlineStates.statusOf(item.libraryItemId, item.episodeId) },
-        mediaProgressSelector = { item -> state.progressStates[item.progressKey] },
+        offlineStateSelector = { item -> offlineStates.statusOf(item.libraryItemId, item.episodeId) },
+        mediaProgressSelector = { item -> progressStates[item.progressKey] },
         isPlayingSelector = { item ->
           val session = state.currentSession
           session != null &&

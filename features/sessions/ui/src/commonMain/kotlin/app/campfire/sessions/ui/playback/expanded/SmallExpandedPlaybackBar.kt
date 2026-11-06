@@ -447,6 +447,8 @@ internal fun ItemActions(
   modifier: Modifier = Modifier,
   buttonSize: Dp = SmallTransportButtonSize,
 ) {
+  // Stable across ticks, unlike playerState; callbacks capturing it keep their identity
+  val playerEvents = playerState.eventSink
   Column(
     modifier = modifier,
     verticalArrangement = Arrangement.Center,
@@ -523,19 +525,19 @@ internal fun ItemActions(
       buttonShape = MaterialTheme.shapes.largeIncreased,
       playButtonExtraWidth = buttonSize * PlayButtonExtraWidthFraction,
       onSkipPreviousClick = {
-        playerState.eventSink(PlayerUiEvent.PreviousClick)
+        playerEvents(PlayerUiEvent.PreviousClick)
       },
       onRewindClick = {
-        playerState.eventSink(PlayerUiEvent.RewindClick)
+        playerEvents(PlayerUiEvent.RewindClick)
       },
       onPlayPauseClick = {
-        playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+        playerEvents(PlayerUiEvent.PlayPauseClick)
       },
       onForwardClick = {
-        playerState.eventSink(PlayerUiEvent.FastForwardClick)
+        playerEvents(PlayerUiEvent.FastForwardClick)
       },
       onSkipNextClick = {
-        playerState.eventSink(PlayerUiEvent.NextClick)
+        playerEvents(PlayerUiEvent.NextClick)
       },
     )
 
@@ -547,7 +549,7 @@ internal fun ItemActions(
       currentDuration = playerState.duration,
       playbackSpeed = playerState.speed,
       onSeek = { percent ->
-        playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
+        playerEvents(PlayerUiEvent.Seek.Percent(percent))
       },
       interactionSource = interactionSource,
     )
