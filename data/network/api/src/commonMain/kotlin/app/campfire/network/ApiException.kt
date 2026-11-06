@@ -15,3 +15,10 @@ class AuthorizationException : Exception("Not valid login configuration found")
  */
 val Throwable.isNotFound: Boolean
   get() = this is ApiException && statusCode == 404
+
+/**
+ * Whether this failure is the server refusing the request because the account isn't allowed to
+ * make it.
+ */
+val Throwable.isForbidden: Boolean
+  get() = this is ApiException && statusCode == 403

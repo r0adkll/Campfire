@@ -66,7 +66,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
 
     presenter.test {
       assertThat(awaitLoadedItem().itemActions)
-        .containsExactly(ItemAction.Edit, ItemAction.Rescan, ItemAction.Delete)
+        .containsExactly(ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Rescan, ItemAction.Delete)
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -76,7 +76,11 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem().copy(isFile = true))
 
     presenter.test {
-      assertThat(awaitLoadedItem().itemActions).containsExactly(ItemAction.Edit, ItemAction.Delete)
+      assertThat(awaitLoadedItem().itemActions).containsExactly(
+        ItemAction.Edit,
+        ItemAction.QuickMatch,
+        ItemAction.Delete,
+      )
       cancelAndIgnoreRemainingEvents()
     }
   }

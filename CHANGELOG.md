@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Each podcast's cover in Shows counts the episodes you haven't finished, and Shows refreshes every time you open it to keep the counts current
 - Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
 - Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
-- Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, when your account is allowed to
+- Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, reviewing each change or in one tap with Quick match, when your account is allowed to
 
 ### Changed
 
