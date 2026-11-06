@@ -10,6 +10,7 @@ import app.campfire.libraries.api.SeriesEntry
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.ui.editor.BookDetailsDraft
 import app.campfire.management.ui.editor.SeriesRowState
+import app.campfire.management.ui.editor.StagedCover
 
 /** A detail a match can fill in, in the order a review lists them */
 enum class MatchField {
@@ -174,7 +175,7 @@ fun BookDetailsDraft.fillFrom(
   fun ListMerge?.isAdding() = this == ListMerge.Add
   for (field in fields) {
     when (field) {
-      MatchField.Cover -> newCoverUrl = match.coverUrl
+      MatchField.Cover -> newCover = match.coverUrl?.let(StagedCover::fromUrl)
       MatchField.Title -> match.title?.let { title.setTextAndPlaceCursorAtEnd(it) }
       MatchField.Subtitle -> match.subtitle?.let { subtitle.setTextAndPlaceCursorAtEnd(it) }
       MatchField.Authors -> authors.replaceWith(match.authors)

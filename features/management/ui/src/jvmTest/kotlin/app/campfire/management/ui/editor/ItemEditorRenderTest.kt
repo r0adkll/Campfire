@@ -20,10 +20,19 @@ import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
+import app.campfire.libraries.api.CoverUpdate
 import app.campfire.libraries.api.SeriesEntry
 import app.campfire.management.api.match.BookMatch
 import app.campfire.management.api.match.ImageSize
 import app.campfire.management.api.match.MatchProvider
+import app.campfire.management.ui.cover.BookImages
+import app.campfire.management.ui.cover.CoverMode
+import app.campfire.management.ui.cover.CoverPreview
+import app.campfire.management.ui.cover.CoverResults
+import app.campfire.management.ui.cover.CoverSearch
+import app.campfire.management.ui.cover.CoverUiState
+import app.campfire.management.ui.cover.bookImage
+import app.campfire.management.ui.cover.coverUiState
 import app.campfire.management.ui.match.MatchField
 import app.campfire.management.ui.match.MatchReviewState
 import app.campfire.management.ui.match.MatchSearch
@@ -137,6 +146,96 @@ class ItemEditorRenderTest {
     ),
   )
 
+  @Test
+  fun coverSearch() = render(
+    "item-editor-cover-phone.png",
+    width = 412,
+    height = 915,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      results = listOf(
+        CoverResults(MatchProvider("audible", "Audible.com"), CoverSearch.Found(CoverResults3)),
+        CoverResults(MatchProvider("google", "Google Books"), CoverSearch.Found(listOf("https://books.google.com/a"))),
+        CoverResults(MatchProvider("fantlab", "FantLab.ru"), CoverSearch.Searching),
+      ),
+      sizes = mapOf(
+        CoverResults3[0] to ImageSize(2400, 2400),
+        CoverResults3[1] to ImageSize(2400, 2400),
+        CoverResults3[2] to ImageSize(1000, 1000),
+        "https://books.google.com/a" to ImageSize(512, 800),
+      ),
+    ),
+  )
+
+  @Test
+  fun coverSearchSideways() = render(
+    "item-editor-cover-landscape.png",
+    width = 915,
+    height = 412,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      results = listOf(CoverResults(MatchProvider("audible", "Audible.com"), CoverSearch.Found(CoverResults3))),
+    ),
+  )
+
+  @Test
+  fun coverBookFiles() = render(
+    "item-editor-cover-files.png",
+    width = 412,
+    height = 915,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      staged = StagedCover(
+        CoverUpdate.FromServerFile("/audiobooks/Children of Ruin/folder.jpg"),
+        previewUrl = null,
+        fileName = "folder.jpg",
+      ),
+      mode = CoverMode.BookFiles,
+      bookImages = BookImages.Loaded(listOf(bookImage("cover.jpg", isCover = true), bookImage("folder.jpg"))),
+      canRemove = false,
+    ),
+  )
+
+  @Test
+  fun coverPreview() = render(
+    "item-editor-cover-preview.png",
+    width = 412,
+    height = 915,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      preview = CoverPreview(CoverResults3, index = 0, size = ImageSize(2400, 2400)),
+    ),
+  )
+
+  @Test
+  fun coverPreviewSideways() = render(
+    "item-editor-cover-preview-landscape.png",
+    width = 915,
+    height = 412,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      preview = CoverPreview(CoverResults3, index = 0, size = ImageSize(2400, 2400)),
+    ),
+  )
+
+  @Test
+  fun coverWithoutUpload() = render(
+    "item-editor-cover-no-upload.png",
+    width = 412,
+    height = 915,
+    section = EditorSection.Cover,
+    cover = coverUiState(
+      mode = CoverMode.BookFiles,
+      canUseAddresses = false,
+      canRemove = false,
+      bookImages = BookImages.Loaded(emptyList()),
+    ),
+  )
+
   private fun render(
     name: String,
     width: Int,
@@ -144,6 +243,7 @@ class ItemEditorRenderTest {
     section: EditorSection = EditorSection.Details,
     reviewing: Boolean = false,
     filled: Boolean = false,
+    cover: CoverUiState = coverUiState(),
   ) {
     val renders = File("build/renders").apply { mkdirs() }
     val draft = BookDetailsDraft(details, tags).apply {
@@ -152,7 +252,7 @@ class ItemEditorRenderTest {
       narrators.add("Gary Furlong")
       addSeries()
       series.last().sequence.setTextAndPlaceCursorAtEnd("3")
-      if (filled) newCoverUrl = "https://m.media-amazon.com/images/I/cover.jpg"
+      if (filled) newCover = StagedCover.fromUrl("https://m.media-amazon.com/images/I/cover.jpg")
     }
     val review = matches.first().takeIf { reviewing }?.let { match ->
       val rows = reviewRows(match, draft, coverUrl = "https://abs.example/api/items/book/cover")
@@ -191,7 +291,7 @@ class ItemEditorRenderTest {
           // The app's overlay host sits inside its theme, so its sheets are themed too
           CampfireTheme(useDarkColors = false) {
             ContentWithOverlays {
-              Editor(draft, section, match, filledFrom = "Audible.com".takeIf { filled })
+              Editor(draft, section, cover, match, filledFrom = "Audible.com".takeIf { filled })
             }
           }
         }
@@ -208,6 +308,7 @@ class ItemEditorRenderTest {
   private fun Editor(
     draft: BookDetailsDraft,
     section: EditorSection,
+    cover: CoverUiState,
     match: MatchUiState,
     filledFrom: String?,
   ) {
@@ -216,6 +317,7 @@ class ItemEditorRenderTest {
         item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
         draft = draft,
         section = section,
+        cover = cover,
         match = match,
         filledFrom = filledFrom,
         canEdit = true,
@@ -227,6 +329,14 @@ class ItemEditorRenderTest {
         isLoadFailed = false,
         eventSink = {},
       ),
+    )
+  }
+
+  private companion object {
+    val CoverResults3 = listOf(
+      "https://m.media-amazon.com/images/I/1.jpg",
+      "https://m.media-amazon.com/images/I/2.jpg",
+      "https://m.media-amazon.com/images/I/3.jpg",
     )
   }
 }
