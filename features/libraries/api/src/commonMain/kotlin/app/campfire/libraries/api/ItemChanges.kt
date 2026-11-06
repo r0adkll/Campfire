@@ -45,6 +45,11 @@ data class BookDetailsUpdate(
   val series: List<SeriesEntry>? = null,
   val genres: List<String>? = null,
   val tags: List<String>? = null,
+  /**
+   * A cover for the server to download and use in place of the book's own, which takes the upload
+   * permission as well
+   */
+  val coverUrl: String? = null,
 ) {
   val isEmpty: Boolean
     get() = this == BookDetailsUpdate()
