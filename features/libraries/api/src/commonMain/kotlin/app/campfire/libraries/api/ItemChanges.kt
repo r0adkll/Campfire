@@ -24,7 +24,7 @@ class ItemChangeNotAllowedException(cause: Throwable? = null) :
 
 /**
  * Changes to a book's details on the server. A null field stays as it is; an empty text clears
- * the field, which the server stores as no value.
+ * the field, which the server stores as no value. A list replaces the whole list.
  */
 data class BookDetailsUpdate(
   val title: String? = null,
@@ -38,7 +38,20 @@ data class BookDetailsUpdate(
   val asin: String? = null,
   val explicit: Boolean? = null,
   val abridged: Boolean? = null,
+  /** By name; the server links each to the library's author of that name, ignoring case, or adds one */
+  val authors: List<String>? = null,
+  val narrators: List<String>? = null,
+  /** The server links each to the library's series of that name, ignoring case, or adds one */
+  val series: List<SeriesEntry>? = null,
+  val genres: List<String>? = null,
+  val tags: List<String>? = null,
 ) {
   val isEmpty: Boolean
     get() = this == BookDetailsUpdate()
 }
+
+/** A series a book is in, by name, with its place in it as the server keeps it: as text */
+data class SeriesEntry(
+  val name: String,
+  val sequence: String? = null,
+)
