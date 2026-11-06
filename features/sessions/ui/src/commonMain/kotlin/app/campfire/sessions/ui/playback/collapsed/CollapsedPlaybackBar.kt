@@ -103,6 +103,7 @@ import campfire.features.sessions.ui.generated.resources.clear_session_title
 import campfire.features.sessions.ui.generated.resources.sync_available
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
+import kotlin.time.Duration
 import org.jetbrains.compose.resources.stringResource
 
 internal val BaseShadowElevation = 2.dp
@@ -170,7 +171,10 @@ internal fun <T> T.CollapsedPlaybackBar(
     val title = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER
     val thumbnailUrl = playerState.metadata.artworkUri ?: session?.libraryItem?.media?.coverImageUrl
     val thumbnailContentDescription = session?.libraryItem?.media?.metadata?.title
-    val timeRemaining = session?.timeRemaining
+    // From the player's position, not the session's: the session only saves it every so often
+    val timeRemaining = session?.duration
+      ?.minus(playerState.bookTime)
+      ?.coerceAtLeast(Duration.ZERO)
       ?.div(playerState.speed.toDouble())
       ?.readoutFormat() ?: "--"
 

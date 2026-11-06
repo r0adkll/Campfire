@@ -11,6 +11,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import app.campfire.audioplayer.AudioOutputController
@@ -85,7 +86,7 @@ class PlaybackPresenter(
 
     val playerState = observePlayerState(currentSession)
     val queueState = observeQueueState()
-    val syncState = observeSyncState(currentSession, expanded)
+    val syncState = observeSyncState(currentSession, expanded, playerState.bookTime)
     val themeState = observeThemeState(currentSession)
     val itemValidation = observeItemValidation(currentSession)
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
@@ -405,8 +406,11 @@ class PlaybackPresenter(
   private fun observeSyncState(
     session: State<Session?>,
     expanded: Boolean,
+    position: Duration,
   ): SyncUiState {
     val scope = rememberCoroutineScope()
+    // Where this device is, from the player: the session only saves its position every so often
+    val currentPosition by rememberUpdatedState(position)
 
     val syncEnabled by remember {
       playbackSettings.observeSyncEnabled()
@@ -438,11 +442,11 @@ class PlaybackPresenter(
           sessionValue != null && mediaProgress != null &&
           mediaProgress?.source != MediaProgress.Source.Local &&
           (sessionValue.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
-          sessionValue.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
+          currentPosition.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
         ) {
           AvailableSync(
             itemId = sessionValue.libraryItem.id,
-            currentTime = sessionValue.currentTime,
+            currentTime = currentPosition,
             targetTime = mediaProgress!!.currentTime.seconds,
             syncTimeInMillis = mediaProgress!!.lastUpdate,
           )

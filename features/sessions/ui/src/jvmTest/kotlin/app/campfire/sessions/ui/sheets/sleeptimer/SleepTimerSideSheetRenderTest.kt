@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
@@ -109,5 +111,6 @@ class SleepTimerSideSheetRenderTest {
   private object FakeComponent : SleepTimerBottomSheetComponent {
     override val sessionsRepository: SessionsRepository = FakeSessionsRepository()
     override val sleepSettings: SleepSettings = FakeSleepSettings()
+    override val audioPlayerHolder: AudioPlayerHolder = FakeAudioPlayerHolder()
   }
 }

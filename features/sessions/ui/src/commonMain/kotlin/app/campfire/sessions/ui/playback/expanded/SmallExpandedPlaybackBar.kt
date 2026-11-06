@@ -669,7 +669,7 @@ internal fun rememberPlaybackOptionActions(
         scope.launch {
           val result = overlayHost.showChapterBottomSheet(
             chapters = session.libraryItem.media.chapters,
-            currentChapter = session.chapter,
+            currentChapter = session.chapterAt(playerState.bookTime),
             playbackSpeed = playerState.speed,
           )
           if (result is ChapterResult.Selected) {
@@ -680,7 +680,7 @@ internal fun rememberPlaybackOptionActions(
         scope.launch {
           val result = overlayHost.showAudioTrackBottomSheet(
             audioTracks = session.libraryItem.media.tracks,
-            currentAudioTrack = session.audioTrack,
+            currentAudioTrack = session.audioTrackAt(playerState.bookTime),
             playbackSpeed = playerState.speed,
           )
           if (result is AudioTrackResult.Selected) {

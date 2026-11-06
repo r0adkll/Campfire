@@ -16,6 +16,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.observeLivePosition
+import app.campfire.audioplayer.withLivePosition
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
@@ -36,6 +38,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -92,11 +95,15 @@ class PodcastEpisodePresenter(
       }
     }
 
+    // The saved progress trails the player while this episode plays; see BookPresenter
     val progress by remember {
-      mediaProgressRepository.observeProgress(
-        libraryItemId = episode.libraryItemId,
-        episodeId = episode.id,
-      )
+      combine(
+        mediaProgressRepository.observeProgress(
+          libraryItemId = episode.libraryItemId,
+          episodeId = episode.id,
+        ),
+        audioPlayerHolder.observeLivePosition(),
+      ) { progress, live -> progress?.withLivePosition(live) }
     }.collectAsState(null)
 
     val isPlaying by remember {
