@@ -9,6 +9,8 @@ import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 interface SessionsRepository {
 
@@ -113,8 +115,19 @@ interface SessionsRepository {
   )
 
   /**
-   * Observe the current listening session if one exists
+   * Observe the current listening session if one exists.
+   *
+   * The session is rebuilt every time its position is saved, every few seconds while playing.
+   * To know what is playing, observe [observePlayingItem] instead.
    * @return A flow of the current listening session
    */
   fun observeCurrentSession(): Flow<Session?>
+
+  /**
+   * Observe which item the current listening session is for, or null when there is none.
+   * Emits only when that changes, not when the session's position does.
+   */
+  fun observePlayingItem(): Flow<PlayingItem?> = observeCurrentSession()
+    .map { session -> session?.let { PlayingItem(it.libraryItem.id, it.episodeId) } }
+    .distinctUntilChanged()
 }

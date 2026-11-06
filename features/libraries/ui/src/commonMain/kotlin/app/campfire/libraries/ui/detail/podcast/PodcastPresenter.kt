@@ -21,7 +21,6 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
-import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.AbstractLibraryItemPresenter
@@ -47,6 +46,7 @@ import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressKey
@@ -59,6 +59,7 @@ import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -87,15 +88,21 @@ class PodcastPresenter(
 
     val currentUser by userRepository.userFlow.collectAsState()
 
-    val currentSession by remember {
-      sessionsRepository.observeCurrentSession()
+    // Only which item is playing: the session itself changes with every saved position, and
+    // each change would rebuild every episode's slot
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
     }.collectAsState(null)
 
-    val mediaProgress by remember {
+    // Only this podcast's progress, so a book playing elsewhere doesn't rebuild every episode slot
+    // each time it saves its position
+    val mediaProgress by remember(libraryItem.id) {
       mediaProgressRepository.observeAllProgress()
-        .map {
-          it.associateBy { progress -> MediaProgressKey(progress) }
+        .map { all ->
+          all.filter { it.libraryItemId == libraryItem.id }
+            .associateBy { progress -> MediaProgressKey(progress) }
         }
+        .distinctUntilChanged()
     }.collectAsState(emptyMap())
 
     val podcastEpisodes = remember(libraryItem) {
@@ -122,7 +129,7 @@ class PodcastPresenter(
     val slots = buildSlots(
       user = currentUser,
       libraryItem = libraryItem,
-      currentSession = currentSession,
+      playingItem = playingItem,
       mediaProgress = mediaProgress,
       episodeDownloads = episodeDownloads,
       remoteDownloadCount = remoteDownloadCount,
@@ -172,8 +179,7 @@ class PodcastPresenter(
 
             // Only stop playback if this episode is the one currently playing.
             if (
-              currentSession?.libraryItem?.id == episode.libraryItemId &&
-              currentSession?.episodeId == episode.id
+              playingItem?.matches(episode.libraryItemId, episode.id) == true
             ) {
               playbackController.stopSession(
                 itemId = episode.libraryItemId,
@@ -234,7 +240,7 @@ class PodcastPresenter(
 private fun buildSlots(
   user: User,
   libraryItem: LibraryItem,
-  currentSession: Session?,
+  playingItem: PlayingItem?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
   episodeDownloads: Map<PodcastEpisodeId, Download>,
   remoteDownloadCount: Int,
@@ -306,8 +312,7 @@ private fun buildSlots(
         media = podcastMedia,
         episode = episode,
         progress = progress,
-        isCurrentSession = currentSession?.libraryItem?.id == episode.libraryItemId &&
-          currentSession.episodeId == episode.id,
+        isCurrentSession = playingItem?.matches(episode.libraryItemId, episode.id) == true,
         offlineDownload = episodeDownloads[episode.id],
         canDownload = user.canDownload,
         showConfirmDownloadDialog = showConfirmDownloadDialog,

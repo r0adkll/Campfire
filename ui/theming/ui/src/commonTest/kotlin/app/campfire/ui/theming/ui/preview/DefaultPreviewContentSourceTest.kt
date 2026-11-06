@@ -13,6 +13,7 @@ import app.campfire.core.model.MediaType
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
 import app.campfire.core.model.User
+import app.campfire.core.model.preview.mediaProgress
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
@@ -28,6 +29,7 @@ import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.settings.test.TestLibraryViewSettings
+import app.campfire.user.test.FakeMediaProgressRepository
 import app.cash.turbine.test
 import assertk.all
 import assertk.assertThat
@@ -54,8 +56,9 @@ class DefaultPreviewContentSourceTest {
     librarySortDirection = SortDirection.Ascending
   }
   private val theme = FakeThemeSettings()
+  private val progress = FakeMediaProgressRepository()
 
-  private val source = DefaultPreviewContentSource(home, libraries, layout, theme)
+  private val source = DefaultPreviewContentSource(home, libraries, progress, layout, theme)
 
   @Test
   fun theUsersShelvesAndLibraryComeThrough() = runTest {
@@ -74,6 +77,18 @@ class DefaultPreviewContentSourceTest {
         prop(PreviewLibrary::isPodcastLibrary).isFalse()
         prop(PreviewLibrary::displayState).isEqualTo(ItemDisplayState.Grid)
       }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun shelfItems_carryTheirListeningProgress() = runTest {
+    progress.allProgressFlow.value = listOf(mediaProgress(progress = 0.4f).copy(libraryItemId = "li_hail_mary"))
+
+    source.observe().test {
+      val library = awaitLibrary { it.continueListening.items.firstOrNull()?.item?.userMediaProgress != null }
+
+      assertThat(library.continueListening.items.single().item.userMediaProgress?.progress).isEqualTo(0.4f)
       cancelAndIgnoreRemainingEvents()
     }
   }

@@ -9,12 +9,16 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
+import app.campfire.sessions.api.PlayingItem
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 interface SessionDataSource {
 
   fun observeCurrentSession(): Flow<Session?>
+
+  /** Which item the active session is for, without hydrating the session. */
+  fun observePlayingItem(): Flow<PlayingItem?>
 
   suspend fun getCurrentSession(): Session?
 

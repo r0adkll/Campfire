@@ -7,15 +7,15 @@ import androidx.paging.compose.LazyPagingItems
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
-import app.campfire.core.model.Session
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.LatestEpisode
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.user.api.MediaProgressKey
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class LatestEpisodesUiState(
-  val currentSession: Session?,
+  val playingItem: PlayingItem?,
   val episodes: LazyPagingItems<LatestEpisode>,
   val mediaProgress: Map<MediaProgressKey, MediaProgress>,
   val addToPlaylistDialog: AddToPlaylistDialog,

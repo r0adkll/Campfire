@@ -25,6 +25,7 @@ import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -41,7 +42,9 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -72,6 +75,27 @@ class SqlDelightSessionDataSource(
       .map {
         it?.let { model -> hydrateSession(model) }
       }
+      // Hydrating reads the whole library item. Keep it off the collector's thread, which is
+      // the main thread for every presenter.
+      .flowOn(dispatcherProvider.databaseRead)
+      .distinctUntilChanged()
+  }
+
+  override fun observePlayingItem(): Flow<PlayingItem?> {
+    val userId = userSession.userId ?: return flowOf(null)
+    return db.sessionQueries
+      .getActive(userId)
+      .asFlow()
+      .mapToOneOrNull(dispatcherProvider.databaseRead)
+      .map { session ->
+        session?.let {
+          PlayingItem(
+            libraryItemId = it.libraryItemId,
+            episodeId = it.episodeId.takeIf { id -> id.isNotEmpty() },
+          )
+        }
+      }
+      .distinctUntilChanged()
   }
 
   override suspend fun getCurrentSession(): Session? {

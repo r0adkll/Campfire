@@ -14,10 +14,10 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.SeriesSequence
-import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.manage.ItemAction
+import app.campfire.sessions.api.PlayingItem
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -43,9 +43,9 @@ data class ContentUiState(
 
 sealed interface SessionUiState {
   data object None : SessionUiState
-  data class Current(val session: Session) : SessionUiState
+  data class Current(val item: PlayingItem) : SessionUiState
 
-  fun sessionOrNull(): Session? = (this as? Current)?.session
+  fun itemOrNull(): PlayingItem? = (this as? Current)?.item
 }
 
 sealed interface LibraryItemUiEvent : CircuitUiEvent {

@@ -42,6 +42,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -118,6 +119,8 @@ class StoreMediaProgressRepository(
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireCollection() }
+      // Any write to the table re-runs the query, including syncs that leave every row as it was
+      .distinctUntilChanged()
   }
 
   override suspend fun updateProgress(

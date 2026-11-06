@@ -66,8 +66,9 @@ class PlaylistDetailPresenter(
   override fun present(): PlaylistDetailUiState {
     val scope = rememberCoroutineScope()
 
-    val session by remember {
-      sessionsRepository.observeCurrentSession()
+    // Only which item is playing: the session itself changes with every saved position
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
     }.collectAsState(null)
 
     val offlineStates by remember {
@@ -138,7 +139,7 @@ class PlaylistDetailPresenter(
     return PlaylistDetailUiState(
       name = playlistName,
       description = playlistDescription,
-      currentSession = session,
+      playingItem = playingItem,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       canDownload = currentUser.canDownload,
       playlistState = playlistContentState,
@@ -250,14 +251,11 @@ class PlaylistDetailPresenter(
 
           // Stop playback when the current item is one being finished, as marking a single
           // item finished does, so the session can't write its progress back over it
-          val currentSession = session
-          if (
-            currentSession != null &&
-            MediaProgressKey(currentSession.libraryItem.id, currentSession.episodeId) in unfinishedKeys
-          ) {
+          val playing = playingItem
+          if (playing != null && MediaProgressKey(playing.libraryItemId, playing.episodeId) in unfinishedKeys) {
             playbackController.stopSession(
-              itemId = currentSession.libraryItem.id,
-              episodeId = currentSession.episodeId,
+              itemId = playing.libraryItemId,
+              episodeId = playing.episodeId,
             )
           }
 

@@ -99,6 +99,7 @@ fun PlaylistDetail(
   val eventSink = state.eventSink
   val offlineStates = state.offlineStates
   val progressStates = state.progressStates
+  val playingItem = state.playingItem
 
   val scope = rememberCoroutineScope()
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
@@ -261,10 +262,7 @@ fun PlaylistDetail(
         offlineStateSelector = { item -> offlineStates.statusOf(item.libraryItemId, item.episodeId) },
         mediaProgressSelector = { item -> progressStates[item.progressKey] },
         isPlayingSelector = { item ->
-          val session = state.currentSession
-          session != null &&
-            session.libraryItem.id == item.libraryItemId &&
-            session.episodeId == item.episodeId
+          playingItem?.matches(item.libraryItemId, item.episodeId) == true
         },
         contentPadding = paddingValues + PaddingValues(
           // 2 x 16dp (padding) + 56dp (toolbar)

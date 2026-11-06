@@ -27,6 +27,7 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -48,8 +49,9 @@ class LatestEpisodesPresenter(
   override fun present(): LatestEpisodesUiState {
     val scope = rememberRetainedCoroutineScope("last_episodes_presenter")
 
-    val currentSession by remember {
-      sessionsRepository.observeCurrentSession()
+    // Only which item is playing: the session itself changes with every saved position
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
     }.collectAsState(null)
 
     val currentUser by userRepository.userFlow.collectAsState()
@@ -62,15 +64,19 @@ class LatestEpisodesPresenter(
         .flow.cachedIn(scope)
     }.collectAsLazyPagingItems()
 
+    // Only episodes' progress, so a book playing elsewhere doesn't redraw the list each time it
+    // saves its position
     val mediaProgress by remember {
       mediaProgressRepository.observeAllProgress()
-        .map {
-          it.associateBy { progress -> MediaProgressKey(progress) }
+        .map { all ->
+          all.filter { it.episodeId != null }
+            .associateBy { progress -> MediaProgressKey(progress) }
         }
+        .distinctUntilChanged()
     }.collectAsState(emptyMap())
 
     return LatestEpisodesUiState(
-      currentSession = currentSession,
+      playingItem = playingItem,
       episodes = pagingItems,
       mediaProgress = mediaProgress,
       addToPlaylistDialog = addToPlaylistDialog,
@@ -97,8 +103,7 @@ class LatestEpisodesPresenter(
 
             // Only stop playback if this episode is the one currently playing.
             if (
-              currentSession?.libraryItem?.id == episode.libraryItemId &&
-              currentSession?.episodeId == episode.id
+              playingItem?.matches(episode.libraryItemId, episode.id) == true
             ) {
               playbackController.stopSession(
                 itemId = episode.libraryItemId,

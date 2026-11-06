@@ -79,17 +79,15 @@ class PodcastEpisodePresenter(
   override fun present(): PodcastEpisodeUiState {
     val scope = rememberCoroutineScope()
 
-    val currentSession by remember {
-      sessionsRepository.observeCurrentSession()
+    // Only which item is playing: the session itself changes with every saved position
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
     }.collectAsState(null)
 
     val episodeSession by remember {
       derivedStateOf {
-        currentSession
-          ?.takeIf {
-            it.libraryItem.id == episode.libraryItemId &&
-              it.episodeId == episode.id
-          }
+        playingItem
+          ?.takeIf { it.matches(episode.libraryItemId, episode.id) }
           ?.let { SessionUiState.Current(it) }
           ?: SessionUiState.None
       }
@@ -163,7 +161,7 @@ class PodcastEpisodePresenter(
       playbackSpeed = playbackSpeed,
       isPlaying = isPlaying,
       isQueued = isQueued,
-      hasSession = currentSession != null,
+      hasSession = playingItem != null,
       sessionState = episodeSession,
       offlineDownload = offlineDownload,
       canDownload = currentUser.canDownload,
@@ -185,8 +183,7 @@ class PodcastEpisodePresenter(
 
           // Only stop session if this episode is the current playing episode.
           if (
-            currentSession?.libraryItem?.id == episode.libraryItemId &&
-            currentSession?.episodeId == episode.id
+            playingItem?.matches(episode.libraryItemId, episode.id) == true
           ) {
             playbackController.stopSession(
               itemId = episode.libraryItemId,
@@ -241,8 +238,7 @@ class PodcastEpisodePresenter(
 
           // Only stop session if this episode is the current playing episode.
           if (
-            currentSession?.libraryItem?.id == episode.libraryItemId &&
-            currentSession?.episodeId == episode.id
+            playingItem?.matches(episode.libraryItemId, episode.id) == true
           ) {
             playbackController.stopSession(
               itemId = episode.libraryItemId,

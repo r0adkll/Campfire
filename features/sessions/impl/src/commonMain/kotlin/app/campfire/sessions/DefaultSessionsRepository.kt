@@ -12,6 +12,7 @@ import app.campfire.core.time.FatherTime
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
 import app.campfire.offline.observe
+import app.campfire.sessions.api.PlayingItem
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.sessions.db.SessionDataSource
@@ -38,6 +39,10 @@ class DefaultSessionsRepository(
 
   override fun observeCurrentSession(): Flow<Session?> {
     return dataSource.observeCurrentSession()
+  }
+
+  override fun observePlayingItem(): Flow<PlayingItem?> {
+    return dataSource.observePlayingItem()
   }
 
   override suspend fun getCurrentSession(): Session? {
