@@ -19,6 +19,9 @@ import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.LocalDateTime
 
 @ContributesTo(UserScope::class)
 interface MediaProgressSynchronizerUserComponent {
@@ -34,10 +37,16 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
     get() = ComponentHolder.component()
 
   // We want this to process last in the list of synchronizers so other synchros
-  // have the chance to update the local database with the latest information.
-  override val rank: Int = PlaybackSynchronizer.RANK_HIGHEST
+  // have the chance to update the local database with the latest information. Synchronizers
+  // run in ascending rank, so last is the lowest rank.
+  override val rank: Int = PlaybackSynchronizer.RANK_LOWEST
 
   private val userPlayCache = mutableMapOf<String, Boolean>()
+
+  // The session row each item's progress was last mirrored from, so a tick that didn't change the
+  // row doesn't rewrite the progress row (which would re-run every query that reads it)
+  private val mirroredMutex = Mutex()
+  private val mirroredSessionUpdates = mutableMapOf<LibraryItemId, LocalDateTime>()
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
     if (userPlayCache[libraryItemId] ?: false) {
@@ -79,6 +88,10 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
 
   private suspend fun syncProgress(libraryItemId: LibraryItemId, force: Boolean = false) {
     val session = component.sessionsRepository.getSession(libraryItemId) ?: return
+    val isNewRow = mirroredMutex.withLock {
+      (mirroredSessionUpdates.put(libraryItemId, session.updatedAt) != session.updatedAt)
+    }
+    if (!force && !isNewRow) return
 
     val updatedProgress = MediaProgress(
       id = MediaProgress.UNKNOWN_ID,
@@ -103,7 +116,16 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
       } else {
         null
       },
-      lastUpdate = session.updatedAt.epochMilliseconds,
+      lastUpdate = if (force) {
+        session.updatedAt.epochMilliseconds
+      } else {
+        // While playing, the position is only saved every PositionSaveThrottle.SaveInterval, and
+        // a server sync in between echoes this device's own (older) position back stamped with
+        // the server's clock. Stamping the row as current until the next save keeps those echoes
+        // from replacing it, as rewriting it on every tick used to. Stopping playback (force)
+        // stamps the exact time.
+        session.updatedAt.epochMilliseconds + PositionSaveThrottle.SaveInterval.inWholeMilliseconds
+      },
       startedAt = session.startedAt.epochMilliseconds,
       source = MediaProgress.Source.Local,
     )
