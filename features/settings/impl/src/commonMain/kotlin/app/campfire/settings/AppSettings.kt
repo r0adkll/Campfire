@@ -41,10 +41,12 @@ abstract class AppSettings {
       settings.putBoolean(key, value)
     }
 
-    override fun observe(): StateFlow<Boolean> {
-      return settings.getBooleanFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getBoolean(key, defaultValue))
+    private val flow: StateFlow<Boolean> by lazy {
+      settings.getBooleanFlow(key, defaultValue)
+        .stateIn(scope, SharingStarted.Eagerly, settings.getBoolean(key, defaultValue))
     }
+
+    override fun observe(): StateFlow<Boolean> = flow
   }
 
   fun longSetting(key: String, defaultValue: Long = 0L) = object : SettingsProperty<Long> {
@@ -56,10 +58,12 @@ abstract class AppSettings {
       settings.putLong(key, value)
     }
 
-    override fun observe(): StateFlow<Long> {
-      return settings.getLongFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getLong(key, defaultValue))
+    private val flow: StateFlow<Long> by lazy {
+      settings.getLongFlow(key, defaultValue)
+        .stateIn(scope, SharingStarted.Eagerly, settings.getLong(key, defaultValue))
     }
+
+    override fun observe(): StateFlow<Long> = flow
   }
 
   fun floatSetting(key: String, defaultValue: Float = 0f) = object : SettingsProperty<Float> {
@@ -71,10 +75,12 @@ abstract class AppSettings {
       settings.putFloat(key, value)
     }
 
-    override fun observe(): StateFlow<Float> {
-      return settings.getFloatFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getFloat(key, defaultValue))
+    private val flow: StateFlow<Float> by lazy {
+      settings.getFloatFlow(key, defaultValue)
+        .stateIn(scope, SharingStarted.Eagerly, settings.getFloat(key, defaultValue))
     }
+
+    override fun observe(): StateFlow<Float> = flow
   }
 
   fun durationSetting(key: String, defaultValue: Duration) = object : SettingsProperty<Duration> {
@@ -86,12 +92,14 @@ abstract class AppSettings {
       settings.putDouble(key, value.toDouble(DurationUnit.SECONDS))
     }
 
-    override fun observe(): StateFlow<Duration> {
+    private val flow: StateFlow<Duration> by lazy {
       val currentValue = settings.getDoubleOrNull(key)?.seconds ?: defaultValue
-      return settings.getDoubleFlow(key, defaultValue.toDouble(DurationUnit.SECONDS))
+      settings.getDoubleFlow(key, defaultValue.toDouble(DurationUnit.SECONDS))
         .map { it.seconds }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
+        .stateIn(scope, SharingStarted.Eagerly, currentValue)
     }
+
+    override fun observe(): StateFlow<Duration> = flow
   }
 
   fun stringSetting(key: String, defaultValue: String = "") = object : SettingsProperty<String> {
@@ -103,10 +111,12 @@ abstract class AppSettings {
       settings.putString(key, value)
     }
 
-    override fun observe(): StateFlow<String> {
-      return settings.getStringFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getString(key, defaultValue))
+    private val flow: StateFlow<String> by lazy {
+      settings.getStringFlow(key, defaultValue)
+        .stateIn(scope, SharingStarted.Eagerly, settings.getString(key, defaultValue))
     }
+
+    override fun observe(): StateFlow<String> = flow
   }
 
   fun stringSetting(key: String, initializer: () -> String) = object : SettingsProperty<String> {
@@ -122,7 +132,7 @@ abstract class AppSettings {
       settings.putString(key, value)
     }
 
-    override fun observe(): StateFlow<String> {
+    private val flow: StateFlow<String> by lazy {
       val defaultValue = if (!settings.hasKey(key)) {
         val value = initializer()
         settings.putString(key, value)
@@ -130,10 +140,12 @@ abstract class AppSettings {
       } else {
         settings.getStringOrNull(key)!!
       }
-      return settings.getStringOrNullFlow(key)
+      settings.getStringOrNullFlow(key)
         .filterNotNull()
-        .stateIn(scope, SharingStarted.Lazily, defaultValue)
+        .stateIn(scope, SharingStarted.Eagerly, defaultValue)
     }
+
+    override fun observe(): StateFlow<String> = flow
   }
 
   fun stringOrNullSetting(key: String) = object : SettingsProperty<String?> {
@@ -149,10 +161,12 @@ abstract class AppSettings {
       }
     }
 
-    override fun observe(): StateFlow<String?> {
-      return settings.getStringOrNullFlow(key)
-        .stateIn(scope, SharingStarted.Lazily, settings.getStringOrNull(key))
+    private val flow: StateFlow<String?> by lazy {
+      settings.getStringOrNullFlow(key)
+        .stateIn(scope, SharingStarted.Eagerly, settings.getStringOrNull(key))
     }
+
+    override fun observe(): StateFlow<String?> = flow
   }
 
   fun localTimeSetting(
@@ -169,12 +183,14 @@ abstract class AppSettings {
       settings.putString(key, value.toString())
     }
 
-    override fun observe(): StateFlow<LocalTime> {
+    private val flow: StateFlow<LocalTime> by lazy {
       val currentValue = settings.getStringOrNull(key)?.let { LocalTime.parse(it) } ?: defaultValue
-      return settings.getStringOrNullFlow(key)
+      settings.getStringOrNullFlow(key)
         .map { raw -> raw?.let { LocalTime.parse(it) } ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
+        .stateIn(scope, SharingStarted.Eagerly, currentValue)
     }
+
+    override fun observe(): StateFlow<LocalTime> = flow
   }
 
   fun localDateTimeSetting(
@@ -191,12 +207,14 @@ abstract class AppSettings {
       settings.putString(key, value.toString())
     }
 
-    override fun observe(): StateFlow<LocalDateTime> {
+    private val flow: StateFlow<LocalDateTime> by lazy {
       val currentValue = settings.getStringOrNull(key)?.let { LocalDateTime.parse(it) } ?: defaultValue
-      return settings.getStringOrNullFlow(key)
+      settings.getStringOrNullFlow(key)
         .map { raw -> raw?.let { LocalDateTime.parse(it) } ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
+        .stateIn(scope, SharingStarted.Eagerly, currentValue)
     }
+
+    override fun observe(): StateFlow<LocalDateTime> = flow
   }
 
   inline fun <reified T> enumSetting(
@@ -213,12 +231,14 @@ abstract class AppSettings {
       settings.putString(key, value.storageKey)
     }
 
-    override fun observe(): StateFlow<T> {
+    private val flow: StateFlow<T> by lazy {
       val currentValue = settings.getStringOrNull(key).let(provider::fromStorageKey)
-      return settings.getStringOrNullFlow(key)
+      settings.getStringOrNullFlow(key)
         .map(provider::fromStorageKey)
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
+        .stateIn(scope, SharingStarted.Eagerly, currentValue)
     }
+
+    override fun observe(): StateFlow<T> = flow
   }
 
   inline fun <reified T> customSetting(
@@ -235,15 +255,24 @@ abstract class AppSettings {
       settings.putString(key, setter(value))
     }
 
-    override fun observe(): StateFlow<T> {
+    private val flow: StateFlow<T> by lazy {
       val currentValue = settings.getStringOrNull(key)?.let(getter) ?: defaultValue
-      return settings.getStringOrNullFlow(key)
+      settings.getStringOrNullFlow(key)
         .map { raw -> raw?.let(getter) ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
+        .stateIn(scope, SharingStarted.Eagerly, currentValue)
     }
+
+    override fun observe(): StateFlow<T> = flow
   }
 
   interface SettingsProperty<V> : ReadWriteProperty<AppSettings, V> {
+    /**
+     * The setting's value, kept live from the first call onwards.
+     *
+     * Every call returns the same flow. Callers observe settings from composition, where a
+     * fresh flow per call would restart collection on every recomposition and leave behind
+     * another collector and preferences listener in the app scope each time.
+     */
     fun observe(): StateFlow<V>
   }
 }

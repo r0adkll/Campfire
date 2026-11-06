@@ -82,7 +82,7 @@ class CollectionDetailPresenter(
         is CollectionDetailUiEvent.DeleteItems -> scope.launch {
           analytics.send(ActionEvent("collection_item", "deleted"))
           collectionsRepository.removeFromCollection(
-            bookIds = event.items.map { it.id },
+            bookIds = event.itemIds,
             collectionId = screen.collectionId,
           )
         }

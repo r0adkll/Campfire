@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
 - Podcast episodes in a playlist showing another episode's download status
 - Books whose download failed or was stopped playing as though they were downloaded
+- The book you're listening to losing its checkmark, or being counted twice, while selecting books to remove from a collection
 - Empty space at the bottom of the theme picker, theme builder and Add Podcast while something is playing
 - Downloading a playlist skipping its podcast episodes
 - Podcast episodes in a playlist failing to play until their podcast's page had been opened

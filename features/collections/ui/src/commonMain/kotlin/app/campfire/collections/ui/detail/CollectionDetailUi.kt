@@ -104,10 +104,13 @@ fun CollectionDetail(
   var showDeleteConfirmation by remember { mutableStateOf(false) }
 
   var isItemEditing by remember { mutableStateOf(false) }
-  val selectedItems = remember { mutableStateListOf<LibraryItem>() }
+  // Held by id: the collection re-emits its items whenever one's progress changes (a playing book
+  // does every few seconds), and a selected item that no longer equals its replacement would
+  // lose its checkmark, then be added a second time on the next tap.
+  val selectedItemIds = remember { mutableStateListOf<LibraryItemId>() }
 
-  LaunchedEffect(isItemEditing, selectedItems.isEmpty()) {
-    if (isItemEditing && selectedItems.isEmpty()) {
+  LaunchedEffect(isItemEditing, selectedItemIds.isEmpty()) {
+    if (isItemEditing && selectedItemIds.isEmpty()) {
       isItemEditing = false
     }
   }
@@ -133,7 +136,7 @@ fun CollectionDetail(
           EditingTopAppBar(
             title = {
               Text(
-                text = "${selectedItems.size} item${if (selectedItems.size > 1) "s" else ""}",
+                text = "${selectedItemIds.size} item${if (selectedItemIds.size > 1) "s" else ""}",
               )
             },
             actions = {
@@ -141,9 +144,9 @@ fun CollectionDetail(
               IconButtonTooltip(text = deleteSelectedLabel) {
                 IconButton(
                   onClick = {
-                    eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
+                    eventSink(CollectionDetailUiEvent.DeleteItems(selectedItemIds.toList()))
                     isItemEditing = false
-                    selectedItems.clear()
+                    selectedItemIds.clear()
                   },
                 ) {
                   Icon(
@@ -156,7 +159,7 @@ fun CollectionDetail(
             },
             onDismiss = {
               isItemEditing = false
-              selectedItems.clear()
+              selectedItemIds.clear()
             },
             scrollBehavior = scrollBehavior,
           )
@@ -224,15 +227,15 @@ fun CollectionDetail(
         collectionName = screen.collectionName,
         description = state.collection?.description,
         isEditing = isItemEditing,
-        selectedItems = selectedItems,
+        selectedItemIds = selectedItemIds,
         items = state.collectionContentState.data,
         offlineStatus = { offlineStates.statusOf(it) },
         onLibraryItemClick = { item ->
           if (isItemEditing) {
-            if (selectedItems.contains(item)) {
-              selectedItems.remove(item)
+            if (item.id in selectedItemIds) {
+              selectedItemIds.remove(item.id)
             } else {
-              selectedItems.add(item)
+              selectedItemIds.add(item.id)
             }
           } else {
             eventSink(CollectionDetailUiEvent.LibraryItemClick(item))
@@ -240,8 +243,8 @@ fun CollectionDetail(
         },
         onLibraryItemLongClick = { item ->
           isItemEditing = true
-          selectedItems.clear()
-          selectedItems.add(item)
+          selectedItemIds.clear()
+          selectedItemIds.add(item.id)
         },
         contentPadding = paddingValues,
         gridState = gridState,
@@ -267,7 +270,7 @@ private fun LoadedState(
   collectionName: String,
   description: String?,
   isEditing: Boolean,
-  selectedItems: List<LibraryItem>,
+  selectedItemIds: List<LibraryItemId>,
   items: List<LibraryItem>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
@@ -315,7 +318,7 @@ private fun LoadedState(
         sharedTransitionZIndex = (items.size - index) + 1f,
         offlineStatus = offlineStatus(item.id),
         isSelectable = isEditing,
-        selected = selectedItems.contains(item),
+        selected = item.id in selectedItemIds,
         modifier = Modifier
           .combinedClickable(
             onClickLabel = "View item",

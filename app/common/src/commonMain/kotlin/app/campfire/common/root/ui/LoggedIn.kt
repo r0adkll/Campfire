@@ -538,41 +538,47 @@ private fun LoggedInUi(
         }
       },
       playbackBarContent = {
-        if (!windowSizeClass.usesBottomPlaybackBar) {
-          val bottomSystemInset = withDensity {
-            WindowInsets.navigationBars.asPaddingValues()
-              .calculateBottomPadding().toPx()
+        when {
+          // The docked player runs its own presenter. Keeping the sheet composed (just hidden)
+          // beside it would run a second one, collecting the same session and player state.
+          isPlayerDocked -> Unit
+
+          !windowSizeClass.usesBottomPlaybackBar -> {
+            val bottomSystemInset = withDensity {
+              WindowInsets.navigationBars.asPaddingValues()
+                .calculateBottomPadding().toPx()
+            }
+
+            CampfirePlaybackBar(
+              enabled = currentPresentation?.hidePlaybackBar != true,
+              expanded = playbackBarExpanded,
+              onExpansionChange = {
+                Analytics.send(ActionEvent("playback_bar", if (it) "expanded" else "collapsed"))
+                playbackBarExpanded = it
+              },
+              navigator = homeNavigator,
+              offset = {
+                if (!windowSizeClass.isSupportingPaneEnabled) {
+                  val dy = navigationBarState.playbackBarOffset().roundToInt()
+                  IntOffset(0, -dy)
+                } else {
+                  IntOffset(0, -bottomSystemInset.fastRoundToInt())
+                }
+              },
+              modifier = Modifier
+                .align(Alignment.BottomStart)
+                .widthIn(
+                  max = if (windowSizeClass.isLandscapePhone) {
+                    700.dp
+                  } else {
+                    500.dp
+                  },
+                )
+                .fillMaxWidth(),
+            )
           }
 
-          CampfirePlaybackBar(
-            enabled = currentPresentation?.hidePlaybackBar != true && !isPlayerDocked,
-            expanded = playbackBarExpanded,
-            onExpansionChange = {
-              Analytics.send(ActionEvent("playback_bar", if (it) "expanded" else "collapsed"))
-              playbackBarExpanded = it
-            },
-            navigator = homeNavigator,
-            offset = {
-              if (!windowSizeClass.isSupportingPaneEnabled) {
-                val dy = navigationBarState.playbackBarOffset().roundToInt()
-                IntOffset(0, -dy)
-              } else {
-                IntOffset(0, -bottomSystemInset.fastRoundToInt())
-              }
-            },
-            modifier = Modifier
-              .align(Alignment.BottomStart)
-              .widthIn(
-                max = if (windowSizeClass.isLandscapePhone) {
-                  700.dp
-                } else {
-                  500.dp
-                },
-              )
-              .fillMaxWidth(),
-          )
-        } else {
-          PlaybackBottomBar(
+          else -> PlaybackBottomBar(
             modifier = Modifier.fillMaxWidth(),
           )
         }

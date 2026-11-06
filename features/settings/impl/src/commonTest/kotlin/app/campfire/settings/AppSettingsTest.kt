@@ -9,6 +9,7 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
+import assertk.assertions.isSameInstanceAs
 import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.ObservableSettings
 import kotlin.test.AfterTest
@@ -62,6 +63,23 @@ class AppSettingsTest {
       settings.enabled = true
       assertThat(awaitItem()).isEqualTo(true)
     }
+  }
+
+  @Test
+  fun test_observe_returnsTheSameFlowEveryCall() {
+    val settings = createSettings()
+    assertThat(settings.observeEnabled()).isSameInstanceAs(settings.observeEnabled())
+  }
+
+  @Test
+  fun test_observe_staysLiveWithoutCollectors() {
+    val settings = createSettings()
+    val observed = settings.observeEnabled()
+
+    settings.enabled = true
+
+    assertThat(observed.value).isEqualTo(true)
+    assertThat(settings.observeEnabled().value).isEqualTo(true)
   }
 
   // endregion
