@@ -21,6 +21,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import coil3.imageLoader
+import coil3.memory.MemoryCache
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
@@ -45,13 +46,23 @@ internal fun GlanceImage(
   colorFilter: ColorFilter? = null,
 ) {
   val context = LocalContext.current
-  var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+  val requestSize = size ?: Size(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE)
+  val cacheKey = remember(url, requestSize) { url?.let { widgetImageCacheKey(it, requestSize) } }
 
-  LaunchedEffect(url) {
+  // Start from the memory cache when the image is already in it. Every size the widget is shown
+  // at composes its own copy of this, and a new widget session composes everything again; each
+  // image that arrives later changes the tree, and every change re-sends the whole widget.
+  var bitmap by remember(cacheKey) {
+    mutableStateOf(cacheKey?.let { context.imageLoader.memoryCache?.get(it)?.image?.toBitmap() })
+  }
+
+  LaunchedEffect(cacheKey) {
+    if (bitmap != null) return@LaunchedEffect
     withContext(Dispatchers.IO) {
       val request = ImageRequest.Builder(context)
         .data(url)
-        .size { size ?: Size(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE) }
+        .size(requestSize)
+        .memoryCacheKey(cacheKey)
         .build()
 
       bitmap = when (val result = context.imageLoader.execute(request)) {
@@ -82,6 +93,10 @@ internal fun GlanceImage(
     }
   }
 }
+
+/** Widget renditions are cached apart from the app's own, which request other sizes. */
+private fun widgetImageCacheKey(url: Any, size: Size): MemoryCache.Key =
+  MemoryCache.Key("widget:$url@$size")
 
 @Composable
 internal fun GlanceModifier.imageBackground(
