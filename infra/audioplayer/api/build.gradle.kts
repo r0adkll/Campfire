@@ -13,5 +13,15 @@ kotlin {
         api(projects.core)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(projects.common.test)
+        implementation(projects.infra.audioplayer.test)
+
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
+      }
+    }
   }
 }

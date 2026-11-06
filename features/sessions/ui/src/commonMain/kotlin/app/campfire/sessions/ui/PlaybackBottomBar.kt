@@ -368,7 +368,7 @@ internal fun PlaybackBottomBarContent(
               scope.launch {
                 val result = overlayHost.showChapterBottomSheet(
                   chapters = session.libraryItem.media.chapters,
-                  currentChapter = session.chapter,
+                  currentChapter = session.chapterAt(bookTime),
                   playbackSpeed = playbackSpeed,
                 )
                 if (result is ChapterResult.Selected) {
@@ -379,7 +379,7 @@ internal fun PlaybackBottomBarContent(
               scope.launch {
                 val result = overlayHost.showAudioTrackBottomSheet(
                   audioTracks = session.libraryItem.media.tracks,
-                  currentAudioTrack = session.audioTrack,
+                  currentAudioTrack = session.audioTrackAt(bookTime),
                   playbackSpeed = playbackSpeed,
                 )
                 if (result is AudioTrackResult.Selected) {

@@ -19,6 +19,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.observeLivePosition
+import app.campfire.audioplayer.withLivePosition
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.ProviderId
@@ -148,8 +150,13 @@ class BookPresenter(
       }
     }
 
+    // The saved progress trails the player while this book plays, so its position comes from the
+    // player for as long as it is the one playing
     val mediaProgressState by remember {
-      mediaProgressRepository.observeProgress(screen.libraryItemId)
+      combine(
+        mediaProgressRepository.observeProgress(screen.libraryItemId),
+        audioPlayerHolder.observeLivePosition(),
+      ) { progress, live -> progress?.withLivePosition(live) }
         .map { LoadState.Loaded(it) as LoadState<MediaProgress?> }
         .catch { emit(LoadState.Error as LoadState<MediaProgress?>) }
     }.collectAsState(LoadState.Loading)

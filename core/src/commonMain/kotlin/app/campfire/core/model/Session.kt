@@ -79,18 +79,30 @@ data class Session(
   val isFinished: Boolean
     get() = currentTime >= duration
 
+  /**
+   * The chapter at [currentTime], the position last saved to this session. That lags the player
+   * while it plays, so anything showing the chapter as playback moves uses [chapterAt] with the
+   * player's own position.
+   */
   val chapter: Chapter?
-    get() = episode?.let { ep ->
-      ep.chapters.find { c ->
-        val startMs = c.start.seconds.inWholeMilliseconds
-        val endMs = c.end.seconds.inWholeMilliseconds
-        currentTime.inWholeMilliseconds in startMs..<endMs
-      }
-    } ?: libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
+    get() = chapterAt(currentTime)
 
+  /** The audio track at [currentTime]; see [chapter] for why a live position wants [audioTrackAt]. */
   val audioTrack: AudioTrack?
-    get() = episode?.audioTrack
-      ?: libraryItem.getAudioTrackForDuration(currentTime.inWholeMilliseconds)
+    get() = audioTrackAt(currentTime)
+
+  /** The chapter at [time] into the book, or into the episode for a podcast. */
+  fun chapterAt(time: Duration): Chapter? = episode?.let { ep ->
+    ep.chapters.find { c ->
+      val startMs = c.start.seconds.inWholeMilliseconds
+      val endMs = c.end.seconds.inWholeMilliseconds
+      time.inWholeMilliseconds in startMs..<endMs
+    }
+  } ?: libraryItem.getChapterForDuration(time.inWholeMilliseconds)
+
+  /** The audio track playing at [time]. */
+  fun audioTrackAt(time: Duration): AudioTrack? = episode?.audioTrack
+    ?: libraryItem.getAudioTrackForDuration(time.inWholeMilliseconds)
 
   /**
    * Get the "Current" duration that should be displayed to the user. Starting

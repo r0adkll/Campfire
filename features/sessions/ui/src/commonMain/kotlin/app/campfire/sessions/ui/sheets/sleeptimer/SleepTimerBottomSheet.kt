@@ -66,8 +66,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.audioplayer.observeLivePosition
 import app.campfire.audioplayer.ui.composables.RunningTimerCard
 import app.campfire.audioplayer.ui.composables.SessionSheetLayout
 import app.campfire.common.compose.analytics.Impression
@@ -132,6 +135,7 @@ internal sealed interface TimerModel {
 interface SleepTimerBottomSheetComponent {
   val sessionsRepository: SessionsRepository
   val sleepSettings: SleepSettings
+  val audioPlayerHolder: AudioPlayerHolder
 }
 
 internal suspend fun OverlayHost.showSleepTimerBottomSheet(
@@ -287,8 +291,14 @@ private fun InactiveTimerSheetContent(
           component.sessionsRepository.observeCurrentSession()
         }.collectAsState(null)
 
+        // The session saves its position only every so often; count down from the player's
+        val livePosition by remember {
+          component.audioPlayerHolder.observeLivePosition()
+        }.collectAsState(null)
+
         EndOfChapterContent(
           session = session,
+          position = livePosition?.time ?: session?.currentTime,
         )
       }
     }
@@ -494,6 +504,7 @@ private fun EpochTimerContent(
 @Composable
 private fun EndOfChapterContent(
   session: Session?,
+  position: Duration?,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -507,10 +518,12 @@ private fun EndOfChapterContent(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    val remainingTimeInChapter = session?.chapter?.let { chapter ->
-      (chapter.end.seconds - session.currentTime)
-        .clockFormat()
-    } ?: "--"
+    val chapter = if (position != null) session?.chapterAt(position) else null
+    val remainingTimeInChapter = if (chapter != null && position != null) {
+      (chapter.end.seconds - position).clockFormat()
+    } else {
+      "--"
+    }
 
     Text(
       text = "Time remaining",
@@ -526,7 +539,7 @@ private fun EndOfChapterContent(
       modifier = Modifier,
     )
 
-    session?.chapter?.let { chapter ->
+    chapter?.let { chapter ->
       Spacer(Modifier.height(4.dp))
       Text(
         text = chapter.title,
@@ -638,6 +651,11 @@ fun TimerBottomSheetV2Preview() {
           timer = null
         },
         component = object : SleepTimerBottomSheetComponent {
+          override val audioPlayerHolder: AudioPlayerHolder = object : AudioPlayerHolder {
+            override val currentPlayer: StateFlow<AudioPlayer?> = MutableStateFlow(null)
+            override fun setCurrentPlayer(player: AudioPlayer?) = Unit
+            override fun release() = Unit
+          }
           override val sleepSettings: SleepSettings = object : SleepSettings {
             override var lastSetSleepTimer: Duration
               get() = mutableLastSetSleepTimer.value
