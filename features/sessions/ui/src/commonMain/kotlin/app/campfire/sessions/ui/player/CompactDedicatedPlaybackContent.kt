@@ -84,6 +84,8 @@ internal fun CompactDedicatedPlaybackContent(
   onItemClick: (Session) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  // Stable across ticks, unlike playerState; callbacks capturing it keep their identity
+  val playerEvents = playerState.eventSink
   val interactionSource = remember { MutableInteractionSource() }
   val isPressed by interactionSource.collectIsPressedAsState()
   val isDragged by interactionSource.collectIsDraggedAsState()
@@ -129,7 +131,7 @@ internal fun CompactDedicatedPlaybackContent(
       currentDuration = playerState.duration,
       playbackSpeed = playerState.speed,
       onSeek = { percent ->
-        playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
+        playerEvents(PlayerUiEvent.Seek.Percent(percent))
       },
       interactionSource = interactionSource,
       waveEnabled = playerState.wavySliderEnabled,
@@ -144,11 +146,11 @@ internal fun CompactDedicatedPlaybackContent(
       buttonSize = CompactTransportButtonSize,
       buttonShape = MaterialTheme.shapes.largeIncreased,
       playButtonExtraWidth = 64.dp,
-      onSkipPreviousClick = { playerState.eventSink(PlayerUiEvent.PreviousClick) },
-      onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
-      onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
-      onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
-      onSkipNextClick = { playerState.eventSink(PlayerUiEvent.NextClick) },
+      onSkipPreviousClick = { playerEvents(PlayerUiEvent.PreviousClick) },
+      onRewindClick = { playerEvents(PlayerUiEvent.RewindClick) },
+      onPlayPauseClick = { playerEvents(PlayerUiEvent.PlayPauseClick) },
+      onForwardClick = { playerEvents(PlayerUiEvent.FastForwardClick) },
+      onSkipNextClick = { playerEvents(PlayerUiEvent.NextClick) },
     )
 
     Spacer(Modifier.height(16.dp))

@@ -98,6 +98,11 @@ fun LatestEpisodesUi(
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
+    // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
+    // change (the session's position included), and every row it reaches then recomposes
+    val eventSink = state.eventSink
+    val mediaProgress = state.mediaProgress
+    val playingEpisode = state.currentSession?.let { it.libraryItem.id to it.episodeId }
     ContentPagingScaffold(
       lazyPagingItems = state.episodes,
       emptyMessage = stringResource(Res.string.latest_episodes_empty),
@@ -106,7 +111,7 @@ fun LatestEpisodesUi(
       LatestEpisodesList(
         items = state.episodes,
         onPlayClick = { episode ->
-          state.eventSink(
+          eventSink(
             LatestEpisodesUiEvent.PlayEpisode(
               libraryItemId = episode.episode.libraryItemId,
               episodeId = episode.episode.id,
@@ -114,7 +119,7 @@ fun LatestEpisodesUi(
           )
         },
         onRowClick = { episode ->
-          state.eventSink(
+          eventSink(
             LatestEpisodesUiEvent.OpenPodcast(episode),
           )
         },
@@ -122,17 +127,16 @@ fun LatestEpisodesUi(
           pendingPlaylistEpisode = episode
         },
         onMarkFinishedClick = { episode ->
-          state.eventSink(LatestEpisodesUiEvent.MarkFinished(episode))
+          eventSink(LatestEpisodesUiEvent.MarkFinished(episode))
         },
         onMarkNotFinishedClick = { episode ->
-          state.eventSink(LatestEpisodesUiEvent.MarkNotFinished(episode))
+          eventSink(LatestEpisodesUiEvent.MarkNotFinished(episode))
         },
         progressForEpisode = { episode ->
-          state.mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
+          mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
         },
         hasSessionForEpisode = { episode ->
-          state.currentSession?.libraryItem?.id == episode.libraryItemId &&
-            state.currentSession.episodeId == episode.id
+          playingEpisode == (episode.libraryItemId to episode.id)
         },
         contentPadding = paddingValues + PaddingValues(horizontal = 16.dp),
       )

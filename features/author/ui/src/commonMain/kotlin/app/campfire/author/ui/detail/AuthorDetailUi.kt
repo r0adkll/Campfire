@@ -61,6 +61,11 @@ fun AuthorDetail(
   state: AuthorDetailUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  // Capture only what callbacks read: a lambda capturing the whole state is rebuilt on every state
+  // change, and every item it reaches then recomposes
+  val eventSink = state.eventSink
+  val offlineStates = state.offlineStates
+
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
@@ -70,7 +75,7 @@ fun AuthorDetail(
         windowInsets = WindowInsets(),
         contentPadding = WindowInsets.statusBars.asPaddingValues(),
         navigationIcon = {
-          NavigationBackButton(onClick = { state.eventSink(AuthorDetailUiEvent.Back) })
+          NavigationBackButton(onClick = { eventSink(AuthorDetailUiEvent.Back) })
         },
       )
     },
@@ -96,9 +101,9 @@ fun AuthorDetail(
 
       is LoadState.Loaded -> LoadedState(
         author = state.authorContentState.data,
-        offlineStatus = { state.offlineStates.statusOf(it) },
+        offlineStatus = { offlineStates.statusOf(it) },
         contentPadding = paddingValues,
-        onLibraryItemClick = { state.eventSink(AuthorDetailUiEvent.LibraryItemClick(it)) },
+        onLibraryItemClick = { eventSink(AuthorDetailUiEvent.LibraryItemClick(it)) },
       )
     }
   }
