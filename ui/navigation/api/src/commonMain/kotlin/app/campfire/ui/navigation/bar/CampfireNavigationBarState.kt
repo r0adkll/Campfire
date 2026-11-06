@@ -18,12 +18,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import app.campfire.common.compose.util.withDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -204,15 +207,26 @@ fun AttachScrollBehaviorToLocalNavigationBar(scrollBehavior: SearchBarScrollBeha
   }
 }
 
+/**
+ * Bottom insets that keep content clear of the navigation bar and the playback bar riding on it.
+ *
+ * The offset changes on every frame the bars slide with scrolling, so it is read when the insets are
+ * measured rather than here: a consumer that applies insets in layout (Scaffold, `windowInsetsPadding`)
+ * then only re-lays out as the bars move, instead of recomposing the whole screen each frame.
+ */
 val CampfireNavigationBarWindowInsets: WindowInsets
   @Composable get() {
     val navigationBarState = LocalNavigationBarState.current
-    return if (navigationBarState != null) {
-      val playbackBarOffset = navigationBarState.playbackBarOffset()
-      WindowInsets(
-        bottom = withDensity { playbackBarOffset.toDp() },
-      )
-    } else {
-      WindowInsets()
+    return remember(navigationBarState) {
+      navigationBarState?.let(::PlaybackBarOffsetInsets) ?: WindowInsets(0)
     }
   }
+
+private class PlaybackBarOffsetInsets(
+  private val state: CampfireNavigationBarState,
+) : WindowInsets {
+  override fun getLeft(density: Density, layoutDirection: LayoutDirection): Int = 0
+  override fun getTop(density: Density): Int = 0
+  override fun getRight(density: Density, layoutDirection: LayoutDirection): Int = 0
+  override fun getBottom(density: Density): Int = state.playbackBarOffset().roundToInt()
+}

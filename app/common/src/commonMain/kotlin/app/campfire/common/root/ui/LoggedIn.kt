@@ -55,7 +55,7 @@ import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.offline.BackOnlineSnackbarEffect
-import app.campfire.common.compose.session.LocalPlaybackSession
+import app.campfire.common.compose.session.LocalHasPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
 import app.campfire.common.compose.session.PlaybackBarAwareDecoration
 import app.campfire.common.compose.theme.CampfireTheme
@@ -121,6 +121,8 @@ import com.slack.circuitx.navigation.intercepting.NavigationInterceptor
 import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -161,10 +163,13 @@ internal fun LoggedInWindow(
     }
   }
 
-  // Observe Current Session
-  val currentSession by remember(userComponent) {
+  // Only whether there is a session: its position changes on every player tick, and anything this
+  // root reads recomposes with it
+  val hasPlaybackSession by remember(userComponent) {
     userComponent.sessionsRepository.observeCurrentSession()
-  }.collectAsState(null)
+      .map { it != null }
+      .distinctUntilChanged()
+  }.collectAsState(false)
 
   val uriHandler = LocalUriHandler.current
   val urlNavigator: Navigator = remember(navigator, uriHandler) {
@@ -201,7 +206,7 @@ internal fun LoggedInWindow(
       }.collectAsState()
 
       CompositionLocalProvider(
-        LocalPlaybackSession provides currentSession,
+        LocalHasPlaybackSession provides hasPlaybackSession,
         LocalThemeDispatcher provides themeManagerDispatcher,
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
         LocalLibraryItemActions provides userComponent.libraryItemActions,
@@ -210,7 +215,7 @@ internal fun LoggedInWindow(
         // the player the region below. Everything under here — navigation type, pane routing,
         // the adaptive layout — is sized to that upper region alone. With nothing playing there
         // is no player to dock, so the app keeps the whole screen.
-        val tabletopSplit = rememberTabletopSplit()?.takeIf { currentSession != null }
+        val tabletopSplit = rememberTabletopSplit()?.takeIf { hasPlaybackSession }
 
         // The entire Compose hierarchy under this should be keyed and
         // unique per-user.
@@ -585,7 +590,7 @@ private fun LoggedInUi(
       },
       snackbarHost = {
         // Above the floating playback bar, which itself rides above the bottom navigation
-        val isPlaying = LocalPlaybackSession.current != null && !windowSizeClass.usesBottomPlaybackBar
+        val isPlaying = LocalHasPlaybackSession.current && !windowSizeClass.usesBottomPlaybackBar
         val bottomSystemInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         SnackbarHost(
           hostState = snackbarHostState,

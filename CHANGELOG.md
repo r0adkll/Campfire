@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The app feeling sluggish while a book is playing, and the library stuttering as you scroll
 - [Android] Books that had been streaming fine failing with "Unable to play this file" until the app's cache was cleared
 - [Android] Playback errors say what actually went wrong (connection, sign-in, missing file or unreadable audio) with an error code to include in bug reports, instead of always blaming the audio format
 - E-books in list views showing a length of "0s"; they show their file size instead, and podcasts show their episode count

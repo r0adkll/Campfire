@@ -13,10 +13,9 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.session.LocalHasPlaybackSession
 import app.campfire.common.compose.session.LocalPlaybackBarHidden
-import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
-import app.campfire.common.test.session
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,17 +27,17 @@ class CampfireWindowInsetsTest {
 
   @Test
   fun `while something plays, content insets for the floating bar`() {
-    assertEquals(88, bottomInset(LocalPlaybackSession provides session()))
+    assertEquals(88, bottomInset(LocalHasPlaybackSession provides true))
   }
 
   @Test
   fun `a screen that hides the bar doesn't reserve room for it`() {
-    assertEquals(0, bottomInset(LocalPlaybackSession provides session(), LocalPlaybackBarHidden provides true))
+    assertEquals(0, bottomInset(LocalHasPlaybackSession provides true, LocalPlaybackBarHidden provides true))
   }
 
   @Test
   fun `a docked player doesn't need room either`() {
-    assertEquals(0, bottomInset(LocalPlaybackSession provides session(), LocalPlayerDocked provides true))
+    assertEquals(0, bottomInset(LocalHasPlaybackSession provides true, LocalPlayerDocked provides true))
   }
 
   @Test

@@ -7,7 +7,12 @@ sealed interface LoadState<Data> {
   val dataOrNull: Data? get() = (this as? Loaded<Data>)?.data
 
   data object Loading : LoadState<Nothing>
-  class Loaded<Data>(val data: Data) : LoadState<Data>
+
+  /**
+   * Compares by [data], so `collectAsState` drops a re-emission equal to what it already holds.
+   * Many sources re-query whenever a table they join changes, which during playback is twice a second.
+   */
+  data class Loaded<Data>(val data: Data) : LoadState<Data>
   data object Error : LoadState<Nothing>
 }
 
