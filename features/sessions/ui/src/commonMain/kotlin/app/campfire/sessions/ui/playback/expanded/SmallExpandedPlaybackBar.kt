@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -328,11 +329,17 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   val isDragged by interactionSource.collectIsDraggedAsState()
   val isInteracting = isPressed || isDragged
 
+  // BoxWithConstraints composes its content while measuring, so content that captured the player
+  // state directly would be a new lambda on every position tick, re-measuring this region and
+  // composing it again inside the measure pass. Reading the ticking values through State keeps
+  // the lambda the same, so a tick only recomposes what reads them.
+  val latestSession by rememberUpdatedState(session)
+  val latestPlayerState by rememberUpdatedState(playerState)
   BoxWithConstraints(modifier) {
     // The cover column stacks a square cover over the whole-book readout, and on the shortest
     // regions the two together do not fit — the readout ran off the bottom edge. It gives way
     // first, the same trade the wide layout makes, rather than the cover shrinking to nothing.
-    val showBookTime = playerState.bookTimeEnabled && maxHeight >= BookTimeMinHeight
+    val showBookTime = latestPlayerState.bookTimeEnabled && maxHeight >= BookTimeMinHeight
 
     Row(
       modifier = Modifier
@@ -340,8 +347,8 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         .fillMaxHeight(),
     ) {
       this@SmallExpandedPlaybackContent.ItemMetadata(
-        playerState = playerState,
-        session = session,
+        playerState = latestPlayerState,
+        session = latestSession,
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
         onItemClick = onItemClick,
@@ -352,8 +359,8 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
       )
 
       ItemActions(
-        session = session,
-        playerState = playerState,
+        session = latestSession,
+        playerState = latestPlayerState,
         syncState = syncState,
         isInteracting = isInteracting,
         interactionSource = interactionSource,
@@ -364,8 +371,8 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
 
       PlaybackOptionsColumn(
         overlayHost = overlayHost,
-        session = session,
-        playerState = playerState,
+        session = latestSession,
+        playerState = latestPlayerState,
         playbackHistoryEnabled = playbackHistoryEnabled,
         volumeState = volumeState,
         outputDeviceState = outputDeviceState,

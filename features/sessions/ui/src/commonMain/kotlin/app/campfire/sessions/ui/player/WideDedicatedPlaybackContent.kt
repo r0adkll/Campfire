@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -73,6 +74,12 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
   val isDragged by interactionSource.collectIsDraggedAsState()
   val isInteracting = isPressed || isDragged
 
+  // BoxWithConstraints composes its content while measuring, so content that captured the player
+  // state directly would be a new lambda on every position tick, re-measuring this region and
+  // composing it again inside the measure pass. Reading the ticking values through State keeps
+  // the lambda the same, so a tick only recomposes what reads them.
+  val latestSession by rememberUpdatedState(session)
+  val latestPlayerState by rememberUpdatedState(playerState)
   BoxWithConstraints(modifier) {
     val room = maxHeight - ControlsColumnFixedHeight
     val showBookTime = room >= SmallTransportButtonSize
@@ -89,8 +96,8 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
         .padding(top = WideVerticalMargin),
     ) {
       this@WideDedicatedPlaybackContent.ItemMetadata(
-        playerState = playerState,
-        session = session,
+        playerState = latestPlayerState,
+        session = latestSession,
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
         onItemClick = onItemClick,
@@ -101,8 +108,8 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
       )
 
       ItemActions(
-        session = session,
-        playerState = playerState,
+        session = latestSession,
+        playerState = latestPlayerState,
         syncState = syncState,
         isInteracting = isInteracting,
         interactionSource = interactionSource,
@@ -115,8 +122,8 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
 
       val actions = rememberPlaybackOptionActions(
         overlayHost = overlayHost,
-        session = session,
-        playerState = playerState,
+        session = latestSession,
+        playerState = latestPlayerState,
       )
       ActionColumn(
         onBookmarksClick = actions.onBookmarksClick,
@@ -125,11 +132,11 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
         volumeContent = volumeState?.let { { VolumeControl(state = it) } },
         outputDeviceContent = outputDeviceState?.let { { OutputDeviceControl(state = it) } },
         onEqualizerClick = actions.onEqualizerClick,
-        showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
+        showEqualizer = latestPlayerState.equalizer !is EqualizerState.Unsupported,
         onChapterListClick = actions.onChapterListClick,
-        showChapters = session?.episodeId == null,
+        showChapters = latestSession?.episodeId == null,
         onDescriptionClick = actions.onDescriptionClick,
-        showDescription = session?.episodeId != null,
+        showDescription = latestSession?.episodeId != null,
         onHistoryClick = actions.onHistoryClick,
         showHistory = playbackHistoryEnabled,
         modifier = Modifier.padding(bottom = WideVerticalMargin),

@@ -75,7 +75,7 @@ class CollectionDetailPresenterTest {
   @Test
   fun deleteItems_removesThemFromTheCollection() = runTest {
     presenter.test {
-      awaitItem().eventSink(CollectionDetailUiEvent.DeleteItems(listOf(book, ebook)))
+      awaitItem().eventSink(CollectionDetailUiEvent.DeleteItems(listOf(book.id, ebook.id)))
       testScheduler.advanceUntilIdle()
 
       assertThat(repository.removedFromCollections).containsExactly(listOf(book.id, ebook.id) to "col_1")

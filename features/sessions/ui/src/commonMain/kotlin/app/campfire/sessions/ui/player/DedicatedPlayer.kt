@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -149,7 +150,13 @@ internal fun DedicatedPlayerContent(
       DefaultNonThemedContentColor
     }
 
+    // BoxWithConstraints composes its content while measuring. Content that captured uiState
+    // directly would be a new lambda on every position tick, re-measuring the whole player and
+    // composing it again inside the measure pass. Reading it through State keeps the lambda the
+    // same, so a tick only recomposes what reads it, the ordinary way.
+    val latestUiState = rememberUpdatedState(uiState)
     BoxWithConstraints(modifier) {
+      val state = latestUiState.value
       // Everything inside the expanded body reads the window size class for its inset and
       // corner decisions. Feed it this region's size instead, so a wide-and-short foldable half
       // is treated like the landscape phone it resembles rather than the tall tablet it sits in.
@@ -159,7 +166,7 @@ internal fun DedicatedPlayerContent(
       val layout = remember(maxWidth, maxHeight) {
         dedicatedPlayerLayout(maxWidth, maxHeight)
       }
-      val session = uiState.session
+      val session = state.session
       val isCompact = layout == DedicatedPlayerLayout.Compact && session != null
       val useRail = layout == DedicatedPlayerLayout.Wide && wideChrome == WideChromePlacement.LeadingRail
 
@@ -184,7 +191,7 @@ internal fun DedicatedPlayerContent(
                 exit = ExitTransition.None,
               ) {
                 var showQueue by remember { mutableStateOf(false) }
-                val queueState = uiState.queueState
+                val queueState = state.queueState
                 val hasQueue = queueState.queue.isNotEmpty()
 
                 Box(Modifier.fillMaxSize()) {
@@ -192,7 +199,7 @@ internal fun DedicatedPlayerContent(
                   // draws with no background of its own over it.
                   if (isCompact) {
                     CoverBackdrop(
-                      imageUrl = uiState.playerState.metadata.artworkUri
+                      imageUrl = state.playerState.metadata.artworkUri
                         ?: session?.libraryItem?.media?.coverImageUrl,
                       tint = containerColor,
                       modifier = Modifier.fillMaxSize(),
@@ -253,12 +260,12 @@ internal fun DedicatedPlayerContent(
                           DedicatedPlayerLayout.Wide -> WideDedicatedPlaybackContent(
                             overlayHost = overlayHost,
                             session = session,
-                            playerState = uiState.playerState,
-                            syncState = uiState.syncUiState,
-                            itemValidation = uiState.validation,
-                            playbackHistoryEnabled = uiState.playbackHistoryEnabled,
-                            volumeState = uiState.volume,
-                            outputDeviceState = uiState.outputDevices,
+                            playerState = state.playerState,
+                            syncState = state.syncUiState,
+                            itemValidation = state.validation,
+                            playbackHistoryEnabled = state.playbackHistoryEnabled,
+                            volumeState = state.volume,
+                            outputDeviceState = state.outputDevices,
                             onItemClick = onItemClick,
                             animatedVisibilityScope = this@AnimatedVisibility,
                             modifier = Modifier.fillMaxSize(),
@@ -266,7 +273,7 @@ internal fun DedicatedPlayerContent(
 
                           DedicatedPlayerLayout.Compact -> CompactDedicatedPlaybackContent(
                             session = session,
-                            playerState = uiState.playerState,
+                            playerState = state.playerState,
                             onItemClick = onItemClick,
                             modifier = Modifier.fillMaxSize(),
                           )
@@ -274,12 +281,12 @@ internal fun DedicatedPlayerContent(
                           DedicatedPlayerLayout.Tall -> ExpandedPlaybackContent(
                             overlayHost = overlayHost,
                             session = session,
-                            playerState = uiState.playerState,
-                            syncState = uiState.syncUiState,
-                            itemValidation = uiState.validation,
-                            playbackHistoryEnabled = uiState.playbackHistoryEnabled,
-                            volumeState = uiState.volume,
-                            outputDeviceState = uiState.outputDevices,
+                            playerState = state.playerState,
+                            syncState = state.syncUiState,
+                            itemValidation = state.validation,
+                            playbackHistoryEnabled = state.playbackHistoryEnabled,
+                            volumeState = state.volume,
+                            outputDeviceState = state.outputDevices,
                             onItemClick = onItemClick,
                             animatedVisibilityScope = this@AnimatedVisibility,
                             modifier = Modifier.fillMaxSize(),
