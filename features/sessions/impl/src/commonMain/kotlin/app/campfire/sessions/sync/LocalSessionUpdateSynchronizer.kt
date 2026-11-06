@@ -42,6 +42,8 @@ class LocalSessionUpdateSynchronizer(
 
   private var lastPlayedTime: Long? = null
 
+  private val positionThrottle = PositionSaveThrottle(fatherTime::nowInEpochMillis)
+
   override suspend fun onStateChanged(
     sessionId: Uuid,
     libraryItemId: LibraryItemId,
@@ -49,6 +51,16 @@ class LocalSessionUpdateSynchronizer(
     previousState: AudioPlayer.State,
   ) {
     ibark { "onStateChanged: $state from $previousState" }
+
+    // Leaving playback saves exactly where it stopped, ahead of the listening-time sync below
+    val isPlaying = state == AudioPlayer.State.Playing || state == AudioPlayer.State.Buffering
+    positionThrottle.onPlayingChanged(isPlaying)
+    if (!isPlaying) {
+      positionThrottle.flush(libraryItemId)?.let { position ->
+        component.sessionsRepository.updateCurrentTime(libraryItemId, position)
+      }
+    }
+
     if (state == AudioPlayer.State.Playing) {
       lastPlayedTime = fatherTime.nowInEpochMillis()
       ibark { "Setting lastPlayedTime to $lastPlayedTime" }
@@ -79,13 +91,20 @@ class LocalSessionUpdateSynchronizer(
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-    component.sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
+    if (positionThrottle.onPosition(libraryItemId, overallTime)) {
+      component.sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
+    }
 
     // Check if its been too long since we synced listening time
     if (lastPlayedTime != null) {
       val elapsed = (fatherTime.nowInEpochMillis() - lastPlayedTime!!).milliseconds
       if (elapsed > MAX_TIME_LISTENING_INTERVAL) {
         ibark { "Timeout adding $elapsed time listening)" }
+        // The new listening time is what makes the next sync report in, so save the exact position
+        // it should report alongside it
+        positionThrottle.flush(libraryItemId)?.let { position ->
+          component.sessionsRepository.updateCurrentTime(libraryItemId, position)
+        }
         component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
         lastPlayedTime = fatherTime.nowInEpochMillis()
       }
