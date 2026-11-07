@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,7 +77,6 @@ import campfire.common.compose.generated.resources.unfinished_episodes_capped
 import campfire.common.compose.generated.resources.unknown_author_name
 import campfire.common.compose.generated.resources.unknown_library_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -579,9 +577,7 @@ fun ItemCardInformation(
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
 
-  val marqueeDelay = remember {
-    Random.nextInt(1_200, 2_000)
-  }
+  val marqueeDwell = rememberCardMarqueeDwellMillis()
 
   val marqueeVelocity = remember {
     LibraryItemMarqueeVelocityRange.random().dp
@@ -612,12 +608,7 @@ fun ItemCardInformation(
             )
           }
         }
-        .thenIf(marqueeEnabled) {
-          basicMarquee(
-            velocity = marqueeVelocity,
-            initialDelayMillis = marqueeDelay,
-          )
-        }
+        .cardMarquee(marqueeEnabled, marqueeVelocity, marqueeDwell)
         .padding(horizontal = 16.dp),
     )
     Text(
@@ -627,12 +618,7 @@ fun ItemCardInformation(
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier
-        .thenIf(marqueeEnabled) {
-          basicMarquee(
-            velocity = marqueeVelocity,
-            initialDelayMillis = marqueeDelay,
-          )
-        }
+        .cardMarquee(marqueeEnabled, marqueeVelocity, marqueeDwell)
         .padding(horizontal = 16.dp),
     )
   }
