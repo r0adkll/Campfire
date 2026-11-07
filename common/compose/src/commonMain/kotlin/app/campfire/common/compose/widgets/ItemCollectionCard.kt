@@ -5,7 +5,6 @@ package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -101,6 +100,7 @@ fun ItemCollectionCard(
       )
     }
 
+    val marqueeDwell = rememberCardMarqueeDwellMillis()
     Column(
       Modifier.padding(
         horizontal = 16.dp,
@@ -111,14 +111,14 @@ fun ItemCollectionCard(
         text = name,
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
-        modifier = Modifier.basicMarquee(),
+        modifier = Modifier.cardMarquee(dwellMillis = marqueeDwell),
       )
       description?.let { desc ->
         Text(
           text = desc,
           style = MaterialTheme.typography.bodySmall,
           maxLines = 2,
-          modifier = Modifier.basicMarquee(),
+          modifier = Modifier.cardMarquee(dwellMillis = marqueeDwell),
         )
       }
     }
