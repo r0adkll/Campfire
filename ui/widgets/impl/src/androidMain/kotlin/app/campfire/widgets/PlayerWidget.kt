@@ -89,7 +89,11 @@ class PlayerWidget : GlanceAppWidget() {
     val ACTION_KEY_LIBRARY_ITEM_ID get() = ActionParameters.Key<String>(DeepLinkKeys.LibraryItemId)
   }
 
-  override val sizeMode: SizeMode = SizeMode.Responsive(WidgetSizeClass.ResponsiveSizes)
+  // Exact rather than Responsive: Glance composes and translates a responsive widget once for every
+  // declared size on each update, and each translation creates a PendingIntent per clickable and
+  // carries its own copy of the artwork. Exact composes only the sizes the launcher is showing, and
+  // WidgetSizeClass.from picks the same breakpoint responsive mode would.
+  override val sizeMode: SizeMode = SizeMode.Exact
   override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
