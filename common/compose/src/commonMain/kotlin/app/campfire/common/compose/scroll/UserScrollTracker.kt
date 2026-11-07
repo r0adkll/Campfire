@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -18,8 +19,12 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Whether the user is scrolling anything beneath where [nestedScrollConnection] is installed.
@@ -61,6 +66,29 @@ class UserScrollTracker(
       }
       isScrolling = false
     }
+  }
+
+  /**
+   * Suspends until the user hasn't scrolled for [duration] in a row: right away if they aren't
+   * scrolling now, the wait starts over whenever a scroll begins during it.
+   *
+   * Timed on this tracker's own scope, so it keeps the same clock as [isScrolling] settling.
+   */
+  suspend fun awaitStillFor(duration: Duration) {
+    withContext(scope.coroutineContext.minusKey(Job)) {
+      while (true) {
+        awaitNotScrolling()
+        val interrupted = withTimeoutOrNull(duration) {
+          snapshotFlow { isScrolling }.first { it }
+        }
+        if (interrupted == null) break
+      }
+    }
+  }
+
+  /** Suspends until no scroll is in progress, without asking for any frames meanwhile. */
+  suspend fun awaitNotScrolling() {
+    if (isScrolling) snapshotFlow { isScrolling }.first { !it }
   }
 
   companion object {
