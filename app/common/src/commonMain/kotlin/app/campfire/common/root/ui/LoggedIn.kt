@@ -32,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -55,6 +56,8 @@ import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.offline.BackOnlineSnackbarEffect
+import app.campfire.common.compose.scroll.LocalUserScrollTracker
+import app.campfire.common.compose.scroll.rememberUserScrollTracker
 import app.campfire.common.compose.session.LocalHasPlaybackSession
 import app.campfire.common.compose.session.LocalPlayerDocked
 import app.campfire.common.compose.session.PlaybackBarAwareDecoration
@@ -205,8 +208,13 @@ internal fun LoggedInWindow(
         layoutSettings.observeSupportingPaneWidth()
       }.collectAsState()
 
+      // Watches every list beneath the layout for the user scrolling, so card marquees can hold
+      // still until it settles
+      val userScrollTracker = rememberUserScrollTracker()
+
       CompositionLocalProvider(
         LocalHasPlaybackSession provides hasPlaybackSession,
+        LocalUserScrollTracker provides userScrollTracker,
         LocalThemeDispatcher provides themeManagerDispatcher,
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
         LocalLibraryItemActions provides userComponent.libraryItemActions,
@@ -237,7 +245,7 @@ internal fun LoggedInWindow(
               supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
               onSupportingPaneWidthChange = { layoutSettings.supportingPaneWidth = it.value },
               tabletopSplit = tabletopSplit,
-              modifier = modifier,
+              modifier = modifier.nestedScroll(userScrollTracker.nestedScrollConnection),
             )
           }
         }

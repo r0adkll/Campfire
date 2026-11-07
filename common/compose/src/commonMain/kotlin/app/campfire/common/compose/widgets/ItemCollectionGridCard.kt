@@ -8,7 +8,6 @@ package app.campfire.common.compose.widgets
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.core.model.LibraryItem
 import campfire.common.compose.generated.resources.Res
@@ -352,6 +350,7 @@ private fun ItemCollectionInformation(
   marqueeEnabled: Boolean = true,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+  val marqueeDwell = rememberCardMarqueeDwellMillis()
 
   Column(
     modifier.padding(vertical = 16.dp),
@@ -373,9 +372,7 @@ private fun ItemCollectionInformation(
             animatedVisibilityScope = scope,
           )
         }
-        .thenIf(marqueeEnabled) {
-          basicMarquee()
-        }
+        .cardMarquee(marqueeEnabled, dwellMillis = marqueeDwell)
         .padding(horizontal = 16.dp),
     )
 
@@ -386,9 +383,7 @@ private fun ItemCollectionInformation(
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier
-        .thenIf(marqueeEnabled) {
-          basicMarquee()
-        }
+        .cardMarquee(marqueeEnabled, dwellMillis = marqueeDwell)
         .padding(horizontal = 16.dp),
     )
   }

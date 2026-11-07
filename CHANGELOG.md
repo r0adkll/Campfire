@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Long titles on book and series cards start scrolling only once the list has been still for a moment, and pause where they are while you scroll
 - The custom theme builder shows Campfire's screens as you edit, with one tool at a time on phones and every control beside the preview on foldables and tablets. It lets you start from the colors of your own books' covers, pick a style by how it looks, choose any palette color and fine-tune the exact colors of any part of the app in light and dark mode, zooming in on the part, and warns when parts become hard to read, with a one-tap fix
 - The theme picker shows each theme as a small copy of Home with your own books, lets you switch between light, dark and the system setting at the top, and lets you edit, duplicate or delete your themes, or start a new one from a built-in theme. On foldables and tablets the themes sit in a list beside a large preview of the one in use, with light and dark side by side when there's room, split along the fold when the device is half-open
 - [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
@@ -45,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [Android] Rewinding or skipping while paused not updating the time left, and the new position being lost if the app closed before you pressed play
+- Series cards on Home scrolling their titles even with Marquee scrolling turned off
 - The app feeling sluggish while a book is playing, and the library stuttering as you scroll
 - [Android] Books that had been streaming fine failing with "Unable to play this file" until the app's cache was cleared
 - [Android] Playback errors say what actually went wrong (connection, sign-in, missing file or unreadable audio) with an error code to include in bug reports, instead of always blaming the audio format
