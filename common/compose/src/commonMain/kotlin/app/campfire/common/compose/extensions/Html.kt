@@ -103,3 +103,55 @@ fun rememberHtmlRichTextState(
   }
   return state
 }
+
+private val HtmlBreakRegex = Regex("""<\s*(br|/p|/div|/li|/h[1-6])\b[^>]*>""", RegexOption.IGNORE_CASE)
+private val HtmlTagRegex = Regex("""<[^>]*>""")
+private val HtmlEntityRegex = Regex("""&(#x[0-9a-fA-F]+|#[0-9]+|[a-zA-Z]+);""")
+private val WhitespaceRegex = Regex("""\s+""")
+private val NamedHtmlEntities = mapOf(
+  "amp" to "&",
+  "lt" to "<",
+  "gt" to ">",
+  "quot" to "\"",
+  "apos" to "'",
+  "nbsp" to " ",
+  "ndash" to "–",
+  "mdash" to "—",
+  "hellip" to "…",
+  "lsquo" to "‘",
+  "rsquo" to "’",
+  "ldquo" to "“",
+  "rdquo" to "”",
+)
+
+/**
+ * The text of an HTML description, flattened to one line: tags dropped, common entities decoded,
+ * whitespace collapsed. For short summaries, where rendering the full HTML would be wasted work.
+ */
+fun String.htmlToPlainText(): String =
+  replace(LeadingLiteralNewlineRegex, "")
+    .replace(HtmlBreakRegex, " ")
+    .replace(HtmlTagRegex, "")
+    .replace(HtmlEntityRegex) { match ->
+      val entity = match.groupValues[1]
+      when {
+        entity.startsWith("#x") || entity.startsWith("#X") ->
+          entity.drop(2).toIntOrNull(16)?.let(::codePointToString)
+        entity.startsWith("#") -> entity.drop(1).toIntOrNull()?.let(::codePointToString)
+        else -> NamedHtmlEntities[entity]
+      } ?: match.value
+    }
+    .replace(WhitespaceRegex, " ")
+    .trim()
+
+private fun codePointToString(codePoint: Int): String? = when {
+  codePoint < 0 || codePoint > 0x10FFFF -> null
+  codePoint < 0x10000 -> codePoint.toChar().toString()
+  else -> {
+    val offset = codePoint - 0x10000
+    charArrayOf(
+      (0xD800 + (offset shr 10)).toChar(),
+      (0xDC00 + (offset and 0x3FF)).toChar(),
+    ).concatToString()
+  }
+}

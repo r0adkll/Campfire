@@ -36,15 +36,13 @@ class ChapterSlot(
   private val showTimeInBook: Boolean,
   private val mediaProgress: MediaProgress?,
   private val isValid: Boolean = true,
+  /** Where it sits in its list, which rounds the corners of the first and last rows. */
+  private val isFirst: Boolean = true,
+  private val isLast: Boolean = true,
 ) : ContentSlot {
 
   override val id: String = "chapter_${chapter.id}"
   override val contentType = ContentSlot.ContentType.Chapter
-
-  private val isFirst = libraryItem.media.chapters.indexOf(chapter) == 0
-  private val isLast = libraryItem.media.chapters.run {
-    indexOf(chapter) == lastIndex
-  }
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {

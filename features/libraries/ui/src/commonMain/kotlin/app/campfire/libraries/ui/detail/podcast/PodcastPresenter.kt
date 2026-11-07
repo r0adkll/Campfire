@@ -305,7 +305,7 @@ private fun buildSlots(
         user.type == User.Type.Root,
     )
 
-    this += podcastMedia.episodes.map { episode ->
+    this += podcastMedia.episodes.mapIndexed { index, episode ->
       val progress = mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
       EpisodeSlot(
         libraryItem = libraryItem,
@@ -317,6 +317,8 @@ private fun buildSlots(
         canDownload = user.canDownload,
         showConfirmDownloadDialog = showConfirmDownloadDialog,
         addToPlaylistDialog = addToPlaylistDialog,
+        isFirst = index == 0,
+        isLast = index == podcastMedia.episodes.lastIndex,
       )
     }
   }

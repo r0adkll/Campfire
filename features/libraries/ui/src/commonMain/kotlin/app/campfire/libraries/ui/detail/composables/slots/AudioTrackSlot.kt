@@ -30,15 +30,13 @@ class AudioTrackSlot(
   private val track: AudioTrack,
   private val showTimeInBook: Boolean,
   private val mediaProgress: MediaProgress?,
+  /** Where it sits in its list, which rounds the corners of the first and last rows. */
+  private val isFirst: Boolean = true,
+  private val isLast: Boolean = true,
 ) : ContentSlot {
 
   override val id: String = "track_${track.index}"
   override val contentType = ContentSlot.ContentType.Chapter
-
-  private val isFirst = libraryItem.media.tracks.indexOf(track) == 0
-  private val isLast = libraryItem.media.tracks.run {
-    indexOf(track) == lastIndex
-  }
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {

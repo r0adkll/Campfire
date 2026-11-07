@@ -145,8 +145,11 @@ fun ReaderUi(
     true
   }
 
-  // The bars and panels take the page's colors
-  MaterialTheme(colorScheme = MaterialTheme.colorScheme.forPage(palette)) {
+  // The bars and panels take the page's colors. Remembered: a new scheme instance on each page
+  // turn would re-provide Material's static color local and redraw the whole reader
+  val appColors = MaterialTheme.colorScheme
+  val pageColors = remember(appColors, palette) { appColors.forPage(palette) }
+  MaterialTheme(colorScheme = pageColors) {
     ReaderContent(state = state, renderer = renderer, modifier = modifier)
   }
 }

@@ -740,6 +740,8 @@ private fun buildSlots(
             showTimeInBook = showTimeInBook,
             mediaProgress = mediaProgressState.dataOrNull,
             isValid = invalidChapterIds?.contains(chapter.id) != true,
+            isFirst = index == 0,
+            isLast = index == libraryItem.media.chapters.lastIndex,
           )
         }
       }
@@ -749,12 +751,14 @@ private fun buildSlots(
         showTimeInBook = showTimeInBook,
         isAudioTracks = true,
       )
-      libraryItem.media.tracks.forEach { track ->
+      libraryItem.media.tracks.forEachIndexed { index, track ->
         this += AudioTrackSlot(
           libraryItem = libraryItem,
           track = track,
           showTimeInBook = showTimeInBook,
           mediaProgress = mediaProgressState.dataOrNull,
+          isFirst = index == 0,
+          isLast = index == libraryItem.media.tracks.lastIndex,
         )
       }
     }

@@ -115,6 +115,35 @@ class SeriesDetailPresenterTest {
   }
 
   @Test
+  fun present_MissingBooks_StayPutWhenOnlyProgressChanges() = runTest {
+    repository.seriesLibraryItemsFlow.emit(listOf(owned))
+    registry.seriesEntriesFlow.emit(
+      LoadState.Loaded(
+        SeriesInfoState(
+          providerId = ProviderId.Audible,
+          providerName = "Audible",
+          isCompleted = null,
+          entries = listOf(SeriesEntry.Missing(missingEntry, ProviderId.Audible)),
+        ),
+      ),
+    )
+
+    presenter.test {
+      awaitItemMatching { it.missingSection != null }
+
+      // A position save on the owned book, as happens every few seconds while it plays
+      repository.seriesLibraryItemsFlow.emit(
+        listOf(owned.copy(userMediaProgress = mediaProgress(libraryItemId = owned.id, progress = 0.4f))),
+      )
+      awaitItemMatching { it.seriesContentState.dataOrNull?.single()?.userMediaProgress != null }
+
+      // The lookup isn't re-run, so the section doesn't drop out while it would answer again
+      assertThat(registry.seriesEntriesRequests.size).isEqualTo(1)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun present_MissingBooks_NeverLoadWhenDisabled() = runTest {
     settings.seriesMissingBooks.value = false
     repository.seriesLibraryItemsFlow.emit(listOf(owned))
