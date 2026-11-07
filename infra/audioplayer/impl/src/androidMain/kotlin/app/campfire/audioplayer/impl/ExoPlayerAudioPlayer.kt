@@ -16,6 +16,7 @@ import androidx.media3.common.Player.EVENT_IS_PLAYING_CHANGED
 import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
 import androidx.media3.common.Player.EVENT_PLAYBACK_STATE_CHANGED
 import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
+import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -910,7 +911,16 @@ class ExoPlayerAudioPlayer(
         observeProgress(player)
       } else {
         progressJob?.cancel()
+        // Settle on exactly where playback stopped; the loop only samples every half second
+        refreshProgress(player)
       }
+    }
+
+    // A seek or skip moves the position outside the progress loop, which doesn't run at all while
+    // paused. Publish it straight away, so the UI follows and the session saves where playback
+    // will resume rather than where it was before the seek.
+    if (events.contains(EVENT_POSITION_DISCONTINUITY)) {
+      refreshProgress(player)
     }
 
     // If the media item transitions (i.e. chapter) and the timer is end of chapter, then
@@ -932,6 +942,16 @@ class ExoPlayerAudioPlayer(
     }
     progressJob?.invokeOnCompletion {
       dbark { "Finished Progress Observer" }
+    }
+  }
+
+  /**
+   * [updateProgress], once the player has media to report a position for. Before it is prepared
+   * (or after it stops) it reads zero, which would be saved over the session's real position.
+   */
+  private fun refreshProgress(player: Player) {
+    if (player.playbackState == Player.STATE_READY || player.playbackState == Player.STATE_BUFFERING) {
+      updateProgress(player)
     }
   }
 
