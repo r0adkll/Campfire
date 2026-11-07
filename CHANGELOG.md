@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Android] Rewinding or skipping while paused not updating the time left, and the new position being lost if the app closed before you pressed play
 - Series cards on Home scrolling their titles even with Marquee scrolling turned off
 - The app feeling sluggish while a book is playing, and the library stuttering as you scroll
 - [Android] Books that had been streaming fine failing with "Unable to play this file" until the app's cache was cleared
