@@ -63,6 +63,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPl
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AudioOffload
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
@@ -170,6 +171,7 @@ class SettingsPresenter(
     val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState()
     val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState()
     val mp3IndexSeeking by remember { playbackSettings.observeMp3IndexSeeking() }.collectAsState()
+    val audioOffloadEnabled by remember { playbackSettings.observeAudioOffloadEnabled() }.collectAsState()
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
@@ -292,6 +294,8 @@ class SettingsPresenter(
         backwardTime = backwardTime.milliseconds,
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
+        audioOffloadEnabled = audioOffloadEnabled,
+        audioOffloadAvailable = currentPlatform == Platform.ANDROID,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         requeueOnSwitch = requeueOnSwitch,
         syncEnabled = syncEnabled,
@@ -472,6 +476,7 @@ class SettingsPresenter(
           is BackwardTime -> playbackSettings.backwardTimeMs = event.backwardTime.inWholeMilliseconds
           is TrackResetThreshold -> playbackSettings.trackResetThreshold = event.trackResetThreshold
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
+          is AudioOffload -> playbackSettings.audioOffloadEnabled = event.enabled
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
           is RequeueOnSwitch -> playbackSettings.requeueOnSwitch = event.enabled

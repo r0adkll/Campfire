@@ -694,6 +694,8 @@ internal fun installPreviewComponents() {
 internal class PreviewPlaybackSettings : PlaybackSettings {
   override var enableMp3IndexSeeking = false
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = MutableStateFlow(enableMp3IndexSeeking)
+  override var audioOffloadEnabled = true
+  override fun observeAudioOffloadEnabled(): StateFlow<Boolean> = MutableStateFlow(audioOffloadEnabled)
   override var forwardTimeMs = 30_000L
   override var backwardTimeMs = 10_000L
   override fun observeForwardTimeMs(): StateFlow<Long> = MutableStateFlow(forwardTimeMs)

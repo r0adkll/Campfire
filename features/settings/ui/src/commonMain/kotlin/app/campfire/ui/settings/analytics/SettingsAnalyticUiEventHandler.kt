@@ -24,6 +24,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPl
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AudioOffload
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
@@ -115,6 +116,7 @@ class SettingsAnalyticUiEventHandler(
       is BackwardTime -> send("backward_time", Updated, event.backwardTime.inWholeMilliseconds)
       is TrackResetThreshold -> send("track_reset_threshold", Updated, event.trackResetThreshold.inWholeMilliseconds)
       is Mp3IndexSeeking -> send("mp3_index_seeking", Updated, event.mp3IndexSeeking)
+      is AudioOffload -> send("audio_offload", Updated, event.enabled)
       is RemoteNextPrevSkipsChapters -> send(
         "remote_next_prev_skip_chapters",
         Updated,

@@ -37,6 +37,10 @@ class PlaybackSettingsImpl(
   override var enableMp3IndexSeeking: Boolean by enableMp3IndexSeekingProperty
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = enableMp3IndexSeekingProperty.observe()
 
+  private val audioOffloadEnabledProperty = booleanSetting(PREF_AUDIO_OFFLOAD, defaultValue = true)
+  override var audioOffloadEnabled: Boolean by audioOffloadEnabledProperty
+  override fun observeAudioOffloadEnabled(): StateFlow<Boolean> = audioOffloadEnabledProperty.observe()
+
   private val forwardTimeMsProperty = longSetting(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
   override var forwardTimeMs: Long by forwardTimeMsProperty
   override fun observeForwardTimeMs(): StateFlow<Long> = forwardTimeMsProperty.observe()
@@ -213,6 +217,7 @@ class PlaybackSettingsImpl(
 }
 
 internal const val PREF_MP3_SEEKING = "pref_playback_mp3_seeking"
+internal const val PREF_AUDIO_OFFLOAD = "pref_playback_audio_offload"
 internal const val PREF_FORWARD_TIME_MS = "pref_playback_forward_time_ms"
 internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
 internal const val PREF_TRACK_RESET_THRESHOLD = "pref_playback_track_reset_threshold"

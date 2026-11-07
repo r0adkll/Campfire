@@ -162,7 +162,12 @@ class ExoPlayerAudioPlayer(
     .build()
     .also { AudioPlayerDebugHooks.Holder.hooks.onExoPlayerCreated(it) }
 
+  private val audioOffload = AudioOffloadController(exoPlayer)
+
   init {
+    scope.launch {
+      settings.observeAudioOffloadEnabled().collect { audioOffload.setSettingEnabled(it) }
+    }
     // Follow skip-time changes made while this player is alive, not just the values at creation
     scope.launch {
       settings.observeForwardTimeMs().collect { exoPlayer.setSeekForwardIncrementMs(it) }
@@ -307,7 +312,7 @@ class ExoPlayerAudioPlayer(
           if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) {
             audioEffects.release()
           } else {
-            audioEffects.attach(audioSessionId, currentEqualizerProfile)
+            audioOffload.runWhenDecoded { audioEffects.attach(audioSessionId, currentEqualizerProfile) }
           }
         }
       },
@@ -673,11 +678,13 @@ class ExoPlayerAudioPlayer(
    * cannot apply and the state is surfaced as [EqualizerState.Unavailable].
    */
   private fun updateEqualizer(profile: EqualizerProfile) {
+    // The equalizer's effects can't process offloaded audio, so offload is off while it's on
+    audioOffload.setEqualizerEnabled(profile.enabled)
     if (isRemotePlayback) {
       equalizer.value = EqualizerState.Unavailable(profile)
     } else {
       equalizer.value = EqualizerState.Available(profile)
-      audioEffects.apply(profile)
+      audioOffload.runWhenDecoded { audioEffects.apply(profile) }
     }
   }
 

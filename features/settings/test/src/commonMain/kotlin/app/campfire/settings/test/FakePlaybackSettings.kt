@@ -25,6 +25,12 @@ class FakePlaybackSettings : PlaybackSettings {
     set(value) { _enableMp3IndexSeeking.value = value }
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = _enableMp3IndexSeeking.asStateFlow()
 
+  private val _audioOffloadEnabled = MutableStateFlow(true)
+  override var audioOffloadEnabled: Boolean
+    get() = _audioOffloadEnabled.value
+    set(value) { _audioOffloadEnabled.value = value }
+  override fun observeAudioOffloadEnabled(): StateFlow<Boolean> = _audioOffloadEnabled.asStateFlow()
+
   private val _forwardTimeMs = MutableStateFlow(30_000L)
   override var forwardTimeMs: Long
     get() = _forwardTimeMs.value

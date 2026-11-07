@@ -113,6 +113,8 @@
   <string name="setting_playback_backward_subtitle">How far to jump backward in time</string>
   <string name="setting_playback_mp3seeking_title">Enable MP3 index seeking</string>
   <string name="setting_playback_mp3seeking_subtitle">Improve the accuracy of seeking in variable bitrate MP3s</string>
+  <string name="setting_playback_offload_title">Low-power playback</string>
+  <string name="setting_playback_offload_subtitle">Let your phone's audio hardware play books, so they use less battery. Not used while the equalizer is on</string>
   <string name="setting_playback_track_reset_title">Track reset threshold</string>
   <string name="setting_playback_track_reset_subtitle">How far into a track that skip previous will just restart it</string>
   <string name="setting_playback_remote_skip_title">Bluetooth next/prev skips chapters</string>

@@ -14,6 +14,13 @@ interface PlaybackSettings {
   var enableMp3IndexSeeking: Boolean
   fun observeMp3IndexSeeking(): StateFlow<Boolean>
 
+  /**
+   * When true (the default), Android hands supported audio to the device's audio hardware to decode
+   * and play ("offload"), so the CPU can sleep while a book plays. Never while the equalizer is on.
+   */
+  var audioOffloadEnabled: Boolean
+  fun observeAudioOffloadEnabled(): StateFlow<Boolean>
+
   var forwardTimeMs: Long
   var backwardTimeMs: Long
   fun observeForwardTimeMs(): StateFlow<Long>
