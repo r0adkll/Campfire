@@ -11,6 +11,7 @@ import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -78,5 +79,23 @@ class UserScrollTrackerTest {
     tracker.scroll(Offset(24f, 0f))
 
     assertThat(tracker.isScrolling).isTrue()
+  }
+
+  @Test
+  fun `awaitNextScroll returns once a scroll has started and settled`() = runTest {
+    val tracker = tracker()
+    val waiting = async { tracker.awaitNextScroll() }
+    advanceTimeBy(1_000.milliseconds)
+    runCurrent()
+    assertThat(waiting.isCompleted).isFalse()
+
+    tracker.scroll()
+    advanceTimeBy(100.milliseconds)
+    runCurrent()
+    assertThat(waiting.isCompleted).isFalse()
+
+    advanceTimeBy(150.milliseconds)
+    runCurrent()
+    assertThat(waiting.isCompleted).isTrue()
   }
 }

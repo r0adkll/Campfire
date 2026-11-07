@@ -13,11 +13,13 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.LayoutModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.requireDensity
+import androidx.compose.ui.node.requireLayoutCoordinates
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -43,6 +45,10 @@ import kotlinx.coroutines.launch
  * picking up where it left off once it settles. Otherwise it behaves like
  * [androidx.compose.foundation.basicMarquee]: [CardMarqueeIterations] passes, a pause between
  * them, a third of the width between the end of the text and its next start.
+ *
+ * Lists compose cards a little beyond what's on screen, so a card can run through its passes
+ * half hidden at an edge before it's ever seen. Once done, a card starts over (after the same
+ * dwell) whenever a scroll leaves it somewhere new.
  */
 @Composable
 fun Modifier.cardMarquee(
@@ -169,12 +175,25 @@ private class CardMarqueeNode(
     invalidateDraw()
     if (!overflows) return
     animation = coroutineScope.launch {
-      awaitStillFor(dwellMillis)
-      repeat(CardMarqueeIterations) { pass ->
-        if (pass > 0) awaitStillFor(CardMarqueeRepeatDelayMillis)
-        scrollOnePass()
-      }
+      do {
+        awaitStillFor(dwellMillis)
+        repeat(CardMarqueeIterations) { pass ->
+          if (pass > 0) awaitStillFor(CardMarqueeRepeatDelayMillis)
+          scrollOnePass()
+        }
+      } while (awaitMovedByScroll())
     }
+  }
+
+  /**
+   * Waits for a scroll that leaves this card somewhere else, where it hasn't been seen to scroll.
+   * False if nothing tracks scrolling, so the card is done for good.
+   */
+  private suspend fun awaitMovedByScroll(): Boolean {
+    val tracker = tracker ?: return false
+    val restingAt = requireLayoutCoordinates().positionInRoot()
+    do tracker.awaitNextScroll() while (requireLayoutCoordinates().positionInRoot() == restingAt)
+    return true
   }
 
   /** Waits until the user hasn't scrolled for [millis] in a row. */

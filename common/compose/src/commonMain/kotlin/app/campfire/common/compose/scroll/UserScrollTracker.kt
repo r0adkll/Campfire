@@ -5,12 +5,8 @@ package app.campfire.common.compose.scroll
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -21,6 +17,7 @@ import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,8 +28,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  *
  * Scrollable lists hand every drag and fling delta up through nested scroll before consuming it,
  * so one connection near the root sees them all. [isScrolling] turns true on the first delta and
- * false once none has arrived for [settleTime]. It only changes at those two moments, so reading
- * it costs nothing per scroll frame.
+ * false once none has arrived for [settleTime]. It only changes at those two moments, and lives
+ * outside the snapshot system, so the cards waiting on it cost nothing per scroll frame.
  */
 @Stable
 class UserScrollTracker(
@@ -40,8 +37,9 @@ class UserScrollTracker(
   private val settleTime: Duration = DefaultSettleTime,
   private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
-  var isScrolling: Boolean by mutableStateOf(false)
-    private set
+  private val scrolling = MutableStateFlow(false)
+
+  val isScrolling: Boolean get() = scrolling.value
 
   private var lastScroll = timeSource.markNow()
 
@@ -54,8 +52,8 @@ class UserScrollTracker(
 
   internal fun onScroll() {
     lastScroll = timeSource.markNow()
-    if (isScrolling) return
-    isScrolling = true
+    if (scrolling.value) return
+    scrolling.value = true
     // One wait per gesture rather than one per frame: keep sleeping until a full settle time has
     // passed since the latest delta
     scope.launch {
@@ -64,7 +62,7 @@ class UserScrollTracker(
         if (remaining <= Duration.ZERO) break
         delay(remaining)
       }
-      isScrolling = false
+      scrolling.value = false
     }
   }
 
@@ -78,9 +76,7 @@ class UserScrollTracker(
     withContext(scope.coroutineContext.minusKey(Job)) {
       while (true) {
         awaitNotScrolling()
-        val interrupted = withTimeoutOrNull(duration) {
-          snapshotFlow { isScrolling }.first { it }
-        }
+        val interrupted = withTimeoutOrNull(duration) { scrolling.first { it } }
         if (interrupted == null) break
       }
     }
@@ -88,7 +84,13 @@ class UserScrollTracker(
 
   /** Suspends until no scroll is in progress, without asking for any frames meanwhile. */
   suspend fun awaitNotScrolling() {
-    if (isScrolling) snapshotFlow { isScrolling }.first { !it }
+    scrolling.first { !it }
+  }
+
+  /** Suspends until the next scroll has started and settled. */
+  suspend fun awaitNextScroll() {
+    scrolling.first { it }
+    awaitNotScrolling()
   }
 
   companion object {
