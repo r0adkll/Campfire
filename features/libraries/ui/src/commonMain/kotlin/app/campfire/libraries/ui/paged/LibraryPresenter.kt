@@ -34,6 +34,7 @@ import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.retained.collectAsRetainedState
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
@@ -65,9 +66,11 @@ class LibraryPresenter(
     // leaves the back stack
     val scope = rememberRetainedCoroutineScope("library_presenter_scope")
 
-    val currentLibrary by remember {
+    // Retained so returning from an item starts with the library already known. Starting from null
+    // would rekey the pager below, which then pages from the top and loses the list's scroll position
+    val currentLibrary by rememberRetained {
       repository.observeCurrentLibrary()
-    }.collectAsState(null)
+    }.collectAsRetainedState(null)
 
     var itemFilter by rememberRetainedSaveable {
       mutableStateOf(screen.filter)
@@ -133,7 +136,7 @@ class LibraryPresenter(
           sortDirection = sort.direction,
         ).map { it ?: INVALID_ITEM_COUNT }
       }
-    }.collectAsState(INVALID_ITEM_COUNT)
+    }.collectAsRetainedState(INVALID_ITEM_COUNT)
 
     val isPodcastLibrary = libraryMediaType == MediaType.Podcast
     val unfinishedEpisodes by rememberRetained(isPodcastLibrary, sort, itemFilter) {
@@ -146,7 +149,7 @@ class LibraryPresenter(
       } else {
         flowOf(emptyMap())
       }
-    }.collectAsState(emptyMap())
+    }.collectAsRetainedState(emptyMap())
 
     val itemDisplayState by remember {
       libraryViewSettings.observeLibraryItemDisplayState()

@@ -3,6 +3,10 @@
 
 package app.campfire.libraries.ui.paged
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withCompositionLocal
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
@@ -26,10 +30,16 @@ import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.user.test.FakeUserRepository
+import app.cash.molecule.RecompositionMode
+import app.cash.molecule.moleculeFlow
+import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
+import com.slack.circuit.retained.LocalRetainedStateRegistry
+import com.slack.circuit.retained.RetainedStateRegistry
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.AfterTest
@@ -206,6 +216,38 @@ class LibraryPresenterTest {
       assertThat(state.isPodcastLibrary).isEqualTo(false)
       assertThat(state.unfinishedEpisodes).isEmpty()
       assertThat(repository.unfinishedEpisodeSorts).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `returning to the library keeps its pages instead of paging from the top`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Book))
+    val registry = RetainedStateRegistry()
+    var showing by mutableStateOf(true)
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      withCompositionLocal(LocalRetainedStateRegistry provides registry) {
+        if (showing) presenter.present() else null
+      }
+    }.test {
+      val before = expectMostRecentItem()!!
+
+      // Opening an item: the navigator retains the screen's state, then removes it
+      registry.saveAll()
+      showing = false
+      assertThat(expectMostRecentItem()).isNull()
+
+      // Back again: the very first state must reuse the retained pages, or the list lays out
+      // empty and loses its scroll position
+      showing = true
+      val returned = awaitItem()!!
+      assertThat(returned.lazyPagingItems.loadState).isEqualTo(before.lazyPagingItems.loadState)
+      assertThat(returned.totalItemCount).isEqualTo(12)
+
+      expectNoEvents()
+      assertThat(repository.pagedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
+      assertThat(repository.countedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
       cancelAndIgnoreRemainingEvents()
     }
   }
