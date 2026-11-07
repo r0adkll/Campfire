@@ -173,7 +173,8 @@ private fun LoadedState(
     contentPadding = contentPadding,
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    items(shelves) { shelf ->
+    // Keyed so a shelf keeps its own row (and scroll position) when shelves above it come or go
+    items(shelves, key = { it.id }) { shelf ->
       ShelfListItem(
         shelf = shelf,
         onItemClick = { onItemClick(shelf, it) },

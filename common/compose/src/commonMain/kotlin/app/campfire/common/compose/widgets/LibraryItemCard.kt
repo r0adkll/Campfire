@@ -244,6 +244,9 @@ private fun LibraryItemCardImage(
       imageUrl = item.media.coverImageUrl,
       contentDescription = item.media.metadata.title,
       placeholder = painterResource(Res.drawable.placeholder_book),
+      // The rendition the card is drawn at. A fixed CoverImageSize (256dp) asked a ~160dp grid cell
+      // for a larger bucket: up to 4x the pixels to download, decode and upload while scrolling
+      requestSize = Dp.Unspecified,
       shape = shape,
       imageBitmapListener = rememberThemeDispatcherListener(item.id),
       modifier = Modifier

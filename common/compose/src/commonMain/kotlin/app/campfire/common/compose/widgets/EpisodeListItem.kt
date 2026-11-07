@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,11 +41,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.DisabledAlpha
+import app.campfire.common.compose.extensions.htmlToPlainText
 import app.campfire.common.compose.extensions.relativeDayLabel
-import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
-import app.campfire.common.compose.extensions.toRichTextHtml
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.FatCheck
@@ -58,8 +58,6 @@ import app.campfire.core.model.preview.mediaProgress
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.duration_finished
 import campfire.common.compose.generated.resources.duration_remaining
-import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
-import com.mohamedrejeb.richeditor.ui.material.RichText
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -67,7 +65,7 @@ import kotlin.time.times
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalRichTextApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EpisodeListItem(
   episode: PodcastEpisode,
@@ -174,11 +172,13 @@ fun EpisodeListItem(
         Spacer(Modifier.height(8.dp))
       }
 
-      RichText(
-        state = rememberHtmlRichTextState(
-          episode.description?.toRichTextHtml() ?: "--",
-          linkify = false,
-        ),
+      // Two lines of summary: plain text, rather than parsing and laying out the full show notes
+      // for every row (those open in the episode sheet)
+      val summary = remember(episode.description) {
+        episode.description?.htmlToPlainText()?.takeIf { it.isNotEmpty() } ?: "--"
+      }
+      Text(
+        text = summary,
         style = MaterialTheme.typography.bodySmall,
         color = LocalContentColor.current.copy(
           alpha = if (isFinished) DisabledAlpha else 1f,

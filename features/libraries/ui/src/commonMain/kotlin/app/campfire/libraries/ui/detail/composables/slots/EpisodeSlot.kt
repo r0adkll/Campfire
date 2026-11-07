@@ -64,15 +64,13 @@ class EpisodeSlot(
   private val canDownload: Boolean,
   private val showConfirmDownloadDialog: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
+  /** Where it sits in its list, which rounds the corners of the first and last rows. */
+  private val isFirst: Boolean = true,
+  private val isLast: Boolean = true,
 ) : ContentSlot {
 
   override val id: String = "episode_${episode.id}"
   override val contentType = ContentSlot.ContentType.Episode
-
-  private val isFirst = media.episodes.indexOf(episode) == 0
-  private val isLast = media.episodes.run {
-    indexOf(episode) == lastIndex
-  }
 
   @Composable
   override fun Content(

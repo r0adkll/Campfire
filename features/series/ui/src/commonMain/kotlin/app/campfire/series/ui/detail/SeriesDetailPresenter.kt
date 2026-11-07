@@ -109,6 +109,10 @@ class SeriesDetailPresenter(
           if (!showMissing) return@flatMapLatest flowOf(null)
           snapshotFlow { seriesContentState.dataOrNull }
             .filterNotNull()
+            // Which books are missing depends only on which are owned. Each re-run shows the owned
+            // books alone until the provider answers, so re-running on every progress save (every
+            // few seconds while one of these books plays) made the section blink off and on.
+            .map { items -> items.map { it.copy(userMediaProgress = null) } }
             .distinctUntilChanged()
             .flatMapLatest { items ->
               bookInfoRegistry.observeSeriesEntries(screen.seriesName, items)
