@@ -5,10 +5,15 @@ package app.campfire.management.ui.editor
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
+import androidx.window.core.layout.WindowSizeClass
+import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.coroutines.LoadState
 import app.campfire.home.ui.libraryItem
@@ -56,7 +61,7 @@ class ItemEditorRenderTest {
       width = width * 2,
       height = height * 2,
       density = Density(2f),
-      content = { Editor(draft) },
+      content = { Editor(draft, width, height) },
     ).use { scene ->
       repeat(5) { frame -> scene.render(frame * 100_000_000L) }
       scene.render(nanoTime = 2_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes
@@ -66,20 +71,26 @@ class ItemEditorRenderTest {
   }
 
   @Composable
-  private fun Editor(draft: BookDetailsDraft) {
+  private fun Editor(draft: BookDetailsDraft, width: Int, height: Int) {
     CampfireTheme(useDarkColors = false) {
-      ItemEditorUi(
-        state = ItemEditorUiState(
-          item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
-          draft = draft,
-          canEdit = true,
-          canSeeExplicit = true,
-          isSaving = false,
-          isBehindServer = true,
-          isConfirmingDiscard = false,
-          eventSink = {},
-        ),
-      )
+      // The app provides these around every screen; the top bar reads them
+      CompositionLocalProvider(
+        LocalContentLayout provides ContentLayout.Root,
+        LocalWindowSizeClass provides WindowSizeClass(minWidthDp = width, minHeightDp = height),
+      ) {
+        ItemEditorUi(
+          state = ItemEditorUiState(
+            item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
+            draft = draft,
+            canEdit = true,
+            canSeeExplicit = true,
+            isSaving = false,
+            isBehindServer = true,
+            isConfirmingDiscard = false,
+            eventSink = {},
+          ),
+        )
+      }
     }
   }
 }

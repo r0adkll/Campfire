@@ -25,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.coroutines.LoadState
@@ -191,7 +191,8 @@ private fun EditorTopBar(
   scrollBehavior: TopAppBarScrollBehavior,
   modifier: Modifier = Modifier,
 ) {
-  TopAppBar(
+  // The app's own top bar, for its title font and insets
+  CampfireTopAppBar(
     scrollBehavior = scrollBehavior,
     navigationIcon = {
       val closeLabel = stringResource(Res.string.action_close_editor)

@@ -4,6 +4,7 @@
 package app.campfire.management.ui.editor
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -18,6 +19,10 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
@@ -174,19 +179,25 @@ class ItemEditorUiTest {
   ) {
     val draft = if (withDraft) BookDetailsDraft(details) else null
     setContent {
-      ItemEditorUi(
-        state = ItemEditorUiState(
-          item = item,
-          draft = draft,
-          canEdit = canEdit,
-          canSeeExplicit = canSeeExplicit,
-          isSaving = false,
-          isBehindServer = isBehindServer,
-          isConfirmingDiscard = isConfirmingDiscard,
-          eventSink = events,
-        ),
-        modifier = Modifier.size(width = width, height = 1600.dp),
-      )
+      // The app provides these around every screen; the top bar reads them
+      CompositionLocalProvider(
+        LocalContentLayout provides ContentLayout.Root,
+        LocalWindowSizeClass provides WindowSizeClass(minWidthDp = width.value.toInt(), minHeightDp = 1600),
+      ) {
+        ItemEditorUi(
+          state = ItemEditorUiState(
+            item = item,
+            draft = draft,
+            canEdit = canEdit,
+            canSeeExplicit = canSeeExplicit,
+            isSaving = false,
+            isBehindServer = isBehindServer,
+            isConfirmingDiscard = isConfirmingDiscard,
+            eventSink = events,
+          ),
+          modifier = Modifier.size(width = width, height = 1600.dp),
+        )
+      }
     }
   }
 }
