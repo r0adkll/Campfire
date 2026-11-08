@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +57,7 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import app.campfire.playlists.ui.sheets.EditPlaylistResult
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
+import app.campfire.sessions.api.QueuedEntry
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
@@ -63,6 +65,9 @@ import campfire.features.playlists.ui.generated.resources.Res
 import campfire.features.playlists.ui.generated.resources.empty_playlists_message
 import campfire.features.playlists.ui.generated.resources.error_playlists_message
 import campfire.features.playlists.ui.generated.resources.filter_bar_playlist_count
+import campfire.features.playlists.ui.generated.resources.playlists_queue_card_count
+import campfire.features.playlists.ui.generated.resources.playlists_queue_card_title
+import campfire.features.playlists.ui.generated.resources.playlists_queue_card_up_next
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
@@ -145,8 +150,10 @@ fun Playlists(
 
         is LoadState.Loaded -> LoadedState(
           items = state.playlistContentState.data,
+          queue = state.queue,
           displayState = state.displayState,
           onPlaylistClick = { state.eventSink(PlaylistsUiEvent.PlaylistClick(it)) },
+          onQueueClick = { state.eventSink(PlaylistsUiEvent.QueueClick) },
           onToggleDisplayState = { state.eventSink(PlaylistsUiEvent.ToggleDisplayState) },
           contentPadding = paddingValues,
           state = gridState,
@@ -159,8 +166,10 @@ fun Playlists(
 @Composable
 private fun LoadedState(
   items: List<Playlist>,
+  queue: List<QueuedEntry>,
   displayState: GroupDisplayState,
   onPlaylistClick: (Playlist) -> Unit,
+  onQueueClick: () -> Unit,
   onToggleDisplayState: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -200,6 +209,19 @@ private fun LoadedState(
         )
       }
 
+      if (queue.isNotEmpty()) {
+        item(key = "playback-queue") {
+          QueueCard(
+            queue = queue,
+            displayState = displayState,
+            onClick = onQueueClick,
+            modifier = Modifier
+              .fillMaxWidth()
+              .animateItem(),
+          )
+        }
+      }
+
       items(
         count = items.size,
         key = { items[it].id },
@@ -237,5 +259,49 @@ private fun LoadedState(
   }
 }
 
+/**
+ * The playback queue, styled like the playlists around it so it reads as one of them, in the
+ * secondary container color so it stands apart.
+ */
+@Composable
+private fun QueueCard(
+  queue: List<QueuedEntry>,
+  displayState: GroupDisplayState,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val name = stringResource(Res.string.playlists_queue_card_title)
+  val items = queue.map { it.libraryItem }
+  val colors = CardDefaults.elevatedCardColors(
+    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+  )
+  when (displayState) {
+    GroupDisplayState.List -> ItemCollectionCard(
+      sharedTransitionKey = QueueSharedTransitionKey,
+      name = name,
+      description = stringResource(Res.string.playlists_queue_card_up_next, queue.first().title),
+      items = items,
+      onClick = onClick,
+      colors = colors,
+      modifier = modifier,
+    )
+    GroupDisplayState.Grid -> ItemCollectionGridCard(
+      sharedTransitionKey = QueueSharedTransitionKey,
+      name = name,
+      subtitle = pluralStringResource(Res.plurals.playlists_queue_card_count, queue.size, queue.size),
+      items = items,
+      onClick = onClick,
+      colors = colors,
+      modifier = modifier,
+    )
+  }
+}
+
+/** The episode title for podcast entries, as the queue itself shows them. */
+private val QueuedEntry.title: String
+  get() = episode?.title ?: libraryItem.media.metadata.title.orEmpty()
+
+private const val QueueSharedTransitionKey = "playback-queue"
 private val ContentPadding = 16.dp
 private val FabBottomOffset = 88.dp

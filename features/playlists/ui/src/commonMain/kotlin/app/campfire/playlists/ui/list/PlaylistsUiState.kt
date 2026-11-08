@@ -7,6 +7,7 @@ import androidx.compose.runtime.Stable
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Playlist
 import app.campfire.core.settings.GroupDisplayState
+import app.campfire.sessions.api.QueuedEntry
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
@@ -15,6 +16,8 @@ data class PlaylistsUiState(
   val playlistContentState: LoadState<out List<Playlist>>,
   val displayState: GroupDisplayState,
   val isRefreshing: Boolean,
+  /** The playback queue, shown as a card above the playlists while it has anything in it. */
+  val queue: List<QueuedEntry> = emptyList(),
   val eventSink: (PlaylistsUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -23,4 +26,5 @@ sealed interface PlaylistsUiEvent : CircuitUiEvent {
   data object ToggleDisplayState : PlaylistsUiEvent
   data object Refresh : PlaylistsUiEvent
   data class PlaylistClick(val playlist: Playlist) : PlaylistsUiEvent
+  data object QueueClick : PlaylistsUiEvent
 }

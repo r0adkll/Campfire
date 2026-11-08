@@ -43,7 +43,6 @@ class ExpressiveControlSlot(
   private val offlineDownload: Download?,
   private val mediaProgress: MediaProgress?,
   private val isQueued: Boolean,
-  private val hasSession: Boolean,
   private val isCurrentSession: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   @get:VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
@@ -105,7 +104,6 @@ class ExpressiveControlSlot(
 
     ExpressiveControlBar(
       isQueued = isQueued,
-      hasSession = hasSession,
       isCurrentSession = isCurrentSession,
       isEbookOnly = libraryItem.isEbookOnly,
       canStreamHls = canStreamHls,

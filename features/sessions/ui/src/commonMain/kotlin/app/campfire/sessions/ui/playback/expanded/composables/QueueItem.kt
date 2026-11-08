@@ -70,7 +70,7 @@ internal fun QueueItem(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun QueueItemContent(
+internal fun QueueItemContent(
   entry: QueuedEntry,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,

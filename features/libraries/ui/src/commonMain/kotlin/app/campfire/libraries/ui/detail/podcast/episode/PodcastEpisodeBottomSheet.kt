@@ -207,7 +207,6 @@ private fun PodcastEpisodeBottomSheet(
     // Controls
     ExpressiveControlBar(
       isQueued = state.isQueued,
-      hasSession = state.hasSession,
       isCurrentSession = state.sessionState is SessionUiState.Current,
       mediaProgress = state.progress,
       offlineDownload = state.offlineDownload,

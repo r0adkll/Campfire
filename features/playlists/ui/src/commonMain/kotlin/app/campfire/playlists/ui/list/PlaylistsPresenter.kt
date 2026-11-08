@@ -14,12 +14,14 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
+import app.campfire.common.screens.QueueScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Playlist
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.settings.api.LibraryViewSettings
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 class PlaylistsPresenter(
   private val navigator: Navigator,
   private val playlistsRepository: PlaylistsRepository,
+  private val sessionQueue: SessionQueue,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<PlaylistsUiState> {
@@ -49,6 +52,10 @@ class PlaylistsPresenter(
         .catch<LoadState<out List<Playlist>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
+    val queue by remember {
+      sessionQueue.observeAll()
+    }.collectAsState(emptyList())
+
     val displayState by remember {
       libraryViewSettings.observePlaylistsDisplayState()
     }.collectAsState()
@@ -57,6 +64,7 @@ class PlaylistsPresenter(
       playlistContentState = playlistContentState,
       displayState = displayState,
       isRefreshing = isRefreshing,
+      queue = queue,
     ) { event ->
       when (event) {
         PlaylistsUiEvent.Back -> navigator.pop()
@@ -81,6 +89,8 @@ class PlaylistsPresenter(
           analytics.send(ContentSelected(ContentType.Collection))
           navigator.goTo(PlaylistDetailScreen(event.playlist))
         }
+
+        PlaylistsUiEvent.QueueClick -> navigator.goTo(QueueScreen)
       }
     }
   }

@@ -4,9 +4,13 @@
 package app.campfire.playlists.ui.list
 
 import app.campfire.analytics.test.FakeAnalytics
+import app.campfire.common.screens.QueueScreen
+import app.campfire.home.ui.libraryItem
 import app.campfire.playlists.api.screen.PlaylistsScreen
+import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.settings.test.TestLibraryViewSettings
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
@@ -25,6 +29,7 @@ class PlaylistsPresenterTest {
     val presenter = PlaylistsPresenter(
       navigator = FakeNavigator(PlaylistsScreen),
       playlistsRepository = repository,
+      sessionQueue = FakeSessionQueue(),
       libraryViewSettings = TestLibraryViewSettings(),
       analytics = FakeAnalytics(),
     )
@@ -43,6 +48,27 @@ class PlaylistsPresenterTest {
 
       assertThat(awaitItem().isRefreshing).isFalse()
       assertThat(repository.refreshCount).isEqualTo(1)
+    }
+  }
+
+  @Test
+  fun queue_isShownAndOpensTheQueueScreen() = runTest {
+    val navigator = FakeNavigator(PlaylistsScreen)
+    val sessionQueue = FakeSessionQueue().apply { add(libraryItem(id = "queued")) }
+    val presenter = PlaylistsPresenter(
+      navigator = navigator,
+      playlistsRepository = FakePlaylistsRepository(),
+      sessionQueue = sessionQueue,
+      libraryViewSettings = TestLibraryViewSettings(),
+      analytics = FakeAnalytics(),
+    )
+
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.queue.map { it.key }).containsExactly("queued")
+
+      state.eventSink(PlaylistsUiEvent.QueueClick)
+      assertThat(navigator.awaitNextScreen()).isEqualTo(QueueScreen)
     }
   }
 }

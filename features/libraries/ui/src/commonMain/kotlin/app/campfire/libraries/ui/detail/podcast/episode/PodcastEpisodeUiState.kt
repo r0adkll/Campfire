@@ -19,7 +19,6 @@ data class PodcastEpisodeUiState(
   val playbackSpeed: Float,
   val isPlaying: Boolean,
   val isQueued: Boolean,
-  val hasSession: Boolean,
   val sessionState: SessionUiState,
   val offlineDownload: Download?,
   val canDownload: Boolean,

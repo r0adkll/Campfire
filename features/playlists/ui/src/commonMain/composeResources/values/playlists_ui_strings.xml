@@ -5,6 +5,12 @@
     <item quantity="one">%1$d Playlist</item>
     <item quantity="other">%1$d Playlists</item>
   </plurals>
+  <string name="playlists_queue_card_title">Queue</string>
+  <string name="playlists_queue_card_up_next">Up next: %1$s</string>
+  <plurals name="playlists_queue_card_count">
+    <item quantity="one">%1$d item</item>
+    <item quantity="other">%1$d items</item>
+  </plurals>
   <string name="empty_playlists_message">Doesn't look like you have any playlists. Try adding one now!</string>
   <string name="error_playlists_message">Something went wrong when trying to load this library's playlists</string>
   <string name="empty_playlist_detail_message">No items in this playlist, go add some!</string>

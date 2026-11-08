@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.toMutableStateList
 import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
@@ -86,7 +85,7 @@ class PlaybackPresenter(
     }.collectAsState(null)
 
     val playerState = observePlayerState(currentSession)
-    val queueState = observeQueueState()
+    val queueState = presentQueueState(sessionQueue, playbackController)
     val syncState = observeSyncState(currentSession, expanded, playerState.bookTime)
     val themeState = observeThemeState(currentSession)
     val itemValidation = observeItemValidation(currentSession)
@@ -351,53 +350,6 @@ class PlaybackPresenter(
         is PlayerUiEvent.Seek.Percent -> player?.seekTo(event.percent)
         is PlayerUiEvent.Seek.Position -> player?.seekTo(event.position)
         is PlayerUiEvent.TimerSelected -> player?.setTimer(event.timer)
-      }
-    }
-  }
-
-  @Composable
-  private fun observeQueueState(): QueueUiState {
-    val scope = rememberCoroutineScope()
-
-    val queue by remember {
-      sessionQueue.observeAll()
-    }.collectAsState(emptyList())
-
-    val localQueue = remember(queue) {
-      queue.toMutableStateList()
-    }
-
-    return QueueUiState(
-      queue = localQueue,
-    ) { event ->
-      when (event) {
-        is QueueUiEvent.ReorderItem -> {
-          val fromIndex = localQueue.indexOfFirst { it.key == event.fromKey }
-          val toIndex = localQueue.indexOfFirst { it.key == event.toKey }
-          localQueue.add(toIndex, localQueue.removeAt(fromIndex))
-        }
-
-        QueueUiEvent.ReorderStopped -> scope.launch {
-          sessionQueue.reorder(localQueue)
-        }
-
-        QueueUiEvent.ClearQueue -> scope.launch {
-          sessionQueue.clear()
-        }
-
-        is QueueUiEvent.QueueItemClick -> {
-          playbackController.startSession(
-            itemId = event.entry.libraryItemId,
-            episodeId = event.entry.episodeId,
-          )
-          scope.launch {
-            sessionQueue.remove(event.entry.libraryItemId, event.entry.episodeId)
-          }
-        }
-
-        is QueueUiEvent.RemoveQueueItem -> scope.launch {
-          sessionQueue.remove(event.entry.libraryItemId, event.entry.episodeId)
-        }
       }
     }
   }

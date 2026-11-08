@@ -141,6 +141,10 @@ data object DownloadsScreen : BaseScreen(name = "Downloads") {
     get() = Presentation.Fullscreen
 }
 
+/** The playback queue: what plays next, to reorder, play or remove, with or without playback. */
+@Parcelize
+data object QueueScreen : DetailScreen(name = "Queue")
+
 @Parcelize
 data object ConnectedProvidersScreen : BaseScreen(name = "ConnectedProviders") {
   override val presentation: Presentation
