@@ -43,6 +43,7 @@ import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.EditSquare
 import app.campfire.common.compose.icons.rounded.Refresh
@@ -54,9 +55,12 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.manage.DeleteItemDialog
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
+import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
+import app.campfire.libraries.ui.detail.manage.QuickMatchDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
 import campfire.features.libraries.ui.generated.resources.menu_item_edit_details
+import campfire.features.libraries.ui.generated.resources.menu_item_quick_match
 import campfire.features.libraries.ui.generated.resources.menu_item_rescan
 import com.slack.circuit.overlay.Overlay
 import com.slack.circuit.overlay.OverlayHost
@@ -111,6 +115,17 @@ internal suspend fun OverlayHost.showDeleteItemDialog(itemTitle: String): Boolea
   return when (val choice = show(DeleteItemOverlay(itemTitle))) {
     DeleteChoice.Cancel -> null
     is DeleteChoice.Delete -> choice.hardDelete
+  }
+}
+
+/**
+ * Asks whether to quick match the item titled [itemTitle] against [sourceName], and returns what
+ * the match may replace, or null when the user backs out.
+ */
+internal suspend fun OverlayHost.showQuickMatchDialog(itemTitle: String, sourceName: String): QuickMatchChoice? {
+  return when (val choice = show(QuickMatchOverlay(itemTitle, sourceName))) {
+    QuickMatchAnswer.Cancel -> null
+    is QuickMatchAnswer.Match -> choice.choice
   }
 }
 
@@ -178,7 +193,7 @@ private fun ActionRow(
   modifier: Modifier = Modifier,
 ) {
   val color = when (action) {
-    ItemAction.Edit, ItemAction.Rescan -> MaterialTheme.colorScheme.onSurface
+    ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Rescan -> MaterialTheme.colorScheme.onSurface
     ItemAction.Delete -> MaterialTheme.colorScheme.error
   }
   ListItem(
@@ -187,6 +202,7 @@ private fun ActionRow(
         text = stringResource(
           when (action) {
             ItemAction.Edit -> Res.string.menu_item_edit_details
+            ItemAction.QuickMatch -> Res.string.menu_item_quick_match
             ItemAction.Rescan -> Res.string.menu_item_rescan
             ItemAction.Delete -> Res.string.menu_item_delete_from_server
           },
@@ -198,6 +214,7 @@ private fun ActionRow(
       Icon(
         when (action) {
           ItemAction.Edit -> CampfireIcons.Rounded.EditSquare
+          ItemAction.QuickMatch -> CampfireIcons.Rounded.AutoAwesome
           ItemAction.Rescan -> CampfireIcons.Rounded.Refresh
           ItemAction.Delete -> CampfireIcons.Rounded.DeleteForever
         },
@@ -212,6 +229,7 @@ private fun ActionRow(
       .testTag(
         when (action) {
           ItemAction.Edit -> "item_action_edit"
+          ItemAction.QuickMatch -> "item_action_quick_match"
           ItemAction.Rescan -> "item_action_rescan"
           ItemAction.Delete -> "item_action_delete"
         },
@@ -263,6 +281,27 @@ private class DeleteItemOverlay(
       itemTitle = itemTitle,
       onConfirm = { navigator.finish(DeleteChoice.Delete(it)) },
       onDismissRequest = { navigator.finish(DeleteChoice.Cancel) },
+    )
+  }
+}
+
+private sealed interface QuickMatchAnswer {
+  data object Cancel : QuickMatchAnswer
+  data class Match(val choice: QuickMatchChoice) : QuickMatchAnswer
+}
+
+private class QuickMatchOverlay(
+  private val itemTitle: String,
+  private val sourceName: String,
+) : Overlay<QuickMatchAnswer> {
+
+  @Composable
+  override fun Content(navigator: OverlayNavigator<QuickMatchAnswer>) {
+    QuickMatchDialog(
+      itemTitle = itemTitle,
+      sourceName = sourceName,
+      onConfirm = { navigator.finish(QuickMatchAnswer.Match(it)) },
+      onDismissRequest = { navigator.finish(QuickMatchAnswer.Cancel) },
     )
   }
 }

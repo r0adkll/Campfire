@@ -23,6 +23,9 @@ import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.quickMatcher
+import app.campfire.management.api.match.QuickMatchResult
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.user.test.FakeUserRepository
 import assertk.assertThat
@@ -51,10 +54,17 @@ class DefaultLibraryItemActionsTest {
 
   private val navigator = FakeNavigator(LibraryItemScreen("elsewhere"))
 
+  private val matchRepository = FakeQuickMatchRepository()
+
   private val actions = DefaultLibraryItemActions(
     navigator = navigator,
     userRepository = userRepository,
     libraryItemRepository = libraryItemRepository,
+    quickMatcher = quickMatcher(
+      matchRepository = matchRepository,
+      libraryItemRepository = libraryItemRepository,
+      scope = scope,
+    ),
     coroutineScopeHolder = CoroutineScopeHolder { scope },
   )
 
@@ -120,6 +130,39 @@ class DefaultLibraryItemActionsTest {
     waitForIdle()
 
     assertThat(navigator.awaitNextScreen()).isEqualTo(ItemEditorScreen(item.id))
+  }
+
+  @Test
+  fun aQuickMatchAsksFirstThenSaysHowItWent() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    matchRepository.quickMatchResult = Result.success(QuickMatchResult.NoMatch)
+    showActions()
+
+    onNodeWithTag("item_action_quick_match").performClick()
+    waitForIdle()
+    onNodeWithText("Fills in what The Great Fake Adventure is missing", substring = true).assertExists()
+    assertThat(matchRepository.quickMatches).isEmpty()
+
+    onNodeWithTag("quick_match_replace_cover").performClick()
+    onNodeWithTag("quick_match_confirm").performClick()
+
+    awaitSnackbar("No match for The Great Fake Adventure on Audible.com")
+    assertThat(matchRepository.quickMatches).containsExactly(
+      FakeQuickMatchRepository.QuickMatch(item.id, "audible", replaceDetails = false, replaceCover = true),
+    )
+  }
+
+  @Test
+  fun aQuickMatchBackedOutOfMatchesNothing() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    showActions()
+
+    onNodeWithTag("item_action_quick_match").performClick()
+    onNodeWithText("Cancel").performClick()
+    waitForIdle()
+
+    onNodeWithTag("quick_match_confirm").assertDoesNotExist()
+    assertThat(matchRepository.quickMatches).isEmpty()
   }
 
   @Test

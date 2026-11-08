@@ -7,6 +7,8 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.PagedResponse
 import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.envelopes.QuickMatchRequest
+import app.campfire.network.envelopes.QuickMatchResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
@@ -325,6 +327,16 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     val search = BookSearch(provider, title, author, libraryItemId)
     bookSearches += search
     return searchBooksResult(search)
+  }
+
+  val quickMatches = mutableListOf<Pair<String, QuickMatchRequest>>()
+  var quickMatchResult: suspend (itemId: String, request: QuickMatchRequest) -> Result<QuickMatchResponse> = { _, _ ->
+    Result.failure(NotImplementedError("Set quickMatchResult on the fake"))
+  }
+
+  override suspend fun quickMatchLibraryItem(itemId: String, request: QuickMatchRequest): Result<QuickMatchResponse> {
+    quickMatches += itemId to request
+    return quickMatchResult(itemId, request)
   }
 
   override suspend fun createPlaylist(

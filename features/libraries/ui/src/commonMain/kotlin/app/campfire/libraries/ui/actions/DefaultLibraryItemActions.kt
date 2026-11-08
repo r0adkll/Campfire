@@ -22,6 +22,7 @@ import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.ui.detail.manage.ItemAction
+import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.user.api.UserRepository
@@ -53,6 +54,7 @@ import org.jetbrains.compose.resources.getString
 class DefaultLibraryItemActionsFactory(
   private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
+  private val quickMatcher: QuickMatcher,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActionsFactory {
 
@@ -60,6 +62,7 @@ class DefaultLibraryItemActionsFactory(
     navigator = navigator,
     userRepository = userRepository,
     libraryItemRepository = libraryItemRepository,
+    quickMatcher = quickMatcher,
     coroutineScopeHolder = coroutineScopeHolder,
   )
 }
@@ -73,6 +76,7 @@ class DefaultLibraryItemActions(
   private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
+  private val quickMatcher: QuickMatcher,
   private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActions {
 
@@ -101,6 +105,12 @@ class DefaultLibraryItemActions(
       ItemAction.Edit -> {
         Analytics.send(ActionEvent("edit_item", Click))
         navigator.goTo(ItemEditorScreen(item.id))
+      }
+
+      ItemAction.QuickMatch -> {
+        val source = quickMatcher.sourceFor(item)
+        val choice = overlayHost.showQuickMatchDialog(item.media.metadata.title.orEmpty(), source.name) ?: return
+        quickMatcher.start(item, source, choice, snackbarHost)
       }
 
       ItemAction.Rescan -> {

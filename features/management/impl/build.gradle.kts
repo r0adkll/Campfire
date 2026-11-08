@@ -23,7 +23,9 @@ kotlin {
 
     commonTest {
       dependencies {
+        implementation(projects.common.test)
         implementation(projects.data.network.test)
+        implementation(projects.features.libraries.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
         implementation(libs.ktor.client.mock)
