@@ -99,6 +99,16 @@ class ItemEditorPresenterTest {
   }
 
   @Test
+  fun `the editor opens on the section asked for`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter(section = ItemEditorScreen.Section.Match).test {
+      assertThat(awaitDraft().section).isEqualTo(EditorSection.Match)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `editing starts from the server's copy of the book, not a cached one`() = runTest {
     // As a list caches a book: its authors only as a name to show, with no list to edit
     val cached = book.copy(media = media(metadata = details.copy(authors = emptyList(), narrators = emptyList())))
@@ -414,9 +424,11 @@ class ItemEditorPresenterTest {
     return awaitState { it.match.review != null }
   }
 
-  private fun TestScope.presenter(): Presenter<ItemEditorUiState> {
+  private fun TestScope.presenter(
+    section: ItemEditorScreen.Section = ItemEditorScreen.Section.Details,
+  ): Presenter<ItemEditorUiState> {
     val presenter = ItemEditorPresenter(
-      screen = ItemEditorScreen(BookId),
+      screen = ItemEditorScreen(BookId, section),
       navigator = navigator,
       libraryItemRepository = libraryItemRepository,
       userRepository = userRepository,

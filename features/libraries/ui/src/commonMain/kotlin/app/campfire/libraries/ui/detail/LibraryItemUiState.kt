@@ -18,6 +18,7 @@ import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
+import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.sessions.api.PlayingItem
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
@@ -109,8 +110,10 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   /** Have the server scan the item's files again. */
   data object RescanClick : LibraryItemUiEvent
 
-  /** Open the editor for the item's details. */
-  data object EditClick : LibraryItemUiEvent
+  /** Open the editor for the item's details, on [section]. */
+  data class EditClick(
+    val section: ItemEditorScreen.Section = ItemEditorScreen.Section.Details,
+  ) : LibraryItemUiEvent
 
   /** Ask whether to quick match the item against its library's source. */
   data object QuickMatchClick : LibraryItemUiEvent

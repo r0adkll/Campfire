@@ -23,6 +23,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.QuickMatcher
+import app.campfire.libraries.ui.detail.manage.editorSection
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.user.api.UserRepository
@@ -55,6 +56,7 @@ class DefaultLibraryItemActionsFactory(
   private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val quickMatcher: QuickMatcher,
+  private val quickActions: ItemQuickActions,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActionsFactory {
 
@@ -63,27 +65,29 @@ class DefaultLibraryItemActionsFactory(
     userRepository = userRepository,
     libraryItemRepository = libraryItemRepository,
     quickMatcher = quickMatcher,
+    quickActions = quickActions,
     coroutineScopeHolder = coroutineScopeHolder,
   )
 }
 
 /**
- * The actions a library item's card offers on a long press or a right click: the ones the server
- * would take from the signed-in account, as the detail screen's menu has. The work runs on past
- * the card, which a delete takes out of its list.
+ * What a library item's card offers on a long press or a right click: the [QuickAction]s for the
+ * account's own listening, then the ones the server would take from it, as the detail screen's
+ * menu has. The work runs on past the card, which a delete takes out of its list.
  */
 class DefaultLibraryItemActions(
   private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val quickMatcher: QuickMatcher,
+  private val quickActions: ItemQuickActions,
   private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActions {
 
   @Composable
   override fun canAct(item: LibraryItem): Boolean {
     val user by userRepository.userFlow.collectAsState()
-    return user.itemActions(item).isNotEmpty()
+    return user.canActOn(item)
   }
 
   override suspend fun show(
@@ -92,19 +96,34 @@ class DefaultLibraryItemActions(
     overlayHost: OverlayHost,
     snackbarHost: SnackbarHostState,
   ) {
-    val actions = userRepository.userFlow.value.itemActions(item)
-    if (actions.isEmpty()) return
+    val user = userRepository.userFlow.value
+    if (!user.canActOn(item)) return
+    val actions = user.itemActions(item)
 
-    val action = if (pointer != null) {
-      overlayHost.showItemActionsMenu(actions, pointer)
+    val choice = if (pointer != null) {
+      overlayHost.showItemActionsMenu(item, quickActions::actionsFor, actions, pointer)
     } else {
-      overlayHost.showItemActionsSheet(item, actions)
-    } ?: return
+      overlayHost.showItemActionsSheet(item, quickActions::actionsFor, actions)
+    }
 
+    when (choice) {
+      ActionChoice.Dismissed -> Unit
+      is ActionChoice.Quick -> quickActions.take(choice.action, item, navigator, overlayHost, snackbarHost)
+      is ActionChoice.Picked -> manage(choice.action, item, overlayHost, snackbarHost)
+    }
+  }
+
+  private suspend fun manage(
+    action: ItemAction,
+    item: LibraryItem,
+    overlayHost: OverlayHost,
+    snackbarHost: SnackbarHostState,
+  ) {
     when (action) {
-      ItemAction.Edit -> {
-        Analytics.send(ActionEvent("edit_item", Click))
-        navigator.goTo(ItemEditorScreen(item.id))
+      ItemAction.Edit, ItemAction.Match, ItemAction.ChangeCover -> {
+        val section = action.editorSection ?: ItemEditorScreen.Section.Details
+        Analytics.send(ActionEvent("edit_item", Click, section.name.lowercase()))
+        navigator.goTo(ItemEditorScreen(item.id, section))
       }
 
       ItemAction.QuickMatch -> {

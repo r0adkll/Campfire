@@ -91,7 +91,15 @@ class ItemEditorPresenter(
     var loadAttempt by rememberRetained { mutableIntStateOf(0) }
     // When the server last changed the item editing started from
     var editingSince by rememberRetained { mutableLongStateOf(0L) }
-    var section by rememberRetained { mutableStateOf(EditorSection.Details) }
+    var section by rememberRetained {
+      mutableStateOf(
+        when (screen.section) {
+          ItemEditorScreen.Section.Details -> EditorSection.Details
+          ItemEditorScreen.Section.Cover -> EditorSection.Cover
+          ItemEditorScreen.Section.Match -> EditorSection.Match
+        },
+      )
+    }
     var filledFrom by rememberRetained { mutableStateOf<String?>(null) }
 
     // Editing starts from the server's own copy. A cached one can be a list's, with no authors,
