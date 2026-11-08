@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.sessions.api.QueuedEntry
 import campfire.features.sessions.ui.generated.resources.Res
@@ -34,6 +36,8 @@ internal fun QueueContent(
   onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
   modifier: Modifier = Modifier,
+  contentPadding: PaddingValues = PaddingValues(),
+  header: LazyListScope.() -> Unit = {},
 ) {
   val haptics = LocalHapticFeedback.current
   val lazyListState = rememberLazyListState()
@@ -45,10 +49,10 @@ internal fun QueueContent(
     modifier = modifier,
     state = lazyListState,
     verticalArrangement = Arrangement.spacedBy(8.dp),
-    contentPadding = PaddingValues(
-      horizontal = 16.dp,
-    ),
+    contentPadding = contentPadding + PaddingValues(horizontal = 16.dp),
   ) {
+    header()
+
     queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, entries) ->
       if (isFirst) {
         item {

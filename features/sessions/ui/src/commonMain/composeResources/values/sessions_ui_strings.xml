@@ -125,4 +125,9 @@
   <string name="action_mute">Mute</string>
   <string name="action_unmute">Unmute</string>
   <string name="volume_content_description">Volume</string>
+
+  <string name="queue_screen_title">Queue</string>
+  <string name="queue_header_now_playing">Now playing</string>
+  <string name="queue_empty_message">Nothing is queued. Add books and episodes to your queue from their pages to listen to them next.</string>
+  <string name="action_play_queue">Play queue</string>
 </resources>

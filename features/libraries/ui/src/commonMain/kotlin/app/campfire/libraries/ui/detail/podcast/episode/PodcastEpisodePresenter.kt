@@ -161,7 +161,6 @@ class PodcastEpisodePresenter(
       playbackSpeed = playbackSpeed,
       isPlaying = isPlaying,
       isQueued = isQueued,
-      hasSession = playingItem != null,
       sessionState = episodeSession,
       offlineDownload = offlineDownload,
       canDownload = currentUser.canDownload,

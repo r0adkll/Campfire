@@ -48,7 +48,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -66,6 +65,44 @@ class ExpressiveControlSlotTest {
   }
 
   @Test
+  fun queueingIsOfferedWithNothingPlaying() = runComposeUiTest {
+    val slot = ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = null,
+      isCurrentSession = false,
+      isQueued = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+      showConfirmDownloadDialogSetting = false,
+    )
+
+    setCampfireContent {
+      slot.Content(Modifier) {}
+    }
+
+    onNodeWithTag("button_add_to_queue").assertTextContains("Enqueue")
+  }
+
+  @Test
+  fun queueingIsNotOfferedForThePlayingItem() = runComposeUiTest {
+    val slot = ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = null,
+      isCurrentSession = true,
+      isQueued = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+      showConfirmDownloadDialogSetting = false,
+    )
+
+    setCampfireContent {
+      slot.Content(Modifier) {}
+    }
+
+    onNodeWithTag("button_add_to_queue").assertDoesNotExist()
+  }
+
+  @Test
   fun hasProgressContentTest() = runComposeUiTest {
     val libraryItem = libraryItem()
     val mediaProgress = mediaProgress(
@@ -78,7 +115,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = mediaProgress,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -106,7 +142,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = readingProgress(libraryItemId = TestLibraryItemId, duration = 0f, ebookProgress = 0.4f),
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -181,7 +216,6 @@ class ExpressiveControlSlotTest {
     mediaProgress = null,
     isCurrentSession = false,
     isQueued = false,
-    hasSession = false,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     showConfirmDownloadDialogSetting = false,
     listeningDatesEditor = listeningDatesEditor,
@@ -200,7 +234,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = mediaProgress,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -231,7 +264,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -254,7 +286,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -277,7 +308,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -299,7 +329,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = true,
       isQueued = false,
-      hasSession = true,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -321,7 +350,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = true,
       isQueued = false,
-      hasSession = true,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -350,7 +378,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = true,
       isQueued = false,
-      hasSession = true,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -371,7 +398,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canDownload = false,
@@ -393,7 +419,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canStreamHls = true,
@@ -420,7 +445,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
       canDownload = false,
@@ -460,7 +484,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
@@ -493,7 +516,6 @@ class ExpressiveControlSlotTest {
       mediaProgress = null,
       isCurrentSession = false,
       isQueued = false,
-      hasSession = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )

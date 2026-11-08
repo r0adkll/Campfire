@@ -406,7 +406,6 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
                 mediaProgress = mediaProgress,
                 showConfirmDownloadDialogSetting = true,
                 isCurrentSession = false,
-                hasSession = false,
                 isQueued = false,
                 addToPlaylistDialog = AddToPlaylistDialog.NoOp,
               ),
