@@ -5,6 +5,13 @@ package app.campfire.ui.appbar
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,15 +20,12 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,6 +56,7 @@ import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.UpdateIndicator
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import campfire.ui.appbar.generated.resources.Res
@@ -77,19 +82,22 @@ internal fun CampfireSearchAppBar(
     searchComponent = searchComponent,
     navigationIcon = if (themeIconEnabled) {
       {
-        BadgedBox(
-          badge = {
-            if (themeIconBadged) {
-              Badge(Modifier.offset(x = (-6).dp, y = 6.dp))
-            }
-          },
-        ) {
+        Box {
           themeIconContent.Content(
             onClick = onNavigationClick,
             modifier = Modifier
               .size(40.dp)
               .padding(4.dp),
           )
+          // Bottom corner, clear of the theme icon's connection dot up top
+          AnimatedVisibility(
+            visible = themeIconBadged,
+            enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
+            exit = scaleOut() + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomEnd),
+          ) {
+            UpdateIndicator()
+          }
         }
       }
     } else {
