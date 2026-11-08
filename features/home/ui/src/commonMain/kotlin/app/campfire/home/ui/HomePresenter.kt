@@ -46,6 +46,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -124,6 +125,10 @@ class HomePresenter(
 
     val userMediaProgress by remember {
       mediaProgressRepository.observeAllProgress()
+        // Cards only draw a progress bar or a finished mark. A position save moves the playing
+        // book's bar by a fraction of a pixel, so skip rebuilding the map (and recomposing every
+        // shelf) until a bar or mark would visibly change
+        .distinctUntilChangedBy { allProgress -> allProgress.associate { MediaProgressKey(it) to it.barPosition } }
         .map { allProgress ->
           allProgress
             .associateBy { MediaProgressKey(it) }

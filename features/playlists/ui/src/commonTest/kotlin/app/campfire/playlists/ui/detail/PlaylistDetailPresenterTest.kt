@@ -68,6 +68,30 @@ class PlaylistDetailPresenterTest {
   private val TestScope.presenter get() = presenter(backgroundScope)
 
   @Test
+  fun present_PositionSavesThatDontMoveABar_AreSkipped() = runTest {
+    playlistsRepository.playlistItemsFlow.value = listOf(item("book", index = 0))
+    // A ten-hour book, where a bar step is 72 seconds
+    fun playing(at: Float, isFinished: Boolean = false) =
+      mediaProgress("book", duration = 36_000f, currentTime = at, isFinished = isFinished)
+    mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_600f))
+
+    presenter.test {
+      awaitItemMatching { it.playlistItems.size == 1 && it.progressStates.isNotEmpty() }
+
+      // A position save five seconds on draws the same bar, so it's skipped
+      mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_605f))
+      testScheduler.runCurrent()
+      // Finishing it changes the mark and the finished count
+      mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_606f, isFinished = true))
+
+      val next = awaitItemMatching { it.progressStates.getValue(MediaProgressKey("book")).currentTime != 3_600f }
+      assertThat(next.progressStates.getValue(MediaProgressKey("book")).isFinished).isEqualTo(true)
+      assertThat(next.unfinishedCount).isEqualTo(0)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun markAllFinished_finishesOnlyTheUnfinishedItems() = runTest {
     val playing = libraryItem(id = "playing")
     playlistsRepository.playlistItemsFlow.value = listOf(
