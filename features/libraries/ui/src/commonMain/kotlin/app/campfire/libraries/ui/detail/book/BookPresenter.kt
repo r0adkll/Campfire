@@ -90,6 +90,8 @@ import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
+import com.slack.circuit.retained.collectAsRetainedState
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -151,6 +153,10 @@ class BookPresenter(
       }
     }
 
+    // State that shapes the list is retained, so coming back to this screen (e.g. from a series)
+    // restores it as it was left. Rebuilt from loading, every chapter would show until the progress
+    // loaded and then the listened ones would fold away under the restored scroll position.
+
     // The saved progress trails the player while this book plays, so its position comes from the
     // player for as long as it is the one playing
     val mediaProgressState by remember {
@@ -160,7 +166,7 @@ class BookPresenter(
       ) { progress, live -> progress?.withLivePosition(live) }
         .map { LoadState.Loaded(it) as LoadState<MediaProgress?> }
         .catch { emit(LoadState.Error as LoadState<MediaProgress?>) }
-    }.collectAsState(LoadState.Loading)
+    }.collectAsRetainedState(LoadState.Loading)
 
     // Keyed on the series list so the flow rebuilds when the expanded metadata
     // (with the full series list) loads in after the initial minified item.
@@ -178,7 +184,7 @@ class BookPresenter(
           .map { LoadState.Loaded(it) as LoadState<List<SeriesWithBooks>> }
           .catch { emit(LoadState.Error as LoadState<List<SeriesWithBooks>>) }
       }
-    }.collectAsState(LoadState.Loading)
+    }.collectAsRetainedState(LoadState.Loading)
 
     // What downloading this item keeps: its ebook if that's all it has, otherwise its audio
     val downloadContent = remember(libraryItem.id, libraryItem.isEbookOnly) {
@@ -200,14 +206,14 @@ class BookPresenter(
       } else {
         flowOf(emptyList())
       }
-    }.collectAsState(emptyList())
+    }.collectAsRetainedState(emptyList())
 
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()
     val canDownload = currentUser.canDownload
 
     // Session-local community source override; null lets the registry pick.
-    var communitySource by remember { mutableStateOf<ProviderId?>(null) }
+    var communitySource by rememberRetained { mutableStateOf<ProviderId?>(null) }
 
     // Held in plain state (not re-collected from an initial value) so the
     // section keeps its last content while a source switch or expanded-metadata
@@ -215,7 +221,7 @@ class BookPresenter(
     // the match identifiers so the flow rebuilds when the expanded metadata
     // (carrying ISBN/ASIN) loads in after the initial minified item.
     val bookMatch = libraryItem.bestMatch()
-    var communityInfoState by remember { mutableStateOf<CommunityInfoState?>(null) }
+    var communityInfoState by rememberRetained { mutableStateOf<CommunityInfoState?>(null) }
     LaunchedEffect(bookMatch, communitySource) {
       bookInfoRegistry.observeCommunityInfo(libraryItem, communitySource)
         .catch { emit(null) }
@@ -263,7 +269,7 @@ class BookPresenter(
       libraryViewSettings.observeShowTimeInBook()
     }.collectAsState()
 
-    var collapseListenedChapters by remember { mutableStateOf(true) }
+    var collapseListenedChapters by rememberRetained { mutableStateOf(true) }
 
     val canStreamHls = remember(libraryItem) {
       streamingRoutePredictor.canStreamHls(libraryItem)
