@@ -47,6 +47,7 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.retained.collectAsRetainedState
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
@@ -78,11 +79,13 @@ class LibraryItemPresenter(
   override fun present(): LibraryItemUiState {
     val scope = rememberCoroutineScope()
 
+    // Retained so that coming back to this screen composes the book or podcast presenter on its
+    // first frame, which their own retained state needs to be restored rather than dropped
     val libraryItemContentState by remember {
       repository.observeLibraryItem(screen.libraryItemId)
         .map { LoadState.Loaded(it) as LoadState<LibraryItem> }
         .catch { emit(LoadState.Error as LoadState<LibraryItem>) }
-    }.collectAsState(LoadState.Loading)
+    }.collectAsRetainedState(LoadState.Loading)
 
     val contentState = libraryItemContentState.map { libraryItem ->
       when (libraryItem.mediaType) {
