@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.exclude
@@ -52,6 +53,7 @@ import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryItemListItem
+import app.campfire.common.compose.widgets.ServerDownloadsBanner
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
@@ -153,6 +155,9 @@ fun LibraryUi(
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
       unfinishedEpisodes = state.unfinishedEpisodes,
+      // Podcast libraries keep a slot for the banner even while it's hidden, see LibraryGrid
+      serverDownloadCount = state.serverDownloadCount.takeIf { state.isPodcastLibrary },
+      onServerDownloadsClick = { eventSink(LibraryUiEvent.ServerDownloadsClick) },
       onItemClick = { eventSink(LibraryUiEvent.ItemClick(it)) },
       itemDisplayState = state.itemDisplayState,
       onDisplayStateClick = { eventSink(LibraryUiEvent.ToggleItemDisplayState) },
@@ -198,6 +203,8 @@ private fun LoadedContent(
   lazyPagingItems: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
+  serverDownloadCount: Int?,
+  onServerDownloadsClick: () -> Unit,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -228,6 +235,8 @@ private fun LoadedContent(
         items = lazyPagingItems,
         offlineStates = offlineStates,
         unfinishedEpisodes = unfinishedEpisodes,
+        serverDownloadCount = serverDownloadCount,
+        onServerDownloadsClick = onServerDownloadsClick,
         onItemClick = onItemClick,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
@@ -247,6 +256,8 @@ private fun LoadedContent(
         items = lazyPagingItems,
         offlineStates = offlineStates,
         unfinishedEpisodes = unfinishedEpisodes,
+        serverDownloadCount = serverDownloadCount,
+        onServerDownloadsClick = onServerDownloadsClick,
         onItemClick = onItemClick,
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
@@ -271,6 +282,8 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
+  serverDownloadCount: Int?,
+  onServerDownloadsClick: () -> Unit,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -298,16 +311,29 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
       span = { GridItemSpan(this.maxLineSpan) },
       key = "filter-bar",
     ) {
-      FilterBar(
-        count = count,
-        itemDisplayState = itemDisplayState,
-        onDisplayStateClick = onDisplayStateClick,
-        isFiltered = filter != null,
-        onFilterClick = onFilterClick,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-        onSortClick = onSortClick,
-      )
+      // The banner rides in the first item rather than an item of its own: a grid at its top stays
+      // at its top as the banner appears, and while hidden it leaves no gap
+      Column {
+        if (serverDownloadCount != null) {
+          AnimatedVisibility(visible = serverDownloadCount > 0) {
+            ServerDownloadsBanner(
+              count = serverDownloadCount,
+              onClick = onServerDownloadsClick,
+              modifier = Modifier.padding(top = 8.dp),
+            )
+          }
+        }
+        FilterBar(
+          count = count,
+          itemDisplayState = itemDisplayState,
+          onDisplayStateClick = onDisplayStateClick,
+          isFiltered = filter != null,
+          onFilterClick = onFilterClick,
+          sortMode = sortMode,
+          sortDirection = sortDirection,
+          onSortClick = onSortClick,
+        )
+      }
     }
 
     items(
@@ -345,6 +371,8 @@ private fun ContentPagingScaffoldScope.LibraryList(
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
+  serverDownloadCount: Int?,
+  onServerDownloadsClick: () -> Unit,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
@@ -363,6 +391,21 @@ private fun ContentPagingScaffoldScope.LibraryList(
     modifier = modifier.fillMaxSize(),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
+    // Always the first item, collapsed while nothing downloads: a list at its top stays anchored
+    // here and shows the banner as it appears. The filter bar is sticky, so the banner can't ride
+    // in it as it does in the grid
+    if (serverDownloadCount != null) {
+      item(key = "server-downloads") {
+        AnimatedVisibility(visible = serverDownloadCount > 0) {
+          ServerDownloadsBanner(
+            count = serverDownloadCount,
+            onClick = onServerDownloadsClick,
+            modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp),
+          )
+        }
+      }
+    }
+
     stickyHeader(key = "filter-bar") {
       FilterBar(
         count = count,

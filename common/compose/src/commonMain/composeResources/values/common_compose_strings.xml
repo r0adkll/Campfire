@@ -116,4 +116,8 @@
   <string name="date_picker_dialog_confirm">Save</string>
   <string name="date_picker_dialog_dismiss">Cancel</string>
   <string name="item_actions_label">More actions</string>
+  <plurals name="server_downloads_banner">
+    <item quantity="one">%1$d episode downloading on server</item>
+    <item quantity="other">%1$d episodes downloading on server</item>
+  </plurals>
 </resources>

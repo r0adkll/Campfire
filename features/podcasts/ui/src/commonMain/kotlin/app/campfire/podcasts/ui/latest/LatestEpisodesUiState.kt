@@ -21,10 +21,14 @@ data class LatestEpisodesUiState(
   /** The ids of the episodes in the playback queue. */
   val queuedEpisodeIds: Set<PodcastEpisodeId>,
   val addToPlaylistDialog: AddToPlaylistDialog,
+  /** Episodes the server is downloading, shown as a banner while there are any. */
+  val serverDownloadCount: Int = 0,
   val eventSink: (LatestEpisodesUiEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface LatestEpisodesUiEvent : CircuitUiEvent {
+  data object ServerDownloadsClick : LatestEpisodesUiEvent
+
   data class PlayEpisode(
     val libraryItemId: LibraryItemId,
     val episodeId: PodcastEpisodeId,

@@ -118,6 +118,16 @@ class PodcastDownloadQueuePresenterTest {
   }
 
   @Test
+  fun `back leaves the screen`() = runTest {
+    val deps = buildDeps()
+    deps.presenter().test {
+      expectMostRecentItem().eventSink(PodcastDownloadQueueUiEvent.Back)
+      deps.navigator.awaitPop()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `refresh event calls fetch episode downloads again`() = runTest {
     val deps = buildDeps()
     val presenter = deps.presenter()

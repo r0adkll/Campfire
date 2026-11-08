@@ -196,8 +196,6 @@
   <string name="dialog_delete_item_action_hard_again">Press again to delete files</string>
   <string name="dialog_delete_item_action_cancel">Cancel</string>
 
-  <string name="podcast_downloads_banner_one">%1$d episode downloading on server</string>
-  <string name="podcast_downloads_banner_other">%1$d episodes downloading on server</string>
 
   <string name="community_title">Ratings &amp; Reviews</string>
   <string name="community_rating_title">Community rating</string>

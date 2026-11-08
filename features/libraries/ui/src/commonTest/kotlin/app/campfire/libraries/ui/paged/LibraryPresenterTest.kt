@@ -28,6 +28,9 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.offline.test.FakeDownloads
+import app.campfire.podcasts.api.RemoteEpisodeDownload
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
+import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.user.test.FakeUserRepository
 import app.cash.molecule.RecompositionMode
@@ -68,12 +71,20 @@ class LibraryPresenterTest {
     podcastSortDirection = SortDirection.Ascending
   }
 
+  private val navigator = FakeNavigator(LibraryScreen())
+  private val serverDownloads = MutableStateFlow<Map<LibraryItemId, List<RemoteEpisodeDownload>>>(emptyMap())
+
   private val presenter = LibraryPresenter(
     screen = LibraryScreen(),
-    navigator = FakeNavigator(LibraryScreen()),
+    navigator = navigator,
     userRepository = userRepository,
     repository = repository,
     downloads = FakeDownloads(),
+    remoteEpisodeDownloadTracker = object : RemoteEpisodeDownloadTracker {
+      override val state = serverDownloads
+      override val recentlyFinishedUrls = MutableStateFlow(emptySet<String>())
+      override fun observe(libraryItemId: LibraryItemId) = TODO()
+    },
     libraryViewSettings = settings,
     analytics = FakeAnalytics(),
   )
@@ -99,6 +110,35 @@ class LibraryPresenterTest {
         LibrarySort(ContentSortMode.AuthorFL, SortDirection.Ascending, LibraryItemSortModes),
       )
       assertThat(repository.pagedSorts).containsExactly(ContentSortMode.AuthorFL to SortDirection.Ascending)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a podcast library counts the episodes the server is downloading`() = runTest {
+    serverDownloads.value = mapOf(
+      "podcast_a" to listOf(serverDownload("1", "podcast_a"), serverDownload("2", "podcast_a")),
+      "podcast_b" to listOf(serverDownload("3", "podcast_b")),
+    )
+    repository.currentLibrary.emit(library(MediaType.Podcast))
+
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.serverDownloadCount).isEqualTo(3)
+
+      state.eventSink(LibraryUiEvent.ServerDownloadsClick)
+      assertThat(navigator.awaitNextScreen()).isEqualTo(PodcastDownloadQueueScreen)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a book library has no server downloads`() = runTest {
+    serverDownloads.value = mapOf("podcast_a" to listOf(serverDownload("1", "podcast_a")))
+    repository.currentLibrary.emit(library(MediaType.Book))
+
+    presenter.test {
+      assertThat(expectMostRecentItem().serverDownloadCount).isEqualTo(0)
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -321,3 +361,15 @@ private class EmptyPagingSource : PagingSource<Int, LibraryItem>() {
 
   override fun getRefreshKey(state: PagingState<Int, LibraryItem>): Int? = null
 }
+
+private fun serverDownload(id: String, libraryItemId: LibraryItemId) = RemoteEpisodeDownload(
+  id = id,
+  libraryItemId = libraryItemId,
+  libraryId = null,
+  url = "https://example.com/$id.mp3",
+  episodeDisplayTitle = null,
+  podcastTitle = null,
+  state = RemoteEpisodeDownload.State.Queued,
+  createdAt = null,
+  startedAt = null,
+)

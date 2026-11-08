@@ -192,7 +192,6 @@
   <string name="theme_preview_nav_playlists">Playlists</string>
   <string name="theme_preview_nav_latest">Latest</string>
   <string name="theme_preview_nav_shows">Shows</string>
-  <string name="theme_preview_nav_queue">Queue</string>
   <string name="theme_preview_time_left">%1$s left</string>
   <string name="theme_preview_chapter">Chapter %1$d</string>
   <string name="theme_preview_cover_colors_mini_player">The player uses cover colors</string>

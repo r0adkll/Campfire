@@ -3,8 +3,9 @@
 
 package app.campfire.podcasts.api.screen
 
-import app.campfire.common.screens.BaseScreen
+import app.campfire.common.screens.DetailScreen
 import app.campfire.core.parcelize.Parcelize
 
+/** The server's podcast episode downloads, opened from the banner shown while it has any. */
 @Parcelize
-data object PodcastDownloadQueueScreen : BaseScreen(name = "PodcastDownloadQueue")
+data object PodcastDownloadQueueScreen : DetailScreen(name = "PodcastDownloadQueue")

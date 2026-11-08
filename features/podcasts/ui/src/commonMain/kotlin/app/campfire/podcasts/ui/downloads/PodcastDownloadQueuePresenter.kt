@@ -69,6 +69,7 @@ class PodcastDownloadQueuePresenter(
       isRefreshing = isRefreshing,
       eventSink = { event ->
         when (event) {
+          PodcastDownloadQueueUiEvent.Back -> navigator.pop()
           is PodcastDownloadQueueUiEvent.Refresh -> scope.launch {
             isRefreshing = true
             podcastsRepository.fetchEpisodeDownloads(currentUser.selectedLibraryId)

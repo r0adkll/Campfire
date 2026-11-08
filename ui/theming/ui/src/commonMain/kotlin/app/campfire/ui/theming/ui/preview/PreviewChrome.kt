@@ -48,7 +48,6 @@ import app.campfire.common.compose.icons.filled.Library
 import app.campfire.common.compose.icons.filled.Playlists
 import app.campfire.common.compose.icons.filled.Series
 import app.campfire.common.compose.icons.outline.Author
-import app.campfire.common.compose.icons.outline.Download
 import app.campfire.common.compose.icons.outline.FormatListBulleted
 import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
@@ -71,7 +70,6 @@ import campfire.ui.theming.ui.generated.resources.theme_preview_nav_home
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_latest
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_library
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_playlists
-import campfire.ui.theming.ui.generated.resources.theme_preview_nav_queue
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_series
 import campfire.ui.theming.ui.generated.resources.theme_preview_nav_shows
 import campfire.ui.theming.ui.generated.resources.theme_preview_search
@@ -211,7 +209,6 @@ private val PodcastTabs = listOf(
   ),
   PreviewNavItem(Res.string.theme_preview_nav_latest, CampfireIcons.Outline.FormatListBulleted),
   PreviewNavItem(Res.string.theme_preview_nav_shows, CampfireIcons.Outline.Podcasts, tab = PreviewTab.Library),
-  PreviewNavItem(Res.string.theme_preview_nav_queue, CampfireIcons.Outline.Download),
   PreviewNavItem(
     Res.string.theme_preview_nav_playlists,
     CampfireIcons.Outline.Playlists,
