@@ -69,19 +69,24 @@ sealed class LoginScreen : BaseScreen(name = "Login") {
 
   /**
    * Re-authenticate an existing account who's tokens have expired
+   *
+   * @param canClose whether the form offers a back button, for windows that only sign in (Android
+   * Automotive OS), where it's the root screen but the user must still be able to leave it
    */
   data class ReAuthentication(
     val userId: UserId,
     val userName: String,
     val serverName: String,
     val serverUrl: String,
+    val canClose: Boolean = false,
   ) : LoginScreen() {
 
-    constructor(server: Server) : this(
+    constructor(server: Server, canClose: Boolean = false) : this(
       userId = server.user.id,
       userName = server.user.name,
       serverName = server.name,
       serverUrl = server.url,
+      canClose = canClose,
     )
   }
 

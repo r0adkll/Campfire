@@ -3,6 +3,7 @@
 
 package app.campfire.android.updates
 
+import app.campfire.common.updates.NoOpUpdateSource
 import app.campfire.core.di.AppScope
 import app.campfire.updates.source.AppUpdateSource
 import app.campfire.updates.source.FakeAppUpdateSource

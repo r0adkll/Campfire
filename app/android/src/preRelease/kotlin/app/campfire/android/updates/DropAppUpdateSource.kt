@@ -5,6 +5,7 @@ package app.campfire.android.updates
 
 import android.app.Application
 import androidx.compose.runtime.Composable
+import app.campfire.common.updates.NoOpUpdateSource
 import app.campfire.core.di.AppScope
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateCheckException

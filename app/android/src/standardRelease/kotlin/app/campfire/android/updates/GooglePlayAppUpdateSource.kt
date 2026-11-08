@@ -5,6 +5,7 @@ package app.campfire.android.updates
 
 import android.app.Activity
 import android.app.Application
+import app.campfire.common.updates.NoOpUpdateSource
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark

@@ -7,7 +7,7 @@ import android.app.Application
 import androidx.compose.runtime.Composer
 import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import app.campfire.android.di.AndroidAppComponent
-import app.campfire.android.logging.AndroidBark
+import app.campfire.common.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogRedaction

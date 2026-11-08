@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.android.logging
+package app.campfire.common.logging
 
 import android.util.Log
 import app.campfire.core.logging.Extras

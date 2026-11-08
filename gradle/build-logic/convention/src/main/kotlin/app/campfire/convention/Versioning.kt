@@ -22,6 +22,21 @@ fun Project.campfireVersionCode(): Int =
     ?: providers.gradleProperty("campfire.versionCode").orNull?.toIntOrNull()
     ?: DEV_VERSION_CODE
 
+/**
+ * The Android Automotive OS build shares the phone app's package and Play listing, and Play wants
+ * every artifact of a package to carry its own versionCode. Car builds take the phone's code plus
+ * this, which keeps them unique and ordered the same way. Even [DEV_VERSION_CODE] stays under
+ * [MAX_PLAY_VERSION_CODE].
+ */
+const val AUTOMOTIVE_VERSION_CODE_OFFSET = 1_000_000_000
+
+fun Project.campfireAutomotiveVersionCode(): Int = automotiveVersionCode(campfireVersionCode())
+
+fun automotiveVersionCode(phoneVersionCode: Int): Int = AUTOMOTIVE_VERSION_CODE_OFFSET + phoneVersionCode
+
+/** The largest versionCode Google Play accepts. */
+const val MAX_PLAY_VERSION_CODE = 2_100_000_000
+
 fun Project.campfireVersionName(): String =
   providers.gradleProperty("CAMPFIRE_VERSIONNAME").orNull
     ?: providers.gradleProperty("campfire.version").get()

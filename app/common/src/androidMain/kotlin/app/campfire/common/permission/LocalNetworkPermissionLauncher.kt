@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.android.permission
+package app.campfire.common.permission
 
 import androidx.activity.result.contract.ActivityResultContracts
 import app.campfire.core.ActivityResultFlowLauncher

@@ -21,18 +21,23 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.impl.browse.BrowseMediaId
+import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.browse.SuspendingMediaLibrarySessionCallback
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.session.UserSession
 import app.campfire.infra.audioplayer.impl.R
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.withTimeoutOrNull
 
 @SuppressLint("UnsafeOptInUsageError")
 internal class MediaSessionCallback(
@@ -40,7 +45,7 @@ internal class MediaSessionCallback(
   private val serviceScope: CoroutineScope,
   private val player: ExoPlayerAudioPlayer,
   private val component: AudioPlayerComponent,
-  private val userComponent: AudioPlayerUserComponent,
+  private val userComponent: () -> AudioPlayerUserComponent,
 ) : SuspendingMediaLibrarySessionCallback(serviceScope) {
 
   private val cycleSpeedCommand = SessionCommand(WidgetSessionCommand.CYCLE_SPEED, Bundle.EMPTY)
@@ -132,7 +137,8 @@ internal class MediaSessionCallback(
     // an exception escaping here would leave the freshly started foreground service without a
     // notification and Android would kill the process.
     try {
-      userComponent.sessionsRepository.getCurrentSession()?.let { session ->
+      val userComponent = signedInUserComponent()
+      userComponent?.sessionsRepository?.getCurrentSession()?.let { session ->
         userComponent.playbackSessionManager.startSession(
           libraryItemId = session.libraryItem.id,
           playImmediately = isForPlayback,
@@ -203,7 +209,7 @@ internal class MediaSessionCallback(
     // the main thread on this result (see SuspendingMediaLibrarySessionCallback). The root
     // is a static item, so it can be built synchronously.
     return try {
-      Futures.immediateFuture(LibraryResult.ofItem(userComponent.mediaTree.root, params))
+      Futures.immediateFuture(LibraryResult.ofItem(MediaTree.root, params))
     } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "onGetLibraryRoot: ${browser.uid}" }
       Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
@@ -218,6 +224,8 @@ internal class MediaSessionCallback(
     pageSize: Int,
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
+    val userComponent = signedInUserComponent()
+      ?: return LibraryResult.ofError(component.browseSignInPromptProvider.prompt().toSessionError())
     val children = userComponent.mediaTree.getChildren(parentId, page, pageSize)
     // An empty page past the first is a valid end-of-pagination signal, not an error.
     if (children.isNotEmpty() || page > 0) {
@@ -231,6 +239,12 @@ internal class MediaSessionCallback(
     browser: MediaSession.ControllerInfo,
     mediaId: String,
   ): LibraryResult<MediaItem> {
+    // Signed out too: subscribing to a parent looks it up first, and the browser must stay
+    // subscribed to the root to hear that it changed once someone signs in.
+    if (mediaId == MediaTree.ROOT_MEDIA_ID) return LibraryResult.ofItem(MediaTree.root, null)
+
+    val userComponent = signedInUserComponent()
+      ?: return LibraryResult.ofError(component.browseSignInPromptProvider.prompt().toSessionError())
     userComponent.mediaTree.getItem(mediaId)?.let {
       return LibraryResult.ofItem(it, null)
     }
@@ -243,6 +257,8 @@ internal class MediaSessionCallback(
     query: String,
     params: LibraryParams?,
   ): LibraryResult<Void> {
+    val userComponent = signedInUserComponent()
+      ?: return LibraryResult.ofError(component.browseSignInPromptProvider.prompt().toSessionError())
     val results = userComponent.mediaTree.search(query)
     session.notifySearchResultChanged(browser, query, results.size, params)
     return LibraryResult.ofVoid()
@@ -256,6 +272,8 @@ internal class MediaSessionCallback(
     pageSize: Int,
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
+    val userComponent = signedInUserComponent()
+      ?: return LibraryResult.ofError(component.browseSignInPromptProvider.prompt().toSessionError())
     return userComponent.mediaTree.getSearchResults(query, page, pageSize).let {
       LibraryResult.ofItemList(it, params)
     }
@@ -281,6 +299,7 @@ internal class MediaSessionCallback(
         // Podcast episode entries from the media tree encode their episode id into the
         // mediaId, so decode it to start the session against the right episode.
         val browseId = BrowseMediaId.decode(mediaItems.first().mediaId)
+        val userComponent = signedInUserComponent() ?: error("Nobody is signed in to play for")
         userComponent.playbackSessionManager.startSession(
           libraryItemId = browseId.libraryItemId,
           episodeId = browseId.episodeId,
@@ -302,6 +321,7 @@ internal class MediaSessionCallback(
     startIndex: Int,
     startPositionMs: Long,
   ): MediaSession.MediaItemsWithStartPosition {
+    val userComponent = signedInUserComponent() ?: error("Nobody is signed in to play for")
     val resolvedItems = mediaItems.flatMap { item ->
       if (item.localConfiguration == null) {
         userComponent.mediaTree.resolveMediaItem(item.mediaId)
@@ -315,6 +335,19 @@ internal class MediaSessionCallback(
     } else {
       error("Media items contain an unplayable item!")
     }
+  }
+
+  /**
+   * The signed-in user's component, resolved for every call: the user component is rebuilt on
+   * each session change, and the service usually outlives several (it starts signed out on a
+   * car, and stays up across account switches). Waits out a session that is still restoring, so
+   * a browser connecting at boot isn't told to sign in to an account that is about to load.
+   */
+  private suspend fun signedInUserComponent(): AudioPlayerUserComponent? {
+    val session = withTimeoutOrNull(SESSION_RESTORE_TIMEOUT) {
+      component.userSessionManager.observe().first { it != UserSession.Loading }
+    }
+    return if (session is UserSession.LoggedIn) userComponent() else null
   }
 
   private fun createCustomLayoutCommandButtons(): List<CommandButton> {
@@ -348,6 +381,8 @@ internal class MediaSessionCallback(
   }
 
   private companion object {
+    val SESSION_RESTORE_TIMEOUT = 5.seconds
+
     /**
      * List of known package names used by bluetooth devices
      */

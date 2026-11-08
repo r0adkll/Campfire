@@ -129,7 +129,11 @@ private fun LoginContent(
               )
             },
             navigationIcon = {
-              if (screen is LoginScreen.Additional || screen is LoginScreen.Restore || screen is LoginScreen.Connect) {
+              val canGoBack = screen is LoginScreen.Additional ||
+                screen is LoginScreen.Restore ||
+                screen is LoginScreen.Connect ||
+                (screen is LoginScreen.ReAuthentication && screen.canClose)
+              if (canGoBack) {
                 NavigationBackButton(onClick = { state.eventSink(LoginUiEvent.NavigateBack) })
               }
             },

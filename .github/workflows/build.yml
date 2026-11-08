@@ -195,7 +195,7 @@ jobs:
         run: ./gradlew :app:android:verifyVersionCode
 
       - name: Validate Android compilation
-        run: ./gradlew :app:android:compileAlphaReleaseSources
+        run: ./gradlew :app:android:compileAlphaReleaseSources :app:automotive:compileReleaseSources
 
       - name: Upload reports
         if: failure()
