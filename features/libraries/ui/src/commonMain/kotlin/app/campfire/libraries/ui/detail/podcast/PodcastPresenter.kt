@@ -17,6 +17,9 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.common.compose.layout.LocalSnackBarHost
+import app.campfire.common.compose.message.showAddedToQueue
+import app.campfire.common.compose.message.showRemovedFromQueue
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
@@ -47,6 +50,7 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.PlayingItem
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressKey
@@ -71,6 +75,7 @@ class PodcastPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
+  private val sessionQueue: SessionQueue,
   private val downloads: Downloads,
   private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
@@ -126,11 +131,24 @@ class PodcastPresenter(
       libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
+    // Only this podcast's queued episodes, so queueing another item doesn't rebuild every slot
+    val queuedEpisodeIds by remember(libraryItem.id) {
+      sessionQueue.observeAll()
+        .map { entries ->
+          entries.filter { it.libraryItemId == libraryItem.id }.mapNotNullTo(HashSet()) { it.episodeId }
+        }
+        .distinctUntilChanged()
+    }.collectAsState(emptySet())
+
+    // The app's own snackbar, so queueing tells what it did without passing it through the state
+    val snackbarHost = LocalSnackBarHost.current
+
     val slots = buildSlots(
       user = currentUser,
       libraryItem = libraryItem,
       playingItem = playingItem,
       mediaProgress = mediaProgress,
+      queuedEpisodeIds = queuedEpisodeIds,
       episodeDownloads = episodeDownloads,
       remoteDownloadCount = remoteDownloadCount,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
@@ -202,6 +220,28 @@ class PodcastPresenter(
             }
           }
 
+          is LibraryItemUiEvent.AddEpisodeToQueue -> {
+            analytics.send(ActionEvent("add_episode_to_queue", Click))
+            val episode = event.episode
+            scope.launch {
+              sessionQueue.add(libraryItem.id, episode.id)
+              if (snackbarHost.showAddedToQueue()) {
+                sessionQueue.remove(libraryItem.id, episode.id)
+              }
+            }
+          }
+
+          is LibraryItemUiEvent.RemoveEpisodeFromQueue -> {
+            analytics.send(ActionEvent("remove_episode_from_queue", Click))
+            val episode = event.episode
+            scope.launch {
+              val index = sessionQueue.remove(libraryItem.id, episode.id) ?: return@launch
+              if (snackbarHost.showRemovedFromQueue()) {
+                sessionQueue.insert(libraryItem.id, episode.id, index)
+              }
+            }
+          }
+
           LibraryItemUiEvent.FindEpisodes -> {
             analytics.send(ActionEvent("find_episodes", Click))
             navigator.goTo(FindEpisodesScreen(libraryItem.id))
@@ -242,6 +282,7 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   playingItem: PlayingItem?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
+  queuedEpisodeIds: Set<PodcastEpisodeId>,
   episodeDownloads: Map<PodcastEpisodeId, Download>,
   remoteDownloadCount: Int,
   showConfirmDownloadDialog: Boolean,
@@ -313,6 +354,7 @@ private fun buildSlots(
         episode = episode,
         progress = progress,
         isCurrentSession = playingItem?.matches(episode.libraryItemId, episode.id) == true,
+        isQueued = episode.id in queuedEpisodeIds,
         offlineDownload = episodeDownloads[episode.id],
         canDownload = user.canDownload,
         showConfirmDownloadDialog = showConfirmDownloadDialog,

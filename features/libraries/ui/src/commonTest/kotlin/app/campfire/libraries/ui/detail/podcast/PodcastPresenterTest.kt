@@ -3,6 +3,7 @@
 
 package app.campfire.libraries.ui.detail.podcast
 
+import androidx.compose.material3.SnackbarData
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.withCompositionLocal
 import app.campfire.audioplayer.test.PlaybackControllerSession
@@ -33,7 +34,12 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
 
@@ -139,6 +145,43 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
+  fun addEpisodeToQueue_queuesItAndOffersUndo() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      awaitLoaded().eventSink(LibraryItemUiEvent.AddEpisodeToQueue(episode))
+      testScheduler.runCurrent()
+
+      assertThat(sessionQueue.queue.map { it.key }).containsExactly("${podcast.id}:${episode.id}")
+      awaitSnackbar("Added to queue").performAction()
+      testScheduler.runCurrent()
+
+      assertThat(sessionQueue.queue).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun queuedEpisodes_canBeTakenOutOfTheQueueAndPutBack() = runTest {
+    sessionQueue.add(podcast, episode)
+    sessionQueue.add("other_item")
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      awaitLoaded().eventSink(LibraryItemUiEvent.RemoveEpisodeFromQueue(episode))
+      testScheduler.runCurrent()
+
+      assertThat(sessionQueue.queue.map { it.key }).containsExactly("other_item")
+
+      awaitSnackbar("Removed from queue").performAction()
+      testScheduler.runCurrent()
+
+      assertThat(sessionQueue.queue.map { it.key }).containsExactly("${podcast.id}:${episode.id}", "other_item")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun findEpisodesAndDownloads_navigate() = runTest {
     libraryItemRepository.libraryItemFlow.emit(podcast)
 
@@ -154,6 +197,22 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
     }
   }
 }
+
+/**
+ * Waits for the snackbar to say [message]: its words load off the test's own thread, so this polls
+ * from another, and reads nothing there but the snackbar host's state.
+ */
+private suspend fun PodcastPresenterTest.awaitSnackbar(message: String): SnackbarData =
+  withContext(Dispatchers.Default) {
+    withTimeout(5.seconds) {
+      var shown = snackbarHost.currentSnackbarData
+      while (shown?.visuals?.message != message) {
+        delay(10)
+        shown = snackbarHost.currentSnackbarData
+      }
+      shown
+    }
+  }
 
 private suspend fun ReceiveTurbine<LibraryItemUiState>.awaitLoaded(): LibraryItemUiState {
   while (true) {

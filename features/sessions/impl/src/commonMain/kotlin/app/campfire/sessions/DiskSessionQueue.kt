@@ -40,7 +40,7 @@ class DiskSessionQueue(
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionQueue {
 
-  override suspend fun add(libraryItem: LibraryItem, episode: PodcastEpisode?) {
+  override suspend fun add(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val newIndex = read {
       db.sessionQueueQueries
         .getHighestIndex()
@@ -53,8 +53,8 @@ class DiskSessionQueue(
       db.sessionQueueQueries.insert(
         DbSessionQueue(
           userId = userSession.requiredUserId,
-          libraryItemId = libraryItem.id,
-          episodeId = episode?.id.orEmpty(),
+          libraryItemId = libraryItemId,
+          episodeId = episodeId.orEmpty(),
           queueIndex = newIndex,
         ),
       )
@@ -87,53 +87,60 @@ class DiskSessionQueue(
   }
 
   override suspend fun addFirst(libraryItem: LibraryItem, episode: PodcastEpisode?) {
-    val head = QueueKey(libraryItem.id, episode?.id.orEmpty())
+    insert(libraryItem.id, episode?.id, index = 0)
+  }
+
+  override suspend fun insert(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?, index: Int) {
+    val entry = QueueKey(libraryItemId, episodeId.orEmpty())
     write {
       db.sessionQueueQueries.transaction {
         val rest = db.sessionQueueQueries
           .selectAll(userSession.requiredUserId)
           .awaitAsList()
           .map { QueueKey(it.libraryItemId, it.episodeId) }
-          .filterNot { it == head }
+          .filterNot { it == entry }
+        val position = index.coerceIn(0, rest.size)
 
         db.sessionQueueQueries.delete(
           userId = userSession.requiredUserId,
-          libraryItemId = head.libraryItemId,
-          episodeId = head.episodeId,
+          libraryItemId = entry.libraryItemId,
+          episodeId = entry.episodeId,
         )
         db.sessionQueueQueries.insert(
           DbSessionQueue(
             userId = userSession.requiredUserId,
-            libraryItemId = head.libraryItemId,
-            episodeId = head.episodeId,
-            queueIndex = 0,
+            libraryItemId = entry.libraryItemId,
+            episodeId = entry.episodeId,
+            queueIndex = position,
           ),
         )
-        reindexQueue(listOf(head) + rest)
+        reindexQueue(rest.take(position) + entry + rest.drop(position))
       }
     }
   }
 
-  override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
-    val targetEpisodeId = episodeId.orEmpty()
-    val remaining = read {
+  override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?): Int? {
+    val target = QueueKey(libraryItemId, episodeId.orEmpty())
+    val queue = read {
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
         .sortedBy { it.queueIndex }
-        .filterNot { it.libraryItemId == libraryItemId && it.episodeId == targetEpisodeId }
         .map { QueueKey(it.libraryItemId, it.episodeId) }
     }
+    val index = queue.indexOf(target).takeIf { it >= 0 }
 
+    var removed = false
     db.sessionQueueQueries.transaction {
-      val success = db.sessionQueueQueries.delete(
+      removed = db.sessionQueueQueries.delete(
         userId = userSession.requiredUserId,
-        libraryItemId = libraryItemId,
-        episodeId = targetEpisodeId,
+        libraryItemId = target.libraryItemId,
+        episodeId = target.episodeId,
       ) > 0
 
-      if (success) reindexQueue(remaining)
+      if (removed) reindexQueue(queue - target)
     }
+    return index.takeIf { removed }
   }
 
   override suspend fun pop(): QueuedEntry? {

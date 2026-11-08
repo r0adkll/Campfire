@@ -4,6 +4,9 @@
 package app.campfire.podcasts.ui
 
 import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.User
@@ -48,8 +51,9 @@ class FakePodcastsRepository(
   val fetchEpisodeDownloadsCalls = mutableListOf<LibraryId>()
   val clearQueueCalls = mutableListOf<LibraryItemId>()
 
+  /** An empty feed: the tests that open it act on episodes they make themselves. */
   override fun createLatestEpisodesPager(user: User): Pager<Int, LatestEpisode> {
-    throw NotImplementedError("not exercised in these tests")
+    return Pager(PagingConfig(pageSize = 10)) { EmptyLatestEpisodesSource() }
   }
 
   override suspend fun fetchPodcastFeedDetails(
@@ -93,5 +97,13 @@ class FakePodcastsRepository(
   ): Result<LibraryItemId> {
     addCalls += AddCall(libraryId, folder, draft, autoDownloadEpisodes)
     return addResult
+  }
+}
+
+private class EmptyLatestEpisodesSource : PagingSource<Int, LatestEpisode>() {
+  override fun getRefreshKey(state: PagingState<Int, LatestEpisode>): Int? = null
+
+  override suspend fun load(params: LoadParams<Int>): LoadResult<Int, LatestEpisode> {
+    return LoadResult.Page(data = emptyList(), prevKey = null, nextKey = null)
   }
 }

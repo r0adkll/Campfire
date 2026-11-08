@@ -59,6 +59,7 @@ class EpisodeSlot(
   private val episode: PodcastEpisode,
   private val progress: MediaProgress?,
   private val isCurrentSession: Boolean,
+  private val isQueued: Boolean,
   private val offlineDownload: Download?,
   /** Whether the user may start a download; an existing download stays stoppable and removable. */
   private val canDownload: Boolean,
@@ -125,6 +126,16 @@ class EpisodeSlot(
         episode = episode,
         mediaProgress = progress,
         isCurrentSession = isCurrentSession,
+        isQueued = isQueued,
+        onQueueChange = { queued ->
+          eventSink(
+            if (queued) {
+              LibraryItemUiEvent.AddEpisodeToQueue(episode)
+            } else {
+              LibraryItemUiEvent.RemoveEpisodeFromQueue(episode)
+            },
+          )
+        },
         onClick = {
           eventSink(LibraryItemUiEvent.OpenEpisode(episode))
         },
