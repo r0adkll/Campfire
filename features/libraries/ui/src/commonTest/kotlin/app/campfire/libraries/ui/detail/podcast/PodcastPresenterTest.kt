@@ -191,7 +191,7 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
       item.eventSink(LibraryItemUiEvent.FindEpisodes)
       assertThat(navigator.awaitNextScreen()).isEqualTo(FindEpisodesScreen(podcast.id))
 
-      item.eventSink(LibraryItemUiEvent.OpenDownloads)
+      item.eventSink(LibraryItemUiEvent.OpenServerDownloadQueue)
       assertThat(navigator.awaitNextScreen()).isEqualTo(PodcastDownloadQueueScreen)
       cancelAndIgnoreRemainingEvents()
     }

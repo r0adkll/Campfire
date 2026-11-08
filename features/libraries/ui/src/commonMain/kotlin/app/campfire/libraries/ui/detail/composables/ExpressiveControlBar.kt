@@ -12,6 +12,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -120,6 +121,8 @@ internal fun ExpressiveControlBar(
   canDownload: Boolean = true,
   /** Reads the item's ebook, where an item with audio has one too. */
   onReadClick: (() -> Unit)? = null,
+  /** Opens the Downloads screen from the download's status card, which isn't tappable when null. */
+  onOfflineStatusClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier
@@ -173,6 +176,7 @@ internal fun ExpressiveControlBar(
           onDeleteClick = onDeleteDownloadClick,
           onStopClick = onStopDownloadClick,
           onRetryClick = onDownloadClick.takeIf { canDownload },
+          onClick = onOfflineStatusClick,
         )
       }
 
@@ -206,156 +210,190 @@ private fun OfflineStatus(
   onStopClick: () -> Unit,
   /** Null when the user can't download, which hides retry for a failed download. */
   onRetryClick: (() -> Unit)?,
+  /** Null leaves the card itself untappable. */
+  onClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
-  Card(
-    shape = MaterialTheme.shapes.medium,
-    colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.primaryContainer,
-      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    ),
-    modifier = modifier,
-  ) {
-    OfflineTitleBar(
-      state = offlineDownload.state,
-      title = {
-        Text(
-          when (offlineDownload.state) {
-            Download.State.Downloading -> "Downloading"
+  val shape = MaterialTheme.shapes.medium
+  val colors = CardDefaults.cardColors(
+    containerColor = MaterialTheme.colorScheme.primaryContainer,
+    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+  )
+  val content: @Composable ColumnScope.() -> Unit = {
+    OfflineStatusContent(
+      offlineDownload = offlineDownload,
+      totalSizeInBytes = totalSizeInBytes,
+      onDeleteClick = onDeleteClick,
+      onStopClick = onStopClick,
+      onRetryClick = onRetryClick,
+    )
+  }
+  if (onClick != null) {
+    Card(
+      onClick = onClick,
+      shape = shape,
+      colors = colors,
+      modifier = modifier.testTag("offline_status_card"),
+      content = content,
+    )
+  } else {
+    Card(
+      shape = shape,
+      colors = colors,
+      modifier = modifier,
+      content = content,
+    )
+  }
+}
 
-            Download.State.Queued -> "Queued"
-            Download.State.Stopped -> "Stopped"
-            Download.State.Failed -> "Download failed"
-            Download.State.Downloaded -> "Available for offline"
-          },
-        )
-      },
-      subtitle = if (offlineDownload.state == Download.State.Downloaded) {
-        {
-          Text(offlineDownload.bytes.asReadableBytes())
-        }
-      } else {
-        null
-      },
-      trailing = {
-        AnimatedContent(
-          targetState = offlineDownload.isInProgress,
-        ) { isActive ->
-          if (isActive) {
-            val stopLabel = stringResource(Res.string.action_stop_downloading)
-            IconButtonTooltip(text = stopLabel) {
-              FilledIconButton(
-                onClick = onStopClick,
-                shapes = IconButtonDefaults.shapes(),
-                modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                  containerColor = MaterialTheme.colorScheme.errorContainer,
-                  contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                ),
-              ) {
-                Icon(
-                  CampfireIcons.Rounded.Stop,
-                  contentDescription = stopLabel,
-                  modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                )
-              }
-            }
-          } else {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
+/** The status card's rows, laid out by the card's column. */
+@Composable
+private fun OfflineStatusContent(
+  offlineDownload: Download,
+  totalSizeInBytes: Long,
+  onDeleteClick: () -> Unit,
+  onStopClick: () -> Unit,
+  onRetryClick: (() -> Unit)?,
+) {
+  OfflineTitleBar(
+    state = offlineDownload.state,
+    title = {
+      Text(
+        when (offlineDownload.state) {
+          Download.State.Downloading -> "Downloading"
+
+          Download.State.Queued -> "Queued"
+          Download.State.Stopped -> "Stopped"
+          Download.State.Failed -> "Download failed"
+          Download.State.Downloaded -> "Available for offline"
+        },
+      )
+    },
+    subtitle = if (offlineDownload.state == Download.State.Downloaded) {
+      {
+        Text(offlineDownload.bytes.asReadableBytes())
+      }
+    } else {
+      null
+    },
+    trailing = {
+      AnimatedContent(
+        targetState = offlineDownload.isInProgress,
+      ) { isActive ->
+        if (isActive) {
+          val stopLabel = stringResource(Res.string.action_stop_downloading)
+          IconButtonTooltip(text = stopLabel) {
+            FilledIconButton(
+              onClick = onStopClick,
+              shapes = IconButtonDefaults.shapes(),
+              modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+              colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+              ),
             ) {
-              if (
-                offlineDownload.state == Download.State.Failed ||
-                offlineDownload.state == Download.State.Stopped
-              ) {
-                if (onRetryClick != null) {
-                  val retryLabel = stringResource(Res.string.action_retry_download)
-                  IconButtonTooltip(text = retryLabel) {
-                    IconButton(
-                      onClick = onRetryClick,
-                      shapes = IconButtonDefaults.shapes(),
-                      modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-                    ) {
-                      Icon(
-                        CampfireIcons.Rounded.Replay,
-                        contentDescription = retryLabel,
-                        modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                      )
-                    }
-                  }
-
-                  Spacer(Modifier.size(8.dp))
-                }
-
-                val deleteDownloadLabel = stringResource(Res.string.action_delete_download)
-                IconButtonTooltip(text = deleteDownloadLabel) {
-                  FilledIconButton(
-                    onClick = onDeleteClick,
+              Icon(
+                CampfireIcons.Rounded.Stop,
+                contentDescription = stopLabel,
+                modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+              )
+            }
+          }
+        } else {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            if (
+              offlineDownload.state == Download.State.Failed ||
+              offlineDownload.state == Download.State.Stopped
+            ) {
+              if (onRetryClick != null) {
+                val retryLabel = stringResource(Res.string.action_retry_download)
+                IconButtonTooltip(text = retryLabel) {
+                  IconButton(
+                    onClick = onRetryClick,
                     shapes = IconButtonDefaults.shapes(),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                      containerColor = MaterialTheme.colorScheme.error,
-                      contentColor = MaterialTheme.colorScheme.onError,
-                    ),
                     modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
                   ) {
                     Icon(
-                      CampfireIcons.Rounded.Delete,
-                      contentDescription = deleteDownloadLabel,
+                      CampfireIcons.Rounded.Replay,
+                      contentDescription = retryLabel,
                       modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                     )
                   }
                 }
-              } else {
-                val size = ButtonDefaults.ExtraSmallContainerHeight
-                val color = MaterialTheme.colorScheme.error
-                Button(
+
+                Spacer(Modifier.size(8.dp))
+              }
+
+              val deleteDownloadLabel = stringResource(Res.string.action_delete_download)
+              IconButtonTooltip(text = deleteDownloadLabel) {
+                FilledIconButton(
                   onClick = onDeleteClick,
-                  shapes = ButtonDefaults.shapes(
-                    shape = ButtonDefaults.squareShape,
+                  shapes = IconButtonDefaults.shapes(),
+                  colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
                   ),
-                  colors = ButtonDefaults.buttonColors(
-                    containerColor = color,
-                    contentColor = MaterialTheme.colorScheme.contentColorFor(color),
-                  ),
-                  modifier = Modifier
-                    .heightIn(size),
-                  contentPadding = ButtonDefaults.contentPaddingFor(size),
+                  modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
                 ) {
                   Icon(
                     CampfireIcons.Rounded.Delete,
-                    contentDescription = stringResource(Res.string.action_stop_downloading),
-                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
-                  )
-                  Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
-                  Text(
-                    text = stringResource(Res.string.action_delete_offline),
-                    style = ButtonDefaults.textStyleFor(size),
+                    contentDescription = deleteDownloadLabel,
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                   )
                 }
+              }
+            } else {
+              val size = ButtonDefaults.ExtraSmallContainerHeight
+              val color = MaterialTheme.colorScheme.error
+              Button(
+                onClick = onDeleteClick,
+                shapes = ButtonDefaults.shapes(
+                  shape = ButtonDefaults.squareShape,
+                ),
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = color,
+                  contentColor = MaterialTheme.colorScheme.contentColorFor(color),
+                ),
+                modifier = Modifier
+                  .heightIn(size),
+                contentPadding = ButtonDefaults.contentPaddingFor(size),
+              ) {
+                Icon(
+                  CampfireIcons.Rounded.Delete,
+                  contentDescription = stringResource(Res.string.action_stop_downloading),
+                  modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
+                )
+                Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+                Text(
+                  text = stringResource(Res.string.action_delete_offline),
+                  style = ButtonDefaults.textStyleFor(size),
+                )
               }
             }
           }
         }
-      },
-      modifier = Modifier.testTag("offline_status_title"),
-    )
-
-    if (offlineDownload.isInProgress) {
-      val actualProgress = if (totalSizeInBytes > 0L) {
-        (offlineDownload.bytes.toFloat() / totalSizeInBytes.toFloat())
-          .coerceIn(0f, 1f)
-      } else {
-        offlineDownload.progress ?: 0f
       }
+    },
+    modifier = Modifier.testTag("offline_status_title"),
+  )
 
-      OfflineProgressBar(
-        progress = actualProgress,
-        bytesDownloaded = offlineDownload.bytes,
-        contentLength = totalSizeInBytes.takeIf { it > 0L }
-          ?: offlineDownload.totalBytes,
-        isIndeterminate = offlineDownload.progress == null,
-      )
+  if (offlineDownload.isInProgress) {
+    val actualProgress = if (totalSizeInBytes > 0L) {
+      (offlineDownload.bytes.toFloat() / totalSizeInBytes.toFloat())
+        .coerceIn(0f, 1f)
+    } else {
+      offlineDownload.progress ?: 0f
     }
+
+    OfflineProgressBar(
+      progress = actualProgress,
+      bytesDownloaded = offlineDownload.bytes,
+      contentLength = totalSizeInBytes.takeIf { it > 0L }
+        ?: offlineDownload.totalBytes,
+      isIndeterminate = offlineDownload.progress == null,
+    )
   }
 }
 

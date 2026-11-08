@@ -27,6 +27,7 @@ import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.bestMatch
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.ConnectedProvidersScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.DispatcherProvider
@@ -428,6 +429,11 @@ class BookPresenter(
           if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("stop_download", Click))
           downloads.stop(downloadContent)
+        }
+
+        LibraryItemUiEvent.OpenDownloads -> {
+          analytics.send(ActionEvent("open_downloads", Click))
+          navigator.goTo(DownloadsScreen)
         }
 
         LibraryItemUiEvent.ReadClick -> {

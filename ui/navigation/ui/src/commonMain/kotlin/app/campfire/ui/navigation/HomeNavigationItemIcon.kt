@@ -6,7 +6,6 @@ package app.campfire.ui.navigation
 import androidx.compose.animation.Crossfade
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
@@ -16,15 +15,17 @@ internal fun HomeNavigationItemIcon(item: HomeNavigationItem, selected: Boolean)
     val selectedImageVector = item.selectedImageVector
     if (selectedImageVector != null) {
       Crossfade(targetState = selected) { s ->
-        Icon(
+        InProgressIcon(
           imageVector = if (s) selectedImageVector else item.iconImageVector,
           contentDescription = item.contentDescription,
+          inProgress = item.inProgress,
         )
       }
     } else {
-      Icon(
+      InProgressIcon(
         imageVector = item.iconImageVector,
         contentDescription = item.contentDescription,
+        inProgress = item.inProgress,
       )
     }
   }
@@ -34,7 +35,7 @@ internal fun HomeNavigationItemIcon(item: HomeNavigationItem, selected: Boolean)
 private fun WithBadge(item: HomeNavigationItem, content: @Composable () -> Unit) {
   if (item.badgeCount > 0) {
     BadgedBox(
-      badge = { Badge { Text(item.badgeCount.toString()) } },
+      badge = { Badge { Text(badgeCountLabel(item.badgeCount)) } },
     ) {
       content()
     }
@@ -54,3 +55,8 @@ internal fun WithDotBadge(badged: Boolean, content: @Composable () -> Unit) {
     content()
   }
 }
+
+/** [count] as a badge shows it, capped like Material's badges so it stays short. */
+internal fun badgeCountLabel(count: Int): String = if (count > MaxBadgeCount) "$MaxBadgeCount+" else count.toString()
+
+private const val MaxBadgeCount = 999

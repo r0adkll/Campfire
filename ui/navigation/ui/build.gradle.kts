@@ -12,6 +12,7 @@ kotlin {
         api(projects.ui.navigation.api)
 
         implementation(projects.data.account.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.infra.updates.api)
         implementation(projects.infra.whatsNew.api)
         implementation(projects.features.discover.api)

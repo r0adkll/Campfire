@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
 - Add a podcast episode to the queue, or take it back out, by swiping it to the right in Latest or on a show's page, or with its new queue button, with an Undo either way
 - Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, reviewing each change or in one tap with Quick match, or choose a new cover from those sources, a web address or the book's own images, when your account is allowed to
+- Downloads in the navigation shows how many downloads you have, and its icon animates while anything is downloading; tap a book's download status to open Downloads
 
 ### Changed
 

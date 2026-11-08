@@ -152,6 +152,9 @@ class ExpressiveControlSlot(
       onDeleteDownloadClick = {
         eventSink(LibraryItemUiEvent.RemoveDownloadClick)
       },
+      onOfflineStatusClick = {
+        eventSink(LibraryItemUiEvent.OpenDownloads)
+      },
       onAddToQueueClick = {
         if (isQueued) {
           Analytics.send(ActionEvent("remove_from_queue", Click))

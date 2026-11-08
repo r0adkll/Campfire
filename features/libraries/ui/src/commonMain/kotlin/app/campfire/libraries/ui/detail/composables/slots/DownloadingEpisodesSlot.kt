@@ -28,7 +28,7 @@ class DownloadingEpisodesSlot(
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
     ServerDownloadsBanner(
       count = count,
-      onClick = { eventSink(LibraryItemUiEvent.OpenDownloads) },
+      onClick = { eventSink(LibraryItemUiEvent.OpenServerDownloadQueue) },
       modifier = modifier.padding(horizontal = 16.dp),
     )
   }
