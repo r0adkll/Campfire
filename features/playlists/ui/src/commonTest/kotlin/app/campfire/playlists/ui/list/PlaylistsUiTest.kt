@@ -8,7 +8,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -30,6 +32,7 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
 class PlaylistsUiTest {
@@ -87,6 +90,28 @@ class PlaylistsUiTest {
     onNodeWithText("Queue").assertDoesNotExist()
   }
 
+  @Test
+  fun withNoPlaylistsTheEmptyMessageSitsBelowTheQueueCard() = runComposeUiTest {
+    setPlaylists(GroupDisplayState.List, listOf(queued("The Queued Book")))
+
+    val card = onNodeWithText("Up next: The Queued Book").fetchSemanticsNode().boundsInRoot
+    // Part of the list, scrolling with the card, rather than the full-screen empty state on top
+    val message = onNode(hasText(EmptyPlaylistsMessage) and hasAnyAncestor(hasScrollAction()))
+      .assertIsDisplayed()
+      .fetchSemanticsNode()
+      .boundsInRoot
+
+    assertTrue(message.top >= card.bottom, "Empty message $message overlaps the queue card $card")
+  }
+
+  @Test
+  fun withNoPlaylistsAndNoQueueTheEmptyStateFillsTheScreen() = runComposeUiTest {
+    setPlaylists(GroupDisplayState.List, emptyList())
+
+    onNodeWithText(EmptyPlaylistsMessage).assertIsDisplayed()
+    onNode(hasText(EmptyPlaylistsMessage) and hasAnyAncestor(hasScrollAction())).assertDoesNotExist()
+  }
+
   private fun ComposeUiTest.setPlaylists(displayState: GroupDisplayState, queue: List<QueuedEntry>) {
     setContent {
       PreviewSharedElementTransitionLayout {
@@ -114,3 +139,5 @@ class PlaylistsUiTest {
     libraryItem(id = title, media = media(metadata = mediaMetadata(title = title))),
   )
 }
+
+private const val EmptyPlaylistsMessage = "Doesn't look like you have any playlists. Try adding one now!"
