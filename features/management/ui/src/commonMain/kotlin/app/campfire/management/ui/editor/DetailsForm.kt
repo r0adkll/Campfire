@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -22,6 +23,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
@@ -30,8 +34,18 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -40,28 +54,45 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Add
+import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.management.ui.generated.resources.Res
+import campfire.features.management.ui.generated.resources.action_add_series
 import campfire.features.management.ui.generated.resources.action_keep_mine
 import campfire.features.management.ui.generated.resources.action_reload
 import campfire.features.management.ui.generated.resources.banner_behind_server
 import campfire.features.management.ui.generated.resources.banner_cant_edit
 import campfire.features.management.ui.generated.resources.cd_changed
+import campfire.features.management.ui.generated.resources.cd_remove_series
 import campfire.features.management.ui.generated.resources.editor_footer
+import campfire.features.management.ui.generated.resources.error_series_duplicate
+import campfire.features.management.ui.generated.resources.error_series_name_missing
 import campfire.features.management.ui.generated.resources.error_title_required
 import campfire.features.management.ui.generated.resources.error_year_invalid
 import campfire.features.management.ui.generated.resources.label_abridged
 import campfire.features.management.ui.generated.resources.label_asin
+import campfire.features.management.ui.generated.resources.label_authors
 import campfire.features.management.ui.generated.resources.label_description
 import campfire.features.management.ui.generated.resources.label_explicit
+import campfire.features.management.ui.generated.resources.label_genres
 import campfire.features.management.ui.generated.resources.label_isbn
 import campfire.features.management.ui.generated.resources.label_language
+import campfire.features.management.ui.generated.resources.label_narrators
 import campfire.features.management.ui.generated.resources.label_published_year
 import campfire.features.management.ui.generated.resources.label_publisher
+import campfire.features.management.ui.generated.resources.label_series_name
+import campfire.features.management.ui.generated.resources.label_series_sequence
 import campfire.features.management.ui.generated.resources.label_subtitle
+import campfire.features.management.ui.generated.resources.label_tags
 import campfire.features.management.ui.generated.resources.label_title
 import campfire.features.management.ui.generated.resources.placeholder_optional
+import campfire.features.management.ui.generated.resources.section_classification
 import campfire.features.management.ui.generated.resources.section_identifiers
+import campfire.features.management.ui.generated.resources.section_people
 import campfire.features.management.ui.generated.resources.section_publishing
+import campfire.features.management.ui.generated.resources.section_series
 import campfire.features.management.ui.generated.resources.warning_explicit_hidden
 import com.mohamedrejeb.richeditor.ui.material3.OutlinedRichTextEditor
 import org.jetbrains.compose.resources.StringResource
@@ -77,12 +108,15 @@ internal fun DetailsForm(
   enabled: Boolean,
   canEdit: Boolean,
   canSeeExplicit: Boolean,
+  suggestions: DetailSuggestions,
   isBehindServer: Boolean,
   onReload: () -> Unit,
   onKeepMine: () -> Unit,
   twoColumns: Boolean,
+  inlineSuggestions: Boolean,
   modifier: Modifier = Modifier,
-) {
+) = CompositionLocalProvider(LocalInlineSuggestions provides inlineSuggestions) {
+  val focusManager = LocalFocusManager.current
   Box(
     contentAlignment = Alignment.TopCenter,
     modifier = modifier
@@ -106,7 +140,14 @@ internal fun DetailsForm(
           TextButton(onClick = onKeepMine, modifier = Modifier.testTag("editor_keep_mine")) {
             Text(stringResource(Res.string.action_keep_mine))
           }
-          TextButton(onClick = onReload, modifier = Modifier.testTag("editor_reload")) {
+          TextButton(
+            onClick = {
+              // The fields are about to be replaced, so the keyboard lets go of the one it's in
+              focusManager.clearFocus()
+              onReload()
+            },
+            modifier = Modifier.testTag("editor_reload"),
+          ) {
             Text(stringResource(Res.string.action_reload))
           }
         }
@@ -119,21 +160,27 @@ internal fun DetailsForm(
             modifier = Modifier.weight(1f),
           ) {
             IdentityFields(draft, enabled)
+            PeopleFields(draft, suggestions, enabled)
+            SeriesFields(draft, suggestions, enabled)
             DescriptionField(draft, enabled)
           }
           Column(
             verticalArrangement = Arrangement.spacedBy(GroupSpacing),
             modifier = Modifier.weight(1f),
           ) {
-            PublishingFields(draft, enabled)
+            PublishingFields(draft, suggestions, enabled)
+            ClassificationFields(draft, suggestions, enabled)
             IdentifierFields(draft, enabled)
             FlagFields(draft, enabled, canSeeExplicit)
           }
         }
       } else {
         IdentityFields(draft, enabled)
+        PeopleFields(draft, suggestions, enabled)
+        SeriesFields(draft, suggestions, enabled)
         DescriptionField(draft, enabled)
-        PublishingFields(draft, enabled)
+        PublishingFields(draft, suggestions, enabled)
+        ClassificationFields(draft, suggestions, enabled)
         IdentifierFields(draft, enabled)
         FlagFields(draft, enabled, canSeeExplicit)
       }
@@ -179,6 +226,159 @@ private fun IdentityFields(
 }
 
 @Composable
+private fun PeopleFields(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(FieldSpacing),
+    modifier = modifier,
+  ) {
+    SectionHeader(Res.string.section_people)
+    TokenField(
+      state = draft.authors,
+      label = Res.string.label_authors,
+      changed = draft.isChanged(BookDetail.Authors),
+      suggestions = suggestions.authors,
+      enabled = enabled,
+      tag = "field_authors",
+      modifier = Modifier.fillMaxWidth(),
+    )
+    TokenField(
+      state = draft.narrators,
+      label = Res.string.label_narrators,
+      changed = draft.isChanged(BookDetail.Narrators),
+      suggestions = suggestions.narrators,
+      enabled = enabled,
+      tag = "field_narrators",
+      modifier = Modifier.fillMaxWidth(),
+    )
+  }
+}
+
+@Composable
+private fun SeriesFields(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  // A row that was just added gets the focus, to type its name
+  var added by remember { mutableStateOf<SeriesRowState?>(null) }
+
+  Column(
+    verticalArrangement = Arrangement.spacedBy(FieldSpacing),
+    modifier = modifier,
+  ) {
+    SectionHeader(Res.string.section_series, changed = draft.isChanged(BookDetail.Series))
+    draft.series.forEachIndexed { index, row ->
+      key(row) {
+        SeriesRow(
+          row = row,
+          index = index,
+          error = draft.seriesErrorAt(index),
+          suggestions = suggestions.series,
+          // The series the other rows name
+          excluding = draft.series.filter { it !== row }.map { it.name.text.toString().trim() },
+          enabled = enabled,
+          focusOnStart = row === added,
+          onRemove = { draft.removeSeries(row) },
+        )
+      }
+    }
+    TextButton(
+      onClick = {
+        draft.addSeries()
+        added = draft.series.last()
+      },
+      enabled = enabled,
+      modifier = Modifier.testTag("series_add"),
+    ) {
+      Icon(
+        imageVector = CampfireIcons.Rounded.Add,
+        contentDescription = null,
+        modifier = Modifier.size(ButtonDefaults.IconSize),
+      )
+      Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+      Text(stringResource(Res.string.action_add_series))
+    }
+  }
+}
+
+@Composable
+private fun SeriesRow(
+  row: SeriesRowState,
+  index: Int,
+  error: SeriesRowError?,
+  suggestions: List<String>,
+  excluding: List<String>,
+  enabled: Boolean,
+  focusOnStart: Boolean,
+  onRemove: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val focusRequester = remember { FocusRequester() }
+  LaunchedEffect(Unit) {
+    if (focusOnStart) focusRequester.requestFocus()
+  }
+
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = modifier,
+  ) {
+    SuggestingTextField(
+      state = row.name,
+      suggestions = suggestions,
+      excluding = excluding,
+      enabled = enabled,
+      modifier = Modifier.weight(1f),
+    ) { anchor ->
+      TextDetailField(
+        state = row.name,
+        label = Res.string.label_series_name,
+        changed = false,
+        enabled = enabled,
+        error = when (error) {
+          SeriesRowError.MissingName -> Res.string.error_series_name_missing
+          SeriesRowError.Duplicate -> Res.string.error_series_duplicate
+          null -> null
+        },
+        capitalization = KeyboardCapitalization.Words,
+        modifier = anchor
+          .fillMaxWidth()
+          .focusRequester(focusRequester)
+          .testTag("series_name_$index"),
+      )
+    }
+    TextDetailField(
+      state = row.sequence,
+      label = Res.string.label_series_sequence,
+      changed = false,
+      enabled = enabled,
+      keyboardType = KeyboardType.Ascii,
+      modifier = Modifier
+        .width(SequenceFieldWidth)
+        .testTag("series_sequence_$index"),
+    )
+    val removeLabel = stringResource(Res.string.cd_remove_series)
+    IconButtonTooltip(
+      text = removeLabel,
+      modifier = Modifier.padding(top = RemoveButtonTopPadding),
+    ) {
+      IconButton(
+        onClick = onRemove,
+        enabled = enabled,
+        modifier = Modifier.testTag("series_remove_$index"),
+      ) {
+        Icon(CampfireIcons.Rounded.Close, contentDescription = removeLabel)
+      }
+    }
+  }
+}
+
+@Composable
 private fun DescriptionField(
   draft: BookDetailsDraft,
   enabled: Boolean,
@@ -203,6 +403,7 @@ private fun DescriptionField(
 @Composable
 private fun PublishingFields(
   draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
   enabled: Boolean,
   modifier: Modifier = Modifier,
 ) {
@@ -211,14 +412,21 @@ private fun PublishingFields(
     modifier = modifier,
   ) {
     SectionHeader(Res.string.section_publishing)
-    TextDetailField(
+    SuggestingTextField(
       state = draft.publisher,
-      label = Res.string.label_publisher,
-      changed = draft.isChanged(BookDetail.Publisher),
+      suggestions = suggestions.publishers,
       enabled = enabled,
-      capitalization = KeyboardCapitalization.Sentences,
-      modifier = Modifier.fillMaxWidth().testTag("field_publisher"),
-    )
+      modifier = Modifier.fillMaxWidth(),
+    ) { anchor ->
+      TextDetailField(
+        state = draft.publisher,
+        label = Res.string.label_publisher,
+        changed = draft.isChanged(BookDetail.Publisher),
+        enabled = enabled,
+        capitalization = KeyboardCapitalization.Sentences,
+        modifier = anchor.fillMaxWidth().testTag("field_publisher"),
+      )
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
       TextDetailField(
         state = draft.publishedYear,
@@ -229,15 +437,56 @@ private fun PublishingFields(
         keyboardType = KeyboardType.Number,
         modifier = Modifier.width(YearFieldWidth).testTag("field_published_year"),
       )
-      TextDetailField(
+      SuggestingTextField(
         state = draft.language,
-        label = Res.string.label_language,
-        changed = draft.isChanged(BookDetail.Language),
+        suggestions = suggestions.languages,
         enabled = enabled,
-        capitalization = KeyboardCapitalization.Sentences,
-        modifier = Modifier.weight(1f).testTag("field_language"),
-      )
+        modifier = Modifier.weight(1f),
+      ) { anchor ->
+        TextDetailField(
+          state = draft.language,
+          label = Res.string.label_language,
+          changed = draft.isChanged(BookDetail.Language),
+          enabled = enabled,
+          capitalization = KeyboardCapitalization.Sentences,
+          modifier = anchor.fillMaxWidth().testTag("field_language"),
+        )
+      }
     }
+  }
+}
+
+@Composable
+private fun ClassificationFields(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(FieldSpacing),
+    modifier = modifier,
+  ) {
+    SectionHeader(Res.string.section_classification)
+    TokenField(
+      state = draft.genres,
+      label = Res.string.label_genres,
+      changed = draft.isChanged(BookDetail.Genres),
+      suggestions = suggestions.genres,
+      enabled = enabled,
+      tag = "field_genres",
+      modifier = Modifier.fillMaxWidth(),
+    )
+    TokenField(
+      state = draft.tags,
+      label = Res.string.label_tags,
+      changed = draft.isChanged(BookDetail.Tags),
+      suggestions = suggestions.tags,
+      enabled = enabled,
+      tag = "field_tags",
+      capitalization = KeyboardCapitalization.Sentences,
+      modifier = Modifier.fillMaxWidth(),
+    )
   }
 }
 
@@ -384,7 +633,7 @@ private fun SwitchDetailRow(
 
 /** A field's label, marked when the field has changed */
 @Composable
-private fun FieldLabel(
+internal fun FieldLabel(
   text: String,
   changed: Boolean,
   modifier: Modifier = Modifier,
@@ -411,13 +660,15 @@ private fun FieldLabel(
 private fun SectionHeader(
   text: StringResource,
   modifier: Modifier = Modifier,
+  changed: Boolean = false,
 ) {
-  Text(
-    text = stringResource(text),
-    style = MaterialTheme.typography.titleSmall,
-    color = MaterialTheme.colorScheme.primary,
-    modifier = modifier.padding(top = 8.dp),
-  )
+  ProvideTextStyle(MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.primary)) {
+    FieldLabel(
+      text = stringResource(text),
+      changed = changed,
+      modifier = modifier.padding(top = 8.dp),
+    )
+  }
 }
 
 @Composable
@@ -454,3 +705,7 @@ private val MaxFormWidth = 840.dp
 private val GroupSpacing = 20.dp
 private val FieldSpacing = 12.dp
 private val YearFieldWidth = 112.dp
+private val SequenceFieldWidth = 96.dp
+
+// Puts the button level with the field beside it, whose label sits above its outline
+private val RemoveButtonTopPadding = 8.dp

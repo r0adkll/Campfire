@@ -5,6 +5,7 @@ package app.campfire.filters
 
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.FilterData
+import app.campfire.core.model.LibraryId
 import app.campfire.filters.store.FilteringStore
 import app.campfire.user.api.UserRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -33,13 +34,15 @@ class StoreFilteringRepository(
 
   override fun observeFilterData(): Flow<FilterData> {
     return userRepository.observeCurrentUser()
-      .flatMapLatest { user ->
-        val request = StoreReadRequest.cached(user.selectedLibraryId, refresh = true)
-        store.stream(request)
-          .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
-          .map {
-            it.dataOrNull() ?: FilterData()
-          }
+      .flatMapLatest { user -> observeFilterData(user.selectedLibraryId) }
+  }
+
+  override fun observeFilterData(libraryId: LibraryId): Flow<FilterData> {
+    val request = StoreReadRequest.cached(libraryId, refresh = true)
+    return store.stream(request)
+      .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
+      .map {
+        it.dataOrNull() ?: FilterData()
       }
   }
 }
