@@ -133,9 +133,12 @@ class ItemQuickActions(
       QuickAction.MarkFinished -> {
         Analytics.send(ActionEvent("mark_finished", Click, "card"))
         val isPlaying = sessionsRepository.observePlayingItem().first()?.libraryItemId == item.id
-        coroutineScopeHolder.get().launch {
-          itemFinisher.markFinished(item.id, isPlaying)
-          // Marked by hand, the finish date is today's, which is seldom when it was really finished
+        val scope = coroutineScopeHolder.get()
+        scope.launch { itemFinisher.markFinished(item.id, isPlaying) }
+        // Told straight away, as the detail screen does, rather than once the finish is saved,
+        // which a slow connection holds up. Marked by hand, the finish date is today's, which is
+        // seldom when it was really finished.
+        scope.launch {
           val result = snackbarHost.showSnackbar(
             message = getString(Res.string.mark_finished_snackbar),
             actionLabel = getString(Res.string.mark_finished_snackbar_set_date),
