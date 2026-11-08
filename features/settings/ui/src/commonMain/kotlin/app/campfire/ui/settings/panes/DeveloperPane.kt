@@ -81,6 +81,26 @@ internal fun DeveloperPane(
       )
 
       Header(
+        title = { Text("Playback") },
+      )
+
+      ActionSetting(
+        headlineContent = { Text("Audio output") },
+        supportingContent = {
+          val audioOutput = state.developerSettings.audioOutput
+          Text(
+            buildString {
+              append(audioOutput.verdict())
+              audioOutput?.takeIf { it.offloaded != null || it.format != null }?.let {
+                append("\n")
+                append(it.details())
+              }
+            },
+          )
+        },
+      )
+
+      Header(
         title = { Text("Network") },
       )
 

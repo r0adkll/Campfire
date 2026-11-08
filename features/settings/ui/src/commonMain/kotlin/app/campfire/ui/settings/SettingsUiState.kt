@@ -5,6 +5,7 @@ package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
@@ -191,6 +192,8 @@ data class DeveloperSettingsInfo(
   val fakeAppUpdateFailDownload: Boolean,
   val adaptToUnreachableServer: Boolean,
   val networkDiagnostics: NetworkDiagnostics,
+  /** How the player is getting audio to the device, or null with no player or report. */
+  val audioOutput: AudioOutputDiagnostics?,
 )
 
 /** A read-only view of what the reachability layer currently believes, for field debugging. */

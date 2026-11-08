@@ -39,6 +39,7 @@ import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.impl.util.eventAsDebugLog
 import app.campfire.audioplayer.impl.util.playbackStateAsDebugLog
+import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -162,7 +163,9 @@ class ExoPlayerAudioPlayer(
     .build()
     .also { AudioPlayerDebugHooks.Holder.hooks.onExoPlayerCreated(it) }
 
-  private val audioOffload = AudioOffloadController(exoPlayer)
+  private val audioOffload = AudioOffloadController(context, exoPlayer)
+
+  override val audioOutputDiagnostics: StateFlow<AudioOutputDiagnostics?> = audioOffload.diagnostics
 
   init {
     scope.launch {

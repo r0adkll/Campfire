@@ -14,6 +14,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.TokenBackup
 import app.campfire.analytics.Analytics
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
@@ -104,7 +105,9 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -143,8 +146,10 @@ class SettingsPresenter(
   private val workOffline: WorkOffline,
   private val networkMonitor: NetworkMonitor,
   private val localNetworkPermission: LocalNetworkPermissionController,
+  private val audioPlayerHolder: AudioPlayerHolder,
 ) : NonPausablePresenter<SettingsUiState> {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): SettingsUiState {
     val scope = rememberCoroutineScope()
@@ -262,6 +267,9 @@ class SettingsPresenter(
     val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState()
     val reachability by remember { serverReachability.status }.collectAsState()
     val network by remember { networkMonitor.snapshot }.collectAsState()
+    val audioOutput by remember {
+      audioPlayerHolder.currentPlayer.flatMapLatest { player -> player?.audioOutputDiagnostics ?: flowOf(null) }
+    }.collectAsState(null)
     val inRange by remember(serverUrl) {
       serverUrl?.let(serverReachability::observeInRange) ?: flowOf(true)
     }.collectAsState(true)
@@ -383,6 +391,7 @@ class SettingsPresenter(
           networkSupported = networkMonitor.isSupported,
           localNetworkPermissionMissing = localNetworkMissing,
         ),
+        audioOutput = audioOutput,
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)

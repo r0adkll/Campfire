@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer
 
+import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -13,7 +14,9 @@ import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 typealias OnFinishedListener = suspend (LibraryItemId) -> Unit
 
@@ -71,6 +74,13 @@ interface AudioPlayer {
    * A flow of the current playback timer
    */
   val runningTimer: StateFlow<RunningTimer?>
+
+  /**
+   * How this player is getting audio to the device, for the developer screen. Null where the
+   * platform doesn't report it.
+   */
+  val audioOutputDiagnostics: StateFlow<AudioOutputDiagnostics?>
+    get() = NoAudioOutputDiagnostics
 
   suspend fun prepare(
     session: Session,
@@ -141,3 +151,5 @@ interface AudioPlayer {
 
 private val DefaultFadeDuration = 5.seconds
 private const val DefaultFadeTickRate = 1000L / 16L
+
+private val NoAudioOutputDiagnostics: StateFlow<AudioOutputDiagnostics?> = MutableStateFlow(null).asStateFlow()

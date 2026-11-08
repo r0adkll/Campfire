@@ -3,14 +3,23 @@
 
 package app.campfire.audioplayer.impl
 
+import android.content.Context
 import androidx.annotation.OptIn
+import androidx.media3.common.Format
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioOffloadSupportProvider
+import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.core.logging.bark
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Lets the device's audio hardware decode and play supported audio ("offload"), so the CPU can sleep
@@ -27,8 +36,26 @@ import app.campfire.core.logging.bark
  */
 @OptIn(UnstableApi::class)
 internal class AudioOffloadController(
+  context: Context,
   private val exoPlayer: ExoPlayer,
 ) {
+
+  private val supportProvider = DefaultAudioOffloadSupportProvider(context)
+
+  private val _diagnostics = MutableStateFlow(
+    AudioOutputDiagnostics(
+      offloaded = null,
+      format = null,
+      sampleRate = null,
+      channelCount = null,
+      offloadSettingEnabled = true,
+      equalizerEnabled = false,
+      hardwareSupport = null,
+    ),
+  )
+
+  /** What's being played and how, for the developer screen. */
+  val diagnostics: StateFlow<AudioOutputDiagnostics> = _diagnostics.asStateFlow()
 
   private var settingEnabled = true
   private var equalizerEnabled = false
@@ -45,6 +72,7 @@ internal class AudioOffloadController(
           audioTrackConfig: AudioSink.AudioTrackConfig,
         ) {
           audioTrack = audioTrackConfig
+          _diagnostics.update { it.copy(offloaded = audioTrackConfig.offload) }
           bark { "Audio track initialized (offload=${audioTrackConfig.offload})" }
           if (!audioTrackConfig.offload) {
             pendingUntilDecoded?.let { block ->
@@ -59,7 +87,32 @@ internal class AudioOffloadController(
           audioTrackConfig: AudioSink.AudioTrackConfig,
         ) {
           // A replacement can be initialized before the old track is released
-          if (audioTrack == audioTrackConfig) audioTrack = null
+          if (audioTrack == audioTrackConfig) {
+            audioTrack = null
+            _diagnostics.update { it.copy(offloaded = null) }
+          }
+        }
+
+        override fun onAudioInputFormatChanged(
+          eventTime: AnalyticsListener.EventTime,
+          format: Format,
+          decoderReuseEvaluation: DecoderReuseEvaluation?,
+        ) {
+          val support = supportProvider.getAudioOffloadSupport(format, exoPlayer.audioAttributes)
+          _diagnostics.update {
+            it.copy(
+              format = listOfNotNull(format.sampleMimeType, format.codecs?.let { codecs -> "($codecs)" })
+                .joinToString(" ")
+                .ifEmpty { null },
+              sampleRate = format.sampleRate.takeIf { rate -> rate != Format.NO_VALUE },
+              channelCount = format.channelCount.takeIf { count -> count != Format.NO_VALUE },
+              hardwareSupport = AudioOutputDiagnostics.HardwareSupport(
+                format = support.isFormatSupported,
+                speedChange = support.isSpeedChangeSupported,
+                gapless = support.isGaplessSupported,
+              ),
+            )
+          }
         }
       },
     )
@@ -92,6 +145,7 @@ internal class AudioOffloadController(
   }
 
   private fun applyPreferences() {
+    _diagnostics.update { it.copy(offloadSettingEnabled = settingEnabled, equalizerEnabled = equalizerEnabled) }
     val preferences = audioOffloadPreferences(enabled = settingEnabled && !equalizerEnabled)
     val current = exoPlayer.trackSelectionParameters
     if (current.audioOffloadPreferences == preferences) return
