@@ -5,6 +5,7 @@ package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
@@ -112,6 +113,9 @@ data class PlaybackSettingsInfo(
   val backwardTime: Duration,
   val trackResetThreshold: Duration,
   val mp3IndexSeeking: Boolean,
+  val audioOffloadEnabled: Boolean,
+  /** Whether this platform's player can offload audio to the hardware; hides the setting otherwise. */
+  val audioOffloadAvailable: Boolean,
   val remoteNextPrevSkipsChapters: Boolean,
   val requeueOnSwitch: Boolean,
   val syncEnabled: Boolean,
@@ -188,6 +192,8 @@ data class DeveloperSettingsInfo(
   val fakeAppUpdateFailDownload: Boolean,
   val adaptToUnreachableServer: Boolean,
   val networkDiagnostics: NetworkDiagnostics,
+  /** How the player is getting audio to the device, or null with no player or report. */
+  val audioOutput: AudioOutputDiagnostics?,
 )
 
 /** A read-only view of what the reachability layer currently believes, for field debugging. */
@@ -279,6 +285,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class BackwardTime(val backwardTime: Duration) : PlaybackSettingEvent
     data class TrackResetThreshold(val trackResetThreshold: Duration) : PlaybackSettingEvent
     data class Mp3IndexSeeking(val mp3IndexSeeking: Boolean) : PlaybackSettingEvent
+    data class AudioOffload(val enabled: Boolean) : PlaybackSettingEvent
     data class RemoteNextPrevSkipsChapters(val remoteNextPrevSkipsChapters: Boolean) : PlaybackSettingEvent
     data class RequeueOnSwitch(val enabled: Boolean) : PlaybackSettingEvent
     data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent

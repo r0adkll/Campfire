@@ -14,6 +14,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.TokenBackup
 import app.campfire.analytics.Analytics
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
@@ -63,6 +64,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPl
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AudioOffload
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
@@ -103,7 +105,9 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -142,8 +146,10 @@ class SettingsPresenter(
   private val workOffline: WorkOffline,
   private val networkMonitor: NetworkMonitor,
   private val localNetworkPermission: LocalNetworkPermissionController,
+  private val audioPlayerHolder: AudioPlayerHolder,
 ) : NonPausablePresenter<SettingsUiState> {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): SettingsUiState {
     val scope = rememberCoroutineScope()
@@ -170,6 +176,7 @@ class SettingsPresenter(
     val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState()
     val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState()
     val mp3IndexSeeking by remember { playbackSettings.observeMp3IndexSeeking() }.collectAsState()
+    val audioOffloadEnabled by remember { playbackSettings.observeAudioOffloadEnabled() }.collectAsState()
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
@@ -260,6 +267,9 @@ class SettingsPresenter(
     val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState()
     val reachability by remember { serverReachability.status }.collectAsState()
     val network by remember { networkMonitor.snapshot }.collectAsState()
+    val audioOutput by remember {
+      audioPlayerHolder.currentPlayer.flatMapLatest { player -> player?.audioOutputDiagnostics ?: flowOf(null) }
+    }.collectAsState(null)
     val inRange by remember(serverUrl) {
       serverUrl?.let(serverReachability::observeInRange) ?: flowOf(true)
     }.collectAsState(true)
@@ -292,6 +302,8 @@ class SettingsPresenter(
         backwardTime = backwardTime.milliseconds,
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
+        audioOffloadEnabled = audioOffloadEnabled,
+        audioOffloadAvailable = currentPlatform == Platform.ANDROID,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         requeueOnSwitch = requeueOnSwitch,
         syncEnabled = syncEnabled,
@@ -379,6 +391,7 @@ class SettingsPresenter(
           networkSupported = networkMonitor.isSupported,
           localNetworkPermissionMissing = localNetworkMissing,
         ),
+        audioOutput = audioOutput,
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)
@@ -472,6 +485,7 @@ class SettingsPresenter(
           is BackwardTime -> playbackSettings.backwardTimeMs = event.backwardTime.inWholeMilliseconds
           is TrackResetThreshold -> playbackSettings.trackResetThreshold = event.trackResetThreshold
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
+          is AudioOffload -> playbackSettings.audioOffloadEnabled = event.enabled
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
           is RequeueOnSwitch -> playbackSettings.requeueOnSwitch = event.enabled

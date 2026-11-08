@@ -50,6 +50,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_min_pa
 import campfire.features.settings.ui.generated.resources.setting_playback_min_pause_title
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_title
+import campfire.features.settings.ui.generated.resources.setting_playback_offload_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_offload_title
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_title
 import campfire.features.settings.ui.generated.resources.setting_playback_requeue_on_switch_subtitle
@@ -126,6 +128,17 @@ internal fun PlaybackPane(
       headlineContent = { Text(stringResource(Res.string.setting_playback_mp3seeking_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_mp3seeking_subtitle)) },
     )
+
+    if (state.playbackSettings.audioOffloadAvailable) {
+      SwitchSetting(
+        value = state.playbackSettings.audioOffloadEnabled,
+        onValueChange = {
+          state.eventSink(PlaybackSettingEvent.AudioOffload(it))
+        },
+        headlineContent = { Text(stringResource(Res.string.setting_playback_offload_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_playback_offload_subtitle)) },
+      )
+    }
 
     SwitchSetting(
       value = state.playbackSettings.remoteNextPrevSkipsChapters,
