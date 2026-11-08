@@ -37,6 +37,11 @@ internal fun QueueContent(
   onReorderStopped: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
+  /**
+   * Whether the first entry gets an "Up next" section of its own above the rest of the "Queue".
+   * Without it, every entry sits under one "Up next" header.
+   */
+  separateUpNext: Boolean = true,
   header: LazyListScope.() -> Unit = {},
 ) {
   val haptics = LocalHapticFeedback.current
@@ -53,7 +58,12 @@ internal fun QueueContent(
   ) {
     header()
 
-    queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, entries) ->
+    val sections = if (separateUpNext) {
+      queue.groupBy { queue.indexOf(it) == 0 }
+    } else {
+      mapOf(true to queue).filterValues { it.isNotEmpty() }
+    }
+    sections.forEach { (isFirst, entries) ->
       if (isFirst) {
         item {
           MetadataHeader(

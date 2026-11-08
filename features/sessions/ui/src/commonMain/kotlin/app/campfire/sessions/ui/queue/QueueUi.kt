@@ -100,6 +100,8 @@ fun QueueUi(
         onReorderItem = { from, to -> state.queueState.eventSink(QueueUiEvent.ReorderItem(from, to)) },
         onReorderStopped = { state.queueState.eventSink(QueueUiEvent.ReorderStopped) },
         contentPadding = paddingValues + PaddingValues(bottom = if (canPlayQueue) FabClearance else 16.dp),
+        // Now playing already sets the queue apart, so a single Up next section reads best here
+        separateUpNext = false,
         header = {
           state.nowPlaying?.let { entry ->
             nowPlayingSection(

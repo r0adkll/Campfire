@@ -6,7 +6,9 @@ package app.campfire.sessions.ui.queue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -67,6 +69,15 @@ class QueueUiTest {
 
     onNodeWithText("The Playing Book").performClick()
     screenEvents.assertEvent(QueueScreenUiEvent.OpenItem(playing))
+  }
+
+  @Test
+  fun `the whole queue sits under one Up next header`() = runComposeUiTest {
+    setQueue(nowPlaying = playing, queue = listOf(first, second))
+
+    onAllNodesWithText("Up next").assertCountEquals(1)
+    // Only the top bar's title: no separate Queue section below Up next
+    onAllNodesWithText("Queue").assertCountEquals(1)
   }
 
   @Test
