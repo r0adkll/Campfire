@@ -218,6 +218,10 @@ include(
   ":features:collections:ui",
 )
 include(
+  ":features:management:api",
+  ":features:management:ui",
+)
+include(
   ":features:author:api",
   ":features:author:impl",
   ":features:author:ui",

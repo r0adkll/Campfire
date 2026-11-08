@@ -10,6 +10,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.home.ui.libraryItem
+import app.campfire.libraries.api.BookDetailsUpdate
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.offline.Download
@@ -269,5 +270,6 @@ class AudioDownloaderTest {
 
     override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean) = Result.success(Unit)
     override suspend fun rescanLibraryItem(itemId: LibraryItemId) = Result.success(RescanResult.UpToDate)
+    override suspend fun updateBookDetails(itemId: LibraryItemId, update: BookDetailsUpdate) = Result.success(false)
   }
 }

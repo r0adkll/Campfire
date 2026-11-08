@@ -19,6 +19,7 @@ import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.reader.api.screen.ReaderScreen
@@ -72,6 +73,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       PlayClickWithMethod,
       DeleteItemClickSoft,
       DeleteItemClickHard,
+      EditClick,
       OnBack,
     ),
   ) = runTest {
@@ -619,6 +621,13 @@ private val DeleteItemClickSoft = EventTest(
       .isEqualTo(TestLibraryItemId to false)
 
     navigator.awaitPop()
+  },
+)
+
+private val EditClick = EventTest(
+  event = LibraryItemUiEvent.EditClick,
+  assert = {
+    assertThat(navigator.awaitNextScreen()).isEqualTo(ItemEditorScreen(TestLibraryItemId))
   },
 )
 
