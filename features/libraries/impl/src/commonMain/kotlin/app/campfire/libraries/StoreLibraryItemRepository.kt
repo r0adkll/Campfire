@@ -127,6 +127,7 @@ class StoreLibraryItemRepository(
     val request = UpdateMediaRequest(
       metadata = update.asRequest().takeUnless { it == UpdateBookMetadataRequest() },
       tags = update.tags,
+      url = update.coverUrl,
     )
     return api.updateLibraryItemMedia(itemId, request)
       .onSuccess { updated ->

@@ -9,6 +9,7 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.UpdateMediaRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
+import app.campfire.network.models.BookMatchResult
 import app.campfire.network.models.Collection
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
@@ -28,6 +29,7 @@ import app.campfire.network.models.PodcastFeed
 import app.campfire.network.models.PodcastMetadata
 import app.campfire.network.models.PodcastSearchResultDto
 import app.campfire.network.models.RssPodcastEpisode
+import app.campfire.network.models.SearchProvidersResponse
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -286,6 +288,23 @@ interface AudioBookShelfApi {
    * @return whether the server changed anything
    */
   suspend fun updateLibraryItemMedia(itemId: String, request: UpdateMediaRequest): Result<Boolean>
+
+  /**
+   * The sources the server can search for a book's details, `GET /api/search/providers`. Servers
+   * before 2.31 don't have it and answer 404.
+   */
+  suspend fun getSearchProviders(): Result<SearchProvidersResponse>
+
+  /**
+   * Search [provider] for books, `GET /api/search/books`. An ASIN can go in [title]. With
+   * [libraryItemId], the server ranks Audible results by how well they match that item.
+   */
+  suspend fun searchBooks(
+    provider: String,
+    title: String,
+    author: String?,
+    libraryItemId: String?,
+  ): Result<List<BookMatchResult>>
 
   //endregion
 
