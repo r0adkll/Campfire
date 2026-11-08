@@ -247,7 +247,7 @@ class PodcastPresenter(
             navigator.goTo(FindEpisodesScreen(libraryItem.id))
           }
 
-          LibraryItemUiEvent.OpenDownloads -> {
+          LibraryItemUiEvent.OpenServerDownloadQueue -> {
             analytics.send(ActionEvent("podcast_open_downloads", Click))
             navigator.goTo(PodcastDownloadQueueScreen)
           }

@@ -93,6 +93,11 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
   data object FindEpisodes : LibraryItemUiEvent
+
+  /** The server's podcast episode download queue. */
+  data object OpenServerDownloadQueue : LibraryItemUiEvent
+
+  /** Everything downloaded or downloading on this device. */
   data object OpenDownloads : LibraryItemUiEvent
 
   data class OpenProviderPage(val url: String) : LibraryItemUiEvent

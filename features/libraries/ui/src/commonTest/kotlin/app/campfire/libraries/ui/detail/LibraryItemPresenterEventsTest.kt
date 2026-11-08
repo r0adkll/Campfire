@@ -7,6 +7,7 @@ import app.campfire.analytics.events.AnalyticEvent
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.common.screens.AuthorDetailScreen
+import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.session
@@ -157,6 +158,20 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       awaitItem().eventSink(LibraryItemUiEvent.ReadClick)
 
       assertThat(navigator.awaitNextScreen()).isEqualTo(ReaderScreen(audiobook.id))
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun openDownloads_opensTheDownloadsScreen() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      skipItems(1)
+      awaitItem().eventSink(LibraryItemUiEvent.OpenDownloads)
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(DownloadsScreen)
 
       cancelAndIgnoreRemainingEvents()
     }

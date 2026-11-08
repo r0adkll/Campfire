@@ -78,7 +78,9 @@ import app.campfire.settings.api.ThemeMode.DARK
 import app.campfire.settings.api.ThemeMode.LIGHT
 import app.campfire.settings.api.ThemeMode.SYSTEM
 import app.campfire.ui.navigation.HomeNavigationItem
+import app.campfire.ui.navigation.InProgressIcon
 import app.campfire.ui.navigation.NavigationPresenterFactory
+import app.campfire.ui.navigation.badgeCountLabel
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.updates.AppUpdateWidget
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
@@ -365,7 +367,7 @@ private fun <S> AnimatedContentTransitionScope<S>.iconSwap(): ContentTransform {
 }
 
 @Composable
-private fun DestinationListItem(
+internal fun DestinationListItem(
   item: HomeNavigationItem,
   selected: Boolean,
   onClick: () -> Unit,
@@ -373,13 +375,22 @@ private fun DestinationListItem(
 ) {
   NavigationDrawerItem(
     icon = {
-      Icon(
+      InProgressIcon(
         imageVector = item.iconImageVector,
         contentDescription = item.contentDescription,
+        inProgress = item.inProgress,
       )
     },
     label = { Text(text = item.label) },
-    badge = { if (item.badged) Badge() },
+    badge = {
+      when {
+        item.badgeCount > 0 -> Text(
+          text = badgeCountLabel(item.badgeCount),
+          style = MaterialTheme.typography.labelLarge,
+        )
+        item.badged -> Badge()
+      }
+    },
     selected = selected,
     onClick = onClick,
     modifier = modifier

@@ -272,9 +272,9 @@ class ExpressiveControlSlotTest {
       slot.Content(Modifier) {}
     }
 
-    onNodeWithTag("offline_status_title").assertExists()
+    onNodeWithTag("offline_status_title", useUnmergedTree = true).assertExists()
     onNodeWithText("Downloading").assertIsDisplayed()
-    onNodeWithTag("indeterminate_progress_bar").assertIsDisplayed()
+    onNodeWithTag("indeterminate_progress_bar", useUnmergedTree = true).assertIsDisplayed()
     onNodeWithTag("button_download").assertDoesNotExist()
   }
 
@@ -459,6 +459,30 @@ class ExpressiveControlSlotTest {
     onNodeWithContentDescription("Retry download").assertDoesNotExist()
   }
 
+  @Test
+  fun tappingTheDownloadStatusCardOpensDownloads() = runComposeUiTest {
+    val events = mutableListOf<LibraryItemUiEvent>()
+    val slot = ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = downloadingOfflineDownload(),
+      mediaProgress = null,
+      isCurrentSession = false,
+      isQueued = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+      showConfirmDownloadDialogSetting = false,
+    )
+
+    setCampfireContent {
+      slot.Content(Modifier) { events += it }
+    }
+
+    onNodeWithTag("offline_status_card").performClick()
+    // The card's own buttons still do their own thing
+    onNodeWithContentDescription("Stop downloading").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.OpenDownloads, LibraryItemUiEvent.StopDownloadClick)
+  }
+
   private fun downloadingOfflineDownload() = Download(
     content = DownloadContent.Audiobook(TestLibraryItemId),
     state = Download.State.Downloading,
@@ -492,9 +516,9 @@ class ExpressiveControlSlotTest {
       slot.Content(Modifier) {}
     }
 
-    onNodeWithTag("offline_status_title").assertExists()
+    onNodeWithTag("offline_status_title", useUnmergedTree = true).assertExists()
     onNodeWithText("Downloading").assertIsDisplayed()
-    onNodeWithTag("determinate_progress_bar").assertIsDisplayed()
+    onNodeWithTag("determinate_progress_bar", useUnmergedTree = true).assertIsDisplayed()
     onNodeWithText("1.0 MB").assertIsDisplayed()
     onNodeWithText("10.0 MB").assertIsDisplayed()
     onNodeWithContentDescription("Stop downloading").assertIsDisplayed()
@@ -524,10 +548,10 @@ class ExpressiveControlSlotTest {
       slot.Content(Modifier) {}
     }
 
-    onNodeWithTag("offline_status_title").assertIsDisplayed()
+    onNodeWithTag("offline_status_title", useUnmergedTree = true).assertIsDisplayed()
     onNodeWithText("Available for offline").assertIsDisplayed()
-    onNodeWithTag("determinate_progress_bar").assertDoesNotExist()
-    onNodeWithTag("indeterminate_progress_bar").assertDoesNotExist()
+    onNodeWithTag("determinate_progress_bar", useUnmergedTree = true).assertDoesNotExist()
+    onNodeWithTag("indeterminate_progress_bar", useUnmergedTree = true).assertDoesNotExist()
     onNodeWithText("10.0 MB").assertIsDisplayed()
     onNodeWithText("Delete").assertIsDisplayed()
   }

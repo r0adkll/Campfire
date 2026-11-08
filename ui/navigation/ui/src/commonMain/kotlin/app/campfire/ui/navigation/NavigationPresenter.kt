@@ -31,6 +31,8 @@ import app.campfire.core.model.MediaType
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.network.reachability.WorkOffline
+import app.campfire.offline.Download
+import app.campfire.offline.Downloads
 import app.campfire.settings.api.LayoutSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.drawer.DrawerUiEvent
@@ -51,6 +53,8 @@ import campfire.ui.navigation.ui.generated.resources.nav_upcoming_content_descri
 import campfire.ui.navigation.ui.generated.resources.nav_upcoming_label
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 
 typealias NavigationPresenterFactory = () -> NavigationPresenter
@@ -67,6 +71,7 @@ class NavigationPresenter(
   private val themeSettings: ThemeSettings,
   private val workOffline: WorkOffline,
   private val appUpdates: AppUpdates,
+  private val downloads: Downloads,
 ) {
 
   /** Whether an app update is waiting, which badges Settings wherever it's listed. */
@@ -158,6 +163,11 @@ class NavigationPresenter(
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
     val appUpdateWaiting = presentAppUpdateWaiting()
+    val downloadsSummary by remember {
+      downloads.observeAll()
+        .map { it.summary() }
+        .distinctUntilChanged()
+    }.collectAsState(DownloadsSummary())
 
     return buildList {
       if (currentLibrary?.mediaType != MediaType.Podcast) {
@@ -199,6 +209,8 @@ class NavigationPresenter(
           contentDescription = stringResource(Res.string.nav_downloads_content_description),
           iconImageVector = CampfireIcons.Rounded.CloudDownload,
           selectedImageVector = CampfireIcons.Filled.CloudDownload,
+          badgeCount = downloadsSummary.count,
+          inProgress = downloadsSummary.downloading,
         ),
       )
 
@@ -215,3 +227,16 @@ class NavigationPresenter(
     }
   }
 }
+
+/** What the Downloads destination shows of the downloads on this device. */
+internal data class DownloadsSummary(
+  /** Every download, as the Downloads screen lists them. */
+  val count: Int = 0,
+  /** Whether any download is fetching right now; one waiting in the queue doesn't count. */
+  val downloading: Boolean = false,
+)
+
+internal fun List<Download>.summary(): DownloadsSummary = DownloadsSummary(
+  count = size,
+  downloading = any { it.state == Download.State.Downloading },
+)

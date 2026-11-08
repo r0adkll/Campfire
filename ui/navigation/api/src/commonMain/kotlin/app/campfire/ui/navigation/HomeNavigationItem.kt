@@ -14,11 +14,16 @@ data class HomeNavigationItem(
   val contentDescription: String,
   val iconImageVector: ImageVector,
   val selectedImageVector: ImageVector? = null,
-  /** Optional count rendered as a badge on the icon. Zero (the default) hides the badge. */
+  /**
+   * Optional count rendered as a badge on the icon, or beside the label in the drawer. Zero (the
+   * default) hides the badge.
+   */
   val badgeCount: Int = 0,
   /**
    * Whether a dot marks something waiting behind the destination, e.g. an app update behind
    * Settings. A [badgeCount] takes its place.
    */
   val badged: Boolean = false,
+  /** Whether work is going on behind the destination, e.g. downloads, which animates its icon. */
+  val inProgress: Boolean = false,
 )
