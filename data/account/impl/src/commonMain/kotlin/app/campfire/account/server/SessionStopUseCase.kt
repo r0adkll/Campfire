@@ -4,6 +4,7 @@
 package app.campfire.account.server
 
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
@@ -26,10 +27,15 @@ class SessionStopUseCase(
 
   @OptIn(FlowPreview::class)
   override suspend fun onDestroy() {
-    // Check for any current sessions and stop them
+    // Check for any current sessions and stop them. The queue belongs to the account, so it
+    // stays for when the user switches back; logging out deletes it with the account.
     val currentSession = sessionRepository.getCurrentSession()
     if (currentSession != null) {
-      playbackController.stopSession(currentSession.libraryItem.id, clearQueue = true)
+      playbackController.stopSession(
+        itemId = currentSession.libraryItem.id,
+        queue = QueueOnStop.Keep,
+        episodeId = currentSession.episodeId,
+      )
 
       // Force wait until current session is null
       sessionRepository

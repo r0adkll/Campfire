@@ -36,10 +36,12 @@ interface PlaybackController {
   /**
    * Stop a current session. Pass [episodeId] to scope the stop to a podcast episode session
    * — books and other episodes are unaffected.
+   *
+   * @param queue what happens to the playback queue, see [QueueOnStop].
    */
   fun stopSession(
     itemId: LibraryItemId,
-    clearQueue: Boolean = false,
+    queue: QueueOnStop = QueueOnStop.PlayNext,
     episodeId: PodcastEpisodeId? = null,
   )
 }

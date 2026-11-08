@@ -18,6 +18,7 @@ import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.core.coroutines.flatMapIfNotNull
@@ -110,7 +111,7 @@ class PlaybackPresenter(
             scope.launch {
               playbackController.stopSession(
                 itemId = s.libraryItem.id,
-                clearQueue = true,
+                queue = QueueOnStop.Keep,
                 episodeId = s.episodeId,
               )
             }

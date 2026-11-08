@@ -136,7 +136,7 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
 
       item.eventSink(LibraryItemUiEvent.MarkEpisodeFinished(episode))
       assertThat(playbackController.session)
-        .isEqualTo(PlaybackControllerSession.Stopped(podcast.id, clearQueue = false, episodeId = "ep_1"))
+        .isEqualTo(PlaybackControllerSession.Stopped(podcast.id, episodeId = "ep_1"))
       testScheduler.advanceUntilIdle()
       assertThat(mediaProgressRepository.invocations)
         .contains(FakeMediaProgressRepository.Invocation.MarkFinished(podcast.id, "ep_1"))

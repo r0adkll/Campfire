@@ -39,6 +39,8 @@ kotlin {
         implementation(libs.bundles.test.impl)
         implementation(libs.multiplatformsettings.test)
         implementation(projects.features.settings.test)
+        implementation(projects.features.sessions.test)
+        implementation(projects.infra.audioplayer.test)
       }
     }
 

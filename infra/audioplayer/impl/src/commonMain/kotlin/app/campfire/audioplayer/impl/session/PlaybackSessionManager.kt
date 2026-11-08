@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.session
 
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
@@ -29,7 +30,7 @@ interface PlaybackSessionManager {
 
   suspend fun stopSession(
     libraryItemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId? = null,
   )
 }

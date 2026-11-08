@@ -5,6 +5,7 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
 import app.campfire.audioplayer.impl.player.NowPlaying
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
@@ -66,13 +67,13 @@ class IosPlaybackController(
 
   override fun stopSession(
     itemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
       disableAudioSession()
       NowPlaying.reset()
-      playbackSessionManager.stopSession(itemId, clearQueue, episodeId)
+      playbackSessionManager.stopSession(itemId, queue, episodeId)
       audioPlayerHolder.release()
     }
   }

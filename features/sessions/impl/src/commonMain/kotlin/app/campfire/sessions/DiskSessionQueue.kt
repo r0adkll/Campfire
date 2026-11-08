@@ -43,7 +43,7 @@ class DiskSessionQueue(
   override suspend fun add(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val newIndex = read {
       db.sessionQueueQueries
-        .getHighestIndex()
+        .getHighestIndex(userSession.requiredUserId)
         .awaitAsOneOrNull()
         ?.plus(1)
         ?: 0
@@ -64,7 +64,7 @@ class DiskSessionQueue(
   override suspend fun addAll(libraryItems: List<LibraryItem>) {
     val newIndex = read {
       db.sessionQueueQueries
-        .getHighestIndex()
+        .getHighestIndex(userSession.requiredUserId)
         .awaitAsOneOrNull()
         ?.plus(1)
         ?: 0
@@ -131,56 +131,76 @@ class DiskSessionQueue(
     val index = queue.indexOf(target).takeIf { it >= 0 }
 
     var removed = false
-    db.sessionQueueQueries.transaction {
-      removed = db.sessionQueueQueries.delete(
-        userId = userSession.requiredUserId,
-        libraryItemId = target.libraryItemId,
-        episodeId = target.episodeId,
-      ) > 0
+    write {
+      db.sessionQueueQueries.transaction {
+        removed = db.sessionQueueQueries.delete(
+          userId = userSession.requiredUserId,
+          libraryItemId = target.libraryItemId,
+          episodeId = target.episodeId,
+        ) > 0
 
-      if (removed) reindexQueue(queue - target)
+        if (removed) reindexQueue(queue - target)
+      }
     }
     return index.takeIf { removed }
   }
 
+  /**
+   * Takes the first entry that can still be played off the queue. Entries ahead of it whose
+   * item or episode is gone from the device are dropped along the way, so the queue keeps
+   * going instead of stopping on them.
+   */
   override suspend fun pop(): QueuedEntry? {
     val queue = read {
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
         .sortedBy { it.queueIndex }
+        .map { QueueKey(it.libraryItemId, it.episodeId) }
     }
 
-    val first = queue.firstOrNull() ?: return null
-
-    write {
-      db.sessionQueueQueries.delete(
-        userId = userSession.requiredUserId,
-        libraryItemId = first.libraryItemId,
-        episodeId = first.episodeId,
-      )
-
-      val remaining = queue.drop(1)
-      if (remaining.isNotEmpty()) {
-        reindexQueue(remaining.map { QueueKey(it.libraryItemId, it.episodeId) })
-      }
+    var taken = 0
+    var next: QueuedEntry? = null
+    while (next == null && taken < queue.size) {
+      val key = queue[taken++]
+      next = hydrate(key.libraryItemId, key.episodeId.takeIf { it.isNotEmpty() })
     }
-
-    return hydrate(first.libraryItemId, first.episodeId.takeIf { it.isNotEmpty() })
-  }
-
-  override suspend fun reorder(entries: List<QueuedEntry>) {
-    val queue = read {
-      db.sessionQueueQueries
-        .selectAll(userSession.requiredUserId)
-        .awaitAsList()
-    }
-
-    if (queue.size != entries.size) return
+    if (taken == 0) return null
 
     write {
       db.sessionQueueQueries.transaction {
-        reindexQueue(entries.map { QueueKey(it.libraryItemId, it.episodeId.orEmpty()) })
+        queue.take(taken).forEach { key ->
+          db.sessionQueueQueries.delete(
+            userId = userSession.requiredUserId,
+            libraryItemId = key.libraryItemId,
+            episodeId = key.episodeId,
+          )
+        }
+        reindexQueue(queue.drop(taken))
+      }
+    }
+
+    return next
+  }
+
+  /**
+   * Saves [entries] as the new order. Rows [observeAll] leaves out because they can't be
+   * shown keep their relative order after them, rather than blocking the save.
+   */
+  override suspend fun reorder(entries: List<QueuedEntry>) {
+    val ordered = entries.map { QueueKey(it.libraryItemId, it.episodeId.orEmpty()) }
+    write {
+      db.sessionQueueQueries.transaction {
+        val stored = db.sessionQueueQueries
+          .selectAll(userSession.requiredUserId)
+          .awaitAsList()
+          .sortedBy { it.queueIndex }
+          .map { QueueKey(it.libraryItemId, it.episodeId) }
+
+        val storedKeys = stored.toSet()
+        val kept = ordered.filter { it in storedKeys }
+        val keptKeys = kept.toSet()
+        reindexQueue(kept + stored.filterNot { it in keptKeys })
       }
     }
   }
@@ -207,16 +227,20 @@ class DiskSessionQueue(
       }
   }
 
+  /**
+   * Builds the entry for a stored row, or null when its item, or its episode for a podcast
+   * entry, is no longer on the device. An episode entry never falls back to the bare podcast.
+   */
   private suspend fun hydrate(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId?,
   ): QueuedEntry? {
     val libraryItem = libraryItemDao.hydrateById(libraryItemId) ?: return null
-    val episode = episodeId?.let {
-      read {
-        db.podcastEpisodeQueries.selectForId(it).awaitAsOneOrNull()
-      }?.asDomainModel()
-    }
+    if (episodeId == null) return QueuedEntry(libraryItem = libraryItem)
+
+    val episode = read {
+      db.podcastEpisodeQueries.selectForId(episodeId).awaitAsOneOrNull()
+    }?.asDomainModel() ?: return null
     return QueuedEntry(libraryItem = libraryItem, episode = episode)
   }
 

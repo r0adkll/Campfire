@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.test
 
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
@@ -32,12 +33,12 @@ class FakePlaybackController : PlaybackController {
 
   override fun stopSession(
     itemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId?,
   ) {
     session = PlaybackControllerSession.Stopped(
       itemId = itemId,
-      clearQueue = clearQueue,
+      queue = queue,
       episodeId = episodeId,
     )
   }
@@ -57,7 +58,7 @@ sealed interface PlaybackControllerSession {
 
   data class Stopped(
     val itemId: LibraryItemId,
-    val clearQueue: Boolean,
+    val queue: QueueOnStop = QueueOnStop.PlayNext,
     val episodeId: PodcastEpisodeId? = null,
   ) : PlaybackControllerSession
 }
