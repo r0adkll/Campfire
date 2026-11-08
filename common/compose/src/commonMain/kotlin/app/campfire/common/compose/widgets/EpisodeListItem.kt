@@ -22,6 +22,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -50,12 +52,17 @@ import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.FatCheck
 import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.swipeaction.AnimatedQueueBackgroundContent
+import app.campfire.common.compose.widgets.swipeaction.SwipeActionBox
 import app.campfire.core.extensions.asDate
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.mediaProgress
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.action_add_episode_to_queue
+import campfire.common.compose.generated.resources.action_remove_episode_from_queue
 import campfire.common.compose.generated.resources.duration_finished
 import campfire.common.compose.generated.resources.duration_remaining
 import kotlin.time.Clock
@@ -65,7 +72,14 @@ import kotlin.time.times
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/**
+ * A podcast episode's row.
+ *
+ * @param isQueued whether the episode is in the playback queue.
+ * @param onQueueChange called with true to add the episode to the queue and false to take it out.
+ *   When set, the row can be swiped in the reading direction to add the episode, or take it out if
+ *   it's queued, and gets a button that does the same, for those who can't swipe.
+ */
 @Composable
 fun EpisodeListItem(
   episode: PodcastEpisode,
@@ -74,11 +88,72 @@ fun EpisodeListItem(
   modifier: Modifier = Modifier,
   mediaProgress: MediaProgress? = null,
   isCurrentSession: Boolean = false,
+  isQueued: Boolean = false,
+  onQueueChange: ((Boolean) -> Unit)? = null,
   leading: (@Composable () -> Unit)? = null,
   actions: @Composable RowScope.() -> Unit = {},
   shape: Shape = MaterialTheme.shapes.medium,
   sessionShape: Shape = MaterialTheme.shapes.largeIncreased,
   colors: EpisodeListItemColors = EpisodeListItemDefaults.colors(),
+) {
+  if (onQueueChange == null) {
+    EpisodeCard(
+      episode = episode,
+      onClick = onClick,
+      onPlayClick = onPlayClick,
+      mediaProgress = mediaProgress,
+      isCurrentSession = isCurrentSession,
+      isQueued = false,
+      onQueueChange = null,
+      leading = leading,
+      actions = actions,
+      shape = shape,
+      sessionShape = sessionShape,
+      colors = colors,
+      modifier = modifier,
+    )
+  } else {
+    SwipeActionBox(
+      onSwipe = { onQueueChange(!isQueued) },
+      backgroundContent = { state ->
+        AnimatedQueueBackgroundContent(state = state, isQueued = isQueued)
+      },
+      modifier = modifier,
+    ) {
+      EpisodeCard(
+        episode = episode,
+        onClick = onClick,
+        onPlayClick = onPlayClick,
+        mediaProgress = mediaProgress,
+        isCurrentSession = isCurrentSession,
+        isQueued = isQueued,
+        onQueueChange = onQueueChange,
+        leading = leading,
+        actions = actions,
+        shape = shape,
+        sessionShape = sessionShape,
+        colors = colors,
+      )
+    }
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun EpisodeCard(
+  episode: PodcastEpisode,
+  onClick: () -> Unit,
+  onPlayClick: () -> Unit,
+  mediaProgress: MediaProgress?,
+  isCurrentSession: Boolean,
+  isQueued: Boolean,
+  onQueueChange: ((Boolean) -> Unit)?,
+  leading: (@Composable () -> Unit)?,
+  actions: @Composable RowScope.() -> Unit,
+  shape: Shape,
+  sessionShape: Shape,
+  colors: EpisodeListItemColors,
+  modifier: Modifier = Modifier,
 ) {
   val isFinished = mediaProgress?.isFinished == true
   Card(
@@ -195,6 +270,8 @@ fun EpisodeListItem(
         isCurrentSession = isCurrentSession,
         publishedAt = episode.publishedAtMillis?.asDate(),
         onPlayClick = onPlayClick,
+        isQueued = isQueued,
+        onQueueChange = onQueueChange,
         actions = actions,
       )
     }
@@ -209,6 +286,8 @@ private fun EpisodeActionBar(
   mediaProgress: MediaProgress?,
   isCurrentSession: Boolean,
   onPlayClick: () -> Unit,
+  isQueued: Boolean,
+  onQueueChange: ((Boolean) -> Unit)?,
   actions: @Composable RowScope.() -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -231,6 +310,12 @@ private fun EpisodeActionBar(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       actions()
+      onQueueChange?.let { onChange ->
+        QueueButton(
+          isQueued = isQueued,
+          onClick = { onChange(!isQueued) },
+        )
+      }
     }
 
     Spacer(Modifier.width(8.dp))
@@ -279,6 +364,35 @@ private fun EpisodeActionBar(
           else -> duration.thresholdReadoutFormat()
         },
         style = ButtonDefaults.textStyleFor(playButtonSize),
+      )
+    }
+  }
+}
+
+@Composable
+private fun QueueButton(
+  isQueued: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val label = stringResource(
+    if (isQueued) Res.string.action_remove_episode_from_queue else Res.string.action_add_episode_to_queue,
+  )
+  IconButtonTooltip(text = label) {
+    IconButton(
+      onClick = onClick,
+      modifier = modifier
+        .size(
+          IconButtonDefaults.extraSmallContainerSize(
+            IconButtonDefaults.IconButtonWidthOption.Uniform,
+          ),
+        ),
+      shape = IconButtonDefaults.extraSmallSquareShape,
+    ) {
+      Icon(
+        if (isQueued) CampfireIcons.Filled.QueuePlayNext else CampfireIcons.Rounded.QueuePlayNext,
+        contentDescription = label,
+        modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
       )
     }
   }

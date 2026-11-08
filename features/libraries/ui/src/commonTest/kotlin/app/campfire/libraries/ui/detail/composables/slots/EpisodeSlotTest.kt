@@ -82,12 +82,17 @@ class EpisodeSlotTest {
   )
   private val events = mutableListOf<LibraryItemUiEvent>()
 
-  private fun slot(download: Download.State?, canDownload: Boolean = true) = EpisodeSlot(
+  private fun slot(
+    download: Download.State?,
+    canDownload: Boolean = true,
+    isQueued: Boolean = false,
+  ) = EpisodeSlot(
     libraryItem = libraryItem(id = "podcast").copy(media = media),
     media = media,
     episode = episode,
     progress = null,
     isCurrentSession = false,
+    isQueued = isQueued,
     offlineDownload = download?.let { Download(DownloadContent.Episode("podcast", "ep_1"), it) },
     canDownload = canDownload,
     showConfirmDownloadDialog = false,
@@ -138,5 +143,25 @@ class EpisodeSlotTest {
     setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
 
     onNodeWithContentDescription("Download episode for offline").assertDoesNotExist()
+  }
+
+  @Test
+  fun queueButton_addsTheEpisodeToTheQueue() = runComposeUiTest {
+    val slot = slot(download = null)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithContentDescription("Add to queue").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.AddEpisodeToQueue(episode))
+  }
+
+  @Test
+  fun queued_queueButtonTakesTheEpisodeOut() = runComposeUiTest {
+    val slot = slot(download = null, isQueued = true)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithContentDescription("Remove from queue").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.RemoveEpisodeFromQueue(episode))
   }
 }

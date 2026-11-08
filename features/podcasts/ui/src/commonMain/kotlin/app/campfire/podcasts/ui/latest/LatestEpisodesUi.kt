@@ -103,6 +103,7 @@ fun LatestEpisodesUi(
     val eventSink = state.eventSink
     val mediaProgress = state.mediaProgress
     val playingItem = state.playingItem
+    val queuedEpisodeIds = state.queuedEpisodeIds
     ContentPagingScaffold(
       lazyPagingItems = state.episodes,
       emptyMessage = stringResource(Res.string.latest_episodes_empty),
@@ -132,6 +133,16 @@ fun LatestEpisodesUi(
         onMarkNotFinishedClick = { episode ->
           eventSink(LatestEpisodesUiEvent.MarkNotFinished(episode))
         },
+        onQueueChange = { episode, queued ->
+          eventSink(
+            if (queued) {
+              LatestEpisodesUiEvent.AddToQueue(episode)
+            } else {
+              LatestEpisodesUiEvent.RemoveFromQueue(episode)
+            },
+          )
+        },
+        isEpisodeQueued = { episode -> episode.id in queuedEpisodeIds },
         progressForEpisode = { episode ->
           mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
         },
@@ -152,6 +163,8 @@ private fun LatestEpisodesList(
   onAddToPlaylistClick: (LatestEpisode) -> Unit,
   onMarkFinishedClick: (LatestEpisode) -> Unit,
   onMarkNotFinishedClick: (LatestEpisode) -> Unit,
+  onQueueChange: (LatestEpisode, queued: Boolean) -> Unit,
+  isEpisodeQueued: (PodcastEpisode) -> Boolean,
   progressForEpisode: (PodcastEpisode) -> MediaProgress?,
   hasSessionForEpisode: (PodcastEpisode) -> Boolean,
   modifier: Modifier = Modifier,
@@ -196,6 +209,8 @@ private fun LatestEpisodesList(
             episode = item.episode,
             mediaProgress = episodeProgress,
             isCurrentSession = isCurrentSession,
+            isQueued = isEpisodeQueued(item.episode),
+            onQueueChange = { queued -> onQueueChange(item, queued) },
             onClick = { onRowClick(item) },
             onPlayClick = { onPlayClick(item) },
             modifier = Modifier.fillMaxWidth(),

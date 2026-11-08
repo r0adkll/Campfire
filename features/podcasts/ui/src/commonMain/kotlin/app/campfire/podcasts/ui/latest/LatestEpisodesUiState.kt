@@ -18,6 +18,8 @@ data class LatestEpisodesUiState(
   val playingItem: PlayingItem?,
   val episodes: LazyPagingItems<LatestEpisode>,
   val mediaProgress: Map<MediaProgressKey, MediaProgress>,
+  /** The ids of the episodes in the playback queue. */
+  val queuedEpisodeIds: Set<PodcastEpisodeId>,
   val addToPlaylistDialog: AddToPlaylistDialog,
   val eventSink: (LatestEpisodesUiEvent) -> Unit,
 ) : CircuitUiState
@@ -37,6 +39,14 @@ sealed interface LatestEpisodesUiEvent : CircuitUiEvent {
   ) : LatestEpisodesUiEvent
 
   data class MarkNotFinished(
+    val episode: LatestEpisode,
+  ) : LatestEpisodesUiEvent
+
+  data class AddToQueue(
+    val episode: LatestEpisode,
+  ) : LatestEpisodesUiEvent
+
+  data class RemoveFromQueue(
     val episode: LatestEpisode,
   ) : LatestEpisodesUiEvent
 }

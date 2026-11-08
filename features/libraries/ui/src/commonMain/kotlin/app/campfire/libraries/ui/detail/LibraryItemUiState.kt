@@ -67,6 +67,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkEpisodeFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class MarkEpisodeNotFinished(val episode: PodcastEpisode) : LibraryItemUiEvent
+  data class AddEpisodeToQueue(val episode: PodcastEpisode) : LibraryItemUiEvent
+  data class RemoveEpisodeFromQueue(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class AuthorClick(val item: LibraryItem, val author: String) : LibraryItemUiEvent
   data class NarratorClick(val item: LibraryItem, val narrator: String) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent

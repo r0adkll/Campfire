@@ -12,8 +12,9 @@ CREATE TABLE sessionQueue (
 
 -- Queries
 
+-- An entry that is already queued keeps its place
 insert:
-INSERT OR FAIL INTO sessionQueue
+INSERT OR IGNORE INTO sessionQueue
 VALUES ?;
 
 updateIndex:

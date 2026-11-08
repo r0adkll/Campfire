@@ -11,12 +11,16 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.common.compose.layout.LocalSnackBarHost
+import app.campfire.common.compose.message.showAddedToQueue
+import app.campfire.common.compose.message.showRemovedFromQueue
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
@@ -42,6 +46,7 @@ class LatestEpisodesPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
+  private val sessionQueue: SessionQueue,
   private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : NonPausablePresenter<LatestEpisodesUiState> {
 
@@ -75,10 +80,20 @@ class LatestEpisodesPresenter(
         .distinctUntilChanged()
     }.collectAsState(emptyMap())
 
+    val queuedEpisodeIds by remember {
+      sessionQueue.observeAll()
+        .map { entries -> entries.mapNotNullTo(HashSet()) { it.episodeId } }
+        .distinctUntilChanged()
+    }.collectAsState(emptySet())
+
+    // The app's own snackbar, so queueing tells what it did without passing it through the state
+    val snackbarHost = LocalSnackBarHost.current
+
     return LatestEpisodesUiState(
       playingItem = playingItem,
       episodes = pagingItems,
       mediaProgress = mediaProgress,
+      queuedEpisodeIds = queuedEpisodeIds,
       addToPlaylistDialog = addToPlaylistDialog,
       eventSink = { event ->
         when (event) {
@@ -122,6 +137,26 @@ class LatestEpisodesPresenter(
             val episode = event.episode.episode
             scope.launch {
               mediaProgressRepository.markNotFinished(episode.libraryItemId, episode.id)
+            }
+          }
+
+          is LatestEpisodesUiEvent.AddToQueue -> {
+            val episode = event.episode.episode
+            scope.launch {
+              sessionQueue.add(episode.libraryItemId, episode.id)
+              if (snackbarHost.showAddedToQueue()) {
+                sessionQueue.remove(episode.libraryItemId, episode.id)
+              }
+            }
+          }
+
+          is LatestEpisodesUiEvent.RemoveFromQueue -> {
+            val episode = event.episode.episode
+            scope.launch {
+              val index = sessionQueue.remove(episode.libraryItemId, episode.id) ?: return@launch
+              if (snackbarHost.showRemovedFromQueue()) {
+                sessionQueue.insert(episode.libraryItemId, episode.id, index)
+              }
             }
           }
         }
