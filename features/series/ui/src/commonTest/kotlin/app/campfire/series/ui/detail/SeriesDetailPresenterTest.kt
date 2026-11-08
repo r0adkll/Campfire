@@ -209,7 +209,7 @@ class SeriesDetailPresenterTest {
       assertThat(markedFinishedIds()).containsExactly("in-progress", "unstarted")
       assertThat(markedDeletedSessionIds()).containsExactly("in-progress", "unstarted")
       assertThat(playbackController.session)
-        .isEqualTo(PlaybackControllerSession.Stopped(itemId = "in-progress", clearQueue = false))
+        .isEqualTo(PlaybackControllerSession.Stopped(itemId = "in-progress"))
       cancelAndIgnoreRemainingEvents()
     }
   }

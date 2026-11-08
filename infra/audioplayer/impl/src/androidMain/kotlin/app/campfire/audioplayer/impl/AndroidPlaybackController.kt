@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
@@ -71,7 +72,7 @@ class AndroidPlaybackController(
 
   override fun stopSession(
     itemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId?,
   ) {
     mediaSessionConnector.mediaControllerFlow
@@ -80,7 +81,7 @@ class AndroidPlaybackController(
       .onEach { mediaController ->
         ibark { "$this <!-- stopSession($mediaController)" }
         mediaController.stop()
-        playbackSessionManager.stopSession(itemId, clearQueue, episodeId)
+        playbackSessionManager.stopSession(itemId, queue, episodeId)
       }
       .launchIn(scopeHolder.get())
   }

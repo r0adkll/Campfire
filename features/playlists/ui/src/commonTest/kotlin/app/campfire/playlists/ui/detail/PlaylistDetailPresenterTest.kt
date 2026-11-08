@@ -106,7 +106,7 @@ class PlaylistDetailPresenterTest {
         .containsExactly(*finishing.map { MarkDeleted(it.libraryItemId, it.episodeId) }.toTypedArray())
       // The current session is one being finished, so playback stops
       assertThat(playbackController.session)
-        .isEqualTo(PlaybackControllerSession.Stopped(itemId = playing.id, clearQueue = false))
+        .isEqualTo(PlaybackControllerSession.Stopped(itemId = playing.id))
       assertThat(playbackHistoryRepository.history.getValue(FakePlaybackHistoryRepository.HistoryKey(playing.id)))
         .isEmpty()
 

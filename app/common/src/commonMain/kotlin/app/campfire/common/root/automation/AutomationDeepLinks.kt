@@ -4,6 +4,7 @@
 package app.campfire.common.root.automation
 
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.auth.api.AuthRepository
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
@@ -116,7 +117,7 @@ class UserAutomationDeepLinks(
     val session = sessionsRepository.getCurrentSession() ?: return
     playbackController.stopSession(
       itemId = session.libraryItem.id,
-      clearQueue = true,
+      queue = QueueOnStop.Clear,
       episodeId = session.episodeId,
     )
   }

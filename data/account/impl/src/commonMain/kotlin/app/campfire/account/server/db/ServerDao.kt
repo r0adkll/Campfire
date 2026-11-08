@@ -46,7 +46,12 @@ class SqlDelightServerDao(
 
   override suspend fun delete(userId: String) {
     withContext(dispatcherProvider.databaseWrite) {
-      db.serversQueries.delete(userId)
+      db.transaction {
+        db.serversQueries.delete(userId)
+        // Switching accounts keeps each account's playback queue, so it goes with the account.
+        // The user row's cascade would cover it, but only Android enforces foreign keys.
+        db.sessionQueueQueries.deleteAll(userId)
+      }
     }
   }
 }

@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
@@ -108,33 +109,43 @@ class DefaultPlaybackSessionManager(
 
   override suspend fun stopSession(
     libraryItemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId?,
   ) {
-    ibark { "Stopping playback session for ${libraryItemId.loggableId}" }
+    ibark { "Stopping playback session for ${libraryItemId.loggableId} ($queue)" }
 
-    if (clearQueue) {
-      sessionsRepository.stopSession(libraryItemId, episodeId)
-      sessionQueue.clear()
-    } else {
-      // If the item is the current playing item (and the same episode for podcasts),
-      // pop the queue and start playing the next item.
-      val current = sessionsRepository.getCurrentSession()
-      val isCurrent = current?.libraryItem?.id == libraryItemId &&
-        current.episodeId == episodeId
-      if (isCurrent) {
-        val nextItem = sessionQueue.pop()
-        if (nextItem != null) {
-          startSession(
-            libraryItemId = nextItem.libraryItemId,
-            playImmediately = true,
-            episodeId = nextItem.episodeId,
-            requeueCurrent = false,
-          )
-        } else {
-          sessionsRepository.stopSession(libraryItemId, episodeId)
-        }
+    when (queue) {
+      QueueOnStop.Clear -> {
+        sessionsRepository.stopSession(libraryItemId, episodeId)
+        sessionQueue.clear()
       }
+
+      QueueOnStop.Keep -> sessionsRepository.stopSession(libraryItemId, episodeId)
+
+      QueueOnStop.PlayNext -> playNextOrStop(libraryItemId, episodeId)
+    }
+  }
+
+  private suspend fun playNextOrStop(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
+    // Only the playing item (and the same episode for podcasts) hands over to the queue.
+    val current = sessionsRepository.getCurrentSession()
+    val isCurrent = current?.libraryItem?.id == libraryItemId &&
+      current.episodeId == episodeId
+    if (!isCurrent) return
+
+    val nextItem = sessionQueue.pop()
+    if (nextItem != null) {
+      startSession(
+        libraryItemId = nextItem.libraryItemId,
+        playImmediately = true,
+        episodeId = nextItem.episodeId,
+        requeueCurrent = false,
+      )
+    } else {
+      sessionsRepository.stopSession(libraryItemId, episodeId)
     }
   }
 

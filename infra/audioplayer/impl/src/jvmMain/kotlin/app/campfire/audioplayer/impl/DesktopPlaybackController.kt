@@ -7,6 +7,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
@@ -66,11 +67,11 @@ class DesktopPlaybackController(
 
   override fun stopSession(
     itemId: LibraryItemId,
-    clearQueue: Boolean,
+    queue: QueueOnStop,
     episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
-      playbackSessionManager.stopSession(itemId, clearQueue, episodeId)
+      playbackSessionManager.stopSession(itemId, queue, episodeId)
       audioPlayerHolder.release()
     }
   }

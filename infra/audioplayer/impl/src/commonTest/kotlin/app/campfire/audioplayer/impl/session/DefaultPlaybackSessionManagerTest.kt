@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.session
 
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayer.Invocation
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
@@ -24,6 +25,7 @@ import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import kotlin.test.Test
@@ -173,10 +175,57 @@ class DefaultPlaybackSessionManagerTest {
     sessionsRepository.currentSession = episodeSession(episodeA)
     sessionsRepository.createSession = episodeSession(episodeB)
 
-    manager.stopSession(podcast.id, clearQueue = false, episodeId = episodeA.id)
+    manager.stopSession(podcast.id, QueueOnStop.PlayNext, episodeId = episodeA.id)
 
     assertThat(sessionQueue.keys()).isEmpty()
     assertThat(player.preparedEpisodeIds()).containsExactly("b")
+  }
+
+  @Test
+  fun `closing the player keeps the queue without playing the next entry`() = runTest(testDispatcher) {
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.currentSession = episodeSession(episodeA)
+
+    manager.stopSession(podcast.id, QueueOnStop.Keep, episodeId = episodeA.id)
+
+    assertThat(sessionQueue.keys()).containsExactly("podcast:b")
+    assertThat(player.preparedEpisodeIds()).isEmpty()
+    assertThat(sessionsRepository.invocations)
+      .contains(FakeSessionsRepository.Invocation.StopSession(podcast.id, episodeA.id))
+  }
+
+  @Test
+  fun `clearing on stop empties the queue without playing the next entry`() = runTest(testDispatcher) {
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.currentSession = episodeSession(episodeA)
+
+    manager.stopSession(podcast.id, QueueOnStop.Clear, episodeId = episodeA.id)
+
+    assertThat(sessionQueue.keys()).isEmpty()
+    assertThat(player.preparedEpisodeIds()).isEmpty()
+    assertThat(sessionsRepository.invocations)
+      .contains(FakeSessionsRepository.Invocation.StopSession(podcast.id, episodeA.id))
+  }
+
+  @Test
+  fun `playing next from an item that isn't playing changes nothing`() = runTest(testDispatcher) {
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.currentSession = episodeSession(episodeA)
+
+    manager.stopSession(book.id, QueueOnStop.PlayNext)
+
+    assertThat(sessionQueue.keys()).containsExactly("podcast:b")
+    assertThat(player.preparedEpisodeIds()).isEmpty()
+  }
+
+  @Test
+  fun `playing next with an empty queue stops the session`() = runTest(testDispatcher) {
+    sessionsRepository.currentSession = episodeSession(episodeA)
+
+    manager.stopSession(podcast.id, QueueOnStop.PlayNext, episodeId = episodeA.id)
+
+    assertThat(sessionsRepository.invocations)
+      .contains(FakeSessionsRepository.Invocation.StopSession(podcast.id, episodeA.id))
   }
 
   @Test

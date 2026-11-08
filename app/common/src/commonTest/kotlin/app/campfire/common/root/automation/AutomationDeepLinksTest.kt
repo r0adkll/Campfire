@@ -5,6 +5,7 @@ package app.campfire.common.root.automation
 
 import app.campfire.account.api.BackedUpAccount
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.QueueOnStop
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.common.screens.DownloadsScreen
@@ -192,7 +193,7 @@ class AutomationDeepLinksTest {
       started += itemId
     }
 
-    override fun stopSession(itemId: String, clearQueue: Boolean, episodeId: PodcastEpisodeId?) {
+    override fun stopSession(itemId: String, queue: QueueOnStop, episodeId: PodcastEpisodeId?) {
       stopped += itemId
     }
   }

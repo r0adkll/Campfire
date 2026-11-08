@@ -36,6 +36,7 @@ WHERE userId = ?;
 
 getHighestIndex:
 SELECT queueIndex FROM sessionQueue
+WHERE userId = ?
 ORDER BY queueIndex DESC LIMIT 1;
 
 selectAll:
