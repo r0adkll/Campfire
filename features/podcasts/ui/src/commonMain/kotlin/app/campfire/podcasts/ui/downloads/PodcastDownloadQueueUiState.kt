@@ -26,6 +26,7 @@ data class DownloadGroup(
 )
 
 sealed interface PodcastDownloadQueueUiEvent : CircuitUiEvent {
+  data object Back : PodcastDownloadQueueUiEvent
   data object Refresh : PodcastDownloadQueueUiEvent
   data class ClearQueue(val libraryItemId: LibraryItemId) : PodcastDownloadQueueUiEvent
   data class OpenPodcast(val libraryItemId: LibraryItemId) : PodcastDownloadQueueUiEvent

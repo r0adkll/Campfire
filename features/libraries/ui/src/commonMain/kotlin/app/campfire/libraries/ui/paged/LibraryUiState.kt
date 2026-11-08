@@ -27,6 +27,8 @@ data class LibraryUiState(
   val offlineStates: Map<LibraryItemId, ItemDownloads>,
   // Podcasts only: how many of each show's episodes the user hasn't finished
   val unfinishedEpisodes: Map<LibraryItemId, Int>,
+  // Podcasts only: episodes the server is downloading, shown as a banner while there are any
+  val serverDownloadCount: Int = 0,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -43,4 +45,5 @@ sealed interface LibraryUiEvent : CircuitUiEvent {
   data class ItemFilterSelected(val filter: ContentFilter?) : LibraryUiEvent
   data class ItemClick(val libraryItem: LibraryItem) : LibraryUiEvent
   data object AddPodcastClick : LibraryUiEvent
+  data object ServerDownloadsClick : LibraryUiEvent
 }

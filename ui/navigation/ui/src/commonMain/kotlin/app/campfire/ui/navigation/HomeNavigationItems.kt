@@ -11,7 +11,6 @@ import app.campfire.common.compose.icons.filled.Library
 import app.campfire.common.compose.icons.filled.Playlists
 import app.campfire.common.compose.icons.filled.Series
 import app.campfire.common.compose.icons.outline.Author
-import app.campfire.common.compose.icons.outline.Download
 import app.campfire.common.compose.icons.outline.FormatListBulleted
 import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
@@ -24,7 +23,6 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
-import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_authors_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_authors_label
@@ -36,8 +34,6 @@ import campfire.ui.navigation.ui.generated.resources.nav_library_content_descrip
 import campfire.ui.navigation.ui.generated.resources.nav_library_label
 import campfire.ui.navigation.ui.generated.resources.nav_playlists_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_playlists_label
-import campfire.ui.navigation.ui.generated.resources.nav_queue_content_description
-import campfire.ui.navigation.ui.generated.resources.nav_queue_label
 import campfire.ui.navigation.ui.generated.resources.nav_series_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_series_label
 import campfire.ui.navigation.ui.generated.resources.nav_shows_content_description
@@ -86,9 +82,7 @@ internal fun buildBookLibraryNavigationItems(): List<HomeNavigationItem> {
 }
 
 @Composable
-internal fun buildPodcastLibraryNavigationItems(
-  downloadQueueCount: Int = 0,
-): List<HomeNavigationItem> {
+internal fun buildPodcastLibraryNavigationItems(): List<HomeNavigationItem> {
   return listOf(
     HomeNavigationItem(
       screen = HomeScreen,
@@ -110,14 +104,6 @@ internal fun buildPodcastLibraryNavigationItems(
       contentDescription = stringResource(Res.string.nav_shows_content_description),
       iconImageVector = CampfireIcons.Outline.Podcasts,
       selectedImageVector = CampfireIcons.Outline.Podcasts,
-    ),
-    HomeNavigationItem(
-      screen = PodcastDownloadQueueScreen,
-      label = stringResource(Res.string.nav_queue_label),
-      contentDescription = stringResource(Res.string.nav_queue_content_description),
-      iconImageVector = CampfireIcons.Outline.Download,
-      selectedImageVector = CampfireIcons.Outline.Download,
-      badgeCount = downloadQueueCount,
     ),
     HomeNavigationItem(
       screen = PlaylistsScreen,

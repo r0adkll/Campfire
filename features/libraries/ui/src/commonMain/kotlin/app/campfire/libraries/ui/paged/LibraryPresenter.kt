@@ -29,7 +29,9 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.offline.Downloads
 import app.campfire.offline.observeByItem
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.AddPodcastScreen
+import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -55,6 +57,7 @@ class LibraryPresenter(
   private val userRepository: UserRepository,
   private val repository: LibraryRepository,
   private val downloads: Downloads,
+  private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<LibraryUiState> {
@@ -159,6 +162,10 @@ class LibraryPresenter(
       downloads.observeByItem()
     }.collectAsState(emptyMap())
 
+    val serverDownloads by remember {
+      remoteEpisodeDownloadTracker.state
+    }.collectAsState()
+
     val canAddPodcasts by remember {
       derivedStateOf {
         val libraryMediaType = currentLibrary?.mediaType
@@ -180,6 +187,7 @@ class LibraryPresenter(
       offlineStates = offlineDownloads,
       unfinishedEpisodes = unfinishedEpisodes,
       itemDisplayState = itemDisplayState,
+      serverDownloadCount = if (isPodcastLibrary) serverDownloads.values.sumOf { it.size } else 0,
     ) { event ->
       when (event) {
         LibraryUiEvent.ToggleItemDisplayState -> {
@@ -219,6 +227,8 @@ class LibraryPresenter(
           analytics.send(ContentSelected(ContentType.LibraryItem))
           navigator.goTo(LibraryItemScreen(event.libraryItem.id))
         }
+
+        LibraryUiEvent.ServerDownloadsClick -> navigator.goTo(PodcastDownloadQueueScreen)
 
         LibraryUiEvent.AddPodcastClick -> {
           val libraryId = currentLibrary?.id ?: return@LibraryUiState

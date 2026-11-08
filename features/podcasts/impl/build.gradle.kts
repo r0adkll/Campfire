@@ -13,6 +13,7 @@ kotlin {
       dependencies {
         api(projects.features.podcasts.api)
 
+        implementation(projects.features.libraries.api)
         implementation(projects.features.user.api)
         implementation(projects.core)
         implementation(projects.data.db.core)

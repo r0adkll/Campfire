@@ -3,6 +3,7 @@
 
 package app.campfire.podcasts.ui.latest
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemImage
+import app.campfire.common.compose.widgets.ServerDownloadsBanner
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.capitalized
@@ -149,6 +151,8 @@ fun LatestEpisodesUi(
         hasSessionForEpisode = { episode ->
           playingItem?.matches(episode.libraryItemId, episode.id) == true
         },
+        serverDownloadCount = state.serverDownloadCount,
+        onServerDownloadsClick = { eventSink(LatestEpisodesUiEvent.ServerDownloadsClick) },
         contentPadding = paddingValues + PaddingValues(horizontal = 16.dp),
       )
     }
@@ -167,6 +171,8 @@ private fun LatestEpisodesList(
   isEpisodeQueued: (PodcastEpisode) -> Boolean,
   progressForEpisode: (PodcastEpisode) -> MediaProgress?,
   hasSessionForEpisode: (PodcastEpisode) -> Boolean,
+  serverDownloadCount: Int,
+  onServerDownloadsClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -177,6 +183,19 @@ private fun LatestEpisodesList(
     modifier = modifier.fillMaxSize(),
     verticalArrangement = Arrangement.spacedBy(2.dp),
   ) {
+    // Always the first item, collapsed while nothing downloads: a list at its top stays anchored
+    // here and shows the banner as it appears, rather than keeping the first episode at the top
+    // with the banner just out of view above it
+    item(key = "server-downloads") {
+      AnimatedVisibility(visible = serverDownloadCount > 0) {
+        ServerDownloadsBanner(
+          count = serverDownloadCount,
+          onClick = onServerDownloadsClick,
+          modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+        )
+      }
+    }
+
     items(
       count = items.itemCount,
       key = items.itemKey { it.episode.id },

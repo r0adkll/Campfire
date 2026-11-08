@@ -31,7 +31,6 @@ import app.campfire.core.model.MediaType
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.network.reachability.WorkOffline
-import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.settings.api.LayoutSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.drawer.DrawerUiEvent
@@ -64,7 +63,6 @@ interface NavigationComponent {
 @Inject
 class NavigationPresenter(
   private val libraryRepository: LibraryRepository,
-  private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
   private val layoutSettings: LayoutSettings,
   private val themeSettings: ThemeSettings,
   private val workOffline: WorkOffline,
@@ -147,14 +145,9 @@ class NavigationPresenter(
     val currentLibrary by remember {
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
-    val downloadQueueCount by remember {
-      remoteEpisodeDownloadTracker.state
-    }.collectAsState()
 
     return when (currentLibrary?.mediaType) {
-      MediaType.Podcast -> buildPodcastLibraryNavigationItems(
-        downloadQueueCount = downloadQueueCount.values.sumOf { it.size },
-      )
+      MediaType.Podcast -> buildPodcastLibraryNavigationItems()
       else -> buildBookLibraryNavigationItems()
     }
   }

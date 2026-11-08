@@ -13,9 +13,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -28,26 +28,27 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.podcasts.ui.downloads.composables.PodcastDownloadGroupCard
-import app.campfire.ui.appbar.CampfireAppBar
-import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
-import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
 import campfire.features.podcasts.ui.generated.resources.Res
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_body
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_cancel
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_confirm
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_title
 import campfire.features.podcasts.ui.generated.resources.download_queue_empty
+import campfire.features.podcasts.ui.generated.resources.download_queue_title
 import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -58,11 +59,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun PodcastDownloadQueueUi(
   state: PodcastDownloadQueueUiState,
-  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
-  val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-  AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
   var pendingClearLibraryItemId by remember { mutableStateOf<LibraryItemId?>(null) }
   pendingClearLibraryItemId?.let { libraryItemId ->
@@ -76,9 +75,17 @@ fun PodcastDownloadQueueUi(
   }
 
   Scaffold(
-    topBar = { campfireAppBar(Modifier, appBarBehavior) },
-    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireNavigationBarWindowInsets,
+    topBar = {
+      CampfireTopAppBar(
+        title = { Text(stringResource(Res.string.download_queue_title)) },
+        navigationIcon = {
+          NavigationBackButton(onClick = { state.eventSink(PodcastDownloadQueueUiEvent.Back) })
+        },
+        scrollBehavior = scrollBehavior,
+      )
+    },
+    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when {
       state.groups.isEmpty() -> EmptyState(
@@ -160,8 +167,6 @@ private fun ClearQueueConfirmDialog(
 
 // region — Previews —
 
-private val NoOpAppBar = CampfireAppBar { _, _ -> }
-
 @Composable
 private fun PreviewWrapper(
   content: @Composable () -> Unit,
@@ -181,7 +186,6 @@ private fun PreviewWrapper(
 private fun PodcastDownloadQueueUiPreview_Empty() = PreviewWrapper {
   PodcastDownloadQueueUi(
     state = previewState(groups = persistentListOf()),
-    campfireAppBar = NoOpAppBar,
   )
 }
 
@@ -193,7 +197,6 @@ private fun PodcastDownloadQueueUiPreview_Loading() = PreviewWrapper {
       groups = persistentListOf(),
       isRefreshing = true,
     ),
-    campfireAppBar = NoOpAppBar,
   )
 }
 
@@ -205,7 +208,6 @@ private fun PodcastDownloadQueueUiPreview_PopulatedAdmin() = PreviewWrapper {
       groups = previewGroups(),
       isAdmin = true,
     ),
-    campfireAppBar = NoOpAppBar,
   )
 }
 
@@ -217,7 +219,6 @@ private fun PodcastDownloadQueueUiPreview_PopulatedNonAdmin() = PreviewWrapper {
       groups = previewGroups(),
       isAdmin = false,
     ),
-    campfireAppBar = NoOpAppBar,
   )
 }
 

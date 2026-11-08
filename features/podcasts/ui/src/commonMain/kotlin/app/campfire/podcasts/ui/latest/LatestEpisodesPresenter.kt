@@ -19,7 +19,9 @@ import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.PodcastsRepository
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
+import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressKey
@@ -48,6 +50,7 @@ class LatestEpisodesPresenter(
   private val playbackController: PlaybackController,
   private val sessionQueue: SessionQueue,
   private val addToPlaylistDialog: AddToPlaylistDialog,
+  private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
 ) : NonPausablePresenter<LatestEpisodesUiState> {
 
   @Composable
@@ -89,14 +92,21 @@ class LatestEpisodesPresenter(
     // The app's own snackbar, so queueing tells what it did without passing it through the state
     val snackbarHost = LocalSnackBarHost.current
 
+    val serverDownloads by remember {
+      remoteEpisodeDownloadTracker.state
+    }.collectAsState()
+
     return LatestEpisodesUiState(
       playingItem = playingItem,
       episodes = pagingItems,
       mediaProgress = mediaProgress,
       queuedEpisodeIds = queuedEpisodeIds,
       addToPlaylistDialog = addToPlaylistDialog,
+      serverDownloadCount = serverDownloads.values.sumOf { it.size },
       eventSink = { event ->
         when (event) {
+          LatestEpisodesUiEvent.ServerDownloadsClick -> navigator.goTo(PodcastDownloadQueueScreen)
+
           is LatestEpisodesUiEvent.PlayEpisode -> {
             playbackController.startSession(
               itemId = event.libraryItemId,
