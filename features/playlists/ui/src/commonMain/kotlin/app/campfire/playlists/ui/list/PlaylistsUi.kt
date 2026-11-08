@@ -33,6 +33,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.OverlappedNavigationBarInsets
@@ -222,6 +224,27 @@ private fun LoadedState(
         }
       }
 
+      if (items.isEmpty() && queue.isNotEmpty()) {
+        // The full-screen empty state would draw over the queue card, so say there are no
+        // playlists below it instead.
+        item(
+          span = { GridItemSpan(maxLineSpan) },
+          key = "empty-playlists",
+        ) {
+          Text(
+            text = stringResource(Res.string.empty_playlists_message),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = EmptyInlinePaddingHorizontal, vertical = EmptyInlinePaddingVertical)
+              .animateItem(),
+          )
+        }
+      }
+
       items(
         count = items.size,
         key = { items[it].id },
@@ -251,7 +274,7 @@ private fun LoadedState(
       }
     }
 
-    if (items.isEmpty()) {
+    if (items.isEmpty() && queue.isEmpty()) {
       EmptyState(
         message = stringResource(Res.string.empty_playlists_message),
       )
@@ -305,3 +328,5 @@ private val QueuedEntry.title: String
 private const val QueueSharedTransitionKey = "playback-queue"
 private val ContentPadding = 16.dp
 private val FabBottomOffset = 88.dp
+private val EmptyInlinePaddingHorizontal = 24.dp
+private val EmptyInlinePaddingVertical = 32.dp
