@@ -12,6 +12,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.campfire.analytics.test.FakeAnalytics
+import app.campfire.common.test.mediaProgress
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
@@ -23,6 +24,7 @@ import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.LibraryItemSortModes
 import app.campfire.core.settings.PodcastSortModes
 import app.campfire.core.settings.SortDirection
+import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.AddPodcastContext
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
@@ -32,6 +34,7 @@ import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.settings.test.TestLibraryViewSettings
+import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import app.cash.molecule.RecompositionMode
 import app.cash.molecule.moleculeFlow
@@ -63,6 +66,7 @@ import kotlinx.coroutines.test.setMain
 class LibraryPresenterTest {
 
   private val userRepository = FakeUserRepository()
+  private val mediaProgressRepository = FakeMediaProgressRepository()
   private val repository = RecordingLibraryRepository()
   private val settings = TestLibraryViewSettings().apply {
     librarySortMode = ContentSortMode.AuthorFL
@@ -80,6 +84,7 @@ class LibraryPresenterTest {
     userRepository = userRepository,
     repository = repository,
     downloads = FakeDownloads(),
+    mediaProgressRepository = mediaProgressRepository,
     remoteEpisodeDownloadTracker = object : RemoteEpisodeDownloadTracker {
       override val state = serverDownloads
       override val recentlyFinishedUrls = MutableStateFlow(emptySet<String>())
@@ -130,6 +135,57 @@ class LibraryPresenterTest {
       assertThat(navigator.awaitNextScreen()).isEqualTo(PodcastDownloadQueueScreen)
       cancelAndIgnoreRemainingEvents()
     }
+  }
+
+  @Test
+  fun `the cards follow each book's progress as it changes, not as its page has it`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Book))
+    val listening = mediaProgress("book_a", progress = 0.42f)
+    mediaProgressRepository.allProgressFlow.value = listOf(
+      listening,
+      // An episode's progress isn't its show's
+      mediaProgress("podcast_a", episodeId = "episode_1", progress = 0.9f),
+    )
+
+    presenter.test {
+      assertThat(expectMostRecentItem().progress).isEqualTo(mapOf("book_a" to listening))
+
+      val finished = listening.copy(progress = 1f, isFinished = true)
+      mediaProgressRepository.allProgressFlow.value = listOf(finished)
+      assertThat(awaitItem().progress).isEqualTo(mapOf("book_a" to finished))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `listening on doesn't change the cards until the percent does`() = runTest {
+    repository.currentLibrary.emit(library(MediaType.Book))
+    val listening = mediaProgress("book_a", progress = 0.421f)
+    mediaProgressRepository.allProgressFlow.value = listOf(listening)
+
+    presenter.test {
+      assertThat(expectMostRecentItem().progress).isEqualTo(mapOf("book_a" to listening))
+
+      mediaProgressRepository.allProgressFlow.value = listOf(listening.copy(progress = 0.424f))
+      expectNoEvents()
+
+      val further = listening.copy(progress = 0.43f)
+      mediaProgressRepository.allProgressFlow.value = listOf(further)
+      assertThat(awaitItem().progress).isEqualTo(mapOf("book_a" to further))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a card shows its page's progress until the progress is known, then what's known`() {
+    val item = libraryItem(id = "book_a")
+    val paged = mediaProgress("book_a", progress = 0.2f)
+    val withPagedProgress = item.copy(userMediaProgress = paged)
+
+    assertThat(null.progressOf(withPagedProgress)).isEqualTo(paged)
+    // Progress discarded since the page loaded
+    assertThat(emptyMap<String, app.campfire.core.model.MediaProgress>().progressOf(withPagedProgress))
+      .isEqualTo(null)
   }
 
   @Test

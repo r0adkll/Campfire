@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode
 - Podcasts in Shows' list layout saying they have 0 episodes
 - Shows counting its podcasts as books
+- Marking a book finished or not finished, or discarding its progress, not showing on its card in the library until the library was reloaded
 
 ### Other Notes & Contributions
 

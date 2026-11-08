@@ -58,6 +58,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
@@ -154,6 +155,7 @@ fun LibraryUi(
       count = { ItemCount(totalItemCount, isPodcastLibrary) },
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
+      progress = state.progress,
       unfinishedEpisodes = state.unfinishedEpisodes,
       // Podcast libraries keep a slot for the banner even while it's hidden, see LibraryGrid
       serverDownloadCount = state.serverDownloadCount.takeIf { state.isPodcastLibrary },
@@ -202,6 +204,7 @@ private fun LoadedContent(
   count: @Composable () -> Unit,
   lazyPagingItems: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  progress: Map<LibraryItemId, MediaProgress>?,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
   serverDownloadCount: Int?,
   onServerDownloadsClick: () -> Unit,
@@ -234,6 +237,7 @@ private fun LoadedContent(
         count = count,
         items = lazyPagingItems,
         offlineStates = offlineStates,
+        progress = progress,
         unfinishedEpisodes = unfinishedEpisodes,
         serverDownloadCount = serverDownloadCount,
         onServerDownloadsClick = onServerDownloadsClick,
@@ -255,6 +259,7 @@ private fun LoadedContent(
         count = count,
         items = lazyPagingItems,
         offlineStates = offlineStates,
+        progress = progress,
         unfinishedEpisodes = unfinishedEpisodes,
         serverDownloadCount = serverDownloadCount,
         onServerDownloadsClick = onServerDownloadsClick,
@@ -281,6 +286,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
   count: @Composable () -> Unit,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  progress: Map<LibraryItemId, MediaProgress>?,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
   serverDownloadCount: Int?,
   onServerDownloadsClick: () -> Unit,
@@ -349,6 +355,7 @@ private fun ContentPagingScaffoldScope.LibraryGrid(
         LibraryItemCard(
           item = item,
           offlineStatus = offlineStatus,
+          progress = progress.progressOf(item),
           unfinishedEpisodes = unfinishedEpisodes[item.id] ?: 0,
           onClick = { onItemClick(item) },
           modifier = Modifier.animateItem(),
@@ -370,6 +377,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
   count: @Composable () -> Unit,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, ItemDownloads>,
+  progress: Map<LibraryItemId, MediaProgress>?,
   unfinishedEpisodes: Map<LibraryItemId, Int>,
   serverDownloadCount: Int?,
   onServerDownloadsClick: () -> Unit,
@@ -436,6 +444,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
             onItemClick(item)
           },
           offlineStatus = offlineStatus,
+          mediaProgress = progress.progressOf(item),
           unfinishedEpisodes = unfinishedEpisodes[item.id] ?: 0,
           meta = item.listMeta(sortMode, filter),
           offersActions = true,
