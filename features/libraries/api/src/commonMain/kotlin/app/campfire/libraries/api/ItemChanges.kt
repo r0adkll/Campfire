@@ -45,14 +45,24 @@ data class BookDetailsUpdate(
   val series: List<SeriesEntry>? = null,
   val genres: List<String>? = null,
   val tags: List<String>? = null,
-  /**
-   * A cover for the server to download and use in place of the book's own, which takes the upload
-   * permission as well
-   */
-  val coverUrl: String? = null,
+  /** A new cover, or none, in place of the book's own, which no undo puts back */
+  val cover: CoverUpdate? = null,
 ) {
   val isEmpty: Boolean
     get() = this == BookDetailsUpdate()
+}
+
+/** A change to a book's cover, each kind taking its own permission on the server. */
+sealed interface CoverUpdate {
+
+  /** A cover for the server to download, which takes the upload permission as well */
+  data class FromUrl(val url: String) : CoverUpdate
+
+  /** An image already on the server, like one of the book's own files, by its path there */
+  data class FromServerFile(val path: String) : CoverUpdate
+
+  /** No cover at all, which takes the delete permission as well */
+  data object Remove : CoverUpdate
 }
 
 /** A series a book is in, by name, with its place in it as the server keeps it: as text */
