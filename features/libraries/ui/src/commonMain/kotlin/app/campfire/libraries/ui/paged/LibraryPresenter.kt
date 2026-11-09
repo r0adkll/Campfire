@@ -19,6 +19,8 @@ import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.ItemDisplayState
@@ -33,6 +35,7 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.AddPodcastScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -42,6 +45,7 @@ import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -57,6 +61,7 @@ class LibraryPresenter(
   private val userRepository: UserRepository,
   private val repository: LibraryRepository,
   private val downloads: Downloads,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
   private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
@@ -162,6 +167,15 @@ class LibraryPresenter(
       downloads.observeByItem()
     }.collectAsState(emptyMap())
 
+    // The pages keep the progress they were loaded with, so the cards follow the progress as it
+    // changes from here instead, retained so returning to the list starts out knowing it
+    val progress by rememberRetained {
+      mediaProgressRepository.observeAllProgress()
+        .map { all -> all.filter { it.episodeId == null }.associateBy { it.libraryItemId } }
+        // Playing writes the progress every few seconds; a card only shows finished, or the percent
+        .distinctUntilChanged { old, new -> old.showsAs() == new.showsAs() }
+    }.collectAsRetainedState(null)
+
     val serverDownloads by remember {
       remoteEpisodeDownloadTracker.state
     }.collectAsState()
@@ -185,6 +199,7 @@ class LibraryPresenter(
       sort = sort,
       filter = itemFilter,
       offlineStates = offlineDownloads,
+      progress = progress,
       unfinishedEpisodes = unfinishedEpisodes,
       itemDisplayState = itemDisplayState,
       serverDownloadCount = if (isPodcastLibrary) serverDownloads.values.sumOf { it.size } else 0,
@@ -239,3 +254,7 @@ class LibraryPresenter(
     }
   }
 }
+
+/** What the cards show of each item's progress: whether it's finished, and its whole percent */
+private fun Map<LibraryItemId, MediaProgress>.showsAs(): Map<LibraryItemId, Pair<Boolean, Int>> =
+  mapValues { (_, progress) -> progress.isFinished to (progress.progress * 100).toInt() }

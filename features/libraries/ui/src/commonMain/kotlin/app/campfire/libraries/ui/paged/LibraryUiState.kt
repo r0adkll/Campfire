@@ -8,6 +8,7 @@ import androidx.paging.compose.LazyPagingItems
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
@@ -25,6 +26,8 @@ data class LibraryUiState(
   val sort: LibrarySort,
   val filter: ContentFilter?,
   val offlineStates: Map<LibraryItemId, ItemDownloads>,
+  /** Each item's progress as it is now, or null until it's known and the pages' own stand in */
+  val progress: Map<LibraryItemId, MediaProgress>?,
   // Podcasts only: how many of each show's episodes the user hasn't finished
   val unfinishedEpisodes: Map<LibraryItemId, Int>,
   // Podcasts only: episodes the server is downloading, shown as a banner while there are any
@@ -47,3 +50,7 @@ sealed interface LibraryUiEvent : CircuitUiEvent {
   data object AddPodcastClick : LibraryUiEvent
   data object ServerDownloadsClick : LibraryUiEvent
 }
+
+/** [item]'s progress as it is now, or as its page has it while that isn't known */
+internal fun Map<LibraryItemId, MediaProgress>?.progressOf(item: LibraryItem): MediaProgress? =
+  if (this != null) this[item.id] else item.userMediaProgress
