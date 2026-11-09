@@ -42,6 +42,7 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.libraries.ui.detail.AbstractLibraryItemPresenter
 import app.campfire.libraries.ui.detail.ContentUiState
+import app.campfire.libraries.ui.detail.ItemFinisher
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.libraries.ui.detail.composables.slots.AudioTrackSlot
@@ -130,6 +131,7 @@ class BookPresenter(
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val dispatcherProvider: DispatcherProvider,
   private val listeningDatesEditor: ListeningDatesEditor,
+  private val itemFinisher: ItemFinisher,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -364,23 +366,16 @@ class BookPresenter(
 
         is LibraryItemUiEvent.MarkFinished -> {
           analytics.send(ActionEvent("mark_finished", Click))
-
-          // Only stop session if this item is the current playing item
-          if (playingItem?.libraryItemId == event.item.id) {
-            playbackController.stopSession(event.item.id)
-          }
-
+          val isPlaying = playingItem?.libraryItemId == event.item.id
           scope.launch {
-            sessionsRepository.markDeleted(event.item.id)
-            mediaProgressRepository.markFinished(event.item.id)
-            playbackHistoryRepository.clear(event.item.id)
+            itemFinisher.markFinished(event.item.id, isPlaying)
           }
         }
 
         is LibraryItemUiEvent.MarkNotFinished -> {
           analytics.send(ActionEvent("mark_not_finished", Click))
           scope.launch {
-            mediaProgressRepository.markNotFinished(event.item.id)
+            itemFinisher.markNotFinished(event.item.id)
           }
         }
 

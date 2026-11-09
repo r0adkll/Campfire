@@ -66,7 +66,14 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
 
     presenter.test {
       assertThat(awaitLoadedItem().itemActions)
-        .containsExactly(ItemAction.Edit, ItemAction.QuickMatch, ItemAction.Rescan, ItemAction.Delete)
+        .containsExactly(
+          ItemAction.Edit,
+          ItemAction.Match,
+          ItemAction.ChangeCover,
+          ItemAction.QuickMatch,
+          ItemAction.Rescan,
+          ItemAction.Delete,
+        )
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -78,6 +85,8 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     presenter.test {
       assertThat(awaitLoadedItem().itemActions).containsExactly(
         ItemAction.Edit,
+        ItemAction.Match,
+        ItemAction.ChangeCover,
         ItemAction.QuickMatch,
         ItemAction.Delete,
       )

@@ -167,9 +167,9 @@ class LibraryItemPresenter(
           }
         }
 
-        LibraryItemUiEvent.EditClick -> {
-          Analytics.send(ActionEvent("edit_item", Click))
-          navigator.goTo(ItemEditorScreen(screen.libraryItemId))
+        is LibraryItemUiEvent.EditClick -> {
+          Analytics.send(ActionEvent("edit_item", Click, event.section.name.lowercase()))
+          navigator.goTo(ItemEditorScreen(screen.libraryItemId, event.section))
         }
 
         LibraryItemUiEvent.QuickMatchClick -> {

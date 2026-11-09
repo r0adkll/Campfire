@@ -79,6 +79,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       DeleteItemClickSoft,
       DeleteItemClickHard,
       EditClick,
+      MatchClick,
       OnBack,
     ),
   ) = runTest {
@@ -693,9 +694,17 @@ private val DeleteItemClickSoft = EventTest(
 )
 
 private val EditClick = EventTest(
-  event = LibraryItemUiEvent.EditClick,
+  event = LibraryItemUiEvent.EditClick(),
   assert = {
     assertThat(navigator.awaitNextScreen()).isEqualTo(ItemEditorScreen(TestLibraryItemId))
+  },
+)
+
+private val MatchClick = EventTest(
+  event = LibraryItemUiEvent.EditClick(ItemEditorScreen.Section.Match),
+  assert = {
+    assertThat(navigator.awaitNextScreen())
+      .isEqualTo(ItemEditorScreen(TestLibraryItemId, ItemEditorScreen.Section.Match))
   },
 )
 

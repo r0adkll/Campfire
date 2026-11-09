@@ -96,6 +96,12 @@ abstract class BaseLibraryItemPresenterTest {
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     dispatcherProvider = dispatcherProvider,
     listeningDatesEditor = { _, _, _, _ -> },
+    itemFinisher = ItemFinisher(
+      playbackController = playbackController,
+      sessionsRepository = sessionsRepository,
+      mediaProgressRepository = mediaProgressRepository,
+      playbackHistoryRepository = playbackHistoryRepository,
+    ),
   )
 
   internal val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker =

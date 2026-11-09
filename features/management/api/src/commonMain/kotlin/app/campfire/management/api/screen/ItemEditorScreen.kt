@@ -9,12 +9,23 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.parcelize.Parcelize
 import app.campfire.libraries.api.screen.LibraryItemScreen
 
-/** Where an account allowed to change items edits a book's details on the server. */
+/**
+ * Where an account allowed to change items edits a book's details on the server, opening on
+ * [section], such as straight to matching it.
+ */
 @Parcelize
 data class ItemEditorScreen(
   val libraryItemId: LibraryItemId,
+  val section: Section = Section.Details,
 ) : WorkspaceScreen(name = "ItemEditor") {
 
   override val preview: DetailScreen
     get() = LibraryItemScreen(libraryItemId)
+
+  /** A part of the editor to open on */
+  enum class Section {
+    Details,
+    Cover,
+    Match,
+  }
 }

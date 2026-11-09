@@ -97,6 +97,7 @@ import app.campfire.libraries.ui.detail.manage.DeleteItemDialog
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.ItemActionsMenu
 import app.campfire.libraries.ui.detail.manage.QuickMatchDialog
+import app.campfire.libraries.ui.detail.manage.editorSection
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -224,7 +225,8 @@ fun LibraryItemContent(
                 onAction = { action ->
                   showOverflowMenu = false
                   when (action) {
-                    ItemAction.Edit -> state.eventSink(LibraryItemUiEvent.EditClick)
+                    ItemAction.Edit, ItemAction.Match, ItemAction.ChangeCover ->
+                      state.eventSink(LibraryItemUiEvent.EditClick(action.editorSection!!))
                     ItemAction.QuickMatch -> state.eventSink(LibraryItemUiEvent.QuickMatchClick)
                     ItemAction.Rescan -> {
                       Analytics.send(ActionEvent("rescan_item", Click))
