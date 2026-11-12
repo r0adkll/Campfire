@@ -100,6 +100,7 @@ fun LatestEpisodesUi(
   pendingDeleteEpisode?.let { request ->
     DeleteEpisodeDialog(
       episodeTitle = request.episode.title,
+      deleteFileByDefault = state.deleteFileByDefault,
       onConfirm = { hardDelete ->
         pendingDeleteEpisode = null
         state.eventSink(LatestEpisodesUiEvent.DeleteEpisode(request, hardDelete))

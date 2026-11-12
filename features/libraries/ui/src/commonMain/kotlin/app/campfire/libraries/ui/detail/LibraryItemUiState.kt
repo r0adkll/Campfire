@@ -36,6 +36,8 @@ data class LibraryItemUiState(
   val itemActions: List<ItemAction> = emptyList(),
   /** The source a quick match would ask, by name, while asking whether to go ahead */
   val quickMatchSource: String? = null,
+  /** Whether deleting the item starts with deleting its files chosen, the last choice confirmed. */
+  val deleteFilesByDefault: Boolean = true,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 

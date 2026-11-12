@@ -93,6 +93,7 @@ class EpisodeSlotTest {
     canDownload: Boolean = true,
     isQueued: Boolean = false,
     canDelete: Boolean = false,
+    deleteFileByDefault: Boolean = false,
   ) = EpisodeSlot(
     libraryItem = libraryItem(id = "podcast").copy(media = media),
     media = media,
@@ -103,6 +104,7 @@ class EpisodeSlotTest {
     offlineDownload = download?.let { Download(DownloadContent.Episode("podcast", "ep_1"), it) },
     canDownload = canDownload,
     canDelete = canDelete,
+    deleteFileByDefault = deleteFileByDefault,
     showConfirmDownloadDialog = false,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
@@ -188,6 +190,21 @@ class EpisodeSlotTest {
 
     assertThat(events).containsExactly(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = false))
     onNodeWithText("Delete Episode One?").assertDoesNotExist()
+  }
+
+  @Test
+  fun aRememberedFileDelete_startsChosenAndStillTakesASecondPress() = runComposeUiTest {
+    val slot = slot(download = null, canDelete = true, deleteFileByDefault = true)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithText("Episode One").performTouchInput { swipeLeft(startX = right - 8f, endX = left) }
+    onNodeWithTag("delete_confirm").assertTextEquals("Delete file").performClick()
+
+    assertThat(events).isEmpty()
+
+    onNodeWithTag("delete_confirm").assertTextEquals("Press again to delete file").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = true))
   }
 
   @Test

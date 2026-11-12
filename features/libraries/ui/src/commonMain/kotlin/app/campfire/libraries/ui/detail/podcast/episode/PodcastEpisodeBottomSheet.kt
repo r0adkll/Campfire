@@ -161,6 +161,7 @@ internal fun PodcastEpisodeBottomSheet(
   if (showDeleteDialog) {
     DeleteEpisodeDialog(
       episodeTitle = state.episode.title,
+      deleteFileByDefault = state.deleteFileByDefault,
       onConfirm = { hardDelete ->
         showDeleteDialog = false
         state.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete))

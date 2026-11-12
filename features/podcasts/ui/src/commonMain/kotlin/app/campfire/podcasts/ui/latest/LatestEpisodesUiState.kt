@@ -25,6 +25,8 @@ data class LatestEpisodesUiState(
   val serverDownloadCount: Int = 0,
   /** Whether the account may delete episodes from the server, which offers it on each row. */
   val canDeleteEpisodes: Boolean = false,
+  /** Whether deleting an episode starts with deleting its file chosen, the last choice confirmed. */
+  val deleteFileByDefault: Boolean = true,
   val eventSink: (LatestEpisodesUiEvent) -> Unit,
 ) : CircuitUiState
 

@@ -165,6 +165,10 @@ class PodcastEpisodePresenter(
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()
 
+    val deleteFileByDefault by remember {
+      libraryViewSettings.observeDeleteEpisodeFilesByDefault()
+    }.collectAsState()
+
     // The app's own snackbar, which outlasts this sheet to tell how a delete went
     val snackbarHost = LocalSnackBarHost.current
 
@@ -179,6 +183,7 @@ class PodcastEpisodePresenter(
       offlineDownload = offlineDownload,
       canDownload = currentUser.canDownload,
       canDelete = currentUser.canDeleteItems,
+      deleteFileByDefault = deleteFileByDefault,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
     ) { event ->
@@ -301,6 +306,8 @@ class PodcastEpisodePresenter(
         is PodcastEpisodeUiEvent.DeleteClick -> {
           if (!currentUser.canDeleteItems) return@PodcastEpisodeUiState
           analytics.send(ActionEvent("delete_episode", Click, if (event.hardDelete) "hard" else "soft"))
+          // The next delete starts from this one's choice
+          libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
           // The episode is on its way out, so the sheet goes with it, and the delete runs on past it
           navigator.finish(Unit)
           coroutineScopeHolder.get().launch {

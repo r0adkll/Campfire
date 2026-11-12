@@ -30,6 +30,7 @@ import app.campfire.podcasts.api.screen.LatestEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
@@ -57,6 +58,7 @@ class LatestEpisodesPresenter(
   private val sessionQueue: SessionQueue,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
+  private val libraryViewSettings: LibraryViewSettings,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : NonPausablePresenter<LatestEpisodesUiState> {
 
@@ -99,6 +101,10 @@ class LatestEpisodesPresenter(
     // The app's own snackbar, so queueing tells what it did without passing it through the state
     val snackbarHost = LocalSnackBarHost.current
 
+    val deleteFileByDefault by remember {
+      libraryViewSettings.observeDeleteEpisodeFilesByDefault()
+    }.collectAsState()
+
     val serverDownloads by remember {
       remoteEpisodeDownloadTracker.state
     }.collectAsState()
@@ -111,6 +117,7 @@ class LatestEpisodesPresenter(
       addToPlaylistDialog = addToPlaylistDialog,
       serverDownloadCount = serverDownloads.values.sumOf { it.size },
       canDeleteEpisodes = currentUser.canDeleteItems,
+      deleteFileByDefault = deleteFileByDefault,
       eventSink = { event ->
         when (event) {
           LatestEpisodesUiEvent.ServerDownloadsClick -> navigator.goTo(PodcastDownloadQueueScreen)
@@ -171,6 +178,8 @@ class LatestEpisodesPresenter(
           is LatestEpisodesUiEvent.DeleteEpisode -> {
             if (!currentUser.canDeleteItems) return@LatestEpisodesUiState
             val episode = event.episode.episode
+            // The next delete starts from this one's choice
+            libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
             // Runs on past this screen, which the deleted episode may have been the last reason to be on
             coroutineScopeHolder.get().launch {
               podcastsRepository.deleteEpisode(episode.libraryItemId, episode.id, event.hardDelete)

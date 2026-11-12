@@ -22,6 +22,7 @@ import app.campfire.podcasts.ui.FakePodcastsRepository
 import app.campfire.podcasts.ui.downloads.FakeRemoteEpisodeDownloadTracker
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
+import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import app.campfire.user.test.fixtures.user
@@ -60,6 +61,7 @@ class LatestEpisodesPresenterTest {
   private val snackbarHost = SnackbarHostState()
   private val userRepository = FakeUserRepository()
   private val podcastsRepository = FakePodcastsRepository()
+  private val libraryViewSettings = TestLibraryViewSettings()
   private val workScope = TestScope(UnconfinedTestDispatcher())
   private val latest = LatestEpisode(
     episode = PodcastEpisode(
@@ -89,6 +91,7 @@ class LatestEpisodesPresenterTest {
     sessionQueue = sessionQueue,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = tracker,
+    libraryViewSettings = libraryViewSettings,
     coroutineScopeHolder = CoroutineScopeHolder { workScope },
   )
 
@@ -157,6 +160,21 @@ class LatestEpisodesPresenterTest {
       awaitSnackbar("Deleted Episode One and its file")
       assertThat(podcastsRepository.deleteEpisodeCalls)
         .containsExactly(FakePodcastsRepository.DeleteEpisodeCall("podcast", "ep_1", hardDelete = true))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `the next delete starts from the last one's choice`() = runTest {
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.deleteFileByDefault).isFalse()
+
+      state.eventSink(LatestEpisodesUiEvent.DeleteEpisode(latest, hardDelete = true))
+
+      assertThat(libraryViewSettings.deleteEpisodeFilesByDefault).isTrue()
+      var latestState = awaitItem()
+      while (!latestState.deleteFileByDefault) latestState = awaitItem()
       cancelAndIgnoreRemainingEvents()
     }
   }

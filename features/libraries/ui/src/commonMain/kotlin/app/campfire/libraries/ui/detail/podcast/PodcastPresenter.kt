@@ -141,6 +141,10 @@ class PodcastPresenter(
       libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
+    val deleteEpisodeFileByDefault by remember {
+      libraryViewSettings.observeDeleteEpisodeFilesByDefault()
+    }.collectAsState()
+
     // Only this podcast's queued episodes, so queueing another item doesn't rebuild every slot
     val queuedEpisodeIds by remember(libraryItem.id) {
       sessionQueue.observeAll()
@@ -162,6 +166,7 @@ class PodcastPresenter(
       episodeDownloads = episodeDownloads,
       remoteDownloadCount = remoteDownloadCount,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
+      deleteEpisodeFileByDefault = deleteEpisodeFileByDefault,
       addToPlaylistDialog = addToPlaylistDialog,
       sharedTransitionKey = screen.sharedTransitionKey,
     )
@@ -277,6 +282,8 @@ class PodcastPresenter(
           is LibraryItemUiEvent.DeleteEpisode -> {
             if (!currentUser.canDeleteItems) return@ContentUiState
             analytics.send(ActionEvent("delete_episode", Click, if (event.hardDelete) "hard" else "soft"))
+            // The next delete starts from this one's choice
+            libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
             val episode = event.episode
             // Runs on past this screen, should it be left before the server answers
             coroutineScopeHolder.get().launch {
@@ -311,6 +318,7 @@ private fun buildSlots(
   episodeDownloads: Map<PodcastEpisodeId, Download>,
   remoteDownloadCount: Int,
   showConfirmDownloadDialog: Boolean,
+  deleteEpisodeFileByDefault: Boolean,
   addToPlaylistDialog: AddToPlaylistDialog,
   sharedTransitionKey: String,
 ): List<ContentSlot> = buildList {
@@ -383,6 +391,7 @@ private fun buildSlots(
         offlineDownload = episodeDownloads[episode.id],
         canDownload = user.canDownload,
         canDelete = user.canDeleteItems,
+        deleteFileByDefault = deleteEpisodeFileByDefault,
         showConfirmDownloadDialog = showConfirmDownloadDialog,
         addToPlaylistDialog = addToPlaylistDialog,
         isFirst = index == 0,

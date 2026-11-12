@@ -95,4 +95,14 @@ class TestLibraryViewSettings(
   override fun observeShowTimeInBook(): StateFlow<Boolean> =
     observeBoolean(::showTimeInBook)
       .stateIn(testScope, SharingStarted.Lazily, showTimeInBook)
+
+  override var deleteItemFilesByDefault: Boolean by boolean()
+  override fun observeDeleteItemFilesByDefault(): StateFlow<Boolean> =
+    observeBoolean(::deleteItemFilesByDefault)
+      .stateIn(testScope, SharingStarted.Lazily, deleteItemFilesByDefault)
+
+  override var deleteEpisodeFilesByDefault: Boolean by boolean()
+  override fun observeDeleteEpisodeFilesByDefault(): StateFlow<Boolean> =
+    observeBoolean(::deleteEpisodeFilesByDefault)
+      .stateIn(testScope, SharingStarted.Lazily, deleteEpisodeFilesByDefault)
 }

@@ -33,6 +33,7 @@ import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -70,6 +71,7 @@ class LibraryItemPresenter(
   private val podcastPresenter: PodcastPresenter,
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
@@ -121,6 +123,10 @@ class LibraryItemPresenter(
     // and which outlasts this screen to offer undoing a quick match
     val snackbarHost = LocalSnackBarHost.current
 
+    val deleteFilesByDefault by remember {
+      libraryViewSettings.observeDeleteItemFilesByDefault()
+    }.collectAsState()
+
     val user = userSession.requiredUser
     val libraryItem = libraryItemContentState.dataOrNull
     val itemActions = remember(user, libraryItem) { libraryItem?.let { user.itemActions(it) }.orEmpty() }
@@ -133,6 +139,7 @@ class LibraryItemPresenter(
       contentState = contentState,
       itemActions = itemActions,
       quickMatchSource = quickMatchSource?.name,
+      deleteFilesByDefault = deleteFilesByDefault,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -148,6 +155,8 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.DeleteItemClick -> {
           if (libraryItemContentState.dataOrNull == null) return@LibraryItemUiState
+          // The next delete starts from this one's choice
+          libraryViewSettings.deleteItemFilesByDefault = event.hardDelete
           scope.launch {
             // The repository purges the item and its downloads
             repository.deleteLibraryItem(screen.libraryItemId, event.hardDelete)

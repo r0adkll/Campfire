@@ -22,16 +22,20 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Asks how to delete an item: from its library only, which a scan undoes, or its files too, which
- * nothing undoes and so takes a second press. Removing from the library is always the default.
+ * nothing undoes and so takes a second press.
+ *
+ * @param deleteFilesByDefault whether deleting its files starts chosen, the last choice confirmed.
  */
 @Composable
 internal fun DeleteItemDialog(
   itemTitle: String,
+  deleteFilesByDefault: Boolean,
   onConfirm: (hardDelete: Boolean) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   DeleteFromServerDialog(
+    hardDeleteByDefault = deleteFilesByDefault,
     title = stringResource(Res.string.dialog_delete_item_title, itemTitle.asDeleteQuestionSubject()),
     removeLabel = stringResource(Res.string.dialog_delete_item_remove),
     removeDescription = stringResource(Res.string.dialog_delete_item_remove_description),

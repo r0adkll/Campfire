@@ -146,6 +146,7 @@ abstract class BaseLibraryItemPresenterTest {
     podcastPresenter = podcastPresenter,
     themeManager = themeManager,
     themeSettings = themeSettings,
+    libraryViewSettings = libraryViewSettings,
     dispatcherProvider = dispatcherProvider,
   )
 

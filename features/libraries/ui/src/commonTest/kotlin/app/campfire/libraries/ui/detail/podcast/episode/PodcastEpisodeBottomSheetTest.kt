@@ -50,6 +50,7 @@ class PodcastEpisodeBottomSheetTest {
     offlineDownload = null,
     canDownload = true,
     canDelete = canDelete,
+    deleteFileByDefault = false,
     showConfirmDownloadDialog = false,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     eventSink = { events += it },

@@ -24,6 +24,8 @@ data class PodcastEpisodeUiState(
   val canDownload: Boolean,
   /** Whether the account may delete the episode from the server, which the sheet then offers. */
   val canDelete: Boolean,
+  /** Whether deleting it starts with deleting its file chosen, the last choice confirmed. */
+  val deleteFileByDefault: Boolean,
   val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
   val eventSink: (PodcastEpisodeUiEvent) -> Unit,

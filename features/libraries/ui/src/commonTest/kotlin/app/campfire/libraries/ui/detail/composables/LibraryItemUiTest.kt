@@ -236,12 +236,11 @@ class LibraryItemUiTest {
   }
 
   @Test
-  fun deletingFiles_takesASecondPress() = runComposeUiTest {
+  fun deletingFiles_isTheFirstDefaultAndTakesASecondPress() = runComposeUiTest {
     setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
 
     onNodeWithTag("item_actions_button").performClick()
     onNodeWithTag("item_action_delete").performClick()
-    onNodeWithTag("delete_option_hard").performClick()
     onNodeWithTag("delete_confirm").assertTextEquals("Delete files").performClick()
 
     // The first press only asks again
@@ -252,11 +251,23 @@ class LibraryItemUiTest {
   }
 
   @Test
-  fun removingFromTheLibrary_isTheDefaultAndTakesOnePress() = runComposeUiTest {
+  fun removingFromTheLibrary_whenLastChosen_startsChosenAndTakesOnePress() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(ItemAction.entries, deleteFilesByDefault = false)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_confirm").assertTextEquals("Remove").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
+  }
+
+  @Test
+  fun removingFromTheLibrary_canBeChosenOverTheDefault() = runComposeUiTest {
     setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
 
     onNodeWithTag("item_actions_button").performClick()
     onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_option_remove").performClick()
     onNodeWithTag("delete_confirm").assertTextEquals("Remove").performClick()
 
     events.assertEvent(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
@@ -269,10 +280,14 @@ class LibraryItemUiTest {
     onNodeWithTag("item_actions_button").assertDoesNotExist()
   }
 
-  private fun loadedState(itemActions: List<ItemAction>) = LibraryItemUiState(
+  private fun loadedState(
+    itemActions: List<ItemAction>,
+    deleteFilesByDefault: Boolean = true,
+  ) = LibraryItemUiState(
     user = user,
     libraryItem = libraryItem(),
     itemActions = itemActions,
+    deleteFilesByDefault = deleteFilesByDefault,
     contentState = LoadState.Loaded(
       data = ContentUiState(
         slots = listOf(TestContentSlot("slot")),

@@ -89,10 +89,11 @@ class PodcastEpisodePresenterTest {
   }
 
   @Test
-  fun deleteClick_closesTheSheetAndDeletesTheEpisode() = runTest {
+  fun deleteClick_closesTheSheetAndDeletesTheEpisode_andRemembersTheChoice() = runTest {
     presenter.test {
       val state = awaitItem()
       assertThat(state.canDelete).isTrue()
+      assertThat(state.deleteFileByDefault).isFalse()
 
       state.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = true))
 
@@ -100,6 +101,8 @@ class PodcastEpisodePresenterTest {
       assertThat(podcastsRepository.deleteEpisodeCalls).containsExactly(
         FakeEpisodeDeletingPodcastsRepository.DeleteEpisodeCall("podcast", "ep_1", hardDelete = true),
       )
+      assertThat(libraryViewSettings.deleteEpisodeFilesByDefault).isTrue()
+      assertThat(awaitItemMatching { it.deleteFileByDefault }.deleteFileByDefault).isTrue()
       cancelAndIgnoreRemainingEvents()
     }
   }

@@ -66,6 +66,8 @@ class EpisodeSlot(
   private val canDownload: Boolean,
   /** Whether the user may delete the episode from the server, which a swipe offers. */
   private val canDelete: Boolean,
+  /** Whether deleting it starts with deleting its file chosen, the last choice confirmed. */
+  private val deleteFileByDefault: Boolean,
   private val showConfirmDownloadDialog: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   /** Where it sits in its list, which rounds the corners of the first and last rows. */
@@ -123,6 +125,7 @@ class EpisodeSlot(
     if (showDeleteDialog) {
       DeleteEpisodeDialog(
         episodeTitle = episode.title,
+        deleteFileByDefault = deleteFileByDefault,
         onConfirm = { hardDelete ->
           showDeleteDialog = false
           eventSink(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete))

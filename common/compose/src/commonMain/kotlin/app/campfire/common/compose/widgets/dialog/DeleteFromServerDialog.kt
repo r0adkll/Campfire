@@ -48,15 +48,19 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Asks how to delete a podcast episode from the server: from its podcast only, which a library
  * scan undoes, or its audio file too, which nothing undoes and so takes a second press.
+ *
+ * @param deleteFileByDefault whether deleting its file starts chosen, the last choice confirmed.
  */
 @Composable
 fun DeleteEpisodeDialog(
   episodeTitle: String,
+  deleteFileByDefault: Boolean,
   onConfirm: (hardDelete: Boolean) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   DeleteFromServerDialog(
+    hardDeleteByDefault = deleteFileByDefault,
     title = stringResource(Res.string.dialog_delete_episode_title, episodeTitle.asDeleteQuestionSubject()),
     removeLabel = stringResource(Res.string.dialog_delete_episode_remove),
     removeDescription = stringResource(Res.string.dialog_delete_episode_remove_description),
@@ -83,9 +87,10 @@ fun String.asDeleteQuestionSubject(): String = trimEnd().removeSuffix("?")
 
 /**
  * Asks how to delete something from the server: only taking it out of the library, which a scan
- * undoes, or deleting its files from disk too, which nothing undoes and so takes a second press.
- * Taking it out is always the default.
+ * undoes, or deleting its files from disk too, which nothing undoes and so takes a second press,
+ * however the dialog started.
  *
+ * @param hardDeleteByDefault whether deleting the files starts chosen, rather than taking it out.
  * @param consequences what deleting does whichever way it's done, listed under the choice.
  * @param removeAction the confirm button's label while taking it out is chosen.
  * @param hardDeleteAction the confirm button's label while deleting the files is chosen.
@@ -95,6 +100,7 @@ fun String.asDeleteQuestionSubject(): String = trimEnd().removeSuffix("?")
  */
 @Composable
 fun DeleteFromServerDialog(
+  hardDeleteByDefault: Boolean,
   title: String,
   removeLabel: String,
   removeDescription: String,
@@ -108,7 +114,7 @@ fun DeleteFromServerDialog(
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  var hardDelete by rememberSaveable { mutableStateOf(false) }
+  var hardDelete by rememberSaveable { mutableStateOf(hardDeleteByDefault) }
   var pressedOnce by rememberSaveable { mutableStateOf(false) }
 
   AlertDialog(

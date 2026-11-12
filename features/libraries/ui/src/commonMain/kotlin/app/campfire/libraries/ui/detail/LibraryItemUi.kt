@@ -301,6 +301,7 @@ fun LibraryItemContent(
   if (showDeleteDialog && libraryItem != null) {
     DeleteItemDialog(
       itemTitle = libraryItem.media.metadata.title.orEmpty(),
+      deleteFilesByDefault = state.deleteFilesByDefault,
       onConfirm = { hardDelete ->
         Analytics.send(
           ActionEvent(
