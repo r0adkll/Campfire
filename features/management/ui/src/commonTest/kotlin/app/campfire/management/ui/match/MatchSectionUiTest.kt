@@ -9,16 +9,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.withKeyDown
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -197,6 +202,51 @@ class MatchSectionUiTest {
 
     onNodeWithTag("review_apply_form").assertIsNotEnabled()
     onNodeWithTag("review_apply_save").assertIsNotEnabled()
+  }
+
+  @Test
+  fun aWideSectionReviewsBesideTheResultsWithoutASheet() = runComposeUiTest {
+    val other = BookMatch(title = "Children of Memory", asin = "B0B5FMJ2MS")
+    var reviewing by mutableStateOf<MatchReviewState?>(null)
+    setContent {
+      ContentWithOverlays(Modifier.size(width = 1000.dp, height = 760.dp)) {
+        MatchSection(
+          state = matchUiState(
+            search = MatchSearch.Found(Audible, listOf(match, other)),
+            review = reviewing,
+            eventSink = events,
+          ),
+          enabled = true,
+          inlineReview = true,
+          showShortcuts = true,
+        )
+      }
+    }
+
+    onNodeWithTag("match_review_empty").assertExists()
+    onNodeWithText("browse", useUnmergedTree = true).assertExists()
+
+    reviewing = review()
+    waitForIdle()
+
+    onNodeWithTag("match_review_empty").assertDoesNotExist()
+    onNodeWithTag("match_review").assertExists()
+    onNodeWithText("From Audible.com").assertExists()
+    // Picking a result focuses the results, so the arrow keys move between them
+    onAllNodesWithTag("match_candidate")[0].performClick()
+    onNodeWithTag("match_results").performKeyInput {
+      pressKey(Key.DirectionDown)
+      withKeyDown(Key.CtrlLeft) { pressKey(Key.Enter) }
+    }
+    reviewing = null
+    waitForIdle()
+
+    // Leaving the review is the presenter's to say, not a sheet closing
+    events.assertEvents(
+      MatchUiEvent.Review(match),
+      MatchUiEvent.Review(other),
+      MatchUiEvent.ApplyToForm,
+    )
   }
 
   /** Scrolls the review to the node tagged [tag], which can be past the window's edge */

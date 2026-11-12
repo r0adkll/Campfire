@@ -7,28 +7,35 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -42,8 +49,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -103,17 +112,32 @@ import campfire.features.management.ui.generated.resources.review_cover_size
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The editor's Cover tab: the book's cover, or the one chosen to take its place, then where to
- * find a new one: the server's sources, an image's address, or the book's own images.
+ * The editor's Cover section: the book's cover, or the one chosen to take its place, then where to
+ * find a new one: the server's sources, an image's address, or the book's own images. Where it's
+ * [wide], they're all out at once, with the cover and the ways to it beside the sources' results;
+ * otherwise one at a time, under the cover.
  */
 @Composable
 internal fun CoverSection(
   state: CoverUiState,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  wide: Boolean = false,
 ) {
   CoverPreviewSheet(state = state, enabled = enabled)
+  if (wide) {
+    WideCoverSection(state = state, enabled = enabled, modifier = modifier)
+  } else {
+    CompactCoverSection(state = state, enabled = enabled, modifier = modifier)
+  }
+}
 
+@Composable
+private fun CompactCoverSection(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
   // One grid, so the cover and the search scroll away with the results in a short window
   LazyVerticalGrid(
     columns = GridCells.Adaptive(ResultMinSize),
@@ -131,10 +155,117 @@ internal fun CoverSection(
       CoverModes(state = state, enabled = enabled, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
     }
     when (state.mode) {
-      CoverMode.Search -> searchItems(state, enabled)
+      CoverMode.Search -> {
+        wholeRow("search") { SearchFields(state = state, enabled = enabled) }
+        resultItems(state, enabled)
+      }
       CoverMode.Address -> wholeRow("address") { AddressEntry(state = state, enabled = enabled) }
-      CoverMode.BookFiles -> bookImageItems(state, enabled)
+      CoverMode.BookFiles -> wholeRow("files") { BookImagesList(state = state, enabled = enabled) }
     }
+  }
+}
+
+/**
+ * The cover and the ways to a new one but searching down the leading side, and the search with
+ * what each source found beside them.
+ */
+@Composable
+private fun WideCoverSection(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier
+      .fillMaxSize()
+      .imePadding()
+      .testTag("cover_section"),
+  ) {
+    Column(
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = Modifier
+        .width(CoverPanelWidth)
+        .fillMaxHeight()
+        .verticalScroll(rememberScrollState())
+        .padding(24.dp),
+    ) {
+      CurrentCover(state = state, enabled = enabled, large = true)
+      if (state.canRemove && state.currentUrl != null) {
+        RemoveCoverButton(state = state, enabled = enabled)
+      }
+
+      if (state.canUseAddresses) {
+        PanelHeader(stringResource(Res.string.cover_mode_address))
+        AddressEntry(state = state, enabled = enabled)
+      }
+
+      val images = (state.bookImages as? BookImages.Loaded)?.images
+      PanelHeader(
+        if (images != null) {
+          stringResource(Res.string.cover_mode_files_count, images.size)
+        } else {
+          stringResource(Res.string.cover_mode_files)
+        },
+      )
+      BookImagesList(state = state, enabled = enabled)
+    }
+
+    VerticalDivider()
+
+    LazyVerticalGrid(
+      columns = GridCells.Adaptive(WideResultMinSize),
+      contentPadding = PaddingValues(24.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxHeight()
+        .testTag("cover_results"),
+    ) {
+      if (state.canUseAddresses) {
+        wholeRow("search") { SearchFields(state = state, enabled = enabled, inRow = true) }
+        resultItems(state, enabled)
+      } else {
+        wholeRow("upload_needed") {
+          Text(
+            text = stringResource(Res.string.cover_upload_needed),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun PanelHeader(
+  text: String,
+  modifier: Modifier = Modifier,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.titleSmall,
+    color = MaterialTheme.colorScheme.primary,
+    modifier = modifier.padding(top = 12.dp),
+  )
+}
+
+@Composable
+private fun RemoveCoverButton(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextButton(
+    onClick = { state.eventSink(CoverUiEvent.Remove) },
+    enabled = enabled && state.staged?.update != CoverUpdate.Remove,
+    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+    modifier = modifier.testTag("cover_remove"),
+  ) {
+    Icon(CampfireIcons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+    Text(stringResource(Res.string.cover_remove))
   }
 }
 
@@ -148,6 +279,7 @@ private fun CurrentCover(
   state: CoverUiState,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  large: Boolean = false,
 ) {
   val staged = state.staged
   if (staged != null) {
@@ -158,6 +290,24 @@ private fun CurrentCover(
       onKeepCurrent = { state.eventSink(CoverUiEvent.KeepCurrent) },
       modifier = modifier,
     )
+    return
+  }
+
+  if (large) {
+    Column(
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = modifier.testTag("cover_current"),
+    ) {
+      CoverImage(
+        imageUrl = state.currentUrl,
+        contentDescription = stringResource(Res.string.cd_current_cover),
+        size = LargeCoverSize,
+        placeholder = placeholderBookPainter(),
+        shape = coverImageShape(LargeCoverSize),
+        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+      )
+      CurrentCoverInfo(state)
+    }
     return
   }
 
@@ -173,28 +323,37 @@ private fun CurrentCover(
       shape = coverImageShape(CurrentCoverSize),
       modifier = Modifier.size(CurrentCoverSize),
     )
-    Column(
-      verticalArrangement = Arrangement.spacedBy(6.dp),
-      modifier = Modifier.padding(top = 4.dp),
-    ) {
+    CurrentCoverInfo(state, Modifier.padding(top = 4.dp))
+  }
+}
+
+/** Whether the book has a cover, and how big it is once its file says */
+@Composable
+private fun CurrentCoverInfo(
+  state: CoverUiState,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(6.dp),
+    modifier = modifier,
+  ) {
+    Text(
+      text = stringResource(if (state.currentUrl != null) Res.string.cover_current else Res.string.cover_none),
+      style = MaterialTheme.typography.titleSmall,
+    )
+    val size = state.currentSize
+    if (size != null) {
       Text(
-        text = stringResource(if (state.currentUrl != null) Res.string.cover_current else Res.string.cover_none),
-        style = MaterialTheme.typography.titleSmall,
+        text = stringResource(Res.string.review_cover_size, size.width, size.height),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
-      val size = state.currentSize
-      if (size != null) {
-        Text(
-          text = stringResource(Res.string.review_cover_size, size.width, size.height),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      if (minOf(size.width, size.height) < LowResolution) {
+        Tag(
+          text = stringResource(Res.string.cover_low_resolution),
+          color = MaterialTheme.colorScheme.errorContainer,
+          contentColor = MaterialTheme.colorScheme.onErrorContainer,
         )
-        if (minOf(size.width, size.height) < LowResolution) {
-          Tag(
-            text = stringResource(Res.string.cover_low_resolution),
-            color = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-          )
-        }
       }
     }
   }
@@ -283,13 +442,10 @@ private fun ModeChip(
   )
 }
 
-private fun LazyGridScope.searchItems(
+private fun LazyGridScope.resultItems(
   state: CoverUiState,
   enabled: Boolean,
 ) {
-  wholeRow("search") {
-    SearchFields(state = state, enabled = enabled)
-  }
   state.results.forEach { group ->
     wholeRow("results_${group.provider.id}") {
       ResultsHeader(group = group, modifier = Modifier.padding(top = 12.dp))
@@ -307,83 +463,151 @@ private fun LazyGridScope.searchItems(
   }
 }
 
+/** Where to search and for what, one field under another, or side by side when [inRow] */
 @Composable
 private fun SearchFields(
   state: CoverUiState,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  inRow: Boolean = false,
 ) {
-  val search = { state.eventSink(CoverUiEvent.Search) }
-  val searching = state.results.any { it.search == CoverSearch.Searching }
+  if (inRow) {
+    // All in one row where the title and author still have the room to read, or in two
+    BoxWithConstraints(modifier) {
+      val oneRow = maxWidth >= OneSearchRowWidth
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          SourceField(state, enabled, Modifier.width(SourceFieldWidth))
+          SearchTitleField(state, enabled, Modifier.weight(1f))
+          if (oneRow) {
+            SearchAuthorField(state, enabled, Modifier.weight(1f))
+            SearchButton(state, enabled)
+          }
+        }
+        if (!oneRow) {
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            SearchAuthorField(state, enabled, Modifier.weight(1f))
+            SearchButton(state, enabled)
+          }
+        }
+      }
+    }
+    return
+  }
+
   Column(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     modifier = modifier,
   ) {
-    var choosing by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-      expanded = choosing,
-      onExpandedChange = { choosing = it && state.sources.isNotEmpty() },
-    ) {
-      OutlinedTextField(
-        value = state.source?.let { sourceName(it) }.orEmpty(),
-        onValueChange = {},
-        readOnly = true,
-        enabled = enabled,
-        singleLine = true,
-        label = { Text(stringResource(Res.string.match_source)) },
-        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = choosing) },
-        modifier = Modifier
-          .fillMaxWidth()
-          .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
-          .testTag("cover_source"),
-      )
-      ExposedDropdownMenu(
-        expanded = choosing,
-        onDismissRequest = { choosing = false },
-      ) {
-        state.sources.forEach { source ->
-          DropdownMenuItem(
-            text = { Text(sourceName(source)) },
-            onClick = {
-              choosing = false
-              state.eventSink(CoverUiEvent.ChooseSource(source))
-            },
-            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-          )
-        }
-      }
-    }
-    OutlinedTextField(
-      state = state.title,
-      enabled = enabled,
-      label = { Text(stringResource(Res.string.cover_title)) },
-      lineLimits = TextFieldLineLimits.SingleLine,
-      keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-      onKeyboardAction = { search() },
-      modifier = Modifier.fillMaxWidth().testTag("cover_search_title"),
-    )
+    SourceField(state, enabled, Modifier.fillMaxWidth())
+    SearchTitleField(state, enabled, Modifier.fillMaxWidth())
     Row(
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      OutlinedTextField(
-        state = state.author,
-        enabled = enabled,
-        label = { Text(stringResource(Res.string.match_author)) },
-        lineLimits = TextFieldLineLimits.SingleLine,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        onKeyboardAction = { search() },
-        modifier = Modifier.weight(1f).testTag("cover_search_author"),
-      )
-      Button(
-        onClick = search,
-        enabled = enabled && !searching && state.sources.isNotEmpty(),
-        modifier = Modifier.padding(top = 8.dp).testTag("cover_search"),
-      ) {
-        Icon(CampfireIcons.Rounded.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-        Text(stringResource(Res.string.action_search), modifier = Modifier.padding(start = 8.dp))
+      SearchAuthorField(state, enabled, Modifier.weight(1f))
+      SearchButton(state, enabled)
+    }
+  }
+}
+
+@Composable
+private fun SourceField(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  var choosing by remember { mutableStateOf(false) }
+  ExposedDropdownMenuBox(
+    expanded = choosing,
+    onExpandedChange = { choosing = it && state.sources.isNotEmpty() },
+    modifier = modifier,
+  ) {
+    OutlinedTextField(
+      value = state.source?.let { sourceName(it) }.orEmpty(),
+      onValueChange = {},
+      readOnly = true,
+      enabled = enabled,
+      singleLine = true,
+      label = { Text(stringResource(Res.string.match_source)) },
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = choosing) },
+      modifier = Modifier
+        .fillMaxWidth()
+        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
+        .testTag("cover_source"),
+    )
+    ExposedDropdownMenu(
+      expanded = choosing,
+      onDismissRequest = { choosing = false },
+    ) {
+      state.sources.forEach { source ->
+        DropdownMenuItem(
+          text = { Text(sourceName(source)) },
+          onClick = {
+            choosing = false
+            state.eventSink(CoverUiEvent.ChooseSource(source))
+          },
+          contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        )
       }
     }
+  }
+}
+
+@Composable
+private fun SearchTitleField(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  OutlinedTextField(
+    state = state.title,
+    enabled = enabled,
+    label = { Text(stringResource(Res.string.cover_title)) },
+    lineLimits = TextFieldLineLimits.SingleLine,
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    onKeyboardAction = { state.eventSink(CoverUiEvent.Search) },
+    modifier = modifier.testTag("cover_search_title"),
+  )
+}
+
+@Composable
+private fun SearchAuthorField(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  OutlinedTextField(
+    state = state.author,
+    enabled = enabled,
+    label = { Text(stringResource(Res.string.match_author)) },
+    lineLimits = TextFieldLineLimits.SingleLine,
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    onKeyboardAction = { state.eventSink(CoverUiEvent.Search) },
+    modifier = modifier.testTag("cover_search_author"),
+  )
+}
+
+@Composable
+private fun SearchButton(
+  state: CoverUiState,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  val searching = state.results.any { it.search == CoverSearch.Searching }
+  Button(
+    onClick = { state.eventSink(CoverUiEvent.Search) },
+    enabled = enabled && !searching && state.sources.isNotEmpty(),
+    modifier = modifier.padding(top = 8.dp).testTag("cover_search"),
+  ) {
+    Icon(CampfireIcons.Rounded.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+    Text(stringResource(Res.string.action_search), modifier = Modifier.padding(start = 8.dp))
   }
 }
 
@@ -520,17 +744,21 @@ private fun AddressEntry(
   }
 }
 
-private fun LazyGridScope.bookImageItems(
+/** The images among the book's own files, each to use as its cover */
+@Composable
+private fun BookImagesList(
   state: CoverUiState,
   enabled: Boolean,
+  modifier: Modifier = Modifier,
 ) {
-  when (val images = state.bookImages) {
-    BookImages.Loading -> wholeRow("files_loading") {
-      LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
-    }
+  Column(
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    when (val images = state.bookImages) {
+      BookImages.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
 
-    BookImages.Failed -> wholeRow("files_failed") {
-      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      BookImages.Failed -> {
         Text(
           text = stringResource(Res.string.cover_files_failed),
           style = MaterialTheme.typography.bodyMedium,
@@ -543,25 +771,23 @@ private fun LazyGridScope.bookImageItems(
           Text(stringResource(Res.string.cover_files_retry))
         }
       }
-    }
 
-    is BookImages.Loaded -> if (images.images.isEmpty()) {
-      wholeRow("files_none") {
+      is BookImages.Loaded -> if (images.images.isEmpty()) {
         Text(
           text = stringResource(Res.string.cover_files_none),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-      }
-    } else {
-      images.images.forEach { image ->
-        wholeRow("file_${image.path}") {
-          BookImageRow(
-            image = image,
-            staged = state.staged,
-            enabled = enabled,
-            onUse = { state.eventSink(CoverUiEvent.UseBookImage(image)) },
-          )
+      } else {
+        images.images.forEach { image ->
+          key(image.path) {
+            BookImageRow(
+              image = image,
+              staged = state.staged,
+              enabled = enabled,
+              onUse = { state.eventSink(CoverUiEvent.UseBookImage(image)) },
+            )
+          }
         }
       }
     }
@@ -650,6 +876,13 @@ private fun Tag(
 
 private val CurrentCoverSize = 140.dp
 private val ResultMinSize = 104.dp
+
+/** The cover and the ways to a new one, beside the search where there's the room */
+private val CoverPanelWidth = 352.dp
+private val LargeCoverSize = 304.dp
+private val WideResultMinSize = 128.dp
+private val SourceFieldWidth = 200.dp
+private val OneSearchRowWidth = 760.dp
 private val FileThumbnailSize = 56.dp
 
 /** Pixels along a cover's shorter side below which it looks soft on a big screen */

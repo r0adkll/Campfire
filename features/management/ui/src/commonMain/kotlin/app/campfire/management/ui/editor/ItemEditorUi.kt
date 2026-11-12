@@ -227,6 +227,8 @@ internal fun ItemEditor(
         BoxWithConstraints(Modifier.weight(1f)) {
           EditorBody(
             state = state,
+            wide = maxWidth >= WideSectionWidth,
+            showShortcuts = layout == EditorLayout.Desktop,
             formLayout = when {
               layout == EditorLayout.Desktop && maxWidth >= DenseWidth -> FormLayout.Dense
               layout != EditorLayout.Desktop && maxWidth >= TwoColumnWidth -> FormLayout.TwoColumns
@@ -251,6 +253,9 @@ internal fun ItemEditor(
 @Composable
 private fun EditorBody(
   state: ItemEditorUiState,
+  /** Wide enough for Cover and Match to lay their parts out side by side */
+  wide: Boolean,
+  showShortcuts: Boolean,
   formLayout: FormLayout,
   inlineSuggestions: Boolean,
   modifier: Modifier = Modifier,
@@ -261,11 +266,14 @@ private fun EditorBody(
       draft != null && state.section == EditorSection.Cover -> CoverSection(
         state = state.cover,
         enabled = state.canEdit && !state.isSaving,
+        wide = wide,
       )
 
       draft != null && state.section == EditorSection.Match -> MatchSection(
         state = state.match,
         enabled = state.canEdit && !state.isSaving,
+        inlineReview = wide,
+        showShortcuts = showShortcuts,
       )
 
       draft != null -> DetailsForm(
@@ -494,6 +502,9 @@ private val ShortHeight: Dp = 480.dp
 
 /** Wide enough for the form's two columns */
 private val TwoColumnWidth: Dp = 720.dp
+
+/** Wide enough for Cover and Match to lay their parts out side by side */
+private val WideSectionWidth: Dp = 840.dp
 
 /** Wide enough for the form's rows of fields side by side, as a desktop lays them out */
 private val DenseWidth: Dp = 560.dp
