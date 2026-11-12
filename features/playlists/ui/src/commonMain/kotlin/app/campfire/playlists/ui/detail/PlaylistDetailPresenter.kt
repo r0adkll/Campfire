@@ -41,6 +41,7 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -77,6 +78,10 @@ class PlaylistDetailPresenter(
 
     val progressStates by remember {
       mediaProgressRepository.observeAllProgress()
+        // Rows only draw a progress bar or a finished mark (and the actions count finished items).
+        // A position save moves the playing item's bar by a fraction of a pixel, so skip it until a
+        // bar or mark would visibly change
+        .distinctUntilChangedBy { allProgress -> allProgress.associate { MediaProgressKey(it) to it.barPosition } }
         .map { allProgress -> allProgress.associateBy { MediaProgressKey(it) } }
     }.collectAsState(emptyMap())
 

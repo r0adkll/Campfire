@@ -62,6 +62,41 @@ class HomePresenterTest {
   val mediaProgressRepository = FakeMediaProgressRepository()
 
   @Test
+  fun present_PositionSavesThatDontMoveABar_AreSkipped() = runTest {
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { emptyFlow() },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
+      downloads = downloads,
+      bookInfoRegistry = FakeBookInfoRegistry(),
+      analytics = analytics,
+    )
+
+    // A ten-hour book, where a bar step is 72 seconds
+    fun playing(at: Float) = mediaProgress("book", duration = 36_000f, currentTime = at)
+    mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_600f))
+
+    presenter.test {
+      awaitItemMatching { it.progressStates.isNotEmpty() }
+
+      // A position save five seconds on draws the same bar, so it's skipped
+      mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_605f))
+      testScheduler.runCurrent()
+      // Far enough on to move the bar
+      mediaProgressRepository.allProgressFlow.value = listOf(playing(at = 3_700f))
+
+      val next = awaitItemMatching { it.progressStates.getValue(MediaProgressKey("book")).currentTime != 3_600f }
+      assertThat(next.progressStates.getValue(MediaProgressKey("book")).currentTime).isEqualTo(3_700f)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun present_LoadingState() = runTest {
     val repository = FakeHomeRepository(
       homeFeedFlowFactory = { emptyFlow() },
@@ -573,4 +608,12 @@ private inline fun Assert<UiShelf<*>>.isShelf(
     prop(UiShelf<*>::total).isEqualTo(total)
     prop(UiShelf<*>::entities).entities()
   }
+}
+
+private suspend fun app.cash.turbine.ReceiveTurbine<HomeUiState>.awaitItemMatching(
+  predicate: (HomeUiState) -> Boolean,
+): HomeUiState {
+  var state = awaitItem()
+  while (!predicate(state)) state = awaitItem()
+  return state
 }

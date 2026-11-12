@@ -4,6 +4,7 @@
 package app.campfire.core.model
 
 import app.campfire.core.extensions.seconds
+import kotlin.math.roundToInt
 import kotlin.time.Duration
 
 typealias MediaProgressId = String
@@ -64,7 +65,19 @@ data class MediaProgress(
       else -> maxOf(progress, ebookProgress ?: 0f)
     }
 
+  /**
+   * Where a progress bar or finished mark draws this progress: [FINISHED_BAR_POSITION] once
+   * finished, otherwise how far through in [BAR_STEPS]ths. A position save while playing moves a
+   * long book far less than a step, and draws the same.
+   */
+  val barPosition: Int
+    get() = if (isFinished) FINISHED_BAR_POSITION else (actualProgress * BAR_STEPS).roundToInt()
+
   companion object {
     const val UNKNOWN_ID = "unknown_id"
+
+    /** Finer than a pixel on any progress bar Campfire draws. */
+    const val BAR_STEPS = 500
+    const val FINISHED_BAR_POSITION = -1
   }
 }
