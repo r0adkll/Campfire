@@ -8,8 +8,10 @@ import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.common.test.user
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.libraries.ui.detail.podcast.FakeEpisodeDeletingPodcastsRepository
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
@@ -25,9 +27,15 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuit.test.test
+import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 
 class PodcastEpisodePresenterTest {
@@ -48,12 +56,17 @@ class PodcastEpisodePresenterTest {
   private val downloads = FakeDownloads()
   private val userRepository = FakeUserRepository()
   private val libraryViewSettings = TestLibraryViewSettings()
+  private val podcastsRepository = FakeEpisodeDeletingPodcastsRepository()
+  private val userScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+  private var finished = false
 
   private val presenter = PodcastEpisodePresenter(
     libraryItem = item,
     episode = episode,
     navigator = object : OverlayNavigator<Unit> {
-      override fun finish(result: Unit) = Unit
+      override fun finish(result: Unit) {
+        finished = true
+      }
     },
     analytics = FakeAnalytics(),
     playbackController = FakePlaybackController(),
@@ -66,7 +79,43 @@ class PodcastEpisodePresenterTest {
     userRepository = userRepository,
     libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    podcastsRepository = podcastsRepository,
+    coroutineScopeHolder = CoroutineScopeHolder { userScope },
   )
+
+  @AfterTest
+  fun tearDown() {
+    userScope.cancel()
+  }
+
+  @Test
+  fun deleteClick_closesTheSheetAndDeletesTheEpisode() = runTest {
+    presenter.test {
+      val state = awaitItem()
+      assertThat(state.canDelete).isTrue()
+
+      state.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = true))
+
+      assertThat(finished).isTrue()
+      assertThat(podcastsRepository.deleteEpisodeCalls).containsExactly(
+        FakeEpisodeDeletingPodcastsRepository.DeleteEpisodeCall("podcast", "ep_1", hardDelete = true),
+      )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteClick_withoutPermissionToDelete_doesNothing() = runTest {
+    userRepository.currentStatefulUserFlow.value = user("user_id", isActive = false)
+
+    presenter.test {
+      awaitItemMatching { !it.canDelete }.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+
+      assertThat(finished).isFalse()
+      assertThat(podcastsRepository.deleteEpisodeCalls).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
 
   @Test
   fun present_showsThisEpisodesDownload() = runTest {

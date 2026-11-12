@@ -35,6 +35,7 @@ import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
+import app.campfire.common.compose.widgets.dialog.DeleteEpisodeDialog
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
@@ -63,6 +64,8 @@ class EpisodeSlot(
   private val offlineDownload: Download?,
   /** Whether the user may start a download; an existing download stays stoppable and removable. */
   private val canDownload: Boolean,
+  /** Whether the user may delete the episode from the server, which a swipe offers. */
+  private val canDelete: Boolean,
   private val showConfirmDownloadDialog: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   /** Where it sits in its list, which rounds the corners of the first and last rows. */
@@ -116,6 +119,18 @@ class EpisodeSlot(
       )
     }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    if (showDeleteDialog) {
+      DeleteEpisodeDialog(
+        episodeTitle = episode.title,
+        onConfirm = { hardDelete ->
+          showDeleteDialog = false
+          eventSink(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete))
+        },
+        onDismissRequest = { showDeleteDialog = false },
+      )
+    }
+
     val isFinished = progress?.isFinished == true
 
     Column(
@@ -135,6 +150,11 @@ class EpisodeSlot(
               LibraryItemUiEvent.RemoveEpisodeFromQueue(episode)
             },
           )
+        },
+        onDelete = if (canDelete) {
+          { showDeleteDialog = true }
+        } else {
+          null
         },
         onClick = {
           eventSink(LibraryItemUiEvent.OpenEpisode(episode))

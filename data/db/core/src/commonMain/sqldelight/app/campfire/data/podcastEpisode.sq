@@ -57,3 +57,20 @@ WHERE libraryItemId = ?;
 deleteForId:
 DELETE FROM podcastEpisode
 WHERE id = ?;
+
+-- Removes an episode the server no longer has, along with everything that references it: its
+-- place in Latest, on shelves and in playlists, and its progress and playback history. The audio
+-- track is deleted explicitly because only Android enforces foreign keys, so ON DELETE CASCADE
+-- never runs on the other platforms. The podcast's row is rewritten unchanged because an open
+-- podcast page watches it rather than its episodes, so this is what makes the page let go of it.
+purgeForId {
+  UPDATE podcastMedia SET numEpisodes = numEpisodes
+  WHERE mediaId = (SELECT podcastMediaId FROM podcastEpisode WHERE id = :id);
+  DELETE FROM podcastEpisodePageJoin WHERE episodeId = :id;
+  DELETE FROM shelfJoin WHERE episodeId = :id;
+  DELETE FROM playlistItemJoin WHERE episodeId = :id;
+  DELETE FROM mediaProgress WHERE episodeId = :id;
+  DELETE FROM playbackAction WHERE episodeId = :id;
+  DELETE FROM podcastEpisodeAudioTrack WHERE episodeId = :id;
+  DELETE FROM podcastEpisode WHERE id = :id;
+}

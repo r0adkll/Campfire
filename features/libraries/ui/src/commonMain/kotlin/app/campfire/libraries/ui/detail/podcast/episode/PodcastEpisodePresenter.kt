@@ -18,14 +18,23 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.observeLivePosition
 import app.campfire.audioplayer.withLivePosition
+import app.campfire.common.compose.layout.LocalSnackBarHost
+import app.campfire.common.compose.message.showEpisodeDeleted
+import app.campfire.common.compose.message.showEpisodeNotDeleted
+import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
 import app.campfire.offline.download
 import app.campfire.offline.observe
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.observeContains
@@ -73,6 +82,8 @@ class PodcastEpisodePresenter(
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
+  private val podcastsRepository: PodcastsRepository,
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : Presenter<PodcastEpisodeUiState> {
 
   @Composable
@@ -154,6 +165,9 @@ class PodcastEpisodePresenter(
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()
 
+    // The app's own snackbar, which outlasts this sheet to tell how a delete went
+    val snackbarHost = LocalSnackBarHost.current
+
     return PodcastEpisodeUiState(
       libraryItem = libraryItem,
       episode = episode,
@@ -164,6 +178,7 @@ class PodcastEpisodePresenter(
       sessionState = episodeSession,
       offlineDownload = offlineDownload,
       canDownload = currentUser.canDownload,
+      canDelete = currentUser.canDeleteItems,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
     ) { event ->
@@ -281,6 +296,21 @@ class PodcastEpisodePresenter(
         PodcastEpisodeUiEvent.StopDownloadClick -> {
           analytics.send(ActionEvent("stop_episode_download", Click))
           downloads.stop(downloadContent)
+        }
+
+        is PodcastEpisodeUiEvent.DeleteClick -> {
+          if (!currentUser.canDeleteItems) return@PodcastEpisodeUiState
+          analytics.send(ActionEvent("delete_episode", Click, if (event.hardDelete) "hard" else "soft"))
+          // The episode is on its way out, so the sheet goes with it, and the delete runs on past it
+          navigator.finish(Unit)
+          coroutineScopeHolder.get().launch {
+            podcastsRepository.deleteEpisode(episode.libraryItemId, episode.id, event.hardDelete)
+              .onSuccess { snackbarHost.showEpisodeDeleted(episode.title, event.hardDelete) }
+              .onFailure { error ->
+                bark(throwable = error) { "Failed to delete episode ${episode.id}" }
+                snackbarHost.showEpisodeNotDeleted(notAllowed = error is ItemChangeNotAllowedException)
+              }
+          }
         }
       }
     }

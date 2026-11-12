@@ -195,7 +195,6 @@
   <string name="dialog_delete_item_action_remove">Remove</string>
   <string name="dialog_delete_item_action_hard">Delete files</string>
   <string name="dialog_delete_item_action_hard_again">Press again to delete files</string>
-  <string name="dialog_delete_item_action_cancel">Cancel</string>
   <string name="menu_item_quick_match">Quick match</string>
   <string name="menu_item_match">Match…</string>
   <string name="menu_item_change_cover">Change cover…</string>

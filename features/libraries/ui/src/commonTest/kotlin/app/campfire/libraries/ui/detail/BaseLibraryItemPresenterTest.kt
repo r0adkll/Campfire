@@ -15,6 +15,7 @@ import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.session.UserSession
@@ -25,6 +26,7 @@ import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.manage.FakeLibraryRepository
 import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
 import app.campfire.libraries.ui.detail.manage.quickMatcher
+import app.campfire.libraries.ui.detail.podcast.FakeEpisodeDeletingPodcastsRepository
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -107,6 +109,11 @@ abstract class BaseLibraryItemPresenterTest {
   internal val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker =
     EmptyRemoteEpisodeDownloadTracker
 
+  internal val podcastsRepository = FakeEpisodeDeletingPodcastsRepository()
+
+  // Work that runs on past the screen, in the user's scope
+  internal val userScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
   internal val podcastPresenter = PodcastPresenter(
     analytics = analytics,
     userRepository = userRepository,
@@ -119,6 +126,8 @@ abstract class BaseLibraryItemPresenterTest {
     libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
+    podcastsRepository = podcastsRepository,
+    coroutineScopeHolder = CoroutineScopeHolder { userScope },
   )
 
   /** The app's snackbar, where the presenter tells what an action did. */
@@ -126,9 +135,6 @@ abstract class BaseLibraryItemPresenterTest {
 
   internal val libraryRepository = FakeLibraryRepository()
   internal val matchRepository = FakeQuickMatchRepository()
-
-  // Quick matches run on past the screen, in the user's scope
-  internal val userScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
 
   private val libraryItemPresenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),

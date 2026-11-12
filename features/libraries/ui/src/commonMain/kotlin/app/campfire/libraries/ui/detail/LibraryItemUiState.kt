@@ -91,6 +91,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class RemoveEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class StopEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
 
+  /** Delete [episode] from the server, and its audio file too if [hardDelete]. */
+  data class DeleteEpisode(val episode: PodcastEpisode, val hardDelete: Boolean) : LibraryItemUiEvent
+
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
   data object FindEpisodes : LibraryItemUiEvent

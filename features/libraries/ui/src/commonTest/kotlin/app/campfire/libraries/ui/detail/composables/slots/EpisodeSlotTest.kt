@@ -7,9 +7,14 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.swipeLeft
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.Media
@@ -21,6 +26,7 @@ import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
 
@@ -86,6 +92,7 @@ class EpisodeSlotTest {
     download: Download.State?,
     canDownload: Boolean = true,
     isQueued: Boolean = false,
+    canDelete: Boolean = false,
   ) = EpisodeSlot(
     libraryItem = libraryItem(id = "podcast").copy(media = media),
     media = media,
@@ -95,6 +102,7 @@ class EpisodeSlotTest {
     isQueued = isQueued,
     offlineDownload = download?.let { Download(DownloadContent.Episode("podcast", "ep_1"), it) },
     canDownload = canDownload,
+    canDelete = canDelete,
     showConfirmDownloadDialog = false,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
@@ -163,5 +171,62 @@ class EpisodeSlotTest {
     onNodeWithContentDescription("Remove from queue").performClick()
 
     assertThat(events).containsExactly(LibraryItemUiEvent.RemoveEpisodeFromQueue(episode))
+  }
+
+  @Test
+  fun swipeToDelete_asksFirstThenRemovesTheEpisodeFromThePodcast() = runComposeUiTest {
+    val slot = slot(download = null, canDelete = true)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithText("Episode One").performTouchInput { swipeLeft(startX = right - 8f, endX = left) }
+    waitForIdle()
+
+    onNodeWithText("Delete Episode One?").assertIsDisplayed()
+    assertThat(events).isEmpty()
+
+    onNodeWithTag("delete_confirm").assertTextEquals("Remove").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = false))
+    onNodeWithText("Delete Episode One?").assertDoesNotExist()
+  }
+
+  @Test
+  fun deletingTheFile_takesASecondPress() = runComposeUiTest {
+    val slot = slot(download = null, canDelete = true)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithText("Episode One").performTouchInput { swipeLeft(startX = right - 8f, endX = left) }
+    onNodeWithTag("delete_option_hard").performClick()
+    onNodeWithTag("delete_confirm").assertTextEquals("Delete file").performClick()
+
+    assertThat(events).isEmpty()
+
+    onNodeWithTag("delete_confirm").assertTextEquals("Press again to delete file").performClick()
+
+    assertThat(events).containsExactly(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = true))
+  }
+
+  @Test
+  fun cancellingTheDelete_keepsTheEpisode() = runComposeUiTest {
+    val slot = slot(download = null, canDelete = true)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithText("Episode One").performTouchInput { swipeLeft(startX = right - 8f, endX = left) }
+    onNodeWithText("Cancel").performClick()
+
+    assertThat(events).isEmpty()
+    onNodeWithText("Delete Episode One?").assertDoesNotExist()
+  }
+
+  @Test
+  fun withoutPermissionToDelete_swipingAsksNothing() = runComposeUiTest {
+    val slot = slot(download = null, canDelete = false)
+    setContent { PreviewSharedElementTransitionLayout { slot.Content(Modifier) { events += it } } }
+
+    onNodeWithText("Episode One").performTouchInput { swipeLeft(startX = right - 8f, endX = left) }
+    waitForIdle()
+
+    onNodeWithText("Delete Episode One?").assertDoesNotExist()
+    assertThat(events).isEmpty()
   }
 }

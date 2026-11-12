@@ -22,6 +22,8 @@ data class PodcastEpisodeUiState(
   val sessionState: SessionUiState,
   val offlineDownload: Download?,
   val canDownload: Boolean,
+  /** Whether the account may delete the episode from the server, which the sheet then offers. */
+  val canDelete: Boolean,
   val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
   val eventSink: (PodcastEpisodeUiEvent) -> Unit,
@@ -38,4 +40,7 @@ sealed interface PodcastEpisodeUiEvent {
   data class DownloadClick(val doNotShowAgain: Boolean = true) : PodcastEpisodeUiEvent
   data object RemoveDownloadClick : PodcastEpisodeUiEvent
   data object StopDownloadClick : PodcastEpisodeUiEvent
+
+  /** Delete the episode from the server, and its audio file too if [hardDelete]. */
+  data class DeleteClick(val hardDelete: Boolean) : PodcastEpisodeUiEvent
 }

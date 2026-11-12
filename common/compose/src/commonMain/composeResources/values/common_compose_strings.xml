@@ -62,6 +62,25 @@
   <string name="episode_added_to_queue">Added to queue</string>
   <string name="episode_removed_from_queue">Removed from queue</string>
 
+  <string name="action_delete_episode">Delete from server…</string>
+  <string name="swipe_delete">DELETE</string>
+  <string name="episode_removed">Removed %1$s from its podcast</string>
+  <string name="episode_deleted_file">Deleted %1$s and its file</string>
+  <string name="episode_delete_not_allowed">Your account isn't allowed to delete episodes. Ask your server's admin.</string>
+  <string name="episode_delete_failed">Couldn't delete this episode. Check your connection and try again.</string>
+
+  <string name="dialog_delete_action_cancel">Cancel</string>
+  <string name="dialog_delete_episode_title">Delete %1$s?</string>
+  <string name="dialog_delete_episode_remove">Remove from podcast</string>
+  <string name="dialog_delete_episode_remove_description">Its audio file stays on your server, so a library scan adds it back.</string>
+  <string name="dialog_delete_episode_hard">Delete its file from the server</string>
+  <string name="dialog_delete_episode_hard_description">Permanently deletes its audio file from your server's disk. This can't be undone.</string>
+  <string name="dialog_delete_episode_progress">Removes everyone's listening progress for it</string>
+  <string name="dialog_delete_episode_lists">Removes it from playlists</string>
+  <string name="dialog_delete_episode_action_remove">Remove</string>
+  <string name="dialog_delete_episode_action_hard">Delete file</string>
+  <string name="dialog_delete_episode_action_hard_again">Press again to delete file</string>
+
   <string name="dialog_download_message_prefix">This will download</string>
   <string name="dialog_download_message_suffix">onto your devices internal storage.</string>
   <string name="dialog_download_do_not_show_label">Do not show again</string>

@@ -10,7 +10,9 @@ import androidx.compose.runtime.withCompositionLocal
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.common.compose.layout.LocalSnackBarHost
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PodcastEpisode
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.podcasts.api.RemoteEpisodeDownload
@@ -22,12 +24,15 @@ import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
+import app.campfire.user.test.fixtures.user
 import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -38,6 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -52,6 +58,9 @@ class LatestEpisodesPresenterTest {
   private val navigator = FakeNavigator(LatestEpisodesScreen)
   private val tracker = FakeRemoteEpisodeDownloadTracker()
   private val snackbarHost = SnackbarHostState()
+  private val userRepository = FakeUserRepository()
+  private val podcastsRepository = FakePodcastsRepository()
+  private val workScope = TestScope(UnconfinedTestDispatcher())
   private val latest = LatestEpisode(
     episode = PodcastEpisode(
       id = "ep_1",
@@ -71,8 +80,8 @@ class LatestEpisodesPresenterTest {
 
   private val latestEpisodesPresenter = LatestEpisodesPresenter(
     navigator = navigator,
-    userRepository = FakeUserRepository(),
-    podcastsRepository = FakePodcastsRepository(),
+    userRepository = userRepository,
+    podcastsRepository = podcastsRepository,
     sessionsRepository = FakeSessionsRepository(),
     mediaProgressRepository = FakeMediaProgressRepository(),
     playbackHistoryRepository = FakePlaybackHistoryRepository(),
@@ -80,6 +89,7 @@ class LatestEpisodesPresenterTest {
     sessionQueue = sessionQueue,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = tracker,
+    coroutineScopeHolder = CoroutineScopeHolder { workScope },
   )
 
   // The app's snackbar, where the presenter tells what queueing did
@@ -132,6 +142,49 @@ class LatestEpisodesPresenterTest {
 
       assertThat(awaitQueued()).containsOnly("ep_1", "ep_2")
       assertThat(sessionQueue.queue.map { it.key }).containsExactly("podcast:ep_1", "podcast:ep_2")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `deleting an episode deletes it from the server and says so`() = runTest {
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.canDeleteEpisodes).isTrue()
+
+      state.eventSink(LatestEpisodesUiEvent.DeleteEpisode(latest, hardDelete = true))
+
+      awaitSnackbar("Deleted Episode One and its file")
+      assertThat(podcastsRepository.deleteEpisodeCalls)
+        .containsExactly(FakePodcastsRepository.DeleteEpisodeCall("podcast", "ep_1", hardDelete = true))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a refused delete says the account isn't allowed`() = runTest {
+    podcastsRepository.deleteEpisodeResult = Result.failure(ItemChangeNotAllowedException())
+
+    presenter.test {
+      expectMostRecentItem().eventSink(LatestEpisodesUiEvent.DeleteEpisode(latest, hardDelete = false))
+
+      awaitSnackbar("Your account isn't allowed to delete episodes. Ask your server's admin.")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `an account that can't delete isn't offered it`() = runTest {
+    val noDelete = user("no_delete").let { it.copy(permissions = it.permissions.copy(delete = false)) }
+    userRepository.currentStatefulUserFlow.value = noDelete
+
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.canDeleteEpisodes).isFalse()
+
+      state.eventSink(LatestEpisodesUiEvent.DeleteEpisode(latest, hardDelete = false))
+
+      assertThat(podcastsRepository.deleteEpisodeCalls).isEmpty()
       cancelAndIgnoreRemainingEvents()
     }
   }

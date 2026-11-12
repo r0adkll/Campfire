@@ -47,6 +47,7 @@ import app.campfire.common.compose.widgets.EpisodeListItemDefaults
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.common.compose.widgets.ServerDownloadsBanner
+import app.campfire.common.compose.widgets.dialog.DeleteEpisodeDialog
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.capitalized
@@ -92,6 +93,18 @@ fun LatestEpisodesUi(
         pendingPlaylistEpisode = null
       },
       modifier = Modifier,
+    )
+  }
+
+  var pendingDeleteEpisode by remember { mutableStateOf<LatestEpisode?>(null) }
+  pendingDeleteEpisode?.let { request ->
+    DeleteEpisodeDialog(
+      episodeTitle = request.episode.title,
+      onConfirm = { hardDelete ->
+        pendingDeleteEpisode = null
+        state.eventSink(LatestEpisodesUiEvent.DeleteEpisode(request, hardDelete))
+      },
+      onDismissRequest = { pendingDeleteEpisode = null },
     )
   }
 
@@ -144,6 +157,11 @@ fun LatestEpisodesUi(
             },
           )
         },
+        onDeleteClick = if (state.canDeleteEpisodes) {
+          { episode -> pendingDeleteEpisode = episode }
+        } else {
+          null
+        },
         isEpisodeQueued = { episode -> episode.id in queuedEpisodeIds },
         progressForEpisode = { episode ->
           mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
@@ -168,6 +186,8 @@ private fun LatestEpisodesList(
   onMarkFinishedClick: (LatestEpisode) -> Unit,
   onMarkNotFinishedClick: (LatestEpisode) -> Unit,
   onQueueChange: (LatestEpisode, queued: Boolean) -> Unit,
+  /** Asks to delete an episode from the server, or null if the account can't. */
+  onDeleteClick: ((LatestEpisode) -> Unit)?,
   isEpisodeQueued: (PodcastEpisode) -> Boolean,
   progressForEpisode: (PodcastEpisode) -> MediaProgress?,
   hasSessionForEpisode: (PodcastEpisode) -> Boolean,
@@ -230,6 +250,7 @@ private fun LatestEpisodesList(
             isCurrentSession = isCurrentSession,
             isQueued = isEpisodeQueued(item.episode),
             onQueueChange = { queued -> onQueueChange(item, queued) },
+            onDelete = onDeleteClick?.let { onDelete -> { onDelete(item) } },
             onClick = { onRowClick(item) },
             onPlayClick = { onPlayClick(item) },
             modifier = Modifier.fillMaxWidth(),
