@@ -189,6 +189,37 @@ class ItemEditorPresenterTest {
   }
 
   @Test
+  fun `saving and keeping editing stays, editing the details as saved`() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(book)
+
+    presenter().test {
+      val state = awaitDraft()
+      state.draft!!.title.setTextAndPlaceCursorAtEnd("Children of Memory")
+      state.eventSink(ItemEditorUiEvent.ShowSection(EditorSection.Cover))
+      awaitState { it.section == EditorSection.Cover }
+
+      // As the server has the book once the save is in
+      val saved = book.changedOnServer(details.copy(title = "Children of Memory"))
+      libraryItemRepository.fetchResult = Result.success(saved)
+      state.eventSink(ItemEditorUiEvent.SaveAndKeepEditing)
+
+      val editing = awaitState { !it.isSaving && it.draft !== state.draft }
+      assertThat(libraryItemRepository.detailUpdates)
+        .containsExactly(BookId to BookDetailsUpdate(title = "Children of Memory"))
+      assertThat(editing.draft?.base?.title).isEqualTo("Children of Memory")
+      assertThat(editing.draft?.changes.orEmpty()).isEmpty()
+      assertThat(editing.section).isEqualTo(EditorSection.Cover)
+      // What the server has now is what editing goes on from, not a change made meanwhile
+      libraryItemRepository.libraryItemFlow.emit(saved)
+      assertThat(awaitState { it.item.dataOrNull == saved }.isBehindServer).isFalse()
+      navigator.expectNoEvents()
+
+      assertThat(awaitSnackbar().visuals.message).isEqualTo("Saved the details of Children of Memory")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `undoing a save puts the details back`() = runTest {
     libraryItemRepository.libraryItemFlow.emit(book)
 

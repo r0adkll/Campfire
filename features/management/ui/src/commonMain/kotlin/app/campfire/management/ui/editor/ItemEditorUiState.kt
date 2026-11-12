@@ -50,7 +50,11 @@ enum class EditorSection {
 }
 
 sealed interface ItemEditorUiEvent : CircuitUiEvent {
+  /** Save the changes and leave */
   data object Save : ItemEditorUiEvent
+
+  /** Save the changes and stay, editing the details as saved */
+  data object SaveAndKeepEditing : ItemEditorUiEvent
 
   /** Leave, asking first when there are changes */
   data object Close : ItemEditorUiEvent
