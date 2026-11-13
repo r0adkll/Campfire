@@ -42,6 +42,12 @@ import kotlin.time.Duration
 val DefaultThumbSize = DpSize(4.dp, 44.dp)
 val SmallThumbSize = DpSize(4.dp, 32.dp)
 
+private val SeekableStates = setOf(
+  AudioPlayer.State.Playing,
+  AudioPlayer.State.Paused,
+  AudioPlayer.State.Buffering,
+)
+
 @Composable
 internal fun PlaybackSeekBar(
   state: AudioPlayer.State,
@@ -82,7 +88,7 @@ internal fun PlaybackSeekBar(
     val colors = SliderDefaults.colors(
       inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
     )
-    val enabled = state == AudioPlayer.State.Playing || state == AudioPlayer.State.Paused
+    val enabled = state in SeekableStates
     WavySlider(
       enabled = enabled,
       value = softSliderValue,
