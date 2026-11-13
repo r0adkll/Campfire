@@ -37,8 +37,9 @@ jobs:
 
       - name: Free up disk space
         run: |
-          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
-            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
+          dpkg -l | grep '^ii' | awk '{ print $2 }' \
+            | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)|^(firefox|google-chrome-stable|google-cloud-cli|microsoft-edge-stable|mono-devel|mono-runtime-common|monodoc-manual|powershell|ruby)(:|$)' \
+            | xargs -r sudo apt purge -yq
           sudo apt autoremove -yq
           sudo apt clean
           sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
