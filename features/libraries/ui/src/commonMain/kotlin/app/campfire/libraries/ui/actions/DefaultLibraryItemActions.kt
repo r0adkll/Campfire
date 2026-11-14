@@ -26,6 +26,7 @@ import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.manage.editorSection
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.item_delete_failed
@@ -57,6 +58,7 @@ class DefaultLibraryItemActionsFactory(
   private val libraryItemRepository: LibraryItemRepository,
   private val quickMatcher: QuickMatcher,
   private val quickActions: ItemQuickActions,
+  private val libraryViewSettings: LibraryViewSettings,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActionsFactory {
 
@@ -66,6 +68,7 @@ class DefaultLibraryItemActionsFactory(
     libraryItemRepository = libraryItemRepository,
     quickMatcher = quickMatcher,
     quickActions = quickActions,
+    libraryViewSettings = libraryViewSettings,
     coroutineScopeHolder = coroutineScopeHolder,
   )
 }
@@ -81,6 +84,7 @@ class DefaultLibraryItemActions(
   private val libraryItemRepository: LibraryItemRepository,
   private val quickMatcher: QuickMatcher,
   private val quickActions: ItemQuickActions,
+  private val libraryViewSettings: LibraryViewSettings,
   private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActions {
 
@@ -140,7 +144,12 @@ class DefaultLibraryItemActions(
       }
 
       ItemAction.Delete -> {
-        val hardDelete = overlayHost.showDeleteItemDialog(item.media.metadata.title.orEmpty()) ?: return
+        val hardDelete = overlayHost.showDeleteItemDialog(
+          itemTitle = item.media.metadata.title.orEmpty(),
+          deleteFilesByDefault = libraryViewSettings.deleteItemFilesByDefault,
+        ) ?: return
+        // The next delete starts from this one's choice
+        libraryViewSettings.deleteItemFilesByDefault = hardDelete
         Analytics.send(ActionEvent("delete_item", Click, if (hardDelete) "hard" else "soft"))
         coroutineScopeHolder.get().launch {
           snackbarHost.showSnackbar(delete(item, hardDelete))

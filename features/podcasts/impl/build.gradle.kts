@@ -14,12 +14,15 @@ kotlin {
         api(projects.features.podcasts.api)
 
         implementation(projects.features.libraries.api)
+        implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
         implementation(projects.core)
         implementation(projects.data.db.core)
         implementation(projects.data.network.api)
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
+        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.infra.socket.api)
 
         implementation(libs.androidx.paging.common)
@@ -32,7 +35,10 @@ kotlin {
         implementation(projects.data.account.test)
         implementation(projects.data.db.test)
         implementation(projects.data.network.test)
+        implementation(projects.features.sessions.test)
         implementation(projects.features.user.test)
+        implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
       }

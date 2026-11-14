@@ -36,6 +36,8 @@ data class LibraryItemUiState(
   val itemActions: List<ItemAction> = emptyList(),
   /** The source a quick match would ask, by name, while asking whether to go ahead */
   val quickMatchSource: String? = null,
+  /** Whether deleting the item starts with deleting its files chosen, the last choice confirmed. */
+  val deleteFilesByDefault: Boolean = true,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -90,6 +92,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   ) : LibraryItemUiEvent
   data class RemoveEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class StopEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
+
+  /** Delete [episode] from the server, and its audio file too if [hardDelete]. */
+  data class DeleteEpisode(val episode: PodcastEpisode, val hardDelete: Boolean) : LibraryItemUiEvent
 
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent

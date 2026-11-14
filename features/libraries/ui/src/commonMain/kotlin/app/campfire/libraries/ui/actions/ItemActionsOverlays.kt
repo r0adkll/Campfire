@@ -170,11 +170,11 @@ internal suspend fun OverlayHost.showItemActionsMenu(
 ): ActionChoice = show(ItemActionsMenuOverlay(item, quickActions, actions, pointer))
 
 /**
- * Asks how to delete the item titled [itemTitle], and returns whether its files go too, or null
- * when the user backs out.
+ * Asks how to delete the item titled [itemTitle], starting with deleting its files chosen if
+ * [deleteFilesByDefault], and returns whether its files go too, or null when the user backs out.
  */
-internal suspend fun OverlayHost.showDeleteItemDialog(itemTitle: String): Boolean? {
-  return when (val choice = show(DeleteItemOverlay(itemTitle))) {
+internal suspend fun OverlayHost.showDeleteItemDialog(itemTitle: String, deleteFilesByDefault: Boolean): Boolean? {
+  return when (val choice = show(DeleteItemOverlay(itemTitle, deleteFilesByDefault))) {
     DeleteChoice.Cancel -> null
     is DeleteChoice.Delete -> choice.hardDelete
   }
@@ -588,12 +588,14 @@ private sealed interface DeleteChoice {
 
 private class DeleteItemOverlay(
   private val itemTitle: String,
+  private val deleteFilesByDefault: Boolean,
 ) : Overlay<DeleteChoice> {
 
   @Composable
   override fun Content(navigator: OverlayNavigator<DeleteChoice>) {
     DeleteItemDialog(
       itemTitle = itemTitle,
+      deleteFilesByDefault = deleteFilesByDefault,
       onConfirm = { navigator.finish(DeleteChoice.Delete(it)) },
       onDismissRequest = { navigator.finish(DeleteChoice.Cancel) },
     )

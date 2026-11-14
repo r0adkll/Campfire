@@ -19,12 +19,19 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.message.showAddedToQueue
+import app.campfire.common.compose.message.showEpisodeDeleted
+import app.campfire.common.compose.message.showEpisodeNotDeleted
 import app.campfire.common.compose.message.showRemovedFromQueue
+import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.User
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.AbstractLibraryItemPresenter
 import app.campfire.libraries.ui.detail.ContentUiState
@@ -46,6 +53,7 @@ import app.campfire.offline.DownloadContent
 import app.campfire.offline.Downloads
 import app.campfire.offline.download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
@@ -80,6 +88,8 @@ class PodcastPresenter(
   private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
+  private val podcastsRepository: PodcastsRepository,
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -131,6 +141,10 @@ class PodcastPresenter(
       libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
+    val deleteEpisodeFileByDefault by remember {
+      libraryViewSettings.observeDeleteEpisodeFilesByDefault()
+    }.collectAsState()
+
     // Only this podcast's queued episodes, so queueing another item doesn't rebuild every slot
     val queuedEpisodeIds by remember(libraryItem.id) {
       sessionQueue.observeAll()
@@ -152,6 +166,7 @@ class PodcastPresenter(
       episodeDownloads = episodeDownloads,
       remoteDownloadCount = remoteDownloadCount,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
+      deleteEpisodeFileByDefault = deleteEpisodeFileByDefault,
       addToPlaylistDialog = addToPlaylistDialog,
       sharedTransitionKey = screen.sharedTransitionKey,
     )
@@ -264,6 +279,23 @@ class PodcastPresenter(
             downloads.delete(DownloadContent.Episode(libraryItem.id, event.episode.id))
           }
 
+          is LibraryItemUiEvent.DeleteEpisode -> {
+            if (!currentUser.canDeleteItems) return@ContentUiState
+            analytics.send(ActionEvent("delete_episode", Click, if (event.hardDelete) "hard" else "soft"))
+            // The next delete starts from this one's choice
+            libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
+            val episode = event.episode
+            // Runs on past this screen, should it be left before the server answers
+            coroutineScopeHolder.get().launch {
+              podcastsRepository.deleteEpisode(libraryItem.id, episode.id, event.hardDelete)
+                .onSuccess { snackbarHost.showEpisodeDeleted(episode.title, event.hardDelete) }
+                .onFailure { error ->
+                  bark(throwable = error) { "Failed to delete episode ${episode.id}" }
+                  snackbarHost.showEpisodeNotDeleted(notAllowed = error is ItemChangeNotAllowedException)
+                }
+            }
+          }
+
           is LibraryItemUiEvent.StopEpisodeDownloadClick -> {
             analytics.send(ActionEvent("stop_episode_download", Click))
             downloads.stop(DownloadContent.Episode(libraryItem.id, event.episode.id))
@@ -286,6 +318,7 @@ private fun buildSlots(
   episodeDownloads: Map<PodcastEpisodeId, Download>,
   remoteDownloadCount: Int,
   showConfirmDownloadDialog: Boolean,
+  deleteEpisodeFileByDefault: Boolean,
   addToPlaylistDialog: AddToPlaylistDialog,
   sharedTransitionKey: String,
 ): List<ContentSlot> = buildList {
@@ -357,6 +390,8 @@ private fun buildSlots(
         isQueued = episode.id in queuedEpisodeIds,
         offlineDownload = episodeDownloads[episode.id],
         canDownload = user.canDownload,
+        canDelete = user.canDeleteItems,
+        deleteFileByDefault = deleteEpisodeFileByDefault,
         showConfirmDownloadDialog = showConfirmDownloadDialog,
         addToPlaylistDialog = addToPlaylistDialog,
         isFirst = index == 0,

@@ -4,13 +4,23 @@
 package app.campfire.podcasts
 
 import androidx.paging.Pager
+import app.campfire.CampfireDatabase
+import app.campfire.audioplayer.PlaybackController
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.User
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryFolder
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.isForbidden
+import app.campfire.network.isNotFound
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
 import app.campfire.podcasts.api.AddPodcastException
 import app.campfire.podcasts.api.EpisodeDownloadsSnapshot
 import app.campfire.podcasts.api.LatestEpisode
@@ -29,9 +39,14 @@ import app.campfire.podcasts.mapping.asDomainModelOrNull
 import app.campfire.podcasts.mapping.asDraftOrNull
 import app.campfire.podcasts.mapping.asNetworkModel
 import app.campfire.podcasts.paging.RecentEpisodesPagerFactory
+import app.campfire.sessions.api.SessionQueue
+import app.campfire.sessions.api.SessionsRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -40,7 +55,15 @@ class DefaultPodcastsRepository(
   private val pagerFactory: RecentEpisodesPagerFactory,
   private val api: AudioBookShelfApi,
   private val downloadSink: RemoteEpisodeDownloadSink,
+  private val db: CampfireDatabase,
+  private val sessionQueue: SessionQueue,
+  private val sessionsRepository: SessionsRepository,
+  private val playbackController: PlaybackController,
+  private val downloads: Downloads,
+  private val dispatcherProvider: DispatcherProvider,
 ) : PodcastsRepository {
+
+  companion object : Corked("PodcastsRepository")
 
   override fun createLatestEpisodesPager(user: User): Pager<Int, LatestEpisode> {
     return pagerFactory.create(user)
@@ -83,6 +106,51 @@ class DefaultPodcastsRepository(
 
   override suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit> {
     return api.clearPodcastDownloadQueue(libraryItemId)
+  }
+
+  override suspend fun deleteEpisode(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId,
+    hardDelete: Boolean,
+  ): Result<Unit> {
+    val error = api.deletePodcastEpisode(libraryItemId, episodeId, hardDelete).exceptionOrNull()
+    when {
+      error == null -> Unit
+      // Already gone, deleted from somewhere else, which is all that was asked
+      error.isNotFound -> ibark { "Episode $episodeId was already deleted from the server" }
+      error.isForbidden -> return Result.failure(ItemChangeNotAllowedException(error))
+      else -> return Result.failure(error)
+    }
+
+    // The server has let go of it, so what's left is only tidying up here: a part of it that
+    // fails doesn't undo the delete
+    try {
+      forgetEpisode(libraryItemId, episodeId)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      ebark(e) { "Failed to forget deleted episode $episodeId" }
+    }
+    return Result.success(Unit)
+  }
+
+  private suspend fun forgetEpisode(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId) {
+    withContext(dispatcherProvider.databaseWrite) {
+      db.transaction {
+        // Grouped statements return a lazy result that only runs once awaited
+        db.podcastEpisodeQueries.purgeForId(episodeId).await()
+      }
+    }
+    sessionQueue.remove(libraryItemId, episodeId)
+    downloads.delete(DownloadContent.Episode(libraryItemId, episodeId))
+
+    // Its listening session can't go on with an episode the server no longer has. Stopping only
+    // when it's the one playing, as stopping ends whatever plays; out of the queue first, so the
+    // next one up isn't this episode
+    if (sessionsRepository.observePlayingItem().first()?.matches(libraryItemId, episodeId) == true) {
+      playbackController.stopSession(itemId = libraryItemId, episodeId = episodeId)
+    }
+    sessionsRepository.markDeleted(libraryItemId, episodeId)
   }
 
   override suspend fun searchPodcasts(

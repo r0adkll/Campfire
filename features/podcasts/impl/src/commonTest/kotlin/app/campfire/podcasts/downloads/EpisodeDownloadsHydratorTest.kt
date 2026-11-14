@@ -137,6 +137,11 @@ class EpisodeDownloadsHydratorTest {
       episodes: List<RemotePodcastEpisode>,
     ): Result<Unit> = TODO()
     override suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit> = TODO()
+    override suspend fun deleteEpisode(
+      libraryItemId: LibraryItemId,
+      episodeId: String,
+      hardDelete: Boolean,
+    ): Result<Unit> = TODO()
     override suspend fun searchPodcasts(query: String, country: String?): Result<List<PodcastSearchResult>> = TODO()
     override suspend fun addPodcast(
       libraryId: LibraryId,

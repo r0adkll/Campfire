@@ -23,6 +23,10 @@ data class LatestEpisodesUiState(
   val addToPlaylistDialog: AddToPlaylistDialog,
   /** Episodes the server is downloading, shown as a banner while there are any. */
   val serverDownloadCount: Int = 0,
+  /** Whether the account may delete episodes from the server, which offers it on each row. */
+  val canDeleteEpisodes: Boolean = false,
+  /** Whether deleting an episode starts with deleting its file chosen, the last choice confirmed. */
+  val deleteFileByDefault: Boolean = true,
   val eventSink: (LatestEpisodesUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -52,5 +56,11 @@ sealed interface LatestEpisodesUiEvent : CircuitUiEvent {
 
   data class RemoveFromQueue(
     val episode: LatestEpisode,
+  ) : LatestEpisodesUiEvent
+
+  /** Delete the episode from the server, and its audio file too if [hardDelete]. */
+  data class DeleteEpisode(
+    val episode: LatestEpisode,
+    val hardDelete: Boolean,
   ) : LatestEpisodesUiEvent
 }

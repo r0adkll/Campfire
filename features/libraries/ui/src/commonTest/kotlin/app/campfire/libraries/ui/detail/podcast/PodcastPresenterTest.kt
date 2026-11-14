@@ -182,6 +182,48 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
+  fun deleteEpisode_deletesItFromTheServerAndSaysSo() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      awaitLoaded().eventSink(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = false))
+
+      awaitSnackbar("Removed Episode One from its podcast")
+      assertThat(podcastsRepository.deleteEpisodeCalls)
+        .containsExactly(
+          FakeEpisodeDeletingPodcastsRepository.DeleteEpisodeCall(podcast.id, "ep_1", hardDelete = false),
+        )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteEpisode_thatFailsSaysSo() = runTest {
+    podcastsRepository.deleteEpisodeResult = Result.failure(IllegalStateException("Unable to resolve host"))
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      awaitLoaded().eventSink(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = true))
+
+      awaitSnackbar("Couldn't delete this episode. Check your connection and try again.")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteEpisode_needsPermissionToDelete() = runTest {
+    userRepository.currentStatefulUserFlow.value = user("user_id", isActive = false)
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      awaitLoaded().eventSink(LibraryItemUiEvent.DeleteEpisode(episode, hardDelete = false))
+
+      assertThat(podcastsRepository.deleteEpisodeCalls).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun findEpisodesAndDownloads_navigate() = runTest {
     libraryItemRepository.libraryItemFlow.emit(podcast)
 
