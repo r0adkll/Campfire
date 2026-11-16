@@ -21,9 +21,15 @@ import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.Downloads
+import app.campfire.offline.download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
@@ -40,8 +46,12 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,9 +66,10 @@ class LatestEpisodesPresenter(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
   private val sessionQueue: SessionQueue,
+  private val downloads: Downloads,
+  private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
-  private val libraryViewSettings: LibraryViewSettings,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : NonPausablePresenter<LatestEpisodesUiState> {
 
@@ -98,6 +109,14 @@ class LatestEpisodesPresenter(
         .distinctUntilChanged()
     }.collectAsState(emptySet())
 
+    val episodeDownloads by remember {
+      downloads.observeEpisodes()
+    }.collectAsState(emptyMap())
+
+    val showConfirmDownloadDialog by remember {
+      libraryViewSettings.observeShowConfirmDownload()
+    }.collectAsState()
+
     // The app's own snackbar, so queueing tells what it did without passing it through the state
     val snackbarHost = LocalSnackBarHost.current
 
@@ -114,6 +133,9 @@ class LatestEpisodesPresenter(
       episodes = pagingItems,
       mediaProgress = mediaProgress,
       queuedEpisodeIds = queuedEpisodeIds,
+      episodeDownloads = episodeDownloads,
+      canDownload = currentUser.canDownload,
+      showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
       serverDownloadCount = serverDownloads.values.sumOf { it.size },
       canDeleteEpisodes = currentUser.canDeleteItems,
@@ -200,8 +222,44 @@ class LatestEpisodesPresenter(
               }
             }
           }
+
+          is LatestEpisodesUiEvent.DownloadEpisode -> {
+            if (!currentUser.canDownload) return@LatestEpisodesUiState
+            libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
+            downloads.download(event.episode.asDownloadContent())
+          }
+
+          is LatestEpisodesUiEvent.StopDownload -> downloads.stop(event.episode.asDownloadContent())
+
+          is LatestEpisodesUiEvent.RemoveDownload -> downloads.delete(event.episode.asDownloadContent())
         }
       },
     )
   }
 }
+
+private fun LatestEpisode.asDownloadContent() = DownloadContent.Episode(episode.libraryItemId, episode.id)
+
+/**
+ * Every episode download by episode id. The feed spans every show and loads in pages, so this
+ * follows all downloads rather than the listed episodes', and follows the ones under way on their
+ * own, since only that carries their progress.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun Downloads.observeEpisodes(): Flow<Map<PodcastEpisodeId, Download>> = observeAll()
+  .map { all -> all.filter { it.content is DownloadContent.Episode } }
+  .distinctUntilChanged()
+  .flatMapLatest { episodes ->
+    val underWay = episodes.filter { it.isInProgress }.mapTo(HashSet()) { it.content }
+    val live = if (underWay.isEmpty()) {
+      flowOf(emptyMap())
+    } else {
+      observe(underWay).onStart { emit(emptyMap()) }
+    }
+    live.map { progress ->
+      episodes.associate { download ->
+        (download.content as DownloadContent.Episode).episodeId to (progress[download.content] ?: download)
+      }
+    }
+  }
+  .distinctUntilChanged()

@@ -13,6 +13,9 @@ import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.api.ItemChangeNotAllowedException
+import app.campfire.offline.Download
+import app.campfire.offline.DownloadContent
+import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.podcasts.api.RemoteEpisodeDownload
@@ -63,6 +66,8 @@ class LatestEpisodesPresenterTest {
   private val podcastsRepository = FakePodcastsRepository()
   private val libraryViewSettings = TestLibraryViewSettings()
   private val workScope = TestScope(UnconfinedTestDispatcher())
+  private val downloads = FakeDownloads()
+  private val episodeContent = DownloadContent.Episode("podcast", "ep_1")
   private val latest = LatestEpisode(
     episode = PodcastEpisode(
       id = "ep_1",
@@ -89,9 +94,10 @@ class LatestEpisodesPresenterTest {
     playbackHistoryRepository = FakePlaybackHistoryRepository(),
     playbackController = FakePlaybackController(),
     sessionQueue = sessionQueue,
+    downloads = downloads,
+    libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = tracker,
-    libraryViewSettings = libraryViewSettings,
     coroutineScopeHolder = CoroutineScopeHolder { workScope },
   )
 
@@ -230,6 +236,87 @@ class LatestEpisodesPresenterTest {
 
       state.eventSink(LatestEpisodesUiEvent.ServerDownloadsClick)
       assertThat(navigator.awaitNextScreen()).isEqualTo(PodcastDownloadQueueScreen)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `episode downloads show by episode, leaving out books`() = runTest {
+    downloads.downloads.value = listOf(
+      Download(episodeContent, Download.State.Downloaded),
+      Download(DownloadContent.Audiobook("book"), Download.State.Downloaded),
+    )
+
+    presenter.test {
+      assertThat(expectMostRecentItem().episodeDownloads)
+        .isEqualTo(mapOf("ep_1" to Download(episodeContent, Download.State.Downloaded)))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `an episode downloading shows its progress as it goes`() = runTest {
+    downloads.downloads.value = listOf(Download(episodeContent, Download.State.Downloading, progress = 0.25f))
+
+    presenter.test {
+      assertThat(expectMostRecentItem().episodeDownloads["ep_1"]?.progress).isEqualTo(0.25f)
+
+      downloads.downloads.value = listOf(Download(episodeContent, Download.State.Downloading, progress = 0.75f))
+      assertThat(awaitItem().episodeDownloads["ep_1"]?.progress).isEqualTo(0.75f)
+
+      downloads.downloads.value = emptyList()
+      assertThat(awaitItem().episodeDownloads).isEmpty()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `downloading an episode starts its download and keeps the confirmation choice`() = runTest {
+    libraryViewSettings.showConfirmDownload = true
+
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.canDownload).isTrue()
+      assertThat(state.showConfirmDownloadDialog).isTrue()
+
+      state.eventSink(LatestEpisodesUiEvent.DownloadEpisode(latest, doNotShowAgain = true))
+
+      assertThat(downloads.invocations)
+        .containsExactly(FakeDownloads.Invocation.Download(listOf(episodeContent)))
+      assertThat(libraryViewSettings.showConfirmDownload).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `stopping and removing an episode download act on that episode`() = runTest {
+    presenter.test {
+      val state = expectMostRecentItem()
+      state.eventSink(LatestEpisodesUiEvent.StopDownload(latest))
+      state.eventSink(LatestEpisodesUiEvent.RemoveDownload(latest))
+
+      assertThat(downloads.invocations).containsExactly(
+        FakeDownloads.Invocation.Stop(episodeContent),
+        FakeDownloads.Invocation.Delete(episodeContent),
+      )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a user who may not download can't start one`() = runTest {
+    val user = userRepository.currentStatefulUserFlow.value
+    userRepository.currentStatefulUserFlow.value = user.copy(
+      permissions = user.permissions.copy(download = false),
+    )
+
+    presenter.test {
+      val state = expectMostRecentItem()
+      assertThat(state.canDownload).isFalse()
+
+      state.eventSink(LatestEpisodesUiEvent.DownloadEpisode(latest))
+
+      assertThat(downloads.invocations).isEmpty()
       cancelAndIgnoreRemainingEvents()
     }
   }

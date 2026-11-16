@@ -41,12 +41,16 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.common.compose.icons.rounded.PlaylistAdd
+import app.campfire.common.compose.permission.PermissionState
+import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.widgets.ContentPagingScaffold
+import app.campfire.common.compose.widgets.EpisodeDownloadAction
 import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.common.compose.widgets.ServerDownloadsBanner
+import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.common.compose.widgets.dialog.DeleteEpisodeDialog
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
@@ -54,6 +58,7 @@ import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.mediaProgress
+import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
@@ -109,6 +114,32 @@ fun LatestEpisodesUi(
     )
   }
 
+  var pendingDownloadEpisode by remember { mutableStateOf<LatestEpisode?>(null) }
+  var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
+  val postNotificationPermissionState = rememberPostNotificationPermissionState { granted ->
+    val episode = pendingDownloadEpisode
+    if (granted && episode != null) {
+      state.eventSink(LatestEpisodesUiEvent.DownloadEpisode(episode, doNotShowDownloadConfirmationAgain))
+      pendingDownloadEpisode = null
+    }
+  }
+  pendingDownloadEpisode?.let { request ->
+    ConfirmDownloadDialog(
+      title = request.episode.title,
+      sizeInBytes = request.episode.sizeInBytes,
+      onConfirm = { doNotShowAgain ->
+        if (postNotificationPermissionState is PermissionState.Granted) {
+          state.eventSink(LatestEpisodesUiEvent.DownloadEpisode(request, doNotShowAgain))
+          pendingDownloadEpisode = null
+        } else {
+          doNotShowDownloadConfirmationAgain = doNotShowAgain
+          postNotificationPermissionState.launchPermissionRequest()
+        }
+      },
+      onDismissRequest = { pendingDownloadEpisode = null },
+    )
+  }
+
   Scaffold(
     topBar = { campfireAppBar(Modifier, appBarBehavior) },
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
@@ -120,6 +151,8 @@ fun LatestEpisodesUi(
     val mediaProgress = state.mediaProgress
     val playingItem = state.playingItem
     val queuedEpisodeIds = state.queuedEpisodeIds
+    val episodeDownloads = state.episodeDownloads
+    val showConfirmDownloadDialog = state.showConfirmDownloadDialog
     ContentPagingScaffold(
       lazyPagingItems = state.episodes,
       emptyMessage = stringResource(Res.string.latest_episodes_empty),
@@ -163,7 +196,22 @@ fun LatestEpisodesUi(
         } else {
           null
         },
+        onDownloadClick = { episode ->
+          if (showConfirmDownloadDialog) {
+            pendingDownloadEpisode = episode
+          } else {
+            eventSink(LatestEpisodesUiEvent.DownloadEpisode(episode))
+          }
+        },
+        onStopDownloadClick = { episode ->
+          eventSink(LatestEpisodesUiEvent.StopDownload(episode))
+        },
+        onRemoveDownloadClick = { episode ->
+          eventSink(LatestEpisodesUiEvent.RemoveDownload(episode))
+        },
         isEpisodeQueued = { episode -> episode.id in queuedEpisodeIds },
+        downloadForEpisode = { episode -> episodeDownloads[episode.id] },
+        canDownload = state.canDownload,
         progressForEpisode = { episode ->
           mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
         },
@@ -189,7 +237,12 @@ private fun LatestEpisodesList(
   onQueueChange: (LatestEpisode, queued: Boolean) -> Unit,
   /** Asks to delete an episode from the server, or null if the account can't. */
   onDeleteClick: ((LatestEpisode) -> Unit)?,
+  onDownloadClick: (LatestEpisode) -> Unit,
+  onStopDownloadClick: (LatestEpisode) -> Unit,
+  onRemoveDownloadClick: (LatestEpisode) -> Unit,
   isEpisodeQueued: (PodcastEpisode) -> Boolean,
+  downloadForEpisode: (PodcastEpisode) -> Download?,
+  canDownload: Boolean,
   progressForEpisode: (PodcastEpisode) -> MediaProgress?,
   hasSessionForEpisode: (PodcastEpisode) -> Boolean,
   serverDownloadCount: Int,
@@ -280,6 +333,19 @@ private fun LatestEpisodesList(
               }
             },
             actions = {
+              // Without permission the action only remains to stop or remove a download that exists
+              val offlineDownload = downloadForEpisode(item.episode)
+              val hasActiveOrCompletedDownload = offlineDownload?.isInProgress == true ||
+                offlineDownload?.isAvailable == true
+              if (item.episode.audioTrack != null && (canDownload || hasActiveOrCompletedDownload)) {
+                EpisodeDownloadAction(
+                  offlineDownload = offlineDownload,
+                  onDownloadClick = { onDownloadClick(item) },
+                  onStopClick = { onStopDownloadClick(item) },
+                  onRemoveClick = { onRemoveDownloadClick(item) },
+                )
+              }
+
               val addToPlaylistLabel = stringResource(Res.string.action_add_episode_to_playlist)
               IconButtonTooltip(text = addToPlaylistLabel) {
                 IconButton(

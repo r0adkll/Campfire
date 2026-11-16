@@ -7,6 +7,7 @@ import androidx.paging.compose.LazyPagingItems
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.offline.Download
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.sessions.api.PlayingItem
@@ -20,6 +21,11 @@ data class LatestEpisodesUiState(
   val mediaProgress: Map<MediaProgressKey, MediaProgress>,
   /** The ids of the episodes in the playback queue. */
   val queuedEpisodeIds: Set<PodcastEpisodeId>,
+  /** The episodes kept on this device, or on their way, by episode id. */
+  val episodeDownloads: Map<PodcastEpisodeId, Download>,
+  /** Whether the user may start a download; an existing download stays stoppable and removable. */
+  val canDownload: Boolean,
+  val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
   /** Episodes the server is downloading, shown as a banner while there are any. */
   val serverDownloadCount: Int = 0,
@@ -62,5 +68,18 @@ sealed interface LatestEpisodesUiEvent : CircuitUiEvent {
   data class DeleteEpisode(
     val episode: LatestEpisode,
     val hardDelete: Boolean,
+  ) : LatestEpisodesUiEvent
+
+  data class DownloadEpisode(
+    val episode: LatestEpisode,
+    val doNotShowAgain: Boolean = false,
+  ) : LatestEpisodesUiEvent
+
+  data class StopDownload(
+    val episode: LatestEpisode,
+  ) : LatestEpisodesUiEvent
+
+  data class RemoveDownload(
+    val episode: LatestEpisode,
   ) : LatestEpisodesUiEvent
 }

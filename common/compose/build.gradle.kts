@@ -14,6 +14,7 @@ kotlin {
         api(projects.common.screens)
         api(projects.features.settings.api)
         api(projects.data.network.api)
+        api(projects.infra.offline.api)
 
         api(libs.androidx.paging.compose)
         api(libs.circuit.foundation)
