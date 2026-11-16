@@ -28,4 +28,11 @@ interface ReachabilityGate {
 
   /** A request to [origin] could not establish a connection. */
   fun unreachable(origin: String)
+
+  /**
+   * A request to [origin] ended without learning whether the server is there: it was cancelled,
+   * or failed after connecting. If it had claimed the probe, the next request gets to try instead
+   * of waiting out a whole new window.
+   */
+  fun inconclusive(origin: String)
 }
