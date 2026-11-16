@@ -133,10 +133,11 @@ class DefaultAccountManager(
   override suspend fun logout(server: Server) = withContext(accountManagerCoroutineContext) {
     val isCurrent = deviceSettings.currentUserId == server.user.id
     if (isCurrent) {
-      // Change the session over to a new one
-      changeSession {
-        // Pre-emptively switch the account over as deleting it would create a less
-        // then ideal experience for users
+      // Delete the account between tearing down its session and publishing the next one. While
+      // it's being deleted the UI sits in the loading state, so nothing is on screen to watch its
+      // data disappear, and whatever the next session shows (Welcome restores kept accounts as
+      // soon as it appears) never sees an account that is only half gone.
+      changeSession(beforeCreate = { removeAccount(server) }) {
         val remainingAccounts = serverRepository.getAllServers()
           .filter { it.user.id != server.user.id }
 
@@ -148,8 +149,12 @@ class DefaultAccountManager(
           UserSession.LoggedIn(newAccount.user)
         }
       }
+    } else {
+      removeAccount(server)
     }
+  }
 
+  private suspend fun removeAccount(server: Server) {
     // Delete the accounts token / data
     tokenStorage.remove(server.user.id)
     extraHeaderStorage.remove(server.user.id)
@@ -187,7 +192,17 @@ class DefaultAccountManager(
   override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> =
     extraHeaderStorage.observe(userId)
 
-  private suspend inline fun changeSession(block: suspend () -> UserSession) {
+  private suspend inline fun changeSession(block: suspend () -> UserSession) =
+    changeSession(beforeCreate = {}, block = block)
+
+  /**
+   * Switches to the session [block] picks. [beforeCreate] runs once the current session's graph is
+   * gone and before the next one exists, for work neither session should witness.
+   */
+  private suspend inline fun changeSession(
+    beforeCreate: suspend () -> Unit,
+    block: suspend () -> UserSession,
+  ) {
     // Force the UI into a loading state, making sure to pull all usages of the current graph
     // out of composition.
     userSessionManager.current = UserSession.Loading
@@ -197,6 +212,7 @@ class DefaultAccountManager(
 
     // Re-create the UserScope/UserComponent
     userGraphManager.destroy()
+    beforeCreate()
     userGraphManager.create(newSession)
 
     // Update persisted settings and observers
