@@ -6,7 +6,9 @@ package app.campfire.podcasts.api
 import androidx.paging.Pager
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.User
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryFolder
 
 interface PodcastsRepository {
@@ -51,6 +53,20 @@ interface PodcastsRepository {
    * The server emits `episode_download_queue_cleared` on success.
    */
   suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit>
+
+  /**
+   * Delete episode [episodeId] from the podcast [libraryItemId] on the server, then forget it here
+   * too: its place in Latest, on shelves, in playlists and in the queue, its progress, its
+   * download, and its listening session, stopping it if it's playing. [hardDelete] also deletes its audio file from the server's disk; otherwise the file
+   * stays in the podcast's folder and a library scan adds it back as a new episode.
+   *
+   * Takes the delete permission: the server's refusal fails with [ItemChangeNotAllowedException].
+   */
+  suspend fun deleteEpisode(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId,
+    hardDelete: Boolean,
+  ): Result<Unit>
 
   /**
    * Search the server's podcast directory (iTunes proxy) for podcasts matching [query]. Pass

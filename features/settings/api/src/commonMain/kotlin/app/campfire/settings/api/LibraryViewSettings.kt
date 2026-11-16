@@ -59,4 +59,15 @@ interface LibraryViewSettings {
 
   var showTimeInBook: Boolean
   fun observeShowTimeInBook(): StateFlow<Boolean>
+
+  /**
+   * Whether deleting a book or podcast from the server starts with deleting its files chosen: the
+   * last choice confirmed, and its files until there is one.
+   */
+  var deleteItemFilesByDefault: Boolean
+  fun observeDeleteItemFilesByDefault(): StateFlow<Boolean>
+
+  /** [deleteItemFilesByDefault] for podcast episodes, which keep a choice of their own. */
+  var deleteEpisodeFilesByDefault: Boolean
+  fun observeDeleteEpisodeFilesByDefault(): StateFlow<Boolean>
 }

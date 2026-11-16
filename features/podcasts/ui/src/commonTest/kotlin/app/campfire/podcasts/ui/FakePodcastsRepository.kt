@@ -9,6 +9,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.User
 import app.campfire.libraries.api.LibraryFolder
 import app.campfire.podcasts.api.EpisodeDownloadsSnapshot
@@ -30,6 +31,7 @@ class FakePodcastsRepository(
     EpisodeDownloadsSnapshot(currentDownload = null, queue = emptyList()),
   ),
   var clearQueueResult: Result<Unit> = Result.success(Unit),
+  var deleteEpisodeResult: Result<Unit> = Result.success(Unit),
 ) : PodcastsRepository {
 
   data class SearchCall(val query: String, val country: String?)
@@ -38,6 +40,11 @@ class FakePodcastsRepository(
     val folder: LibraryFolder,
     val draft: PodcastDraft,
     val autoDownloadEpisodes: Boolean,
+  )
+  data class DeleteEpisodeCall(
+    val libraryItemId: LibraryItemId,
+    val episodeId: PodcastEpisodeId,
+    val hardDelete: Boolean,
   )
   data class QueueDownloadsCall(
     val libraryItemId: LibraryItemId,
@@ -50,6 +57,7 @@ class FakePodcastsRepository(
   val queueDownloadsCalls = mutableListOf<QueueDownloadsCall>()
   val fetchEpisodeDownloadsCalls = mutableListOf<LibraryId>()
   val clearQueueCalls = mutableListOf<LibraryItemId>()
+  val deleteEpisodeCalls = mutableListOf<DeleteEpisodeCall>()
 
   /** An empty feed: the tests that open it act on episodes they make themselves. */
   override fun createLatestEpisodesPager(user: User): Pager<Int, LatestEpisode> {
@@ -79,6 +87,15 @@ class FakePodcastsRepository(
   override suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit> {
     clearQueueCalls += libraryItemId
     return clearQueueResult
+  }
+
+  override suspend fun deleteEpisode(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId,
+    hardDelete: Boolean,
+  ): Result<Unit> {
+    deleteEpisodeCalls += DeleteEpisodeCall(libraryItemId, episodeId, hardDelete)
+    return deleteEpisodeResult
   }
 
   override suspend fun searchPodcasts(

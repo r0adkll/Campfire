@@ -22,10 +22,27 @@ data class PodcastEpisodeUiState(
   val sessionState: SessionUiState,
   val offlineDownload: Download?,
   val canDownload: Boolean,
+  /** Whether the account may delete the episode from the server, which the sheet then offers. */
+  val canDelete: Boolean,
+  /** Whether deleting it starts with deleting its file chosen, the last choice confirmed. */
+  val deleteFileByDefault: Boolean,
   val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
+  /** Whether a delete is waiting on the server; the sheet closes once it succeeds. */
+  val isDeleting: Boolean = false,
+  /** Why the last delete failed, shown in the sheet until the next try, or null. */
+  val deleteError: EpisodeDeleteError? = null,
   val eventSink: (PodcastEpisodeUiEvent) -> Unit,
 ) : CircuitUiState
+
+/** Why deleting an episode from the server failed. */
+enum class EpisodeDeleteError {
+  /** The server refused: the account isn't allowed to delete. */
+  NotAllowed,
+
+  /** Anything else, such as no connection. */
+  Failed,
+}
 
 sealed interface PodcastEpisodeUiEvent {
   data object PlayClick : PodcastEpisodeUiEvent
@@ -38,4 +55,7 @@ sealed interface PodcastEpisodeUiEvent {
   data class DownloadClick(val doNotShowAgain: Boolean = true) : PodcastEpisodeUiEvent
   data object RemoveDownloadClick : PodcastEpisodeUiEvent
   data object StopDownloadClick : PodcastEpisodeUiEvent
+
+  /** Delete the episode from the server, and its audio file too if [hardDelete]. */
+  data class DeleteClick(val hardDelete: Boolean) : PodcastEpisodeUiEvent
 }

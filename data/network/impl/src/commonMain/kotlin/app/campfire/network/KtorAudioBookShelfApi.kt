@@ -274,6 +274,19 @@ class KtorAudioBookShelfApi(
     }
   }
 
+  override suspend fun deletePodcastEpisode(libraryItemId: String, episodeId: String, hard: Boolean): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "podcasts", libraryItemId, "episode", episodeId)
+        },
+      ) {
+        method = HttpMethod.Delete
+        if (hard) parameter("hard", "1")
+      }
+    }
+  }
+
   override suspend fun getSeries(
     libraryId: String,
     filter: LibraryItemFilter?,

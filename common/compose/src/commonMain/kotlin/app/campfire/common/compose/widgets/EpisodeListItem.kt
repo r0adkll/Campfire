@@ -38,6 +38,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -46,6 +49,7 @@ import app.campfire.common.compose.DisabledAlpha
 import app.campfire.common.compose.extensions.htmlToPlainText
 import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.extensions.thenIf
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.outline.Autoplay
@@ -54,14 +58,17 @@ import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.swipeaction.AnimatedDeleteBackgroundContent
 import app.campfire.common.compose.widgets.swipeaction.AnimatedQueueBackgroundContent
 import app.campfire.common.compose.widgets.swipeaction.SwipeActionBox
+import app.campfire.common.compose.widgets.swipeaction.SwipeActionDirection
 import app.campfire.core.extensions.asDate
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.mediaProgress
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.action_add_episode_to_queue
+import campfire.common.compose.generated.resources.action_delete_episode
 import campfire.common.compose.generated.resources.action_remove_episode_from_queue
 import campfire.common.compose.generated.resources.duration_finished
 import campfire.common.compose.generated.resources.duration_remaining
@@ -79,6 +86,9 @@ import org.jetbrains.compose.resources.stringResource
  * @param onQueueChange called with true to add the episode to the queue and false to take it out.
  *   When set, the row can be swiped in the reading direction to add the episode, or take it out if
  *   it's queued, and gets a button that does the same, for those who can't swipe.
+ * @param onDelete called to delete the episode from the server, which should ask first. When set,
+ *   the row can be swiped against the reading direction to call it, and offers it as an
+ *   accessibility action, for those who can't swipe. Leave it unset for accounts that can't delete.
  */
 @Composable
 fun EpisodeListItem(
@@ -90,13 +100,14 @@ fun EpisodeListItem(
   isCurrentSession: Boolean = false,
   isQueued: Boolean = false,
   onQueueChange: ((Boolean) -> Unit)? = null,
+  onDelete: (() -> Unit)? = null,
   leading: (@Composable () -> Unit)? = null,
   actions: @Composable RowScope.() -> Unit = {},
   shape: Shape = MaterialTheme.shapes.medium,
   sessionShape: Shape = MaterialTheme.shapes.largeIncreased,
   colors: EpisodeListItemColors = EpisodeListItemDefaults.colors(),
 ) {
-  if (onQueueChange == null) {
+  if (onQueueChange == null && onDelete == null) {
     EpisodeCard(
       episode = episode,
       onClick = onClick,
@@ -113,12 +124,27 @@ fun EpisodeListItem(
       modifier = modifier,
     )
   } else {
+    val deleteLabel = stringResource(Res.string.action_delete_episode)
     SwipeActionBox(
-      onSwipe = { onQueueChange(!isQueued) },
+      onSwipeToEnd = onQueueChange?.let { onChange -> { onChange(!isQueued) } },
+      onSwipeToStart = onDelete,
       backgroundContent = { state ->
-        AnimatedQueueBackgroundContent(state = state, isQueued = isQueued)
+        when (state.direction) {
+          SwipeActionDirection.ToEnd -> AnimatedQueueBackgroundContent(state = state, isQueued = isQueued)
+          SwipeActionDirection.ToStart -> AnimatedDeleteBackgroundContent(state = state)
+          null -> Unit
+        }
       },
-      modifier = modifier,
+      modifier = modifier.thenIfNotNull(onDelete) { delete ->
+        semantics {
+          customActions = listOf(
+            CustomAccessibilityAction(deleteLabel) {
+              delete()
+              true
+            },
+          )
+        }
+      },
     ) {
       EpisodeCard(
         episode = episode,

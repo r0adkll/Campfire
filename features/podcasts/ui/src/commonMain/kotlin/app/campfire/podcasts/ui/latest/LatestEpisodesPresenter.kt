@@ -13,9 +13,15 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.message.showAddedToQueue
+import app.campfire.common.compose.message.showEpisodeDeleted
+import app.campfire.common.compose.message.showEpisodeNotDeleted
 import app.campfire.common.compose.message.showRemovedFromQueue
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.bark
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.PodcastsRepository
@@ -24,6 +30,7 @@ import app.campfire.podcasts.api.screen.LatestEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
@@ -51,6 +58,8 @@ class LatestEpisodesPresenter(
   private val sessionQueue: SessionQueue,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
+  private val libraryViewSettings: LibraryViewSettings,
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : NonPausablePresenter<LatestEpisodesUiState> {
 
   @Composable
@@ -92,6 +101,10 @@ class LatestEpisodesPresenter(
     // The app's own snackbar, so queueing tells what it did without passing it through the state
     val snackbarHost = LocalSnackBarHost.current
 
+    val deleteFileByDefault by remember {
+      libraryViewSettings.observeDeleteEpisodeFilesByDefault()
+    }.collectAsState()
+
     val serverDownloads by remember {
       remoteEpisodeDownloadTracker.state
     }.collectAsState()
@@ -103,6 +116,8 @@ class LatestEpisodesPresenter(
       queuedEpisodeIds = queuedEpisodeIds,
       addToPlaylistDialog = addToPlaylistDialog,
       serverDownloadCount = serverDownloads.values.sumOf { it.size },
+      canDeleteEpisodes = currentUser.canDeleteItems,
+      deleteFileByDefault = deleteFileByDefault,
       eventSink = { event ->
         when (event) {
           LatestEpisodesUiEvent.ServerDownloadsClick -> navigator.goTo(PodcastDownloadQueueScreen)
@@ -157,6 +172,22 @@ class LatestEpisodesPresenter(
               if (snackbarHost.showAddedToQueue()) {
                 sessionQueue.remove(episode.libraryItemId, episode.id)
               }
+            }
+          }
+
+          is LatestEpisodesUiEvent.DeleteEpisode -> {
+            if (!currentUser.canDeleteItems) return@LatestEpisodesUiState
+            val episode = event.episode.episode
+            // The next delete starts from this one's choice
+            libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
+            // Runs on past this screen, which the deleted episode may have been the last reason to be on
+            coroutineScopeHolder.get().launch {
+              podcastsRepository.deleteEpisode(episode.libraryItemId, episode.id, event.hardDelete)
+                .onSuccess { snackbarHost.showEpisodeDeleted(episode.title, event.hardDelete) }
+                .onFailure { error ->
+                  bark(throwable = error) { "Failed to delete episode ${episode.id}" }
+                  snackbarHost.showEpisodeNotDeleted(notAllowed = error is ItemChangeNotAllowedException)
+                }
             }
           }
 

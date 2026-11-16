@@ -93,6 +93,14 @@ class LibraryViewSettingsImpl(
   private val showTimeInBookProperty = booleanSetting(KEY_SHOW_TIME_IN_BOOK, true)
   override var showTimeInBook: Boolean by showTimeInBookProperty
   override fun observeShowTimeInBook(): StateFlow<Boolean> = showTimeInBookProperty.observe()
+
+  private val deleteItemFilesProperty = booleanSetting(KEY_DELETE_ITEM_FILES, true)
+  override var deleteItemFilesByDefault: Boolean by deleteItemFilesProperty
+  override fun observeDeleteItemFilesByDefault(): StateFlow<Boolean> = deleteItemFilesProperty.observe()
+
+  private val deleteEpisodeFilesProperty = booleanSetting(KEY_DELETE_EPISODE_FILES, true)
+  override var deleteEpisodeFilesByDefault: Boolean by deleteEpisodeFilesProperty
+  override fun observeDeleteEpisodeFilesByDefault(): StateFlow<Boolean> = deleteEpisodeFilesProperty.observe()
 }
 
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
@@ -110,6 +118,8 @@ internal const val KEY_COLLECTIONS_DISPLAY_STATE = "pref_collections_display_sta
 internal const val KEY_PLAYLISTS_DISPLAY_STATE = "pref_playlists_display_state"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
+internal const val KEY_DELETE_ITEM_FILES = "pref_delete_item_files"
+internal const val KEY_DELETE_EPISODE_FILES = "pref_delete_episode_files"
 
 /** The library view settings stored as strings, for copying into a new account's settings. */
 internal val LibraryViewStringKeys = listOf(

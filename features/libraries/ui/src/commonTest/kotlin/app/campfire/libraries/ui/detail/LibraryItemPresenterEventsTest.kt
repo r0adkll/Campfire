@@ -688,6 +688,7 @@ private val DeleteItemClickSoft = EventTest(
     assertThat(libraryItemRepository.deleteInvocations)
       .single()
       .isEqualTo(TestLibraryItemId to false)
+    assertThat(libraryViewSettings.deleteItemFilesByDefault).isFalse()
 
     navigator.awaitPop()
   },
@@ -714,6 +715,7 @@ private val DeleteItemClickHard = EventTest(
     assertThat(libraryItemRepository.deleteInvocations)
       .single()
       .isEqualTo(TestLibraryItemId to true)
+    assertThat(libraryViewSettings.deleteItemFilesByDefault).isTrue()
 
     navigator.awaitPop()
   },

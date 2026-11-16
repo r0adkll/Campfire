@@ -167,6 +167,15 @@ interface AudioBookShelfApi {
    */
   suspend fun clearPodcastDownloadQueue(libraryItemId: String): Result<Unit>
 
+  /**
+   * Remove episode [episodeId] from the podcast [libraryItemId], along with its progress and its
+   * place in playlists. Pass `hard = true` to also delete its audio file from the server's disk;
+   * otherwise the file stays in the podcast's folder, where a scan finds it again.
+   * Endpoint: `DELETE /api/podcasts/{libraryItemId}/episode/{episodeId}`. Requires the delete
+   * permission; other accounts receive HTTP 403.
+   */
+  suspend fun deletePodcastEpisode(libraryItemId: String, episodeId: String, hard: Boolean = false): Result<Unit>
+
   //region Series
 
   /**

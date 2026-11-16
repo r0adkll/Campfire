@@ -516,7 +516,23 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   override suspend fun clearPodcastDownloadQueue(libraryItemId: String): Result<Unit> {
     TODO("Not yet implemented")
   }
+
+  val deletedPodcastEpisodes = mutableListOf<DeletedPodcastEpisode>()
+  var deletePodcastEpisodeResult: suspend (libraryItemId: String, episodeId: String) -> Result<Unit> = { _, _ ->
+    Result.failure(NotImplementedError("Set deletePodcastEpisodeResult on the fake"))
+  }
+
+  override suspend fun deletePodcastEpisode(libraryItemId: String, episodeId: String, hard: Boolean): Result<Unit> {
+    deletedPodcastEpisodes += DeletedPodcastEpisode(libraryItemId, episodeId, hard)
+    return deletePodcastEpisodeResult(libraryItemId, episodeId)
+  }
 }
+
+data class DeletedPodcastEpisode(
+  val libraryItemId: String,
+  val episodeId: String,
+  val hard: Boolean,
+)
 
 data class RecentEpisodesRequest(
   val libraryId: String,

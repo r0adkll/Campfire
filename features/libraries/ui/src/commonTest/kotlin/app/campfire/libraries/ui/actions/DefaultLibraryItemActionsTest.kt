@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -49,6 +50,8 @@ import assertk.assertions.contains
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.test.FakeNavigator
@@ -137,6 +140,7 @@ class DefaultLibraryItemActionsTest {
       scope = scope,
     ),
     quickActions = quickActions,
+    libraryViewSettings = libraryViewSettings,
     coroutineScopeHolder = CoroutineScopeHolder { scope },
   )
 
@@ -356,6 +360,38 @@ class DefaultLibraryItemActionsTest {
 
     awaitSnackbar("Removed The Great Fake Adventure from your library")
     assertThat(libraryItemRepository.deleteInvocations).containsExactly(Pair(item.id, false))
+    assertThat(libraryViewSettings.deleteItemFilesByDefault).isFalse()
+  }
+
+  @Test
+  fun aDeleteStartsFromTheLastChoiceAndStillTakesASecondPressForFiles() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    libraryViewSettings.deleteItemFilesByDefault = true
+    showActions()
+
+    onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_confirm").assertTextEquals("Delete files").performClick()
+    assertThat(libraryItemRepository.deleteInvocations).isEmpty()
+
+    onNodeWithTag("delete_confirm").assertTextEquals("Press again to delete files").performClick()
+
+    awaitSnackbar("Deleted The Great Fake Adventure and its files")
+    assertThat(libraryItemRepository.deleteInvocations).containsExactly(Pair(item.id, true))
+    assertThat(libraryViewSettings.deleteItemFilesByDefault).isTrue()
+  }
+
+  @Test
+  fun aDeleteBackedOutOfKeepsTheLastChoice() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    libraryViewSettings.deleteItemFilesByDefault = true
+    showActions()
+
+    onNodeWithTag("item_action_delete").performClick()
+    onNodeWithTag("delete_option_remove").performClick()
+    onNodeWithText("Cancel").performClick()
+    waitForIdle()
+
+    assertThat(libraryViewSettings.deleteItemFilesByDefault).isTrue()
   }
 
   @Test

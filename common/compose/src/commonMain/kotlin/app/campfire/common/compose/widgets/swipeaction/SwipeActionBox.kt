@@ -29,9 +29,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+
+/** Which way a [SwipeActionBox]'s content is swiped. */
+enum class SwipeActionDirection {
+  /** In the reading direction: rightward, or leftward in RTL. */
+  ToEnd,
+
+  /** Against the reading direction: leftward, or rightward in RTL. */
+  ToStart,
+}
 
 /**
  * Where a [SwipeActionBox]'s content sits while it is swiped, and how close the swipe is to firing
@@ -40,65 +51,102 @@ import kotlinx.coroutines.launch
 @Stable
 class SwipeActionState internal constructor() {
 
+  /** How far the content is from rest, positive toward the end of the line. */
   internal var offset by mutableFloatStateOf(0f)
 
   internal var threshold by mutableFloatStateOf(Float.POSITIVE_INFINITY)
 
-  /** How far the content has been swiped, as a fraction of the distance that fires the action. */
-  val progress: Float
-    get() = (offset / threshold).coerceIn(0f, 1f)
+  /**
+   * Which way the content is swiped, kept while it springs back so the action behind it doesn't
+   * change as it settles, or null at rest.
+   */
+  var direction: SwipeActionDirection? by mutableStateOf(null)
+    internal set
 
-  /** Whether letting go now fires the action. */
+  /**
+   * How far the content has been swiped in [direction], as a fraction of the distance that fires
+   * the action.
+   */
+  val progress: Float
+    get() = when (direction) {
+      SwipeActionDirection.ToEnd -> offset / threshold
+      SwipeActionDirection.ToStart -> -offset / threshold
+      null -> 0f
+    }.coerceIn(0f, 1f)
+
+  /** Whether letting go now fires the action for [direction]. */
   val isPastThreshold: Boolean
-    get() = offset >= threshold
+    get() = when (direction) {
+      SwipeActionDirection.ToEnd -> offset >= threshold
+      SwipeActionDirection.ToStart -> -offset >= threshold
+      null -> false
+    }
 }
 
 @Composable
 fun rememberSwipeActionState(): SwipeActionState = remember { SwipeActionState() }
 
 /**
- * Content that can be swiped in the reading direction to fire [onSwipe]. Unlike a swipe to
- * dismiss, the content springs back once let go, whether or not the action fired, so it suits
- * actions that leave the row in place (adding to a queue, say).
+ * Content that can be swiped either way to fire an action: toward the end of the line to fire
+ * [onSwipeToEnd], toward its start to fire [onSwipeToStart]. Unlike a swipe to dismiss, the content
+ * springs back once let go, whether or not the action fired, so it suits actions that leave the row
+ * in place (adding to a queue, say) or ask first (deleting, say). A direction without an action
+ * can't be swiped.
  *
  * The action fires when the content is let go past [threshold], or past 45% of its width if that
  * is closer. Past that point the content keeps following the finger, but with resistance.
  *
- * @param onSwipe called when a swipe is let go past the threshold.
  * @param backgroundContent drawn behind [content] and uncovered as it is swiped. Read the
- *   [SwipeActionState] to animate it with the swipe, and to give feedback, such as a haptic, as
- *   it crosses the threshold.
+ *   [SwipeActionState] to show the action for its [SwipeActionState.direction], to animate it with
+ *   the swipe, and to give feedback, such as a haptic, as it crosses the threshold.
+ * @param onSwipeToEnd called when a swipe toward the end of the line is let go past the threshold.
+ * @param onSwipeToStart called when a swipe toward the start of the line is let go past the
+ *   threshold.
  * @param enabled whether the content can be swiped.
- * @param threshold how far the content must be swiped to fire [onSwipe].
+ * @param threshold how far the content must be swiped to fire an action.
  */
 @Composable
 fun SwipeActionBox(
-  onSwipe: () -> Unit,
   backgroundContent: @Composable BoxScope.(SwipeActionState) -> Unit,
   modifier: Modifier = Modifier,
+  onSwipeToEnd: (() -> Unit)? = null,
+  onSwipeToStart: (() -> Unit)? = null,
   enabled: Boolean = true,
   state: SwipeActionState = rememberSwipeActionState(),
   threshold: Dp = SwipeActionDefaults.Threshold,
   content: @Composable () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
-  val currentOnSwipe by rememberUpdatedState(onSwipe)
+  val currentOnSwipeToEnd by rememberUpdatedState(onSwipeToEnd)
+  val currentOnSwipeToStart by rememberUpdatedState(onSwipeToStart)
   val thresholdPx = with(LocalDensity.current) { threshold.toPx() }
   val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
-  // Where the finger is, which runs ahead of the content once past the threshold
+  // Where the finger is, which runs ahead of the content once past the threshold. Positive toward
+  // the end of the line, and held at zero on a side without an action
   var dragDistance by remember { mutableFloatStateOf(0f) }
   var settling by remember { mutableStateOf<Job?>(null) }
 
+  fun allowed(distance: Float): Float = distance.coerceIn(
+    minimumValue = if (currentOnSwipeToStart != null) Float.NEGATIVE_INFINITY else 0f,
+    maximumValue = if (currentOnSwipeToEnd != null) Float.POSITIVE_INFINITY else 0f,
+  )
+
   val draggableState = rememberDraggableState { delta ->
-    dragDistance = (dragDistance + delta).coerceAtLeast(0f)
-    val isPastThreshold = dragDistance >= state.threshold
-    val resisted = if (isPastThreshold) {
-      state.threshold + (dragDistance - state.threshold) * OvershootResistance
-    } else {
-      dragDistance
+    dragDistance = allowed(dragDistance + delta)
+    state.direction = when {
+      dragDistance > 0f -> SwipeActionDirection.ToEnd
+      dragDistance < 0f -> SwipeActionDirection.ToStart
+      else -> null
     }
-    state.offset = resisted
+
+    val distance = abs(dragDistance)
+    val resisted = if (distance >= state.threshold) {
+      state.threshold + (distance - state.threshold) * OvershootResistance
+    } else {
+      distance
+    }
+    state.offset = resisted * dragDistance.sign
   }
 
   Box(
@@ -109,16 +157,18 @@ fun SwipeActionBox(
       .draggable(
         state = draggableState,
         orientation = Orientation.Horizontal,
-        enabled = enabled,
+        enabled = enabled && (onSwipeToEnd != null || onSwipeToStart != null),
         // Swiping toward the end of the line is the reading direction, which is leftward in RTL
         reverseDirection = isRtl,
         // Picks up from wherever the content is, should it be caught while springing back
         onDragStarted = {
           settling?.cancel()
-          dragDistance = state.offset.coerceAtLeast(0f)
+          dragDistance = allowed(state.offset)
         },
         onDragStopped = {
-          if (dragDistance >= state.threshold) currentOnSwipe()
+          if (abs(dragDistance) >= state.threshold) {
+            if (dragDistance > 0f) currentOnSwipeToEnd?.invoke() else currentOnSwipeToStart?.invoke()
+          }
           dragDistance = 0f
           settling = scope.launch {
             animate(
@@ -129,6 +179,7 @@ fun SwipeActionBox(
                 stiffness = Spring.StiffnessMediumLow,
               ),
             ) { value, _ -> state.offset = value }
+            state.direction = null
           }
         },
       ),
