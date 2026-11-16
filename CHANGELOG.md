@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Nothing loading and the connection indicator staying red after your server was briefly unreachable, until the app was restarted
+- Crash right after signing out of your only account
 - [Android] Rewinding or skipping while paused not updating the time left, and the new position being lost if the app closed before you pressed play
 - Series cards on Home scrolling their titles even with Marquee scrolling turned off
 - The app feeling sluggish while a book is playing, and the library and podcast episode lists stuttering as you scroll
