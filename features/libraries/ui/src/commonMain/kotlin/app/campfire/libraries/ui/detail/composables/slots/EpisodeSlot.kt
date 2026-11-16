@@ -4,33 +4,28 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
-import app.campfire.common.compose.icons.rounded.Download
-import app.campfire.common.compose.icons.rounded.DownloadDone
 import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.permission.PermissionState
 import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
+import app.campfire.common.compose.widgets.EpisodeDownloadAction
 import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -46,12 +41,8 @@ import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_add_episode_to_playlist
-import campfire.features.libraries.ui.generated.resources.action_download_episode
-import campfire.features.libraries.ui.generated.resources.action_episode_download_in_progress
-import campfire.features.libraries.ui.generated.resources.action_episode_download_queued
 import campfire.features.libraries.ui.generated.resources.action_mark_episode_finished
 import campfire.features.libraries.ui.generated.resources.action_mark_episode_not_finished
-import campfire.features.libraries.ui.generated.resources.action_remove_episode_download
 import org.jetbrains.compose.resources.stringResource
 
 class EpisodeSlot(
@@ -181,7 +172,7 @@ class EpisodeSlot(
             downloadState == Download.State.Downloading ||
             downloadState == Download.State.Downloaded
           if (episode.audioTrack != null && (canDownload || hasActiveOrCompletedDownload)) {
-            DownloadEpisodeAction(
+            EpisodeDownloadAction(
               offlineDownload = offlineDownload,
               onDownloadClick = {
                 if (showConfirmDownloadDialog) {
@@ -265,107 +256,6 @@ class EpisodeSlot(
         Spacer(Modifier.height(2.dp))
       } else {
         Spacer(Modifier.height(48.dp))
-      }
-    }
-  }
-}
-
-@Composable
-private fun DownloadEpisodeAction(
-  offlineDownload: Download?,
-  onDownloadClick: () -> Unit,
-  onStopClick: () -> Unit,
-  onRemoveClick: () -> Unit,
-) {
-  val state = offlineDownload?.state
-
-  val label = stringResource(
-    when (state) {
-      Download.State.Queued -> Res.string.action_episode_download_queued
-      Download.State.Downloading -> Res.string.action_episode_download_in_progress
-      Download.State.Downloaded -> Res.string.action_remove_episode_download
-      null,
-      Download.State.Failed,
-      Download.State.Stopped,
-      -> Res.string.action_download_episode
-    },
-  )
-
-  val onClick: () -> Unit = when (state) {
-    Download.State.Queued,
-    Download.State.Downloading,
-    -> onStopClick
-
-    Download.State.Downloaded -> onRemoveClick
-
-    null,
-    Download.State.Failed,
-    Download.State.Stopped,
-    -> onDownloadClick
-  }
-
-  IconButtonTooltip(text = label) {
-    IconButton(
-      onClick = onClick,
-      modifier = Modifier
-        .size(
-          IconButtonDefaults.extraSmallContainerSize(
-            IconButtonDefaults.IconButtonWidthOption.Uniform,
-          ),
-        ),
-      shape = IconButtonDefaults.extraSmallSquareShape,
-    ) {
-      val iconSize = IconButtonDefaults.extraSmallIconSize
-      when (state) {
-        Download.State.Queued -> {
-          Box(
-            modifier = Modifier.size(iconSize),
-            contentAlignment = Alignment.Center,
-          ) {
-            CircularProgressIndicator(
-              strokeWidth = 2.dp,
-              modifier = Modifier.size(iconSize),
-            )
-          }
-        }
-        Download.State.Downloading -> {
-          val downloadProgress = offlineDownload?.progress
-          Box(
-            modifier = Modifier.size(iconSize),
-            contentAlignment = Alignment.Center,
-          ) {
-            if (downloadProgress == null) {
-              CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(iconSize),
-              )
-            } else {
-              CircularProgressIndicator(
-                progress = { downloadProgress },
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(iconSize),
-              )
-            }
-          }
-        }
-        Download.State.Downloaded -> {
-          Icon(
-            CampfireIcons.Rounded.DownloadDone,
-            contentDescription = label,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(iconSize),
-          )
-        }
-        null,
-        Download.State.Failed,
-        Download.State.Stopped,
-        -> {
-          Icon(
-            CampfireIcons.Rounded.Download,
-            contentDescription = label,
-            modifier = Modifier.size(iconSize),
-          )
-        }
       }
     }
   }

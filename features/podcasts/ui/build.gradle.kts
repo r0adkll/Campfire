@@ -10,6 +10,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.offline.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.playlists.api)
         implementation(projects.features.podcasts.api)
@@ -36,6 +37,7 @@ kotlin {
         implementation(projects.features.settings.test)
         implementation(projects.features.user.test)
         implementation(projects.infra.audioplayer.test)
+        implementation(projects.infra.offline.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.ui)
       }

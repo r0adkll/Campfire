@@ -139,4 +139,9 @@
     <item quantity="one">%1$d episode downloading on server</item>
     <item quantity="other">%1$d episodes downloading on server</item>
   </plurals>
+
+  <string name="action_download_episode">Download episode for offline</string>
+  <string name="action_remove_episode_download">Remove offline episode</string>
+  <string name="action_episode_download_queued">Episode download queued</string>
+  <string name="action_episode_download_in_progress">Episode downloading</string>
 </resources>
