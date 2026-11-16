@@ -55,7 +55,9 @@ class StoreUserRepository(
   }
 
   override fun observeCurrentUser(): Flow<User> {
-    if (userSession is UserSession.LoggedOut) return emptyFlow()
+    // Only a signed-in session has a user to observe. One waiting to sign in again has no token or
+    // server to ask, and the failed fetch would surface as an exception in whoever is collecting.
+    if (userSession !is UserSession.LoggedIn) return emptyFlow()
     return userStore.stream(StoreReadRequest.cached(Unit, refresh = false))
       .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
       .map { it.requireData() }

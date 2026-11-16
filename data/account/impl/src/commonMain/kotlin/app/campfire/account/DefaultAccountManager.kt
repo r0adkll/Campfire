@@ -118,8 +118,9 @@ class DefaultAccountManager(
   }
 
   override suspend fun switchAccount(user: User) = withContext(accountManagerCoroutineContext) {
-    // If we are switching to the current account, just ignore the action
-    if (user.id == deviceSettings.currentUserId) return@withContext
+    // If we are switching to the account that's already signed in, just ignore the action. The
+    // stored current user doesn't answer that: it also names an account waiting to sign in again.
+    if (user.id == userSessionManager.current.userId) return@withContext
 
     // Validate that we have a stored token for this user
     checkNotNull(tokenStorage.get(user.id)) { "There is no account for ${user.name}" }
@@ -221,7 +222,13 @@ class DefaultAccountManager(
     userGraphManager.create(newSession)
 
     // Update persisted settings and observers
-    deviceSettings.currentUserId = newSession.userId
+    // An account waiting to sign in again stays the current one, so the next launch asks for
+    // that sign-in instead of starting over from the welcome screen.
+    deviceSettings.currentUserId = when (newSession) {
+      is UserSession.LoggedIn -> newSession.user.id
+      is UserSession.NeedsAuthentication -> newSession.server.user.id
+      UserSession.LoggedOut, UserSession.Loading -> null
+    }
     userSessionManager.current = newSession
   }
 }

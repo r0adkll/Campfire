@@ -129,6 +129,44 @@ class DefaultAccountManagerTest {
     manager.logout(alice)
 
     assertThat(sessions.current).isEqualTo(UserSession.NeedsAuthentication(bob))
+    // Remembered, so the next launch restores the sign-in prompt rather than the welcome screen
+    assertThat(deviceSettings.currentUserId).isEqualTo("bob")
+  }
+
+  @Test
+  fun `logging out the last account forgets the current user`() = runTest {
+    val manager = manager()
+    signIn(alice)
+    deviceSettings.currentUserId = "alice"
+
+    manager.logout(alice)
+
+    assertThat(deviceSettings.currentUserId).isNull()
+  }
+
+  @Test
+  fun `an account waiting to sign in again can be switched to once it has a token`() = runTest {
+    val manager = manager()
+    sessions.current = UserSession.NeedsAuthentication(alice)
+    sessions.published.clear()
+    deviceSettings.currentUserId = "alice"
+    signIn(alice)
+
+    manager.switchAccount(alice.user)
+
+    assertThat(sessions.current).isEqualTo(UserSession.LoggedIn(alice.user))
+  }
+
+  @Test
+  fun `switching to the signed in account does nothing`() = runTest {
+    val manager = manager()
+    signIn(alice)
+    deviceSettings.currentUserId = "alice"
+
+    manager.switchAccount(alice.user)
+
+    assertThat(sessions.published).isEmpty()
+    assertThat(graphs.events).isEmpty()
   }
 
   @Test

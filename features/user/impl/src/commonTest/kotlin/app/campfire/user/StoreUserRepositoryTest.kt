@@ -5,6 +5,7 @@ package app.campfire.user
 
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.asDatabaseModel
@@ -16,6 +17,7 @@ import app.campfire.network.test.FakeAudioBookShelfApi
 import app.campfire.user.store.UserStore
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
@@ -28,6 +30,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -187,5 +190,63 @@ class StoreUserRepositoryTest {
     )
 
     assertThat(repository.observeCurrentUser().first().id).isEqualTo("user-1")
+  }
+
+  @Test
+  fun observeCurrentUser_isEmptyWhileTheAccountNeedsToSignInAgain() = testDb { db ->
+    val signedIn = networkUser(download = true)
+    db.usersQueries.insert(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    // What the real API does without a signed-in session: there's no server URL to send to
+    val api = FakeAudioBookShelfApi().apply {
+      currentUserResult = { Result.failure(IllegalArgumentException("Required value was null.")) }
+    }
+    val session = UserSession.NeedsAuthentication(
+      Server(
+        url = serverUrl,
+        name = "Home",
+        user = signedIn.asDomainModel(serverUrl, "lib-1"),
+        settings = Server.Settings(
+          scannerFindCovers = false,
+          scannerCoverProvider = "",
+          scannerParseSubtitle = false,
+          scannerPreferMatchedMetadata = false,
+          scannerDisableWatcher = false,
+          storeCoverWithItem = false,
+          storeMetadataWithItem = false,
+          metadataFileFormat = "",
+          rateLimitLoginRequests = 0,
+          rateLimitLoginWindow = 0,
+          backupSchedule = "",
+          backupsToKeep = 0,
+          maxBackupSize = 0,
+          loggerDailyLogsToKeep = 0,
+          loggerScannerLogsToKeep = 0,
+          homeBookshelfView = 0,
+          bookshelfView = 0,
+          sortingIgnorePrefix = false,
+          sortingPrefixes = emptyList(),
+          chromecastEnabled = false,
+          dateFormat = "",
+          timeFormat = "",
+          language = "",
+          logLevel = 0,
+          version = "",
+        ),
+      ),
+    )
+    val dispatchers = DispatcherProvider(
+      io = Dispatchers.Default,
+      databaseWrite = Dispatchers.Default,
+      databaseRead = Dispatchers.Default,
+      computation = Dispatchers.Default,
+      main = Dispatchers.Default,
+    )
+    val repository = StoreUserRepository(
+      userSession = session,
+      userStoreFactory = UserStore.Factory(session, db, api, dispatchers),
+      coroutineScopeHolder = CoroutineScopeHolder { CoroutineScope(Job()) },
+    )
+
+    assertThat(repository.observeCurrentUser().toList()).isEmpty()
   }
 }
