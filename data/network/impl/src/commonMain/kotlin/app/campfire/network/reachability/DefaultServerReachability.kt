@@ -114,7 +114,7 @@ class DefaultServerReachability(
     wbark { "Server unreachable ($failures in a row); next attempt in ${retryDelay(failures)}" }
   }
 
-  override fun shouldFailFast(origin: String): Boolean {
+  override fun shouldFailFast(origin: String, probe: Boolean): Boolean {
     if (workOffline.isOffline()) {
       markOffline(origin)
       return true
@@ -124,7 +124,7 @@ class DefaultServerReachability(
         markOutOfRange(origin)
         true
       }
-      RouteVerdict.Allow -> devSettings.adaptToUnreachableServer && failFastWhileUnreachable(origin)
+      RouteVerdict.Allow -> !probe && devSettings.adaptToUnreachableServer && failFastWhileUnreachable(origin)
     }
   }
 

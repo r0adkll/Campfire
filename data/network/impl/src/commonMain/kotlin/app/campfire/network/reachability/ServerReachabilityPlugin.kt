@@ -7,6 +7,8 @@ import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.api.ClientPlugin
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.util.AttributeKey
 import kotlinx.io.IOException
 
 /** Thrown in place of a request while the server is known to be unreachable. */
@@ -22,7 +24,8 @@ internal fun serverReachabilityPlugin(
 ): ClientPlugin<Unit> = createClientPlugin("ServerReachability") {
   on(Send) { request ->
     val origin = serverOrigin(request.url.build())
-    if (reachability.shouldFailFast(origin)) throw ServerUnreachableException(origin)
+    val probe = request.attributes.contains(ReachabilityProbe)
+    if (reachability.shouldFailFast(origin, probe)) throw ServerUnreachableException(origin)
 
     try {
       proceed(request).also { reachability.reachable(origin) }
@@ -31,6 +34,17 @@ internal fun serverReachabilityPlugin(
       throw e
     }
   }
+}
+
+private val ReachabilityProbe = AttributeKey<Unit>("ReachabilityProbe")
+
+/**
+ * Sends this request even while the server is believed unreachable, for callers with their own
+ * evidence that it's there (the socket asking for a fresh token after the server rejected its
+ * old one). What the request learns still updates the belief.
+ */
+internal fun HttpRequestBuilder.probeServer() {
+  attributes.put(ReachabilityProbe, Unit)
 }
 
 /**

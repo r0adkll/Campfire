@@ -18,6 +18,7 @@ import app.campfire.network.plugins.RedirectHeaderGuard
 import app.campfire.network.plugins.suspendingDefaultHeaders
 import app.campfire.network.reachability.ReachabilityGate
 import app.campfire.network.reachability.WorkOffline
+import app.campfire.network.reachability.probeServer
 import app.campfire.network.reachability.serverReachabilityPlugin
 import app.campfire.network.reachability.workOfflinePlugin
 import com.livewire.plugin.network.ktor.LivewireNetworkPlugin
@@ -386,6 +387,9 @@ internal fun userBearerAuthProvider(
         header(HttpHeaders.RefreshToken, it)
       }
       markAsRefreshTokenRequest()
+      // A refresh only runs because the server just answered 401, and that answer hasn't reached
+      // the reachability gate yet (it wraps this plugin), so a stale belief would skip this.
+      probeServer()
     }
 
     return@refreshTokens if (newTokenResponse.status.isSuccess()) {

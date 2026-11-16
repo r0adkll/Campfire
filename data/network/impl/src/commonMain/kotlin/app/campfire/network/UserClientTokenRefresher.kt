@@ -13,6 +13,7 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.UserClient
+import app.campfire.network.reachability.probeServer
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -56,7 +57,9 @@ class UserClientTokenRefresher(
     }
 
     val response = try {
-      httpClient.post("${cleanServerUrl(serverUrl)}/api/authorize")
+      // Callers come here because the server just rejected a token, so it is there to ask: a
+      // stale "unreachable" belief must not skip the one request that can refresh the token.
+      httpClient.post("${cleanServerUrl(serverUrl)}/api/authorize") { probeServer() }
     } catch (e: IOException) {
       bark(LogPriority.ERROR, throwable = e) { "Token-refreshing authorize request failed to send" }
       return null

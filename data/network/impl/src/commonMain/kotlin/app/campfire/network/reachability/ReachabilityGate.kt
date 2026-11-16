@@ -16,8 +16,12 @@ interface ReachabilityGate {
    * Whether a request to [origin] should fail without touching the network. False whenever the
    * server isn't known to be unreachable, the device changed networks since it was, or a probe is
    * due — in which case exactly one caller claims the probe and the rest keep failing fast.
+   *
+   * A [probe] request goes out even while the server is believed unreachable, since its caller
+   * has its own evidence the server is there. It is still held back when the network can't reach
+   * the server at all or the user is working offline.
    */
-  fun shouldFailFast(origin: String): Boolean
+  fun shouldFailFast(origin: String, probe: Boolean = false): Boolean
 
   /** The server at [origin] answered a request. */
   fun reachable(origin: String)

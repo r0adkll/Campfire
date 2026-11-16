@@ -9,6 +9,11 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.installUserAuth
 import app.campfire.network.di.userBearerAuthProvider
+import app.campfire.network.reachability.Reachability
+import app.campfire.network.reachability.ReachabilityGate
+import app.campfire.network.reachability.reachability
+import app.campfire.network.reachability.serverOrigin
+import app.campfire.network.reachability.serverReachabilityPlugin
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
@@ -69,8 +74,10 @@ class UserClientTokenRefresherTest {
     engine: MockEngine,
     accountManager: AccountManager,
     sessionManager: UserSessionManager,
+    reachabilityGate: ReachabilityGate? = null,
   ): UserClientTokenRefresher {
     val client = HttpClient(engine) {
+      reachabilityGate?.let { install(serverReachabilityPlugin(it)) }
       install(ContentNegotiation) {
         json(
           Json {
@@ -98,6 +105,27 @@ class UserClientTokenRefresherTest {
     assertThat(result).isEqualTo(AbsToken("access-new", "refresh-new"))
     assertThat(accountManager.tokens[user.id]).isEqualTo(AbsToken("access-new", "refresh-new"))
     assertThat(accountManager.invalidatedUser).isNull()
+  }
+
+  @Test
+  fun staleTokenIsRefreshedWhileTheServerIsBelievedUnreachable() = runTest {
+    val accountManager = FakeAccountManager().apply {
+      tokens[user.id] = AbsToken("access-old", "refresh-old")
+    }
+    val sessionManager = FakeUserSessionManager(UserSession.LoggedIn(user))
+    val engine = MockEngine { request -> absServer(request) }
+    // Five failures in a row: every ordinary request is skipped for the next ten minutes
+    val gate = reachability()
+    val origin = serverOrigin(user.serverUrl)
+    repeat(5) { gate.unreachable(origin) }
+    assertThat(gate.shouldFailFast(origin)).isEqualTo(true)
+
+    val result = refresher(engine, accountManager, sessionManager, gate)
+      .refresh(user.id, user.serverUrl, "access-old")
+
+    assertThat(result).isEqualTo(AbsToken("access-new", "refresh-new"))
+    assertThat(accountManager.invalidatedUser).isNull()
+    assertThat(gate.status.value).isEqualTo(Reachability.Reachable)
   }
 
   @Test
