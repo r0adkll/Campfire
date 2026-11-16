@@ -145,8 +145,13 @@ class DefaultAccountManager(
           // No more account put app into logged out state
           UserSession.LoggedOut
         } else {
-          val newAccount = remainingAccounts.first()
-          UserSession.LoggedIn(newAccount.user)
+          // Only an account that still has its token can be signed in. One that lost it (it was
+          // invalidated earlier) has to sign in again, or it would sit signed in with no token.
+          val newAccount = remainingAccounts.firstOrNull { account ->
+            tokenStorage.get(account.user.id) != null
+          }
+          newAccount?.let { UserSession.LoggedIn(it.user) }
+            ?: UserSession.NeedsAuthentication(remainingAccounts.first())
         }
       }
     } else {

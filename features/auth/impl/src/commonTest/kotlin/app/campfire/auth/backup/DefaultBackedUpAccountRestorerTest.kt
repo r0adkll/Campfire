@@ -62,11 +62,23 @@ class DefaultBackedUpAccountRestorerTest {
   fun `a kept account signed in but never switched to becomes active`() = runTest {
     tokenBackup.kept += account("alice")
     servers.all += server("alice")
+    accountManager.withToken += "alice"
 
     restorer().restoreAll()
 
     assertThat(authRepository.restored).isEmpty()
     assertThat(accountManager.switchedTo).isEqualTo("alice")
+  }
+
+  @Test
+  fun `a signed in account that lost its token isn't switched to`() = runTest {
+    tokenBackup.kept += account("alice")
+    servers.all += server("alice")
+
+    restorer().restoreAll()
+
+    assertThat(authRepository.restored).isEmpty()
+    assertThat(accountManager.switchedTo).isNull()
   }
 
   @Test
@@ -191,6 +203,7 @@ class DefaultBackedUpAccountRestorerTest {
 
   private class FakeAccountManager : AccountManager {
     var switchedTo: UserId? = null
+    val withToken = mutableSetOf<UserId>()
     override suspend fun switchAccount(user: User) {
       switchedTo = user.id
     }
@@ -204,7 +217,8 @@ class DefaultBackedUpAccountRestorerTest {
     ) = Unit
     override suspend fun invalidateAccount(user: User) = Unit
     override suspend fun logout(server: Server) = Unit
-    override suspend fun getToken(userId: UserId): AbsToken? = null
+    override suspend fun getToken(userId: UserId): AbsToken? =
+      if (userId in withToken) AbsToken("access-$userId", "refresh-$userId") else null
     override suspend fun updateToken(userId: UserId, newToken: AbsToken) = Unit
     override suspend fun getExtraHeaders(userId: UserId): Map<String, String>? = null
     override suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>) = Unit

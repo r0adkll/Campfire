@@ -106,6 +106,32 @@ class DefaultAccountManagerTest {
   }
 
   @Test
+  fun `logging out skips a remaining account that has no token`() = runTest {
+    val carol = testServer("carol")
+    servers.value = listOf(alice, bob, carol)
+    val manager = manager()
+    signIn(alice)
+    signIn(carol)
+    deviceSettings.currentUserId = "alice"
+
+    manager.logout(alice)
+
+    assertThat(sessions.current).isEqualTo(UserSession.LoggedIn(carol.user))
+  }
+
+  @Test
+  fun `logging out asks for a sign in when no remaining account has a token`() = runTest {
+    servers.value = listOf(alice, bob)
+    val manager = manager()
+    signIn(alice)
+    deviceSettings.currentUserId = "alice"
+
+    manager.logout(alice)
+
+    assertThat(sessions.current).isEqualTo(UserSession.NeedsAuthentication(bob))
+  }
+
+  @Test
   fun `logging out another account leaves the session alone`() = runTest {
     servers.value = listOf(alice, bob)
     val manager = manager()

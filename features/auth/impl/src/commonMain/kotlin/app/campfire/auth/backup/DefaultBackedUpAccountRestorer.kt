@@ -80,8 +80,11 @@ class DefaultBackedUpAccountRestorer(
     }
 
     // Welcome only shows with no active account, so a kept account that's already signed in was
-    // restored without being switched to, e.g. the app stopped in between
-    val alreadyBack = accounts.firstNotNullOfOrNull { signedIn[it.userId]?.user }
+    // restored without being switched to, e.g. the app stopped in between. One whose token has
+    // since been removed can't be switched to, and needs a real sign-in instead.
+    val alreadyBack = accounts.firstNotNullOfOrNull { account ->
+      signedIn[account.userId]?.user?.takeIf { accountManager.getToken(it.id) != null }
+    }
     (toActivate ?: alreadyBack)?.let { user -> accountManager.switchAccount(user) }
   }
 }
