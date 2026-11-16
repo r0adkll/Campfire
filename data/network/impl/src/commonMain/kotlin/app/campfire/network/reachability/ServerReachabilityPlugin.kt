@@ -30,7 +30,7 @@ internal fun serverReachabilityPlugin(
     try {
       proceed(request).also { reachability.reachable(origin) }
     } catch (e: Throwable) {
-      if (e.isConnectFailure()) reachability.unreachable(origin)
+      if (e.isConnectFailure()) reachability.unreachable(origin) else reachability.inconclusive(origin)
       throw e
     }
   }

@@ -186,7 +186,21 @@ class DefaultServerReachability(
       if (now - current.checkedAtMs < retryDelay(current.failures).inWholeMilliseconds) return true
 
       // Retry due: claim it by restarting the window so concurrent callers keep failing fast
-      if (belief.compareAndSet(current, current.copy(checkedAtMs = now))) return false
+      if (belief.compareAndSet(current, current.copy(checkedAtMs = now, probing = true))) return false
+    }
+  }
+
+  override fun inconclusive(origin: String) {
+    while (true) {
+      val current = belief.value
+      if (current.status != Reachability.Unreachable || current.origin != origin || !current.probing) return
+
+      // Hand the probe back: the window it restarted was for an attempt that learned nothing
+      val due = fatherTime.nowInEpochMillis() - retryDelay(current.failures).inWholeMilliseconds
+      if (belief.compareAndSet(current, current.copy(checkedAtMs = due, probing = false))) {
+        ibark { "Probe ended without an answer; the next request retries" }
+        return
+      }
     }
   }
 
@@ -211,6 +225,8 @@ class DefaultServerReachability(
     val checkedAtMs: Long = 0L,
     val network: Any? = null,
     val failures: Int = 0,
+    /** A request has claimed this window's one real attempt and hasn't reported back yet. */
+    val probing: Boolean = false,
   )
 
   companion object {

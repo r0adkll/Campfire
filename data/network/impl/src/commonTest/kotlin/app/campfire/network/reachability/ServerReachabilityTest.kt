@@ -18,6 +18,7 @@ import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.get
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 
 class ServerReachabilityTest {
@@ -59,6 +60,43 @@ class ServerReachabilityTest {
     time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
 
     assertThat(reachability.shouldFailFast(server)).isFalse()
+    assertThat(reachability.shouldFailFast(server)).isTrue()
+  }
+
+  @Test
+  fun `a probe that learns nothing hands the attempt to the next request`() {
+    reachability.unreachable(server)
+    time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
+    assertThat(reachability.shouldFailFast(server)).isFalse()
+
+    reachability.inconclusive(server)
+
+    assertThat(reachability.status.value).isEqualTo(Reachability.Unreachable)
+    assertThat(reachability.shouldFailFast(server)).isFalse()
+    assertThat(reachability.shouldFailFast(server)).isTrue()
+  }
+
+  @Test
+  fun `an inconclusive request that wasn't the probe changes nothing`() {
+    reachability.unreachable(server)
+
+    reachability.inconclusive(server)
+
+    assertThat(reachability.shouldFailFast(server)).isTrue()
+  }
+
+  @Test
+  fun `a handed back probe keeps the failure count`() {
+    repeat(3) { reachability.unreachable(server) }
+    time.nowMillis += DefaultServerReachability.retryDelay(3).inWholeMilliseconds
+    assertThat(reachability.shouldFailFast(server)).isFalse()
+    reachability.inconclusive(server)
+    assertThat(reachability.shouldFailFast(server)).isFalse()
+
+    // The retried probe fails to connect: the 4th failure in a row, not the 1st
+    reachability.unreachable(server)
+    time.nowMillis += DefaultServerReachability.retryDelay(3).inWholeMilliseconds
+
     assertThat(reachability.shouldFailFast(server)).isTrue()
   }
 
@@ -114,6 +152,39 @@ class ServerReachabilityTest {
     client.get("https://abs.example.com/api/me")
 
     assertThat(reachability.status.value).isEqualTo(Reachability.Reachable)
+  }
+
+  @Test
+  fun `plugin hands back a probe that failed after connecting`() = runTest {
+    reachability.unreachable(server)
+    time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
+    var calls = 0
+    val client = client {
+      calls++
+      if (calls == 1) throw IllegalStateException("response cut short")
+    }
+
+    assertFailure { client.get("https://abs.example.com/api/me") }
+    client.get("https://abs.example.com/api/me")
+
+    assertThat(calls).isEqualTo(2)
+    assertThat(reachability.status.value).isEqualTo(Reachability.Reachable)
+  }
+
+  @Test
+  fun `plugin hands back a probe that was cancelled`() = runTest {
+    reachability.unreachable(server)
+    time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
+    var calls = 0
+    val client = client {
+      calls++
+      if (calls == 1) throw CancellationException("screen closed")
+    }
+
+    assertFailure { client.get("https://abs.example.com/api/me") }
+    client.get("https://abs.example.com/api/me")
+
+    assertThat(calls).isEqualTo(2)
   }
 
   @Test
