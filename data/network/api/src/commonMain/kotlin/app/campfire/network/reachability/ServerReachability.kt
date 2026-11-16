@@ -21,7 +21,7 @@ interface ServerReachability {
 
   val status: StateFlow<Reachability>
 
-  /** Records that the server at [serverUrl] answered (an HTTP response or socket handshake). */
+  /** Records that the server at [serverUrl] answered (an HTTP response or socket connection). */
   fun reportReachable(serverUrl: String)
 
   /**

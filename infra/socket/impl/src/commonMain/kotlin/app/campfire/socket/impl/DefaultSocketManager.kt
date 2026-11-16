@@ -215,6 +215,10 @@ class DefaultSocketManager(
 
       newSocket.on(Socket.EVENT_CONNECT) {
         ibark { "Socket connected; reading token and sending auth" }
+        // Connecting proves the server is back — lift any fail-fast on HTTP requests now. Waiting
+        // for the auth handshake would deadlock on an expired token: the socket can't authenticate
+        // until HTTP refreshes the token, and HTTP stays skipped until the socket authenticates.
+        serverReachability.reportReachable(url)
         _state.value = SocketState.Authenticating
         coroutineScope.launch {
           val freshToken = accountManager.getToken(userId)?.accessToken
@@ -235,9 +239,6 @@ class DefaultSocketManager(
         val username = payload?.string("username")
         if (authedUserId != null && username != null) {
           ibark { "Socket authenticated!" }
-          // The handshake proves the server is back — lift any fail-fast on HTTP requests now
-          // rather than waiting for the next probe
-          serverReachability.reportReachable(url)
           _state.value = SocketState.Authenticated(authedUserId, username)
         }
       }
@@ -338,6 +339,8 @@ class DefaultSocketManager(
             if (!connectionSettings.socketEnabled) return@collect
             if (!newSocket.connected) {
               ibark { "Socket demanded (foreground + network in range); opening with a fresh backoff" }
+              // A fresh open gets a fresh auth retry budget, like a fresh start()
+              authFailureCount = 0
               _state.value = SocketState.Connecting
               // close() first resets the manager's reconnect backoff, so regaining the network
               // or foregrounding the app attempts immediately instead of waiting out a delay
@@ -378,6 +381,7 @@ class DefaultSocketManager(
           socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
           if (socketDemanded && connectionSettings.socketEnabled && !socket.connected) {
             ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
+            authFailureCount = 0
             _state.value = SocketState.Connecting
             socket.close()
             socket.open()

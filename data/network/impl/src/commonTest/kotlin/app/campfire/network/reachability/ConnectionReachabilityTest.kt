@@ -92,6 +92,37 @@ class ConnectionReachabilityTest {
   }
 
   @Test
+  fun `a probe goes out while the server is believed unreachable`() = runTest {
+    repeat(5) { reachability.unreachable(local) }
+    var calls = 0
+
+    client { calls++ }.get("$localUrl/api/me") { probeServer() }
+
+    assertThat(calls).isEqualTo(1)
+    assertThat(reachability.status.value).isEqualTo(Reachability.Reachable)
+  }
+
+  @Test
+  fun `a probe is still skipped while working offline`() = runTest {
+    workOffline.offline = true
+    var calls = 0
+
+    assertFailure { client { calls++ }.get("$localUrl/api/me") { probeServer() } }
+      .isInstanceOf<ServerUnreachableException>()
+    assertThat(calls).isEqualTo(0)
+  }
+
+  @Test
+  fun `a probe is still skipped out of range`() = runTest {
+    monitor.snapshot.value = cellular()
+    var calls = 0
+
+    assertFailure { client { calls++ }.get("$localUrl/api/me") { probeServer() } }
+      .isInstanceOf<ServerUnreachableException>()
+    assertThat(calls).isEqualTo(0)
+  }
+
+  @Test
   fun `rejoining a network starts fresh`() {
     reachability.unreachable(local)
     assertThat(reachability.shouldFailFast(local)).isTrue()
