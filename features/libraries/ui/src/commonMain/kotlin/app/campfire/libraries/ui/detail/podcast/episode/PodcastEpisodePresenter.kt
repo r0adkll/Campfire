@@ -4,11 +4,14 @@
 package app.campfire.libraries.ui.detail.podcast.episode
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
@@ -47,6 +50,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -172,6 +176,16 @@ class PodcastEpisodePresenter(
     // The app's own snackbar, which outlasts this sheet to tell how a delete went
     val snackbarHost = LocalSnackBarHost.current
 
+    var isDeleting by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<EpisodeDeleteError?>(null) }
+
+    // A delete runs on past the sheet, which can be swiped away before the server answers; a
+    // failure then has nowhere in the sheet to show, so it goes to the app's snackbar instead
+    val isShowing = remember { MutableStateFlow(true) }
+    DisposableEffect(isShowing) {
+      onDispose { isShowing.value = false }
+    }
+
     return PodcastEpisodeUiState(
       libraryItem = libraryItem,
       episode = episode,
@@ -186,6 +200,8 @@ class PodcastEpisodePresenter(
       deleteFileByDefault = deleteFileByDefault,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
+      isDeleting = isDeleting,
+      deleteError = deleteError,
     ) { event ->
       when (event) {
         PodcastEpisodeUiEvent.PlayClick -> {
@@ -304,18 +320,31 @@ class PodcastEpisodePresenter(
         }
 
         is PodcastEpisodeUiEvent.DeleteClick -> {
-          if (!currentUser.canDeleteItems) return@PodcastEpisodeUiState
+          if (!currentUser.canDeleteItems || isDeleting) return@PodcastEpisodeUiState
           analytics.send(ActionEvent("delete_episode", Click, if (event.hardDelete) "hard" else "soft"))
           // The next delete starts from this one's choice
           libraryViewSettings.deleteEpisodeFilesByDefault = event.hardDelete
-          // The episode is on its way out, so the sheet goes with it, and the delete runs on past it
-          navigator.finish(Unit)
+          isDeleting = true
+          deleteError = null
+          // In the user's scope, so the delete finishes even if the sheet is swiped away first
           coroutineScopeHolder.get().launch {
             podcastsRepository.deleteEpisode(episode.libraryItemId, episode.id, event.hardDelete)
-              .onSuccess { snackbarHost.showEpisodeDeleted(episode.title, event.hardDelete) }
+              .onSuccess {
+                // The episode is gone, so its sheet goes too
+                isDeleting = false
+                navigator.finish(Unit)
+                snackbarHost.showEpisodeDeleted(episode.title, event.hardDelete)
+              }
               .onFailure { error ->
                 bark(throwable = error) { "Failed to delete episode ${episode.id}" }
-                snackbarHost.showEpisodeNotDeleted(notAllowed = error is ItemChangeNotAllowedException)
+                val notAllowed = error is ItemChangeNotAllowedException
+                isDeleting = false
+                if (isShowing.value) {
+                  // The sheet stays open to try again, saying why it didn't work
+                  deleteError = if (notAllowed) EpisodeDeleteError.NotAllowed else EpisodeDeleteError.Failed
+                } else {
+                  snackbarHost.showEpisodeNotDeleted(notAllowed)
+                }
               }
           }
         }

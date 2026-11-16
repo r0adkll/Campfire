@@ -3,14 +3,20 @@
 
 package app.campfire.libraries.ui.detail.podcast.episode
 
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.withCompositionLocal
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.ui.detail.podcast.FakeEpisodeDeletingPodcastsRepository
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
@@ -24,19 +30,27 @@ import app.campfire.user.test.FakeUserRepository
 import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.slack.circuit.overlay.OverlayNavigator
+import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.test
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class PodcastEpisodePresenterTest {
 
@@ -83,9 +97,111 @@ class PodcastEpisodePresenterTest {
     coroutineScopeHolder = CoroutineScopeHolder { userScope },
   )
 
+  // The app's snackbar, where a delete tells how it went
+  private val snackbarHost = SnackbarHostState()
+  private val sheetPresenter = object : Presenter<PodcastEpisodeUiState> {
+    @Composable
+    override fun present(): PodcastEpisodeUiState = withCompositionLocal(LocalSnackBarHost provides snackbarHost) {
+      presenter.present()
+    }
+  }
+
   @AfterTest
   fun tearDown() {
     userScope.cancel()
+  }
+
+  /**
+   * Waits for the snackbar to say [message]: its words load off the test's own thread, so this
+   * polls from another, and reads nothing there but the snackbar host's state.
+   */
+  private suspend fun awaitSnackbar(message: String): SnackbarData = withContext(Dispatchers.Default) {
+    withTimeout(5.seconds) {
+      var shown = snackbarHost.currentSnackbarData
+      while (shown?.visuals?.message != message) {
+        delay(10)
+        shown = snackbarHost.currentSnackbarData
+      }
+      shown
+    }
+  }
+
+  @Test
+  fun deleteClick_staysOpenWhileDeleting_thenClosesOnceTheServerSaysSo() = runTest {
+    val gate = CompletableDeferred<Unit>()
+    podcastsRepository.deleteGate = gate
+
+    sheetPresenter.test {
+      awaitItem().eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+
+      val deleting = awaitItemMatching { it.isDeleting }
+      assertThat(deleting.deleteError).isNull()
+      assertThat(finished).isFalse()
+
+      // Pressing again while the server hasn't answered doesn't delete twice
+      deleting.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+      assertThat(podcastsRepository.deleteEpisodeCalls).hasSize(1)
+
+      gate.complete(Unit)
+
+      awaitItemMatching { !it.isDeleting }
+      assertThat(finished).isTrue()
+      awaitSnackbar("Removed Episode One from its podcast")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteClick_thatFails_keepsTheSheetOpenAndSaysWhy() = runTest {
+    podcastsRepository.deleteEpisodeResult = Result.failure(IllegalStateException("Unable to resolve host"))
+
+    sheetPresenter.test {
+      awaitItem().eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+
+      val failed = awaitItemMatching { it.deleteError != null }
+      assertThat(failed.deleteError).isEqualTo(EpisodeDeleteError.Failed)
+      assertThat(failed.isDeleting).isFalse()
+      assertThat(finished).isFalse()
+      // Said in the sheet, not in the app's snackbar behind it
+      assertThat(snackbarHost.currentSnackbarData).isNull()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteClick_refused_saysTheAccountIsNotAllowed_andTryingAgainClearsIt() = runTest {
+    podcastsRepository.deleteEpisodeResult = Result.failure(ItemChangeNotAllowedException())
+
+    sheetPresenter.test {
+      awaitItem().eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+
+      val refused = awaitItemMatching { it.deleteError != null }
+      assertThat(refused.deleteError).isEqualTo(EpisodeDeleteError.NotAllowed)
+
+      podcastsRepository.deleteEpisodeResult = Result.success(Unit)
+      refused.eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+
+      awaitItemMatching { it.deleteError == null }
+      assertThat(finished).isTrue()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteClick_thatFailsAfterTheSheetIsSwipedAway_saysSoInTheAppSnackbar() = runTest {
+    val gate = CompletableDeferred<Unit>()
+    podcastsRepository.deleteGate = gate
+    podcastsRepository.deleteEpisodeResult = Result.failure(IllegalStateException("Unable to resolve host"))
+
+    sheetPresenter.test {
+      awaitItem().eventSink(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
+      awaitItemMatching { it.isDeleting }
+      cancelAndIgnoreRemainingEvents()
+    }
+    // The sheet is gone by the time the server answers
+    gate.complete(Unit)
+
+    awaitSnackbar("Couldn't delete this episode. Check your connection and try again.")
   }
 
   @Test

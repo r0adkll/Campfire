@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -39,7 +41,13 @@ class PodcastEpisodeBottomSheetTest {
   )
   private val events = mutableListOf<PodcastEpisodeUiEvent>()
 
-  private fun state(canDelete: Boolean) = PodcastEpisodeUiState(
+  private fun state(
+    canDelete: Boolean,
+    isDeleting: Boolean = false,
+    deleteError: EpisodeDeleteError? = null,
+  ) = PodcastEpisodeUiState(
+    isDeleting = isDeleting,
+    deleteError = deleteError,
     libraryItem = libraryItem(),
     episode = episode,
     progress = null,
@@ -69,6 +77,32 @@ class PodcastEpisodeBottomSheetTest {
 
     assertThat(events).containsExactly(PodcastEpisodeUiEvent.DeleteClick(hardDelete = false))
     onNodeWithText("Delete Episode One?").assertDoesNotExist()
+  }
+
+  @Test
+  fun whileDeleting_theButtonShowsItAndCannotBePressedAgain() = runComposeUiTest {
+    setContent { Sheet(state(canDelete = true, isDeleting = true)) }
+
+    onNodeWithTag("episode_delete").performScrollTo().assertTextEquals("Deleting…").assertIsNotEnabled()
+  }
+
+  @Test
+  fun aFailedDelete_saysWhyUnderTheButton_whichCanBePressedAgain() = runComposeUiTest {
+    setContent { Sheet(state(canDelete = true, deleteError = EpisodeDeleteError.Failed)) }
+
+    onNodeWithTag("episode_delete_error")
+      .performScrollTo()
+      .assertTextEquals("Couldn't delete this episode. Check your connection and try again.")
+    onNodeWithTag("episode_delete").assertTextEquals("Delete from server…").assertIsEnabled()
+  }
+
+  @Test
+  fun aRefusedDelete_saysTheAccountIsNotAllowed() = runComposeUiTest {
+    setContent { Sheet(state(canDelete = true, deleteError = EpisodeDeleteError.NotAllowed)) }
+
+    onNodeWithTag("episode_delete_error")
+      .performScrollTo()
+      .assertTextEquals("Your account isn't allowed to delete episodes. Ask your server's admin.")
   }
 
   @Test

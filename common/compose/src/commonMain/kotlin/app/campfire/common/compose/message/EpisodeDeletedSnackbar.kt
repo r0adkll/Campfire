@@ -9,6 +9,7 @@ import campfire.common.compose.generated.resources.episode_delete_failed
 import campfire.common.compose.generated.resources.episode_delete_not_allowed
 import campfire.common.compose.generated.resources.episode_deleted_file
 import campfire.common.compose.generated.resources.episode_removed
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 
 /** Tells that the episode titled [episodeTitle] was deleted from the server, and its file if [hardDelete]. */
@@ -22,7 +23,12 @@ suspend fun SnackbarHostState.showEpisodeDeleted(episodeTitle: String, hardDelet
 /** Tells that an episode couldn't be deleted from the server, because the account isn't allowed to if [notAllowed]. */
 suspend fun SnackbarHostState.showEpisodeNotDeleted(notAllowed: Boolean) {
   currentSnackbarData?.dismiss()
-  showSnackbar(
-    getString(if (notAllowed) Res.string.episode_delete_not_allowed else Res.string.episode_delete_failed),
-  )
+  showSnackbar(getString(episodeNotDeletedMessage(notAllowed)))
 }
+
+/**
+ * What to say when an episode couldn't be deleted from the server: that the account isn't allowed
+ * to if [notAllowed], or to check the connection and try again.
+ */
+fun episodeNotDeletedMessage(notAllowed: Boolean): StringResource =
+  if (notAllowed) Res.string.episode_delete_not_allowed else Res.string.episode_delete_failed

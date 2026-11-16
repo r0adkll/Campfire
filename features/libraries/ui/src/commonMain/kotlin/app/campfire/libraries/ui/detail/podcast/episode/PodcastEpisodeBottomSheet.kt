@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.DisabledAlpha
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.linkifyTimestamps
@@ -47,6 +49,7 @@ import app.campfire.common.compose.icons.rounded.SdStorage
 import app.campfire.common.compose.icons.rounded.Today
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.message.episodeNotDeletedMessage
 import app.campfire.common.compose.permission.PermissionState
 import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.widgets.MetadataChip
@@ -66,6 +69,7 @@ import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.rememberRichTextState
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.episode_deleting
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
@@ -292,9 +296,21 @@ internal fun PodcastEpisodeBottomSheet(
     if (state.canDelete) {
       Spacer(Modifier.height(24.dp))
       DeleteEpisodeButton(
+        isDeleting = state.isDeleting,
         onClick = { showDeleteDialog = true },
         modifier = Modifier.fillMaxWidth(),
       )
+      state.deleteError?.let { error ->
+        Spacer(Modifier.height(8.dp))
+        Text(
+          text = stringResource(episodeNotDeletedMessage(notAllowed = error == EpisodeDeleteError.NotAllowed)),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier
+            .fillMaxWidth()
+            .testTag("episode_delete_error"),
+        )
+      }
     }
 
     Spacer(
@@ -303,25 +319,46 @@ internal fun PodcastEpisodeBottomSheet(
   }
 }
 
-/** Asks to delete the episode from the server, set apart at the sheet's end in the error color. */
+/**
+ * Asks to delete the episode from the server, set apart at the sheet's end in the error color.
+ * While [isDeleting] it shows the delete under way and can't be pressed again.
+ */
 @Composable
 private fun DeleteEpisodeButton(
+  isDeleting: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val errorColor = MaterialTheme.colorScheme.error
   OutlinedButton(
     onClick = onClick,
-    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+    enabled = !isDeleting,
+    colors = ButtonDefaults.outlinedButtonColors(
+      contentColor = errorColor,
+      disabledContentColor = errorColor.copy(alpha = DisabledAlpha),
+    ),
+    border = BorderStroke(1.dp, if (isDeleting) errorColor.copy(alpha = DisabledAlpha) else errorColor),
     modifier = modifier.testTag("episode_delete"),
   ) {
-    Icon(
-      CampfireIcons.Rounded.DeleteForever,
-      contentDescription = null,
-      modifier = Modifier.size(ButtonDefaults.IconSize),
-    )
+    if (isDeleting) {
+      CircularProgressIndicator(
+        strokeWidth = 2.dp,
+        color = errorColor,
+        modifier = Modifier.size(ButtonDefaults.IconSize),
+      )
+    } else {
+      Icon(
+        CampfireIcons.Rounded.DeleteForever,
+        contentDescription = null,
+        modifier = Modifier.size(ButtonDefaults.IconSize),
+      )
+    }
     Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-    Text(stringResource(Res.string.menu_item_delete_from_server))
+    Text(
+      stringResource(
+        if (isDeleting) Res.string.episode_deleting else Res.string.menu_item_delete_from_server,
+      ),
+    )
   }
 }
 

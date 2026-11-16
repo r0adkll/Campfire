@@ -16,6 +16,7 @@ import app.campfire.podcasts.api.PodcastFeedDetails
 import app.campfire.podcasts.api.PodcastSearchResult
 import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.podcasts.api.RemotePodcastEpisode
+import kotlinx.coroutines.CompletableDeferred
 
 /** Records episode deletes, the only part of the podcasts repository a podcast's screen uses. */
 class FakeEpisodeDeletingPodcastsRepository : PodcastsRepository {
@@ -29,12 +30,16 @@ class FakeEpisodeDeletingPodcastsRepository : PodcastsRepository {
   var deleteEpisodeResult: Result<Unit> = Result.success(Unit)
   val deleteEpisodeCalls = mutableListOf<DeleteEpisodeCall>()
 
+  /** When set, a delete waits for it, as one waiting on the server would. */
+  var deleteGate: CompletableDeferred<Unit>? = null
+
   override suspend fun deleteEpisode(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId,
     hardDelete: Boolean,
   ): Result<Unit> {
     deleteEpisodeCalls += DeleteEpisodeCall(libraryItemId, episodeId, hardDelete)
+    deleteGate?.await()
     return deleteEpisodeResult
   }
 
