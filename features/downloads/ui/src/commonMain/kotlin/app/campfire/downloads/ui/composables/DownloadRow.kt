@@ -178,9 +178,10 @@ private fun DownloadedRow(
     sharedTransitionKey = entry.key,
     titleOverride = episode?.title,
     subtitleOverride = episode?.let { entry.subtitle() },
-    // An ebook on its own already wears its format as a badge on the cover
-    supportingText = entry.formatLabel.takeUnless { entry is DownloadEntry.Ebook && item.isEbookOnly },
+    // The format sits with the other facts for every kind, so an ebook's isn't also on its cover
+    showEbookFormat = false,
     meta = buildList {
+      entry.formatLabel?.let { add(LibraryItemMeta.Format(it)) }
       add(LibraryItemMeta.Size(entry.sizeInBytes))
       when (entry) {
         is DownloadEntry.Book -> add(LibraryItemMeta.Length(item.media.duration))
