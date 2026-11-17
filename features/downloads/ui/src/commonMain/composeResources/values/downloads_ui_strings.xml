@@ -31,7 +31,6 @@
   <string name="downloads_section_ebooks">E-books</string>
   <string name="downloads_section_unavailable">Unavailable</string>
   <string name="downloads_section_count">%1$d</string>
-  <string name="downloads_section_count_size">%1$d · %2$s</string>
   <plurals name="downloads_section_episodes_size">
     <item quantity="one">%1$d episode · %2$s</item>
     <item quantity="other">%1$d episodes · %2$s</item>

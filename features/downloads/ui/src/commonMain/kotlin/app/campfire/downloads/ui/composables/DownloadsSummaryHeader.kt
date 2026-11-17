@@ -37,7 +37,6 @@ import campfire.features.downloads.ui.generated.resources.downloads_filter_all
 import campfire.features.downloads.ui.generated.resources.downloads_filter_count
 import campfire.features.downloads.ui.generated.resources.downloads_section_audiobooks
 import campfire.features.downloads.ui.generated.resources.downloads_section_count
-import campfire.features.downloads.ui.generated.resources.downloads_section_count_size
 import campfire.features.downloads.ui.generated.resources.downloads_section_ebooks
 import campfire.features.downloads.ui.generated.resources.downloads_section_podcasts
 import campfire.features.downloads.ui.generated.resources.downloads_summary
@@ -135,7 +134,10 @@ private fun StorageBar(
   }
 }
 
-/** A section's name, with how many downloads it holds and what they take up, when that's known. */
+/**
+ * A section's name with what its downloads take up beside it, when that's known, and how many
+ * there are at the end of the line.
+ */
 @Composable
 internal fun DownloadSectionHeader(
   title: String,
@@ -156,14 +158,18 @@ internal fun DownloadSectionHeader(
       style = MaterialTheme.typography.titleSmall,
       modifier = Modifier.semantics { heading() },
     )
-    Spacer(Modifier.size(8.dp))
+    if (sizeInBytes > 0L) {
+      Spacer(Modifier.size(8.dp))
+      Text(
+        text = sizeInBytes.asReadableBytes(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+    Spacer(Modifier.weight(1f))
     Text(
-      text = if (sizeInBytes > 0L) {
-        stringResource(Res.string.downloads_section_count_size, count, sizeInBytes.asReadableBytes())
-      } else {
-        stringResource(Res.string.downloads_section_count, count)
-      },
-      style = MaterialTheme.typography.labelMedium,
+      text = stringResource(Res.string.downloads_section_count, count),
+      style = MaterialTheme.typography.labelLarge,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
   }
