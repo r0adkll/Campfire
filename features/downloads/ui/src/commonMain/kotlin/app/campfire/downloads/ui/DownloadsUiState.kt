@@ -14,7 +14,13 @@ import com.slack.circuit.runtime.CircuitUiState
 
 @Stable
 data class DownloadsUiState(
+  /** The downloads to list, without [pendingDelete] or any already deleted from here. */
   val downloads: LoadState<out List<DownloadEntry>>,
+  /**
+   * The download just taken off the list, which can still be put back: it's only removed from
+   * this device on [DownloadsUiEvent.CommitDelete], when another is deleted, or on leaving.
+   */
+  val pendingDelete: DownloadEntry?,
   val eventSink: (DownloadsUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -55,13 +61,34 @@ sealed interface DownloadEntry {
   }
 }
 
+/** Tells this entry's row from every other, and stays the same as its download goes. */
+val DownloadEntry.key: String
+  get() = when (this) {
+    is DownloadEntry.Book -> libraryItem.id
+    is DownloadEntry.Episode -> "${libraryItem.id}:${episode.id}"
+    is DownloadEntry.Ebook -> "${libraryItem.id}:ebook"
+    is DownloadEntry.Unavailable -> "${download.content.itemId}:unavailable"
+  }
+
 sealed interface DownloadsUiEvent : CircuitUiEvent {
   data object Back : DownloadsUiEvent
   data class DownloadClick(val entry: DownloadEntry) : DownloadsUiEvent
 
+  /** Plays a downloaded book or episode, or opens a downloaded ebook to read. */
+  data class PlayClick(val entry: DownloadEntry) : DownloadsUiEvent
+
   /** Starts a failed or stopped download again. */
   data class RetryDownload(val entry: DownloadEntry) : DownloadsUiEvent
 
-  /** Removes a download from this device, cancelling it if it's still going. */
+  /**
+   * Takes a download off the list, cancelling it if it's still going. It becomes the
+   * [DownloadsUiState.pendingDelete], and the one before it, if any, is removed for good.
+   */
   data class DeleteDownload(val entry: DownloadEntry) : DownloadsUiEvent
+
+  /** Puts the [DownloadsUiState.pendingDelete] back on the list. */
+  data class UndoDelete(val entry: DownloadEntry) : DownloadsUiEvent
+
+  /** Removes the [DownloadsUiState.pendingDelete] from this device, now it can't be undone. */
+  data class CommitDelete(val entry: DownloadEntry) : DownloadsUiEvent
 }

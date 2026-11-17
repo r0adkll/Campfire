@@ -5,12 +5,18 @@
   <string name="action_cancel_download">Cancel download</string>
   <string name="action_retry_download">Retry</string>
   <string name="action_resume_download">Resume</string>
-  <string name="action_dismiss">Dismiss</string>
-  <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
-  <string name="label_confirm_download_cancel">Cancel this download?</string>
+  <string name="action_play_download">Play</string>
+  <string name="action_read_download">Read</string>
+  <string name="action_undo_delete">Undo</string>
+  <string name="downloads_removed">Removed %1$s</string>
   <string name="downloads_error">Couldn't load your downloads</string>
   <string name="downloads_unknown_item">Unknown title</string>
   <string name="downloads_unknown_podcast">Unknown podcast</string>
   <string name="downloads_unavailable_title">Unavailable item</string>
   <string name="downloads_unavailable_description">Details unavailable</string>
+  <string name="download_status_queued">Waiting to download</string>
+  <string name="download_status_stopped">Stopped</string>
+  <string name="download_status_failed">Download failed</string>
+  <string name="download_status_progress">%1$d%</string>
+  <string name="download_status_progress_bytes">%1$d% · %2$s of %3$s</string>
 </resources>

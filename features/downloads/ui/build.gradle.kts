@@ -11,6 +11,8 @@ kotlin {
       dependencies {
         implementation(projects.data.analytics.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.features.reader.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(projects.infra.offline.api)
       }
     }
@@ -19,6 +21,7 @@ kotlin {
       dependencies {
         implementation(projects.data.analytics.test)
         implementation(projects.features.libraries.test)
+        implementation(projects.infra.audioplayer.test)
         implementation(projects.infra.offline.test)
       }
     }
