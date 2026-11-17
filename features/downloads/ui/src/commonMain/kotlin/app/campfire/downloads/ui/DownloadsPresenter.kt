@@ -74,16 +74,24 @@ class DownloadsPresenter(
       onDispose { latestPendingDelete?.let(::delete) }
     }
 
+    var filter by remember { mutableStateOf<DownloadKind?>(null) }
     val hidden = deleted + setOfNotNull(pendingDelete?.key)
-    val listed = remember(entries, hidden) {
+    val content: LoadState<out DownloadsContent> = remember(entries, hidden, filter) {
       when (val loaded = entries) {
-        is LoadState.Loaded -> LoadState.Loaded(loaded.data.filterNot { it.key in hidden })
-        else -> loaded
+        is LoadState.Loaded -> {
+          val listed = loaded.data.filterNot { it.key in hidden }
+          val summary = listed.summary()
+          // A kind whose last download has gone has nothing left to show
+          val shownKind = filter.takeIf { kind -> summary.kinds.any { it.kind == kind } }
+          LoadState.Loaded(DownloadsContent(summary, shownKind, listed.asSections(shownKind)))
+        }
+        LoadState.Loading -> LoadState.Loading
+        LoadState.Error -> LoadState.Error
       }
     }
 
     return DownloadsUiState(
-      downloads = listed,
+      downloads = content,
       pendingDelete = pendingDelete,
     ) { event ->
       when (event) {
@@ -100,6 +108,16 @@ class DownloadsPresenter(
               ),
             )
           }
+        }
+
+        is DownloadsUiEvent.ShowClick -> {
+          analytics.send(ActionEvent("download_show", Click))
+          navigator.goTo(LibraryItemScreen(libraryItemId = event.libraryItem.id))
+        }
+
+        is DownloadsUiEvent.FilterChange -> {
+          analytics.send(ActionEvent("download_filter", Click))
+          filter = event.kind
         }
 
         is DownloadsUiEvent.PlayClick -> when (val entry = event.entry) {

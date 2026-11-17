@@ -88,7 +88,7 @@ class DownloadsPresenterTest {
     presenter.test {
       // Loading until the first row's item is looked up, never an empty list
       assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
-      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loaded(listOf(DownloadEntry.Book(book, bookDownload))))
+      assertThat(awaitItem().downloads).isEqualTo(loaded(DownloadEntry.Book(book, bookDownload)))
     }
   }
 
@@ -96,7 +96,7 @@ class DownloadsPresenterTest {
   fun `shows nothing without downloads`() = runTest {
     presenter.test {
       assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
-      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loaded(emptyList<DownloadEntry>()))
+      assertThat(awaitItem().downloads).isEqualTo(loaded())
     }
   }
 
@@ -108,7 +108,7 @@ class DownloadsPresenterTest {
     presenter.test {
       assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
       assertThat(awaitItem().downloads)
-        .isEqualTo(LoadState.Loaded(listOf(DownloadEntry.Unavailable(bookDownload, sizeInBytes = 0L))))
+        .isEqualTo(loaded(DownloadEntry.Unavailable(bookDownload, sizeInBytes = 0L)))
     }
   }
 
@@ -141,6 +141,50 @@ class DownloadsPresenterTest {
 
       assertThat(navigator.awaitNextScreen())
         .isEqualTo(LibraryItemScreen(libraryItemId = "podcast", episodeId = "ep_1"))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `choosing a kind lists only its downloads, under a summary of them all`() = runTest {
+    libraryItemRepository.libraryItem = book
+    val ebookDownload = Download(DownloadContent.Ebook(book.id), Download.State.Downloaded)
+    downloads.downloads.value = listOf(bookDownload, ebookDownload)
+    val audiobook = DownloadEntry.Book(book, bookDownload)
+    val ebook = DownloadEntry.Ebook(book, ebookDownload)
+
+    presenter.test {
+      awaitLoaded().eventSink(DownloadsUiEvent.FilterChange(DownloadKind.Ebook))
+
+      val filtered = awaitItem().downloads.dataOrNull!!
+      assertThat(filtered.filter).isEqualTo(DownloadKind.Ebook)
+      assertThat(filtered.sections).isEqualTo(listOf(ebook).asSections())
+      assertThat(filtered.summary).isEqualTo(listOf(audiobook, ebook).summary())
+    }
+  }
+
+  @Test
+  fun `a kind whose last download is deleted stops being the filter`() = runTest {
+    libraryItemRepository.libraryItem = book
+    val ebookDownload = Download(DownloadContent.Ebook(book.id), Download.State.Downloaded)
+    downloads.downloads.value = listOf(bookDownload, ebookDownload)
+    val audiobook = DownloadEntry.Book(book, bookDownload)
+
+    presenter.test {
+      awaitLoaded().eventSink(DownloadsUiEvent.FilterChange(DownloadKind.Ebook))
+      awaitItem().eventSink(DownloadsUiEvent.DeleteDownload(DownloadEntry.Ebook(book, ebookDownload)))
+
+      assertThat(awaitItem().downloads).isEqualTo(loaded(audiobook))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `clicking a show opens the podcast`() = runTest {
+    presenter.test {
+      awaitItem().eventSink(DownloadsUiEvent.ShowClick(book))
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(LibraryItemScreen(libraryItemId = book.id))
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -182,7 +226,7 @@ class DownloadsPresenterTest {
       listed.eventSink(DownloadsUiEvent.DeleteDownload(entry))
 
       val pending = awaitItem()
-      assertThat(pending.downloads).isEqualTo(LoadState.Loaded(emptyList<DownloadEntry>()))
+      assertThat(pending.downloads).isEqualTo(loaded())
       assertThat(pending.pendingDelete).isEqualTo(entry)
       assertThat(downloads.invocations).isEmpty()
 
@@ -190,7 +234,7 @@ class DownloadsPresenterTest {
 
       // Stays off the list while its download is being removed
       val committed = awaitItem()
-      assertThat(committed.downloads).isEqualTo(LoadState.Loaded(emptyList<DownloadEntry>()))
+      assertThat(committed.downloads).isEqualTo(loaded())
       assertThat(committed.pendingDelete).isNull()
       assertThat(downloads.invocations).containsExactly(Invocation.Delete(bookDownload.content))
     }
@@ -207,7 +251,7 @@ class DownloadsPresenterTest {
       awaitItem().eventSink(DownloadsUiEvent.UndoDelete(entry))
 
       val undone = awaitItem()
-      assertThat(undone.downloads).isEqualTo(LoadState.Loaded(listOf(entry)))
+      assertThat(undone.downloads).isEqualTo(loaded(entry))
       assertThat(undone.pendingDelete).isNull()
       assertThat(downloads.invocations).isEmpty()
     }
@@ -268,6 +312,15 @@ class DownloadsPresenterTest {
       cancelAndIgnoreRemainingEvents()
     }
   }
+
+  /** The list loaded with [entries], every kind showing. */
+  private fun loaded(vararg entries: DownloadEntry): LoadState<DownloadsContent> = LoadState.Loaded(
+    DownloadsContent(
+      summary = entries.toList().summary(),
+      filter = null,
+      sections = entries.toList().asSections(),
+    ),
+  )
 
   /** The first state with the list loaded. */
   private suspend fun ReceiveTurbine<DownloadsUiState>.awaitLoaded(): DownloadsUiState {

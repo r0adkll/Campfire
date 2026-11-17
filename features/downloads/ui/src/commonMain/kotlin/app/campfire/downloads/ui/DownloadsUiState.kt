@@ -15,7 +15,7 @@ import com.slack.circuit.runtime.CircuitUiState
 @Stable
 data class DownloadsUiState(
   /** The downloads to list, without [pendingDelete] or any already deleted from here. */
-  val downloads: LoadState<out List<DownloadEntry>>,
+  val downloads: LoadState<out DownloadsContent>,
   /**
    * The download just taken off the list, which can still be put back: it's only removed from
    * this device on [DownloadsUiEvent.CommitDelete], when another is deleted, or on leaving.
@@ -23,6 +23,17 @@ data class DownloadsUiState(
   val pendingDelete: DownloadEntry?,
   val eventSink: (DownloadsUiEvent) -> Unit,
 ) : CircuitUiState
+
+/**
+ * @param summary every download listed, whatever the [filter].
+ * @param filter the one kind [sections] holds, or null for every kind.
+ */
+@Immutable
+data class DownloadsContent(
+  val summary: DownloadsSummary,
+  val filter: DownloadKind?,
+  val sections: DownloadSections,
+)
 
 @Immutable
 sealed interface DownloadEntry {
@@ -73,6 +84,12 @@ val DownloadEntry.key: String
 sealed interface DownloadsUiEvent : CircuitUiEvent {
   data object Back : DownloadsUiEvent
   data class DownloadClick(val entry: DownloadEntry) : DownloadsUiEvent
+
+  /** Opens the podcast a group of episodes belongs to. */
+  data class ShowClick(val libraryItem: LibraryItem) : DownloadsUiEvent
+
+  /** Lists only downloads of [kind], or of every kind when it's null. */
+  data class FilterChange(val kind: DownloadKind?) : DownloadsUiEvent
 
   /** Plays a downloaded book or episode, or opens a downloaded ebook to read. */
   data class PlayClick(val entry: DownloadEntry) : DownloadsUiEvent

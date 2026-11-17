@@ -92,6 +92,39 @@ class DownloadsListRenderTest {
   }
 
   @OptIn(ExperimentalSharedTransitionApi::class)
+  @Test
+  fun `the whole list, in its sections`() {
+    val show = libraryItem(id = "podcast")
+    val episodes = (1..5).map { number ->
+      DownloadEntry.Episode(
+        show,
+        episode.copy(id = "episode_$number", title = "Episode $number of the show"),
+        download("podcast").copy(content = DownloadContent.Episode("podcast", "episode_$number")),
+      )
+    }
+    // Its own item, as a row's key is its item's
+    val going = DownloadEntry.Book(libraryItem(id = "going"), unfinished.first().download)
+    val ebookEntry = DownloadEntry.Ebook(
+      ebook,
+      download("ebook", contentLength = 18_637L).copy(content = DownloadContent.Ebook("ebook")),
+    )
+    val entries = listOf(going, downloaded.first(), ebookEntry) + episodes + unfinished.takeLast(1)
+    render("downloads-sections", height = 1150) {
+      PreviewSharedElementTransitionLayout {
+        DownloadList(
+          content = DownloadsContent(entries.summary(), filter = null, sections = entries.asSections()),
+          onFilterChange = {},
+          onShowClick = {},
+          onClick = {},
+          onPlayClick = {},
+          onRetryClick = {},
+          onDelete = {},
+        )
+      }
+    }
+  }
+
+  @OptIn(ExperimentalSharedTransitionApi::class)
   @Composable
   private fun Rows(entries: List<DownloadEntry>) {
     PreviewSharedElementTransitionLayout {
