@@ -79,8 +79,31 @@ class CoverPresenterTest {
 
       isActive = true
 
-      awaitState { state -> state.results.all { it.search is CoverSearch.Found } && state.results.isNotEmpty() }
+      awaitState { it.sources.isNotEmpty() && it.bookImages is BookImages.Loaded }
       assertThat(covers.bookImageLoads).isEqualTo(1)
+      assertThat(sources.providerLoads).isEqualTo(1)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `the search is filled in for the book, but nothing's searched until asked`() = runTest {
+    presenter().test {
+      val ready = awaitReady()
+
+      assertThat(ready.source).isEqualTo(CoverSource.Best)
+      assertThat(ready.title.text.toString()).isEqualTo("Children of Ruin")
+      assertThat(ready.author.text.toString()).isEqualTo("Adrian Tchaikovsky")
+      ready.eventSink(CoverUiEvent.ChooseSource(CoverSource.Single(Google)))
+      val chosen = awaitState { it.source == CoverSource.Single(Google) }
+      assertThat(chosen.results).isEmpty()
+      assertThat(covers.searches).isEmpty()
+
+      chosen.title.setTextAndPlaceCursorAtEnd("Ruin")
+      chosen.eventSink(CoverUiEvent.Search)
+
+      awaitAllFound()
+      assertThat(covers.searches).containsExactly(FakeCoverRepository.Search("google", "Ruin", "Adrian Tchaikovsky"))
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -91,7 +114,7 @@ class CoverPresenterTest {
     covers.covers["google"] = Result.success(listOf(GoogleCover))
 
     presenter().test {
-      val found = awaitAllFound()
+      val found = searchAndAwaitAllFound()
 
       assertThat(found.source).isEqualTo(CoverSource.Best)
       assertThat(found.results).containsExactly(
@@ -114,6 +137,7 @@ class CoverPresenterTest {
     covers.gates["google"] = google
 
     presenter().test {
+      awaitReady().eventSink(CoverUiEvent.Search)
       val partly = awaitState { state -> state.results.any { it.search is CoverSearch.Found } }
       assertThat(partly.results.map { it.search }).containsExactly(
         CoverSearch.Found(listOf(AudibleCover)),
@@ -132,6 +156,7 @@ class CoverPresenterTest {
     covers.covers["google"] = Result.failure(IllegalStateException("timed out"))
 
     presenter().test {
+      awaitReady().eventSink(CoverUiEvent.Search)
       val searched =
         awaitState { state -> state.results.isNotEmpty() && state.results.none { it.search == CoverSearch.Searching } }
 
@@ -148,6 +173,7 @@ class CoverPresenterTest {
     coverSizes.sizes[CurrentCover] = ImageSize(640, 640)
 
     presenter().test {
+      awaitReady().eventSink(CoverUiEvent.Search)
       val sized = awaitState { it.sizes.size == 2 && it.currentSize != null }
 
       assertThat(sized.sizes[AudibleCover]).isEqualTo(ImageSize(2400, 2400))
@@ -162,7 +188,7 @@ class CoverPresenterTest {
   @Test
   fun `one source searches only it, for what was typed`() = runTest {
     presenter().test {
-      val found = awaitAllFound()
+      val found = searchAndAwaitAllFound()
       covers.searches.clear()
 
       found.title.setTextAndPlaceCursorAtEnd("Ruin")
@@ -181,7 +207,7 @@ class CoverPresenterTest {
     covers.covers["google"] = Result.success(listOf(GoogleCover))
 
     presenter().test {
-      awaitAllFound().eventSink(CoverUiEvent.Preview(AudibleCover))
+      searchAndAwaitAllFound().eventSink(CoverUiEvent.Preview(AudibleCover))
 
       val looking = awaitState { it.preview != null }
       assertThat(looking.preview?.covers).isEqualTo(listOf(AudibleCover, GoogleCover))
@@ -200,7 +226,7 @@ class CoverPresenterTest {
   @Test
   fun `only something that looks like an address is looked at`() = runTest {
     presenter().test {
-      val state = awaitAllFound()
+      val state = awaitReady()
       state.eventSink(CoverUiEvent.ChooseMode(CoverMode.Address))
 
       state.address.setTextAndPlaceCursorAtEnd("children of ruin")
@@ -253,13 +279,13 @@ class CoverPresenterTest {
   @Test
   fun `removing chooses no cover, for an account that may, and keeping undoes it`() = runTest {
     presenter(canRemove = false).test {
-      awaitAllFound().eventSink(CoverUiEvent.Remove)
+      awaitReady().eventSink(CoverUiEvent.Remove)
       assertThat(draft.newCover).isNull()
       cancelAndIgnoreRemainingEvents()
     }
 
     presenter(canRemove = true).test {
-      awaitAllFound().eventSink(CoverUiEvent.Remove)
+      awaitReady().eventSink(CoverUiEvent.Remove)
       val removing = awaitState { it.staged != null }
       assertThat(removing.staged).isEqualTo(StagedCover.Removed)
 
@@ -300,6 +326,14 @@ class CoverPresenterTest {
         canRemove = canRemove,
       )
     }
+  }
+
+  /** Once the sources are listed, before anything's searched */
+  private suspend fun ReceiveTurbine<CoverUiState>.awaitReady(): CoverUiState = awaitState { it.sources.isNotEmpty() }
+
+  private suspend fun ReceiveTurbine<CoverUiState>.searchAndAwaitAllFound(): CoverUiState {
+    awaitReady().eventSink(CoverUiEvent.Search)
+    return awaitAllFound()
   }
 
   private suspend fun ReceiveTurbine<CoverUiState>.awaitAllFound(): CoverUiState =

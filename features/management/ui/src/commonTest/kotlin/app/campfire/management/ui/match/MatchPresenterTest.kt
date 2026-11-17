@@ -94,8 +94,31 @@ class MatchPresenterTest {
 
       isActive = true
 
-      awaitFound()
+      awaitReady()
       assertThat(repository.providerLoads).isEqualTo(1)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `the search is filled in for the book, but nothing's searched until asked`() = runTest {
+    presenter().test {
+      val ready = awaitReady()
+
+      assertThat(ready.provider).isEqualTo(Audible)
+      assertThat(ready.title.text.toString()).isEqualTo("B07NDMXD3K")
+      ready.eventSink(MatchUiEvent.ChooseProvider(Google))
+      val chosen = awaitState { it.provider == Google }
+      assertThat(chosen.search).isEqualTo(MatchSearch.NotSearched)
+      assertThat(chosen.title.text.toString()).isEqualTo("Children of Ruin")
+      assertThat(repository.searches).isEmpty()
+
+      chosen.title.setTextAndPlaceCursorAtEnd("Children of Ruin (Unabridged)")
+      chosen.eventSink(MatchUiEvent.Search)
+
+      awaitFound(Google)
+      assertThat(repository.searches)
+        .containsExactly(Search(BookId, "google", "Children of Ruin (Unabridged)", "Adrian Tchaikovsky"))
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -103,7 +126,7 @@ class MatchPresenterTest {
   @Test
   fun `audible is searched first, for the book's ASIN`() = runTest {
     presenter().test {
-      val found = awaitFound()
+      val found = searchAndAwaitFound()
 
       assertThat(found.provider).isEqualTo(Audible)
       assertThat(found.title.text.toString()).isEqualTo("B07NDMXD3K")
@@ -117,7 +140,7 @@ class MatchPresenterTest {
     repository.lastProvider = "google"
 
     presenter().test {
-      assertThat(awaitFound().provider).isEqualTo(Google)
+      assertThat(searchAndAwaitFound().provider).isEqualTo(Google)
       assertThat(repository.searches)
         .containsExactly(Search(BookId, "google", "Children of Ruin", "Adrian Tchaikovsky"))
       cancelAndIgnoreRemainingEvents()
@@ -127,7 +150,7 @@ class MatchPresenterTest {
   @Test
   fun `another source searches again, for what suits it unless something was typed`() = runTest {
     presenter().test {
-      val found = awaitFound()
+      val found = searchAndAwaitFound()
 
       found.eventSink(MatchUiEvent.ChooseProvider(Google))
       awaitFound(Google)
@@ -145,7 +168,7 @@ class MatchPresenterTest {
   @Test
   fun `a book that looks complete only takes what it lacks at first`() = runTest {
     presenter().test {
-      awaitFound().eventSink(MatchUiEvent.Review(match))
+      searchAndAwaitFound().eventSink(MatchUiEvent.Review(match))
 
       val review = awaitReview()
       assertThat(review.mode).isEqualTo(SelectionMode.EmptyOnly)
@@ -157,7 +180,7 @@ class MatchPresenterTest {
   @Test
   fun `a book without a cover takes everything at first`() = runTest {
     presenter(item = book.withoutCover()).test {
-      awaitFound().eventSink(MatchUiEvent.Review(match))
+      searchAndAwaitFound().eventSink(MatchUiEvent.Review(match))
 
       val review = awaitReview()
       assertThat(review.mode).isEqualTo(SelectionMode.All)
@@ -169,7 +192,7 @@ class MatchPresenterTest {
   @Test
   fun `the cover stays out without the upload permission`() = runTest {
     presenter(item = book.withoutCover(), canChangeCover = false).test {
-      awaitFound().eventSink(MatchUiEvent.Review(match))
+      searchAndAwaitFound().eventSink(MatchUiEvent.Review(match))
       val state = awaitState { it.review != null }
       assertThat(state.review!!.selected).containsOnly(MatchField.Subtitle, MatchField.Genres)
 
@@ -187,7 +210,7 @@ class MatchPresenterTest {
     coverSizes.sizes[BookCover] = ImageSize(500, 500)
 
     presenter().test {
-      val found = awaitFound()
+      val found = searchAndAwaitFound()
       found.eventSink(MatchUiEvent.Review(match))
 
       val review = awaitReview { it.newCoverSize != null && it.currentCoverSize != null }
@@ -205,7 +228,7 @@ class MatchPresenterTest {
   @Test
   fun `applying hands on the chosen details and closes the review`() = runTest {
     presenter().test {
-      awaitFound().eventSink(MatchUiEvent.Review(match))
+      searchAndAwaitFound().eventSink(MatchUiEvent.Review(match))
       val state = awaitState { it.review != null }
 
       state.eventSink(MatchUiEvent.Toggle(MatchField.Genres))
@@ -230,7 +253,7 @@ class MatchPresenterTest {
   @Test
   fun `nothing chosen applies nothing`() = runTest {
     presenter().test {
-      awaitFound().eventSink(MatchUiEvent.Review(match))
+      searchAndAwaitFound().eventSink(MatchUiEvent.Review(match))
       val state = awaitState { it.review != null }
 
       state.eventSink(MatchUiEvent.Select(SelectionMode.None))
@@ -247,6 +270,7 @@ class MatchPresenterTest {
     repository.searchResult = { Result.failure(IllegalStateException("Timed out")) }
 
     presenter().test {
+      awaitReady().eventSink(MatchUiEvent.Search)
       val failed = awaitState { it.search is MatchSearch.Failed }
       assertThat(failed.search).isEqualTo(MatchSearch.Failed(Audible))
 
@@ -296,6 +320,15 @@ class MatchPresenterTest {
   }
 
   private fun LibraryItem.withoutCover() = copy(media = media(metadata = details, coverPath = null))
+
+  /** Once the sources are listed and the search filled in for the book, before anything's searched */
+  private suspend fun ReceiveTurbine<MatchUiState>.awaitReady(): MatchUiState =
+    awaitState { it.providers.isNotEmpty() && it.search == MatchSearch.NotSearched }
+
+  private suspend fun ReceiveTurbine<MatchUiState>.searchAndAwaitFound(): MatchUiState {
+    awaitReady().eventSink(MatchUiEvent.Search)
+    return awaitFound()
+  }
 
   private suspend fun ReceiveTurbine<MatchUiState>.awaitFound(provider: MatchProvider? = null): MatchUiState =
     awaitState { state ->
