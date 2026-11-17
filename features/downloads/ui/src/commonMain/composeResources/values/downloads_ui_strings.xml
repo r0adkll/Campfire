@@ -7,7 +7,7 @@
   <string name="action_resume_download">Resume</string>
   <string name="action_dismiss">Dismiss</string>
   <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
-  <string name="label_confirm_download_cancel">Cancel this download? What's downloaded so far is removed.</string>
+  <string name="label_confirm_download_cancel">Cancel this download?</string>
   <string name="downloads_error">Couldn't load your downloads</string>
   <string name="downloads_unknown_item">Unknown title</string>
   <string name="downloads_unknown_podcast">Unknown podcast</string>
