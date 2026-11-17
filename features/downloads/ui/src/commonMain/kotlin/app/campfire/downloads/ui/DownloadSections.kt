@@ -27,7 +27,7 @@ val DownloadEntry.kind: DownloadKind
 private val DownloadEntry.isFinished: Boolean
   get() = this !is DownloadEntry.Unavailable && download.state == Download.State.Downloaded
 
-/** A podcast's downloaded episodes, most recently downloaded first. */
+/** A podcast's downloaded episodes, most recently published first. */
 @Immutable
 data class ShowDownloads(
   val libraryItem: LibraryItem,
@@ -60,7 +60,14 @@ internal fun List<DownloadEntry>.asSections(kind: DownloadKind? = null): Downloa
     audiobooks = finished.filterIsInstance<DownloadEntry.Book>(),
     shows = finished.filterIsInstance<DownloadEntry.Episode>()
       .groupBy { it.libraryItem.id }
-      .map { (_, episodes) -> ShowDownloads(episodes.first().libraryItem, episodes) }
+      .map { (_, episodes) ->
+        // Newest first, as a show's own page lists them, rather than by when each was downloaded,
+        // which would shuffle them as downloads come and go
+        ShowDownloads(
+          libraryItem = episodes.first().libraryItem,
+          episodes = episodes.sortedByDescending { it.episode.publishedAtMillis ?: 0L },
+        )
+      }
       // By name, so shows keep their places as their episodes come and go
       .sortedBy { it.libraryItem.media.metadata.title.orEmpty().lowercase() },
     ebooks = finished.filterIsInstance<DownloadEntry.Ebook>(),

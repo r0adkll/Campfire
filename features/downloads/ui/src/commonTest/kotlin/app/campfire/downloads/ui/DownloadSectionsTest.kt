@@ -59,6 +59,14 @@ class DownloadSectionsTest {
   }
 
   @Test
+  fun `a show's episodes are listed newest first, whenever they were downloaded`() {
+    val older = a1.copy(episode = a1.episode.copy(publishedAtMillis = 1_000L))
+    val newer = a2.copy(episode = a2.episode.copy(publishedAtMillis = 2_000L))
+
+    assertThat(listOf(older, newer).asSections().shows.single().episodes).containsExactly(newer, older)
+  }
+
+  @Test
   fun `one kind narrows every section to it`() {
     val sections = all.asSections(DownloadKind.Podcast)
 
