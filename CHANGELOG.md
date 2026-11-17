@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing loading and the connection indicator staying red after your server was briefly unreachable, until the app was restarted
 - Campfire taking up to ten more minutes to notice your server is back when its check was interrupted, such as by leaving the screen
+- Being signed out for no reason, most often after leaving a screen right as the app reopened from a long break
+- Requests going out with the previous account's sign-in right after switching accounts
 - Crash right after signing out of your only account
 - Signing out of one account switching you to another that needs to sign in again, where nothing would load
 - Reopening the app after your sign-in expired starting over from the welcome screen instead of asking you to sign in to that server again

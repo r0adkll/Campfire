@@ -29,6 +29,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.test.Test
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 
@@ -126,6 +128,35 @@ class UserClientTokenRefresherTest {
     assertThat(result).isEqualTo(AbsToken("access-new", "refresh-new"))
     assertThat(accountManager.invalidatedUser).isNull()
     assertThat(gate.status.value).isEqualTo(Reachability.Reachable)
+  }
+
+  @Test
+  fun aRefreshTheServerAlreadyCommittedSurvivesItsRequestBeingCancelled() = runTest {
+    val accountManager = FakeAccountManager().apply {
+      tokens[user.id] = AbsToken("access-old", "refresh-old")
+    }
+    val sessionManager = FakeUserSessionManager(UserSession.LoggedIn(user))
+    // The server rotates the refresh token the moment it handles the request; the response is
+    // still on its way back when the screen that made the request goes away.
+    val rotated = CompletableDeferred<Unit>()
+    val respond = CompletableDeferred<Unit>()
+    val engine = MockEngine { request ->
+      if (request.url.encodedPath == "/auth/refresh") {
+        rotated.complete(Unit)
+        respond.await()
+      }
+      absServer(request)
+    }
+    val refresher = refresher(engine, accountManager, sessionManager)
+
+    val request = launch { refresher.refresh(user.id, user.serverUrl, "access-old") }
+    rotated.await()
+    request.cancel()
+    respond.complete(Unit)
+    request.join()
+
+    // "refresh-old" is spent on the server, so losing the rotated pair means signing in again
+    assertThat(accountManager.tokens[user.id]).isEqualTo(AbsToken("access-new", "refresh-new"))
   }
 
   @Test

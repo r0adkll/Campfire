@@ -66,6 +66,28 @@ class UserClientSessionTest {
   }
 
   @Test
+  fun switchingAccountsOnTheSameServerSwitchesTheToken() = runTest {
+    val other = testUser.copy(id = "other-user")
+    val accountManager = FakeAccountManager().apply {
+      tokens[testUser.id] = AbsToken("access-first", "refresh-first")
+      tokens[other.id] = AbsToken("access-other", "refresh-other")
+    }
+    val sessionManager = FakeUserSessionManager(UserSession.LoggedIn(testUser))
+    val authorizations = mutableListOf<String?>()
+    val engine = MockEngine { request ->
+      authorizations += request.headers[HttpHeaders.Authorization]
+      respond("{}", HttpStatusCode.OK, jsonHeaders)
+    }
+    val client = client(engine, accountManager, sessionManager)
+
+    client.get("https://abs.example.com/api/me")
+    sessionManager.current = UserSession.LoggedIn(other)
+    client.get("https://abs.example.com/api/me")
+
+    assertThat(authorizations).containsExactly("Bearer access-first", "Bearer access-other")
+  }
+
+  @Test
   fun requestWithoutUserIsSentWithoutExtraHeaders() = runTest {
     val accountManager = FakeAccountManager().apply {
       extraHeaders = mapOf("X-Proxy-Auth" to "secret")
