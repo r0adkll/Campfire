@@ -412,7 +412,7 @@ class ItemEditorPresenterTest {
     }
   }
 
-  /** Opens matching from [state] and a review of [match] once the search finds something */
+  /** Opens matching from [state], searches, and opens a review of [match] once it's found */
   private suspend fun ReceiveTurbine<ItemEditorUiState>.reviewMatch(
     state: ItemEditorUiState,
     match: BookMatch =
@@ -420,6 +420,8 @@ class ItemEditorPresenterTest {
   ): ItemEditorUiState {
     matchRepository.searchResult = { Result.success(listOf(match)) }
     state.eventSink(ItemEditorUiEvent.ShowSection(EditorSection.Match))
+    awaitState { it.match.providers.isNotEmpty() && it.match.search == MatchSearch.NotSearched }
+      .match.eventSink(MatchUiEvent.Search)
     awaitState { it.match.search is MatchSearch.Found }.match.eventSink(MatchUiEvent.Review(match))
     return awaitState { it.match.review != null }
   }

@@ -40,7 +40,8 @@ fun interface MatchApplier {
 /**
  * Drives matching a book against a source: listing the sources, searching one, and comparing a
  * result with what's in [draft], to [MatchApplier.apply] the details chosen from it. Nothing
- * loads until the section is [isActive].
+ * loads until the section is [isActive], and nothing's searched until asked: a book's details are
+ * often wrong enough that a search for them would only be in the way of fixing them.
  */
 @Inject
 class MatchPresenter(
@@ -121,8 +122,9 @@ class MatchPresenter(
       }
     }
 
-    // The sources, then the first search, once the section first shows
-    fun start() {
+    // The sources, with the search filled in for the first of them, once the section first shows;
+    // searching too when that's what was asked for
+    fun start(thenSearch: Boolean) {
       if (item == null) return
       searchJob?.cancel()
       search = MatchSearch.Searching
@@ -135,7 +137,11 @@ class MatchPresenter(
               ?: listed.firstOrNull()
             providerId = source?.id
             if (isPrefilled()) prefill(source)
-            if (source != null) runSearch(source) else search = MatchSearch.Failed(null)
+            when {
+              source == null -> search = MatchSearch.Failed(null)
+              thenSearch -> runSearch(source)
+              else -> search = MatchSearch.NotSearched
+            }
           }
           .onFailure { error ->
             bark(throwable = error) { "Failed to list the sources to match ${item.id} from" }
@@ -145,7 +151,9 @@ class MatchPresenter(
     }
 
     LaunchedEffect(isActive, item != null) {
-      if (isActive && item != null && providers.isEmpty() && search == MatchSearch.NotSearched) start()
+      if (isActive && item != null && providers.isEmpty() && search == MatchSearch.NotSearched) {
+        start(thenSearch = false)
+      }
     }
 
     val review = reviewing?.let { match ->
@@ -184,7 +192,7 @@ class MatchPresenter(
 
         MatchUiEvent.Search -> {
           val source = currentProvider()
-          if (source == null) start() else runSearch(source)
+          if (source == null) start(thenSearch = true) else runSearch(source)
         }
 
         is MatchUiEvent.Review -> {

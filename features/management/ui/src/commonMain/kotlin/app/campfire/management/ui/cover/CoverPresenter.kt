@@ -33,7 +33,9 @@ import kotlinx.coroutines.sync.withPermit
 /**
  * Drives choosing a new cover for a book: searching the server's sources, an image's address, or
  * the book's own images, or none at all. A chosen cover goes in [draft], to take the place of the
- * book's own once the details are saved. Nothing loads until the section is [isActive].
+ * book's own once the details are saved. Nothing loads until the section is [isActive], and the
+ * sources aren't searched until asked: a book's details are often wrong enough that a search for
+ * them would only be in the way of fixing them.
  */
 @Inject
 class CoverPresenter(
@@ -124,7 +126,23 @@ class CoverPresenter(
       }
     }
 
-    // The sources, the book's own images and a first search, once the section first shows
+    // The sources to search, searching them too when that's what was asked for
+    fun loadSources(thenSearch: Boolean) {
+      if (!canUseAddresses) return
+      scope.launch {
+        matchRepository.getBookProviders()
+          .onSuccess { listed ->
+            providers = listed
+            source = CoverSource.Best
+            if (thenSearch) runSearch(CoverSource.Best)
+          }
+          .onFailure { error ->
+            bark(throwable = error) { "Failed to list the sources to find covers in" }
+          }
+      }
+    }
+
+    // The search filled in for the book, its own images and the sources, once the section first shows
     fun start(book: LibraryItem) {
       book.media.metadata.let { metadata ->
         title.setTextAndPlaceCursorAtEnd(metadata.title.orEmpty())
@@ -132,18 +150,7 @@ class CoverPresenter(
       }
       currentUrl?.let(::measure)
       loadBookImages(book.id)
-      if (!canUseAddresses) return
-      scope.launch {
-        matchRepository.getBookProviders()
-          .onSuccess { listed ->
-            providers = listed
-            source = CoverSource.Best
-            runSearch(CoverSource.Best)
-          }
-          .onFailure { error ->
-            bark(throwable = error) { "Failed to list the sources to find covers in" }
-          }
-      }
+      loadSources(thenSearch = false)
     }
 
     LaunchedEffect(isActive, item != null) {
@@ -178,12 +185,13 @@ class CoverPresenter(
 
         is CoverUiEvent.ChooseSource -> {
           source = event.source
-          runSearch(event.source)
+          // Searching again only once there's been a search, as the terms may still need fixing
+          if (results.isNotEmpty()) runSearch(event.source)
         }
 
         CoverUiEvent.Search -> {
           val chosen = source
-          if (chosen != null) runSearch(chosen) else item?.let(::start)
+          if (chosen != null) runSearch(chosen) else loadSources(thenSearch = true)
         }
 
         is CoverUiEvent.Preview -> {
