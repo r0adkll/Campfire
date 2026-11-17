@@ -82,6 +82,7 @@ fun DownloadsUi(
     contentWindowInsets = CampfireWindowInsets,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
+    val layoutDirection = LocalLayoutDirection.current
     when (val downloads = state.downloads) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
 
@@ -108,7 +109,14 @@ fun DownloadsUi(
           onPlayClick = { state.eventSink(DownloadsUiEvent.PlayClick(it)) },
           onRetryClick = { state.eventSink(DownloadsUiEvent.RetryDownload(it)) },
           onDelete = { state.eventSink(DownloadsUiEvent.DeleteDownload(it)) },
-          contentPadding = paddingValues,
+          // Starts under the top bar rather than scrolling beneath it, where a heading stuck to
+          // the top of the list would be hidden
+          modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
+          contentPadding = PaddingValues(
+            start = paddingValues.calculateStartPadding(layoutDirection),
+            end = paddingValues.calculateEndPadding(layoutDirection),
+            bottom = paddingValues.calculateBottomPadding(),
+          ),
         )
       }
     }

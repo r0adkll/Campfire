@@ -45,7 +45,7 @@ data class DownloadSections(
   /** Queued, downloading, stopped and failed downloads, whatever their kind. */
   val inProgress: List<DownloadEntry> = emptyList(),
   val audiobooks: List<DownloadEntry.Book> = emptyList(),
-  /** Finished episodes under their podcasts, in the order of each podcast's first episode. */
+  /** Finished episodes under their podcasts, the podcasts in order of their names. */
   val shows: List<ShowDownloads> = emptyList(),
   val ebooks: List<DownloadEntry.Ebook> = emptyList(),
   val unavailable: List<DownloadEntry.Unavailable> = emptyList(),
@@ -60,7 +60,9 @@ internal fun List<DownloadEntry>.asSections(kind: DownloadKind? = null): Downloa
     audiobooks = finished.filterIsInstance<DownloadEntry.Book>(),
     shows = finished.filterIsInstance<DownloadEntry.Episode>()
       .groupBy { it.libraryItem.id }
-      .map { (_, episodes) -> ShowDownloads(episodes.first().libraryItem, episodes) },
+      .map { (_, episodes) -> ShowDownloads(episodes.first().libraryItem, episodes) }
+      // By name, so shows keep their places as their episodes come and go
+      .sortedBy { it.libraryItem.media.metadata.title.orEmpty().lowercase() },
     ebooks = finished.filterIsInstance<DownloadEntry.Ebook>(),
     unavailable = entries.filterIsInstance<DownloadEntry.Unavailable>(),
   )

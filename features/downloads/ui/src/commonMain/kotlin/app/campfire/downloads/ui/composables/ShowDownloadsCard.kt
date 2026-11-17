@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,6 +45,7 @@ import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.downloads.ui.DownloadEntry
 import app.campfire.downloads.ui.ShowDownloads
+import app.campfire.downloads.ui.key
 import app.campfire.downloads.ui.sizeInBytes
 import campfire.features.downloads.ui.generated.resources.Res
 import campfire.features.downloads.ui.generated.resources.action_play_download
@@ -114,15 +116,19 @@ internal fun ShowDownloadsCard(
     var expanded by rememberSaveable { mutableStateOf(false) }
     val shown = if (expanded) show.episodes else show.episodes.take(CollapsedEpisodes)
     shown.forEach { entry ->
-      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-      EpisodeDownloadRow(
-        entry = entry,
-        onClick = { onEpisodeClick(entry) },
-        onPlayClick = { onPlayClick(entry) },
-        onDelete = { onDelete(entry) },
-        // Opaque, so the delete behind it only shows as it's swiped
-        containerColor = containerColor,
-      )
+      // Keyed, or the episode moving up into a swiped-away row's place would take over its
+      // swipe, and be deleted along with it
+      key(entry.key) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+        EpisodeDownloadRow(
+          entry = entry,
+          onClick = { onEpisodeClick(entry) },
+          onPlayClick = { onPlayClick(entry) },
+          onDelete = { onDelete(entry) },
+          // Opaque, so the delete behind it only shows as it's swiped
+          containerColor = containerColor,
+        )
+      }
     }
 
     if (show.episodes.size > CollapsedEpisodes) {
