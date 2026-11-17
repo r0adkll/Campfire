@@ -9,6 +9,7 @@ import systems.danger.kotlin.*
 import systems.danger.kotlin.models.github.GitHubUserType
 
 private val MIGRATION_VERSION_REGEX = "([0-9]+)\\.sqm\$".toRegex()
+private val MIGRATIONS_DIR = "data/db/core/src/commonMain/sqldelight/migrations"
 
 // CHANGELOG.md platform tags — keep in sync with ChangelogPlatform in gradle/build-logic.
 private val ANDROID = "Android"
@@ -146,6 +147,35 @@ danger(args) {
       }
     } else if (ignoreDbChanges) {
       warn("Ignoring DB schema changes due to `ignore-db-change` label")
+    }
+
+    // Alpha builds ship from main, so a merged migration may already have run on a tester's
+    // database, which then never runs it again. Schema changes go in a new migration instead.
+    val editedMigrations = (git.modifiedFiles + git.deletedFiles).filter { it.endsWith(".sqm") }.toMutableList()
+
+    // A rename may not be listed as a modification, so also check the migrations on disk: their
+    // numbers must run 1..N, and each one this PR adds must come after every one already merged.
+    val migrations = java.io.File(MIGRATIONS_DIR).listFiles().orEmpty().mapNotNull { file ->
+      val number = MIGRATION_VERSION_REGEX.find(file.name)?.groupValues?.get(1)?.toInt()
+      number?.let { "$MIGRATIONS_DIR/${file.name}" to it }
+    }.toMap()
+    val (added, merged) = migrations.entries.partition { it.key in git.createdFiles }
+    val newestMerged = merged.maxOfOrNull { it.value } ?: 0
+    editedMigrations += added.filter { it.value <= newestMerged }.map { it.key }
+    val numbers = migrations.values.sorted()
+    if (numbers != (1..numbers.size).toList()) {
+      editedMigrations += "migration numbers $numbers (expected 1..${numbers.size})"
+    }
+
+    if (editedMigrations.isNotEmpty()) {
+      if (issue.labels.any { it.name == "edit-merged-migration" }) {
+        warn("Editing merged migrations due to `edit-merged-migration` label: ${editedMigrations.joinToString()}")
+      } else {
+        fail(
+          "Merged migrations can't change, as alpha testers may already have run them: " +
+            "${editedMigrations.joinToString()}. Add the change to a new `{N+1}.sqm` instead.",
+        )
+      }
     }
   }
 
