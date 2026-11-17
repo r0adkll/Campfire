@@ -40,16 +40,19 @@ class SecureTokenStorage(
   }
 
   override suspend fun put(userId: UserId, token: AbsToken) {
-    settings.putString(
-      key = accessTokenStorageKey(userId),
-      value = token.accessToken,
-    )
+    // The refresh token goes first. The two writes aren't atomic, and a rotation has already spent
+    // the old refresh token on the server: if the app dies between them, a new refresh token with
+    // an old access token recovers on the next refresh, while the reverse can never refresh again.
     token.refreshToken?.let {
       settings.putString(
         key = refreshTokenStorageKey(userId),
         value = it,
       )
     } ?: settings.remove(refreshTokenStorageKey(userId))
+    settings.putString(
+      key = accessTokenStorageKey(userId),
+      value = token.accessToken,
+    )
   }
 
   override suspend fun remove(userId: UserId) {

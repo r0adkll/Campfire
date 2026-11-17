@@ -9,6 +9,7 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.model.UserId
 import app.campfire.core.session.user
 import app.campfire.core.session.userId
 import app.campfire.network.RefreshResponse
@@ -49,6 +50,7 @@ import io.ktor.http.Url
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.concurrent.Volatile
 import kotlinx.serialization.json.Json
 
 private const val AUDIO_PLAYER_CONNECT_TIMEOUT_MILLIS = 8_000L
@@ -359,64 +361,94 @@ internal fun Url.isOnServer(serverUrl: String): Boolean {
 internal fun userBearerAuthProvider(
   userSessionManager: UserSessionManager,
   accountManager: AccountManager,
-): BearerAuthProvider = BearerAuthProvider(
-  // Ktor sends the token with every request by default; only the user's server may receive it.
-  sendWithoutRequestCallback = { request -> userSessionManager.isUserServerUrl(request.url.build()) },
-  loadTokens = {
-    userSessionManager.current.userId?.let { userId ->
-      accountManager.getToken(userId)?.asBearerTokens()
-    }
-  },
-  refreshTokens = refreshTokens@{
-    // Pin the user for the whole refresh: the session can end or switch while the refresh
-    // request is in flight, and the rotated token belongs to the user it was issued for.
-    val user = userSessionManager.current.user ?: return@refreshTokens null
-    val tokens = accountManager.getToken(user.id)
-
-    // Clients sharing this provider keep their own record of which requests predate a
-    // refresh, so one can see a 401 for a token another has already rotated. Retry with the
-    // stored token instead of spending its refresh token on a second rotation.
-    val sentAccessToken = response.request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
-    if (tokens != null && sentAccessToken != null && sentAccessToken != tokens.accessToken) {
-      return@refreshTokens tokens.asBearerTokens()
-    }
-
-    val newTokenResponse = client.post {
-      url("${cleanServerUrl(user.serverUrl)}/auth/refresh")
-      tokens?.refreshToken?.let {
-        header(HttpHeaders.RefreshToken, it)
+): BearerAuthProvider {
+  val cachedFor = CachedTokenOwner()
+  lateinit var provider: BearerAuthProvider
+  provider = BearerAuthProvider(
+    // Ktor sends the token with every request by default; only the user's server may receive it.
+    sendWithoutRequestCallback = { request ->
+      // The provider caches the bearer pair for as long as it lives, across sessions. This runs
+      // ahead of every request, so drop the cached pair here once it belongs to someone else, or
+      // the next account's requests would go out with the previous account's token.
+      if (cachedFor.changedTo(userSessionManager.current.userId)) provider.clearToken()
+      userSessionManager.isUserServerUrl(request.url.build())
+    },
+    loadTokens = {
+      userSessionManager.current.userId?.let { userId ->
+        accountManager.getToken(userId)?.asBearerTokens()
       }
-      markAsRefreshTokenRequest()
-      // A refresh only runs because the server just answered 401, and that answer hasn't reached
-      // the reachability gate yet (it wraps this plugin), so a stale belief would skip this.
-      probeServer()
-    }
+    },
+    refreshTokens = refreshTokens@{
+      // Pin the user for the whole refresh: the session can end or switch while the refresh
+      // request is in flight, and the rotated token belongs to the user it was issued for.
+      val user = userSessionManager.current.user ?: return@refreshTokens null
+      val tokens = accountManager.getToken(user.id)
 
-    return@refreshTokens if (newTokenResponse.status.isSuccess()) {
-      try {
-        val newToken = newTokenResponse.body<RefreshResponse>().asAbsToken()
-        if (newToken != null) {
-          accountManager.updateToken(user.id, newToken)
-          newToken.asBearerTokens()
-        } else {
-          bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
-          accountManager.invalidateAccount(user)
+      // Clients sharing this provider keep their own record of which requests predate a
+      // refresh, so one can see a 401 for a token another has already rotated. Retry with the
+      // stored token instead of spending its refresh token on a second rotation.
+      val sentAccessToken = response.request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+      if (tokens != null && sentAccessToken != null && sentAccessToken != tokens.accessToken) {
+        return@refreshTokens tokens.asBearerTokens()
+      }
+
+      val newTokenResponse = client.post {
+        url("${cleanServerUrl(user.serverUrl)}/auth/refresh")
+        tokens?.refreshToken?.let {
+          header(HttpHeaders.RefreshToken, it)
+        }
+        markAsRefreshTokenRequest()
+        // A refresh only runs because the server just answered 401, and that answer hasn't reached
+        // the reachability gate yet (it wraps this plugin), so a stale belief would skip this.
+        probeServer()
+      }
+
+      return@refreshTokens if (newTokenResponse.status.isSuccess()) {
+        try {
+          val newToken = newTokenResponse.body<RefreshResponse>().asAbsToken()
+          if (newToken != null) {
+            accountManager.updateToken(user.id, newToken)
+            // The pair is stored for the user it was issued to. If the session moved to another
+            // account meanwhile, don't hand it to the provider to cache for that account.
+            newToken.asBearerTokens().takeIf { userSessionManager.current.userId == user.id }
+          } else {
+            bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
+            accountManager.invalidateAccount(user)
+            null
+          }
+        } catch (e: Exception) {
+          bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
           null
         }
-      } catch (e: Exception) {
-        bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
+      } else {
+        bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
+        if (
+          newTokenResponse.status == HttpStatusCode.Unauthorized ||
+          newTokenResponse.status == HttpStatusCode.Forbidden
+        ) {
+          accountManager.invalidateAccount(user)
+        }
         null
       }
-    } else {
-      bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
-      if (
-        newTokenResponse.status == HttpStatusCode.Unauthorized ||
-        newTokenResponse.status == HttpStatusCode.Forbidden
-      ) {
-        accountManager.invalidateAccount(user)
-      }
-      null
-    }
-  },
-  realm = null,
-)
+    },
+    realm = null,
+    // The server rotates the single-use refresh token as soon as it handles the request. If the
+    // request that triggered the refresh is cancelled after that (its screen closed), abandoning
+    // the refresh would lose the new pair and leave a spent refresh token stored.
+    nonCancellableRefresh = true,
+  )
+  return provider
+}
+
+/** Which user the bearer provider's cached token was loaded for. */
+private class CachedTokenOwner {
+  @Volatile
+  private var userId: UserId? = null
+
+  /** Records [current] as the owner, returning whether that is a change. */
+  fun changedTo(current: UserId?): Boolean {
+    if (current == userId) return false
+    userId = current
+    return true
+  }
+}

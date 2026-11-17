@@ -25,6 +25,7 @@ actual interface PlatformTokenSettingsComponent {
     context = application,
     name = "secure_tokens",
     legacyName = "token_shared_prefs",
+    commit = true,
   )
 
   @SingleIn(AppScope::class)

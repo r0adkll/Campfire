@@ -18,11 +18,15 @@ import com.russhwolf.settings.SharedPreferencesSettings
  * When [legacyName] is given, the first access moves the entries of that deprecated
  * `EncryptedSharedPreferences` file into this store and deletes it. A legacy file that can't be
  * opened is deleted too: its entries are unreadable either way.
+ *
+ * With [commit], each write is on disk before it returns instead of being queued, for values that
+ * can't be recovered if the process dies before the queue drains.
  */
 fun keystoreSettings(
   context: Context,
   name: String,
   legacyName: String? = null,
+  commit: Boolean = false,
 ): Settings {
   val cipher = KeystoreSettingsCipher(alias = "app.campfire.securesettings.$name")
   return EncryptedSettings(cipher) {
@@ -32,7 +36,7 @@ fun keystoreSettings(
       val committing = EncryptedSettings(cipher) { SharedPreferencesSettings(prefs, commit = true) }
       migrateLegacyStore(context, legacyName, committing)
     }
-    SharedPreferencesSettings(prefs)
+    SharedPreferencesSettings(prefs, commit = commit)
   }
 }
 
