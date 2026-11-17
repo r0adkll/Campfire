@@ -7,6 +7,7 @@ import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.common.screens.DownloadsScreen
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.PodcastEpisode
@@ -279,6 +280,42 @@ class DownloadsPresenterTest {
   }
 
   @Test
+  fun `deleting several downloads removes them at once, with the one waiting to be undone`() = runTest {
+    libraryItemRepository.libraryItem = book
+    downloads.downloads.value = listOf(bookDownload)
+    val waiting = DownloadEntry.Book(other, otherDownload)
+    val entry = DownloadEntry.Book(book, bookDownload)
+
+    presenter.test {
+      val state = awaitLoaded()
+      state.eventSink(DownloadsUiEvent.DeleteDownload(waiting))
+      state.eventSink(DownloadsUiEvent.DeleteDownloads(listOf(entry, episodeEntry)))
+
+      var latest = awaitItem()
+      while (latest.downloads != loaded() || latest.pendingDelete != null) latest = awaitItem()
+      assertThat(downloads.invocations).containsExactly(
+        Invocation.Delete(otherDownload.content),
+        Invocation.Delete(bookDownload.content),
+        Invocation.Delete(episodeEntry.download.content),
+      )
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    // Nothing was left waiting, to be removed again on leaving
+    assertThat(downloads.invocations.size).isEqualTo(3)
+  }
+
+  @Test
+  fun `the settings for downloads open from here`() = runTest {
+    presenter.test {
+      awaitItem().eventSink(DownloadsUiEvent.OpenSettings)
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(SettingsScreen(SettingsScreen.Page.Downloads))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `leaving the screen removes a delete still waiting to be undone`() = runTest {
     presenter.test {
       awaitItem().eventSink(DownloadsUiEvent.DeleteDownload(DownloadEntry.Book(book, bookDownload)))
@@ -316,6 +353,7 @@ class DownloadsPresenterTest {
   /** The list loaded with [entries], every kind showing. */
   private fun loaded(vararg entries: DownloadEntry): LoadState<DownloadsContent> = LoadState.Loaded(
     DownloadsContent(
+      entries = entries.toList(),
       summary = entries.toList().summary(),
       filter = null,
       sections = entries.toList().asSections(),

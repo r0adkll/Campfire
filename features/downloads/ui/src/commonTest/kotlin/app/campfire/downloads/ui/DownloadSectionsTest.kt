@@ -5,6 +5,7 @@ package app.campfire.downloads.ui
 
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.core.model.preview.mediaProgress
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import assertk.assertThat
@@ -95,6 +96,22 @@ class DownloadSectionsTest {
       KindSummary(DownloadKind.Ebook, count = 1, sizeInBytes = 2_000L),
     )
     assertThat(summary.sizeInBytes).isEqualTo(summary.kinds.sumOf { it.sizeInBytes })
+  }
+
+  @Test
+  fun `only downloaded books and ebooks marked finished are finished books`() {
+    val finishedItem = libraryItem(id = "finished", userMediaProgress = mediaProgress(isFinished = true))
+    val finishedBook = DownloadEntry.Book(finishedItem, downloaded(DownloadContent.Audiobook("finished")))
+    val finishedEbook = DownloadEntry.Ebook(finishedItem, downloaded(DownloadContent.Ebook("finished")))
+    val stillGoing = DownloadEntry.Book(
+      finishedItem,
+      Download(DownloadContent.Audiobook("finished"), Download.State.Downloading),
+    )
+    val finishedShowEpisode = a1.copy(libraryItem = finishedItem)
+
+    val finished = (all + listOf(finishedBook, finishedEbook, stillGoing, finishedShowEpisode)).finishedBooks
+
+    assertThat(finished).containsExactly(finishedBook, finishedEbook)
   }
 
   @Test

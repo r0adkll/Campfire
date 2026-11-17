@@ -4,37 +4,59 @@
 package app.campfire.downloads.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.MoreVert
+import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.DownloadsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
 import app.campfire.downloads.ui.composables.DownloadRow
 import app.campfire.downloads.ui.composables.DownloadSectionHeader
@@ -42,8 +64,19 @@ import app.campfire.downloads.ui.composables.DownloadsSummaryHeader
 import app.campfire.downloads.ui.composables.ShowDownloadsCard
 import app.campfire.downloads.ui.composables.title
 import campfire.features.downloads.ui.generated.resources.Res
+import campfire.features.downloads.ui.generated.resources.action_delete_all
+import campfire.features.downloads.ui.generated.resources.action_delete_finished
+import campfire.features.downloads.ui.generated.resources.action_download_settings
+import campfire.features.downloads.ui.generated.resources.action_more_options
 import campfire.features.downloads.ui.generated.resources.action_undo_delete
+import campfire.features.downloads.ui.generated.resources.dialog_action_cancel
+import campfire.features.downloads.ui.generated.resources.dialog_action_delete
+import campfire.features.downloads.ui.generated.resources.dialog_delete_all_title
+import campfire.features.downloads.ui.generated.resources.dialog_delete_finished_title
+import campfire.features.downloads.ui.generated.resources.dialog_delete_message
+import campfire.features.downloads.ui.generated.resources.dialog_delete_show_title
 import campfire.features.downloads.ui.generated.resources.downloads_empty
+import campfire.features.downloads.ui.generated.resources.downloads_empty_hint
 import campfire.features.downloads.ui.generated.resources.downloads_error
 import campfire.features.downloads.ui.generated.resources.downloads_removed
 import campfire.features.downloads.ui.generated.resources.downloads_section_audiobooks
@@ -52,8 +85,10 @@ import campfire.features.downloads.ui.generated.resources.downloads_section_in_p
 import campfire.features.downloads.ui.generated.resources.downloads_section_podcasts
 import campfire.features.downloads.ui.generated.resources.downloads_section_unavailable
 import campfire.features.downloads.ui.generated.resources.downloads_title
+import campfire.features.downloads.ui.generated.resources.downloads_unknown_podcast
 import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(DownloadsScreen::class, UserScope::class)
@@ -68,6 +103,18 @@ fun DownloadsUi(
     onCommit = { state.eventSink(DownloadsUiEvent.CommitDelete(it)) },
   )
 
+  var confirming by remember { mutableStateOf<BulkDelete?>(null) }
+  confirming?.let { delete ->
+    ConfirmBulkDeleteDialog(
+      delete = delete,
+      onConfirm = {
+        confirming = null
+        state.eventSink(DownloadsUiEvent.DeleteDownloads(delete.entries))
+      },
+      onDismiss = { confirming = null },
+    )
+  }
+
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     topBar = {
@@ -75,6 +122,21 @@ fun DownloadsUi(
         title = { Text(stringResource(Res.string.downloads_title)) },
         navigationIcon = {
           NavigationBackButton(onClick = { state.eventSink(DownloadsUiEvent.Back) })
+        },
+        actions = {
+          val entries = state.downloads.dataOrNull?.entries.orEmpty()
+          val deleteFinishedTitle = stringResource(Res.string.dialog_delete_finished_title)
+          val deleteAllTitle = stringResource(Res.string.dialog_delete_all_title)
+          DownloadsMenu(
+            // Only offered when there's something for them to delete
+            onDeleteFinished = entries.finishedBooks.takeIf { it.isNotEmpty() }?.let { finished ->
+              { confirming = BulkDelete(deleteFinishedTitle, finished) }
+            },
+            onDeleteAll = entries.takeIf { it.isNotEmpty() }?.let { all ->
+              { confirming = BulkDelete(deleteAllTitle, all) }
+            },
+            onSettings = { state.eventSink(DownloadsUiEvent.OpenSettings) },
+          )
         },
         scrollBehavior = scrollBehavior,
       )
@@ -95,7 +157,17 @@ fun DownloadsUi(
 
       is LoadState.Loaded -> if (downloads.data.summary.count == 0) {
         EmptyState(
-          message = stringResource(Res.string.downloads_empty),
+          message = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text(stringResource(Res.string.downloads_empty))
+              Text(
+                text = stringResource(Res.string.downloads_empty_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+              )
+            }
+          },
           modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues),
@@ -105,6 +177,7 @@ fun DownloadsUi(
           content = downloads.data,
           onFilterChange = { state.eventSink(DownloadsUiEvent.FilterChange(it)) },
           onShowClick = { state.eventSink(DownloadsUiEvent.ShowClick(it)) },
+          onDeleteShow = { show, title -> confirming = BulkDelete(title, show.episodes) },
           onClick = { state.eventSink(DownloadsUiEvent.DownloadClick(it)) },
           onPlayClick = { state.eventSink(DownloadsUiEvent.PlayClick(it)) },
           onRetryClick = { state.eventSink(DownloadsUiEvent.RetryDownload(it)) },
@@ -153,15 +226,115 @@ private fun UndoDeleteSnackbar(
   }
 }
 
+/** Several downloads to delete at once, once it's been asked about under [title]. */
+private data class BulkDelete(
+  val title: String,
+  val entries: List<DownloadEntry>,
+)
+
+@Composable
+private fun ConfirmBulkDeleteDialog(
+  delete: BulkDelete,
+  onConfirm: () -> Unit,
+  onDismiss: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  AlertDialog(
+    modifier = modifier,
+    onDismissRequest = onDismiss,
+    title = { Text(delete.title) },
+    text = {
+      Text(
+        pluralStringResource(
+          Res.plurals.dialog_delete_message,
+          delete.entries.size,
+          delete.entries.size,
+          delete.entries.sumOf { it.sizeOnDevice }.asReadableBytes(),
+        ),
+      )
+    },
+    confirmButton = {
+      TextButton(onClick = onConfirm) {
+        Text(stringResource(Res.string.dialog_action_delete))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) {
+        Text(stringResource(Res.string.dialog_action_cancel))
+      }
+    },
+  )
+}
+
+/**
+ * What can be done to the downloads as a whole. A delete with nothing to delete, null here, is
+ * left out.
+ */
+@Composable
+private fun DownloadsMenu(
+  onDeleteFinished: (() -> Unit)?,
+  onDeleteAll: (() -> Unit)?,
+  onSettings: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  val moreLabel = stringResource(Res.string.action_more_options)
+  Box(modifier) {
+    IconButtonTooltip(text = moreLabel) {
+      IconButton(onClick = { expanded = true }) {
+        Icon(CampfireIcons.Rounded.MoreVert, contentDescription = moreLabel)
+      }
+    }
+    DropdownMenu(
+      expanded = expanded,
+      onDismissRequest = { expanded = false },
+    ) {
+      if (onDeleteFinished != null) {
+        DropdownMenuItem(
+          text = { Text(stringResource(Res.string.action_delete_finished)) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.DeleteSweep, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onDeleteFinished()
+          },
+        )
+      }
+      if (onDeleteAll != null) {
+        DropdownMenuItem(
+          text = { Text(stringResource(Res.string.action_delete_all)) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.DeleteSweep, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onDeleteAll()
+          },
+        )
+      }
+      DropdownMenuItem(
+        text = { Text(stringResource(Res.string.action_download_settings)) },
+        leadingIcon = { Icon(CampfireIcons.Rounded.Settings, contentDescription = null) },
+        onClick = {
+          expanded = false
+          onSettings()
+        },
+      )
+    }
+  }
+}
+
 /**
  * The summary, then each section that has anything in it under a heading that sticks to the top
- * while its rows scroll by.
+ * while its rows scroll by. Rows sit in as many columns as fit, one on a phone, with the summary
+ * and the headings across them all.
+ *
+ * @param onDeleteShow called to delete every downloaded episode of a show, with the title to ask
+ *   about it under.
  */
 @Composable
 internal fun DownloadList(
   content: DownloadsContent,
   onFilterChange: (DownloadKind?) -> Unit,
   onShowClick: (LibraryItem) -> Unit,
+  onDeleteShow: (ShowDownloads, title: String) -> Unit,
   onClick: (DownloadEntry) -> Unit,
   onPlayClick: (DownloadEntry) -> Unit,
   onRetryClick: (DownloadEntry) -> Unit,
@@ -171,7 +344,8 @@ internal fun DownloadList(
 ) {
   val sections = content.sections
   val layoutDirection = LocalLayoutDirection.current
-  LazyColumn(
+  LazyVerticalGrid(
+    columns = GridCells.Adaptive(RowMinWidth),
     contentPadding = PaddingValues(
       start = contentPadding.calculateStartPadding(layoutDirection) + ListPadding,
       end = contentPadding.calculateEndPadding(layoutDirection) + ListPadding,
@@ -179,9 +353,10 @@ internal fun DownloadList(
       bottom = contentPadding.calculateBottomPadding() + ListPadding,
     ),
     verticalArrangement = Arrangement.spacedBy(RowSpacing),
+    horizontalArrangement = Arrangement.spacedBy(RowSpacing),
     modifier = modifier.fillMaxSize(),
   ) {
-    item(key = "summary", contentType = "summary") {
+    item(key = "summary", span = { GridItemSpan(maxLineSpan) }, contentType = "summary") {
       DownloadsSummaryHeader(
         summary = content.summary,
         filter = content.filter,
@@ -230,12 +405,17 @@ internal fun DownloadList(
         key = { "show:${it.libraryItem.id}" },
         contentType = { "show" },
       ) { show ->
+        val deleteTitle = stringResource(
+          Res.string.dialog_delete_show_title,
+          show.libraryItem.media.metadata.title ?: stringResource(Res.string.downloads_unknown_podcast),
+        )
         ShowDownloadsCard(
           show = show,
           onShowClick = { onShowClick(show.libraryItem) },
           onEpisodeClick = onClick,
           onPlayClick = onPlayClick,
           onDelete = onDelete,
+          onDeleteAll = { onDeleteShow(show, deleteTitle) },
           modifier = Modifier.animateItem(),
         )
       }
@@ -261,7 +441,7 @@ internal fun DownloadList(
   }
 }
 
-private fun LazyListScope.sectionHeader(title: StringResource, count: Int, sizeInBytes: Long) {
+private fun LazyGridScope.sectionHeader(title: StringResource, count: Int, sizeInBytes: Long) {
   stickyHeader(key = "header:${title.key}", contentType = "header") {
     DownloadSectionHeader(
       title = stringResource(title),
@@ -274,3 +454,6 @@ private fun LazyListScope.sectionHeader(title: StringResource, count: Int, sizeI
 
 private val ListPadding = 16.dp
 private val RowSpacing = 8.dp
+
+/** The narrowest a row gets before the list takes fewer columns: a phone is one column wide. */
+private val RowMinWidth = 340.dp

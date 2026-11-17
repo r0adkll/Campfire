@@ -75,6 +75,18 @@ internal fun List<DownloadEntry>.asSections(kind: DownloadKind? = null): Downloa
   )
 }
 
+/**
+ * The downloaded books and ebooks whose item is marked finished, the ones most likely to be
+ * taking up space for nothing. Episodes aren't among them: their progress isn't kept on the
+ * episode, and finished ones can already be removed as they're finished, by a setting.
+ */
+internal val List<DownloadEntry>.finishedBooks: List<DownloadEntry>
+  get() = filter { entry ->
+    (entry is DownloadEntry.Book || entry is DownloadEntry.Ebook) &&
+      entry.isFinished &&
+      entry.libraryItem?.userMediaProgress?.isFinished == true
+  }
+
 /** How many downloads of one kind there are and what they take up. */
 @Immutable
 data class KindSummary(

@@ -1,6 +1,21 @@
 <resources>
   <string name="downloads_title">Downloads</string>
   <string name="downloads_empty">No downloads yet!</string>
+  <string name="downloads_empty_hint">Download a book or an episode from its page to listen without a connection.</string>
+  <string name="action_more_options">More options</string>
+  <string name="action_delete_finished">Delete finished books</string>
+  <string name="action_delete_all">Delete all downloads</string>
+  <string name="action_download_settings">Download settings</string>
+  <string name="action_delete_show_episodes">Delete all episodes</string>
+  <string name="dialog_delete_finished_title">Delete finished books?</string>
+  <string name="dialog_delete_all_title">Delete all downloads?</string>
+  <string name="dialog_delete_show_title">Delete all episodes of %1$s?</string>
+  <plurals name="dialog_delete_message">
+    <item quantity="one">%1$d download will be removed from this device, freeing %2$s.</item>
+    <item quantity="other">%1$d downloads will be removed from this device, freeing %2$s.</item>
+  </plurals>
+  <string name="dialog_action_delete">Delete</string>
+  <string name="dialog_action_cancel">Cancel</string>
   <string name="action_delete_download">Delete</string>
   <string name="action_cancel_download">Cancel download</string>
   <string name="action_retry_download">Retry</string>

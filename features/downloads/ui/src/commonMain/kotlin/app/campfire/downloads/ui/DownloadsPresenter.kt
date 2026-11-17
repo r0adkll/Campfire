@@ -17,6 +17,7 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.common.screens.DownloadsScreen
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -83,7 +84,7 @@ class DownloadsPresenter(
           val summary = listed.summary()
           // A kind whose last download has gone has nothing left to show
           val shownKind = filter.takeIf { kind -> summary.kinds.any { it.kind == kind } }
-          LoadState.Loaded(DownloadsContent(summary, shownKind, listed.asSections(shownKind)))
+          LoadState.Loaded(DownloadsContent(listed, summary, shownKind, listed.asSections(shownKind)))
         }
         LoadState.Loading -> LoadState.Loading
         LoadState.Error -> LoadState.Error
@@ -148,6 +149,18 @@ class DownloadsPresenter(
           // Only the latest delete can be undone
           pendingDelete?.let(::commit)
           pendingDelete = event.entry
+        }
+
+        is DownloadsUiEvent.DeleteDownloads -> {
+          // Asked about first, so there's no undoing these, nor the delete that was waiting
+          pendingDelete?.let(::commit)
+          pendingDelete = null
+          event.entries.forEach(::commit)
+        }
+
+        DownloadsUiEvent.OpenSettings -> {
+          analytics.send(ActionEvent("download_settings", Click))
+          navigator.goTo(SettingsScreen(SettingsScreen.Page.Downloads))
         }
 
         is DownloadsUiEvent.UndoDelete -> {

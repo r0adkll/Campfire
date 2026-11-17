@@ -25,11 +25,13 @@ data class DownloadsUiState(
 ) : CircuitUiState
 
 /**
+ * @param entries every download listed, whatever the [filter], for acting on them all at once.
  * @param summary every download listed, whatever the [filter].
  * @param filter the one kind [sections] holds, or null for every kind.
  */
 @Immutable
 data class DownloadsContent(
+  val entries: List<DownloadEntry>,
   val summary: DownloadsSummary,
   val filter: DownloadKind?,
   val sections: DownloadSections,
@@ -102,6 +104,15 @@ sealed interface DownloadsUiEvent : CircuitUiEvent {
    * [DownloadsUiState.pendingDelete], and the one before it, if any, is removed for good.
    */
   data class DeleteDownload(val entry: DownloadEntry) : DownloadsUiEvent
+
+  /**
+   * Removes [entries] from this device at once, with no undo, for the deletes of many downloads
+   * that are asked about first.
+   */
+  data class DeleteDownloads(val entries: List<DownloadEntry>) : DownloadsUiEvent
+
+  /** Opens the settings for downloads. */
+  data object OpenSettings : DownloadsUiEvent
 
   /** Puts the [DownloadsUiState.pendingDelete] back on the list. */
   data class UndoDelete(val entry: DownloadEntry) : DownloadsUiEvent

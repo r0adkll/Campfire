@@ -109,18 +109,25 @@ class DownloadsListRenderTest {
       download("ebook", contentLength = 18_637L).copy(content = DownloadContent.Ebook("ebook")),
     )
     val entries = listOf(going, downloaded.first(), ebookEntry) + episodes + unfinished.takeLast(1)
-    render("downloads-sections", height = 1150) {
-      PreviewSharedElementTransitionLayout {
-        DownloadList(
-          content = DownloadsContent(entries.summary(), filter = null, sections = entries.asSections()),
-          onFilterChange = {},
-          onShowClick = {},
-          onClick = {},
-          onPlayClick = {},
-          onRetryClick = {},
-          onDelete = {},
-        )
-      }
+    val content = DownloadsContent(entries, entries.summary(), filter = null, sections = entries.asSections())
+    render("downloads-sections", height = 1150) { List(content) }
+    render("downloads-sections-wide", width = 900, height = 760) { List(content) }
+  }
+
+  @OptIn(ExperimentalSharedTransitionApi::class)
+  @Composable
+  private fun List(content: DownloadsContent) {
+    PreviewSharedElementTransitionLayout {
+      DownloadList(
+        content = content,
+        onFilterChange = {},
+        onShowClick = {},
+        onDeleteShow = { _, _ -> },
+        onClick = {},
+        onPlayClick = {},
+        onRetryClick = {},
+        onDelete = {},
+      )
     }
   }
 
@@ -145,8 +152,14 @@ class DownloadsListRenderTest {
     }
   }
 
-  private fun render(name: String, height: Int, dark: Boolean = false, content: @Composable () -> Unit) {
-    val scene = ImageComposeScene(width = WIDTH * 2, height = height * 2, density = Density(2f)) {
+  private fun render(
+    name: String,
+    height: Int,
+    width: Int = WIDTH,
+    dark: Boolean = false,
+    content: @Composable () -> Unit,
+  ) {
+    val scene = ImageComposeScene(width = width * 2, height = height * 2, density = Density(2f)) {
       CampfireTheme(useDarkColors = dark) {
         Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
           content()
