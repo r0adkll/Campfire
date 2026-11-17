@@ -48,6 +48,22 @@ class DownloadsListRenderTest {
   }
 
   @Test
+  fun `downloads that need attention offer what to do`() {
+    render("downloads-states") {
+      Rows(
+        listOf(
+          DownloadEntry.Book(
+            audiobook,
+            download("audiobook").copy(state = Download.State.Downloading, progress = 0.4f),
+          ),
+          DownloadEntry.Book(audiobook, download("audiobook").copy(state = Download.State.Failed)),
+          DownloadEntry.Unavailable(download("gone"), sizeInBytes = 312_000_000L),
+        ),
+      )
+    }
+  }
+
+  @Test
   fun `audiobooks alone keep to their size`() {
     render("downloads-audiobooks", dark = true) { Rows(entries.take(1)) }
   }
@@ -60,6 +76,7 @@ class DownloadsListRenderTest {
           entry = entry,
           showMediaType = entries.hasMixedMediaTypes,
           onClick = {},
+          onRetryClick = {},
           onDeleteClick = {},
         )
       }
@@ -91,7 +108,7 @@ class DownloadsListRenderTest {
 
   private companion object {
     const val WIDTH = 400
-    const val HEIGHT = 180
+    const val HEIGHT = 260
 
     val m4bTrack = AudioTrack(
       index = 0,
