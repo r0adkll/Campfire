@@ -111,6 +111,19 @@ class StoreLibraryItemRepositoryTest {
   }
 
   @Test
+  fun `an item changed on the disk since it was last read comes back as it is now`() = repositoryTest { cache ->
+    cache(audiobook(title = "Before"))
+    val repository = repository()
+    assertThat(repository.getLibraryItem(ITEM).media.metadata.title).isEqualTo("Before")
+
+    // Written past the store, the way the latest episodes feed caches new episodes
+    cache(audiobook(title = "After"))
+
+    assertThat(repository.getLibraryItem(ITEM).media.metadata.title).isEqualTo("After")
+    assertThat(api.libraryItemRequests).isEmpty()
+  }
+
+  @Test
   fun `with the server unreachable, a cached copy without its tracks still comes back`() = repositoryTest { cache ->
     cache(audiobookFromSearch(title = "Cached"))
     api.libraryItemResult = { Result.failure(RuntimeException("Unable to resolve host")) }

@@ -62,7 +62,10 @@ class StoreLibraryItemRepository(
   }
 
   override suspend fun getLibraryItem(itemId: LibraryItemId): LibraryItem {
-    val cached = itemStore.stream(StoreReadRequest.cached(itemId, false))
+    // Read from the disk, not the memory cache: other caches write the item's rows past this
+    // store (the latest episodes feed adds new episodes), so a copy remembered from earlier
+    // can be missing what's there now. The read puts the current copy back in memory.
+    val cached = itemStore.stream(StoreReadRequest.skipMemory(itemId, false))
       .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
       .firstOrNull()
       ?.dataOrNull()
