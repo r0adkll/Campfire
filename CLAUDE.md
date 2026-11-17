@@ -156,17 +156,15 @@ Each platform only sees the entries that apply to it: the in-app What's New filt
 
 ## Database Migrations
 
-Schema lives in `data/db/core/src/commonMain/sqldelight/app/campfire/data/*.sq`; migrations live alongside in `migrations/{N}.sqm` and the baseline schema dump is `app/campfire/databases/1.db`. SQLDelight's `verifyCommonMainCampfireDatabaseMigration` task compares the migrated database against the fresh `.sq` schema — any drift fails the build.
+Schema lives in `data/db/core/src/commonMain/sqldelight/app/campfire/data/*.sq`; migrations live in `data/db/core/src/commonMain/sqldelight/migrations/{N}.sqm` and the baseline schema dump is `app/campfire/databases/1.db`. SQLDelight's `verifyCommonMainCampfireDatabaseMigration` task compares the migrated database against the fresh `.sq` schema — any drift fails the build.
 
 Danger fails any PR touching a `.sq` file that doesn't also touch a `.sqm`, unless the PR carries the `ignore-db-change` label. When a PR touches `.sq` files, pick the branch that matches:
 
 - **Query-only change** (added/edited statements, table shapes untouched): no migration needed — add the `ignore-db-change` label to the PR.
 - **Schema change in a database without migrations** (e.g. `BookInfoDatabase`, which versions by file name and rebuilds destructively): add the `ignore-db-change` label.
-- **Schema change in the main Campfire database** — reflect it in a `.sqm` (which also satisfies Danger, no label):
-  - **If the latest `.sqm` is newer than the most recent GitHub release/tag (i.e. not yet shipped)**: fold the change into that file. Users mid-upgrade only run unshipped migrations once. Check with `git log <latest-tag>..HEAD -- data/db/core/.../migrations/`.
-  - **Otherwise**: create a new `{N+1}.sqm` with the additive change.
+- **Schema change in the main Campfire database** — create a new `{N+1}.sqm` with the change (which also satisfies Danger, no label). Never edit or delete a `.sqm` that is already on `main`, even if no release has shipped it: alpha builds ship from `main`, so a tester's database may already be stamped past it and will never run it again. Danger fails a PR that modifies or deletes a `.sqm` unless it carries the `edit-merged-migration` label, reserved for fixing a migration that fails to run.
 
-Run `./gradlew :data:db:core:verifyCommonMainCampfireDatabaseMigration` after any schema or migration edit to confirm parity. SQLDelight is strict about column ordinal positions — adding a column mid-table requires a full `CREATE TABLE ... _new` + copy + `DROP` + `RENAME`, not `ALTER TABLE ADD COLUMN`.
+Run `./gradlew :data:db:core:verifyCommonMainCampfireDatabaseMigration` after any schema change or new migration to confirm parity. SQLDelight is strict about column ordinal positions — adding a column mid-table requires a full `CREATE TABLE ... _new` + copy + `DROP` + `RENAME`, not `ALTER TABLE ADD COLUMN`.
 
 ## Android Background Work & Notifications
 
