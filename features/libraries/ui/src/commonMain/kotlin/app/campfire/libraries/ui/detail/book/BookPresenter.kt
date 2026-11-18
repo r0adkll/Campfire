@@ -368,7 +368,7 @@ class BookPresenter(
           analytics.send(ActionEvent("mark_finished", Click))
           val isPlaying = playingItem?.libraryItemId == event.item.id
           scope.launch {
-            itemFinisher.markFinished(event.item.id, isPlaying)
+            itemFinisher.markFinished(event.item, isPlaying)
           }
         }
 

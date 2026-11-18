@@ -18,3 +18,18 @@ interface PlaybackHistoryRecorder {
     episodeId: PodcastEpisodeId? = null,
   )
 }
+
+/**
+ * Records that [libraryItemId], or its [episodeId], was finished — played to the end or marked
+ * finished — positioned at the end of its [duration].
+ */
+fun PlaybackHistoryRecorder.recordFinished(
+  libraryItemId: LibraryItemId,
+  duration: Duration,
+  episodeId: PodcastEpisodeId? = null,
+) = record(
+  libraryItemId = libraryItemId,
+  type = PlaybackActionType.Finished,
+  fromPosition = duration,
+  episodeId = episodeId,
+)

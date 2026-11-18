@@ -19,7 +19,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.window.core.layout.WindowSizeClass
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
-import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.test.user
@@ -118,7 +118,7 @@ class DefaultLibraryItemActionsTest {
       playbackController = playbackController,
       sessionsRepository = sessionsRepository,
       mediaProgressRepository = mediaProgressRepository,
-      playbackHistoryRepository = FakePlaybackHistoryRepository(),
+      playbackHistoryRecorder = FakePlaybackHistoryRecorder(),
     ),
     libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,

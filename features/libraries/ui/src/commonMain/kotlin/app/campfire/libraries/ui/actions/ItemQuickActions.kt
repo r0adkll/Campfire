@@ -134,7 +134,7 @@ class ItemQuickActions(
         Analytics.send(ActionEvent("mark_finished", Click, "card"))
         val isPlaying = sessionsRepository.observePlayingItem().first()?.libraryItemId == item.id
         val scope = coroutineScopeHolder.get()
-        scope.launch { itemFinisher.markFinished(item.id, isPlaying) }
+        scope.launch { itemFinisher.markFinished(item, isPlaying) }
         // Told straight away, as the detail screen does, rather than once the finish is saved,
         // which a slow connection holds up. Marked by hand, the finish date is today's, which is
         // seldom when it was really finished.

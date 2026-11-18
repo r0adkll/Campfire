@@ -10,6 +10,7 @@ import androidx.compose.runtime.withCompositionLocal
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.test.user
@@ -87,6 +88,7 @@ class PodcastEpisodePresenterTest {
     sessionsRepository = FakeSessionsRepository(),
     sessionQueue = FakeSessionQueue(),
     mediaProgressRepository = FakeMediaProgressRepository(),
+    playbackHistoryRecorder = FakePlaybackHistoryRecorder(),
     playbackHistoryRepository = FakePlaybackHistoryRepository(),
     audioPlayerHolder = FakeAudioPlayerHolder(),
     downloads = downloads,

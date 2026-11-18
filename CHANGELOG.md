@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Finishing a book or episode keeps its playback history and adds when you finished it, instead of clearing it
 - [Android] Books play using less battery on phones whose audio hardware can play them directly, at any speed, which you can turn off with Low-power playback in Playback settings
 - Your playback queue is kept when you close the player or switch accounts. Open it from Playlists to play, reorder or remove what's next, even when nothing is playing, and add books and episodes to it at any time
 - Podcast episodes your server is downloading show as a banner on Shows and Latest while they download, replacing the podcast Queue tab

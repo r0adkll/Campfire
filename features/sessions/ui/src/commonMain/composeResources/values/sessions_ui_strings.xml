@@ -106,6 +106,7 @@
   <string name="history_context_seek_forward">Fast forward</string>
   <string name="history_context_seek_backward">Rewind</string>
   <string name="history_context_sync">Remote sync</string>
+  <string name="history_context_finished">Finished</string>
 
   <!-- Content Descriptions -->
   <string name="cd_forward_time">Forward %1$s seconds</string>

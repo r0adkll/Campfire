@@ -10,6 +10,7 @@ import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.compose.layout.LocalSnackBarHost
@@ -66,6 +67,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val mediaProgressRepository = FakeMediaProgressRepository()
   internal val userRepository = FakeUserRepository()
   internal val playbackHistoryRepository = FakePlaybackHistoryRepository()
+  internal val playbackHistoryRecorder = FakePlaybackHistoryRecorder()
   internal val playbackController = FakePlaybackController()
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
   internal val audioPlayer = FakeAudioPlayer()
@@ -102,7 +104,7 @@ abstract class BaseLibraryItemPresenterTest {
       playbackController = playbackController,
       sessionsRepository = sessionsRepository,
       mediaProgressRepository = mediaProgressRepository,
-      playbackHistoryRepository = playbackHistoryRepository,
+      playbackHistoryRecorder = playbackHistoryRecorder,
     ),
   )
 
@@ -119,7 +121,7 @@ abstract class BaseLibraryItemPresenterTest {
     userRepository = userRepository,
     sessionsRepository = sessionsRepository,
     mediaProgressRepository = mediaProgressRepository,
-    playbackHistoryRepository = playbackHistoryRepository,
+    playbackHistoryRecorder = playbackHistoryRecorder,
     playbackController = playbackController,
     sessionQueue = sessionQueue,
     downloads = downloads,

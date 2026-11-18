@@ -45,6 +45,7 @@ import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ArrowForward
+import app.campfire.common.compose.icons.rounded.CheckCircle
 import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.icons.rounded.FastForward
 import app.campfire.common.compose.icons.rounded.FastRewind
@@ -65,6 +66,7 @@ import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_clear_history
 import campfire.features.sessions.ui.generated.resources.history_bottomsheet_title
+import campfire.features.sessions.ui.generated.resources.history_context_finished
 import campfire.features.sessions.ui.generated.resources.history_context_pause
 import campfire.features.sessions.ui.generated.resources.history_context_play
 import campfire.features.sessions.ui.generated.resources.history_context_seek
@@ -109,7 +111,7 @@ suspend fun OverlayHost.showPlaybackHistoryBottomSheet(
 }
 
 @Composable
-private fun PlaybackHistoryBottomSheet(
+internal fun PlaybackHistoryBottomSheet(
   libraryItemId: LibraryItemId,
   modifier: Modifier = Modifier,
   navigator: OverlayNavigator<PlaybackHistoryResult>,
@@ -226,10 +228,15 @@ private fun PlaybackHistoryBottomSheet(
           ) { action ->
             PlaybackHistoryItem(
               action = action,
-              modifier = Modifier.clickable {
-                navigator.finish(
-                  PlaybackHistoryResult.Selected(action),
-                )
+              // Jumping to a Finished entry would seek to the very end and finish the book again
+              modifier = if (action.type == PlaybackActionType.Finished) {
+                Modifier
+              } else {
+                Modifier.clickable {
+                  navigator.finish(
+                    PlaybackHistoryResult.Selected(action),
+                  )
+                }
               },
             )
           }
@@ -282,6 +289,7 @@ private fun PlaybackActionType.icon(): ImageVector = when (this) {
   PlaybackActionType.SeekForward -> CampfireIcons.Rounded.FastForward
   PlaybackActionType.SeekBackward -> CampfireIcons.Rounded.FastRewind
   PlaybackActionType.Sync -> CampfireIcons.Rounded.Sync
+  PlaybackActionType.Finished -> CampfireIcons.Rounded.CheckCircle
 }
 
 @Composable
@@ -294,6 +302,7 @@ private fun PlaybackActionType.iconTint(): Color = when (this) {
   PlaybackActionType.SeekForward -> MaterialTheme.colorScheme.tertiary
   PlaybackActionType.SeekBackward -> MaterialTheme.colorScheme.tertiary
   PlaybackActionType.Sync -> MaterialTheme.colorScheme.primary
+  PlaybackActionType.Finished -> MaterialTheme.colorScheme.primary
 }
 
 @Composable
@@ -307,6 +316,7 @@ private fun PlaybackActionType.contextString(): String {
     PlaybackActionType.SeekForward -> stringResource(Res.string.history_context_seek_forward)
     PlaybackActionType.SeekBackward -> stringResource(Res.string.history_context_seek_backward)
     PlaybackActionType.Sync -> stringResource(Res.string.history_context_sync)
+    PlaybackActionType.Finished -> stringResource(Res.string.history_context_finished)
   }
   return string
 }

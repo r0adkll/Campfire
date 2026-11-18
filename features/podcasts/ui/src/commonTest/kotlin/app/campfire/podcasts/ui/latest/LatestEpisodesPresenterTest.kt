@@ -8,7 +8,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.withCompositionLocal
 import app.campfire.audioplayer.test.FakePlaybackController
-import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PodcastEpisode
@@ -91,7 +91,7 @@ class LatestEpisodesPresenterTest {
     podcastsRepository = podcastsRepository,
     sessionsRepository = FakeSessionsRepository(),
     mediaProgressRepository = FakeMediaProgressRepository(),
-    playbackHistoryRepository = FakePlaybackHistoryRepository(),
+    playbackHistoryRecorder = FakePlaybackHistoryRecorder(),
     playbackController = FakePlaybackController(),
     sessionQueue = sessionQueue,
     downloads = downloads,

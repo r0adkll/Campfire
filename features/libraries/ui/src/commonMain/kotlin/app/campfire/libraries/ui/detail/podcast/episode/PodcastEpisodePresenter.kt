@@ -18,7 +18,9 @@ import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.recordFinished
 import app.campfire.audioplayer.observeLivePosition
 import app.campfire.audioplayer.withLivePosition
 import app.campfire.common.compose.layout.LocalSnackBarHost
@@ -80,6 +82,7 @@ class PodcastEpisodePresenter(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val downloads: Downloads,
@@ -229,7 +232,7 @@ class PodcastEpisodePresenter(
           scope.launch {
             sessionsRepository.markDeleted(episode.libraryItemId, episode.id)
             mediaProgressRepository.markFinished(episode.libraryItemId, episode.id)
-            playbackHistoryRepository.clear(episode.libraryItemId, episode.id)
+            playbackHistoryRecorder.recordFinished(episode.libraryItemId, episode.duration, episode.id)
           }
         }
 

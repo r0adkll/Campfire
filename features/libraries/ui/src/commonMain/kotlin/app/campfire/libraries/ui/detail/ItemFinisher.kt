@@ -4,7 +4,9 @@
 package app.campfire.libraries.ui.detail
 
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.recordFinished
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
@@ -16,18 +18,18 @@ class ItemFinisher(
   private val playbackController: PlaybackController,
   private val sessionsRepository: SessionsRepository,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
 ) {
 
   /**
-   * Marks [itemId] finished, after ending its listening session when it [isPlaying], so playing
+   * Marks [item] finished, after ending its listening session when it [isPlaying], so playing
    * on doesn't take the finish back.
    */
-  suspend fun markFinished(itemId: LibraryItemId, isPlaying: Boolean) {
-    if (isPlaying) playbackController.stopSession(itemId)
-    sessionsRepository.markDeleted(itemId)
-    mediaProgressRepository.markFinished(itemId)
-    playbackHistoryRepository.clear(itemId)
+  suspend fun markFinished(item: LibraryItem, isPlaying: Boolean) {
+    if (isPlaying) playbackController.stopSession(item.id)
+    sessionsRepository.markDeleted(item.id)
+    mediaProgressRepository.markFinished(item.id)
+    playbackHistoryRecorder.recordFinished(item.id, item.media.duration)
   }
 
   suspend fun markNotFinished(itemId: LibraryItemId) {
