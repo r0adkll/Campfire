@@ -147,7 +147,6 @@ fun DownloadsUi(
     contentWindowInsets = CampfireWindowInsets,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
-    val layoutDirection = LocalLayoutDirection.current
     when (val downloads = state.downloads) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
 
@@ -185,15 +184,7 @@ fun DownloadsUi(
           onPlayClick = { state.eventSink(DownloadsUiEvent.PlayClick(it)) },
           onRetryClick = { state.eventSink(DownloadsUiEvent.RetryDownload(it)) },
           onDelete = { state.eventSink(DownloadsUiEvent.DeleteDownload(it)) },
-          // Starts under the top bar rather than scrolling beneath it, where a heading stuck to
-          // the top of the list would be hidden. The bar gives up its height as it scrolls away,
-          // so the headings then stick below the status bar
-          modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
-          contentPadding = PaddingValues(
-            start = paddingValues.calculateStartPadding(layoutDirection),
-            end = paddingValues.calculateEndPadding(layoutDirection),
-            bottom = paddingValues.calculateBottomPadding(),
-          ),
+          contentPadding = paddingValues,
         )
       }
     }
@@ -330,8 +321,7 @@ private fun DownloadsActions(
 }
 
 /**
- * The summary, then each section that has anything in it under a heading that sticks to the top
- * while its rows scroll by. Rows sit in as many columns as fit, one on a phone, with the summary
+ * The summary, then each section that has anything in it under a heading. Rows sit in as many columns as fit, one on a phone, with the summary
  * and the headings across them all.
  *
  * @param onDeleteShow called to delete every downloaded episode of a show, with the title to ask
@@ -450,7 +440,7 @@ internal fun DownloadList(
 }
 
 private fun LazyGridScope.sectionHeader(title: StringResource, count: Int, sizeInBytes: Long) {
-  stickyHeader(key = "header:${title.key}", contentType = "header") {
+  item(key = "header:${title.key}", span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
     DownloadSectionHeader(
       title = stringResource(title),
       count = count,
