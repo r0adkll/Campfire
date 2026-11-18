@@ -26,6 +26,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.offline.Downloads
 import app.campfire.reader.api.screen.ReaderScreen
+import app.campfire.user.api.MediaProgressRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -40,6 +41,7 @@ class DownloadsPresenter(
   private val navigator: Navigator,
   private val downloads: Downloads,
   private val libraryItemRepository: LibraryItemRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val playbackController: PlaybackController,
   private val analytics: Analytics,
   // Outlives the screen, for a delete still waiting to be undone when it's left
@@ -54,6 +56,13 @@ class DownloadsPresenter(
         .map<List<DownloadEntry>, LoadState<out List<DownloadEntry>>> { LoadState.Loaded(it) }
         .catch { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
+
+    // Looked up apart from the items, which don't carry their progress
+    val finishedItemIds by remember {
+      mediaProgressRepository.observeAllProgress()
+        .map { it.finishedItemIds() }
+        .catch { emit(emptySet()) }
+    }.collectAsState(emptySet())
 
     var pendingDelete by remember { mutableStateOf<DownloadEntry?>(null) }
 
@@ -77,14 +86,22 @@ class DownloadsPresenter(
 
     var filter by remember { mutableStateOf<DownloadKind?>(null) }
     val hidden = deleted + setOfNotNull(pendingDelete?.key)
-    val content: LoadState<out DownloadsContent> = remember(entries, hidden, filter) {
+    val content: LoadState<out DownloadsContent> = remember(entries, hidden, filter, finishedItemIds) {
       when (val loaded = entries) {
         is LoadState.Loaded -> {
           val listed = loaded.data.filterNot { it.key in hidden }
           val summary = listed.summary()
           // A kind whose last download has gone has nothing left to show
           val shownKind = filter.takeIf { kind -> summary.kinds.any { it.kind == kind } }
-          LoadState.Loaded(DownloadsContent(listed, summary, shownKind, listed.asSections(shownKind)))
+          LoadState.Loaded(
+            DownloadsContent(
+              entries = listed,
+              summary = summary,
+              filter = shownKind,
+              sections = listed.asSections(shownKind),
+              finishedBooks = listed.finishedBooks(finishedItemIds),
+            ),
+          )
         }
         LoadState.Loading -> LoadState.Loading
         LoadState.Error -> LoadState.Error

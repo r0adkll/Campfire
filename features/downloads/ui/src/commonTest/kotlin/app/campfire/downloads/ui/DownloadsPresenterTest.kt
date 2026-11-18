@@ -11,6 +11,7 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
@@ -19,6 +20,7 @@ import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.offline.test.FakeDownloads.Invocation
 import app.campfire.reader.api.screen.ReaderScreen
+import app.campfire.user.test.FakeMediaProgressRepository
 import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.containsExactly
@@ -38,6 +40,7 @@ class DownloadsPresenterTest {
   private val navigator = FakeNavigator(DownloadsScreen)
   private val downloads = FakeDownloads()
   private val libraryItemRepository = FakeLibraryItemRepository()
+  private val mediaProgressRepository = FakeMediaProgressRepository()
   private val playbackController = FakePlaybackController()
   private val userScope = TestScope()
 
@@ -51,6 +54,7 @@ class DownloadsPresenterTest {
     navigator = navigator,
     downloads = downloads,
     libraryItemRepository = libraryItemRepository,
+    mediaProgressRepository = mediaProgressRepository,
     playbackController = playbackController,
     analytics = FakeAnalytics(),
     userScope = CoroutineScopeHolder { userScope },
@@ -303,6 +307,23 @@ class DownloadsPresenterTest {
 
     // Nothing was left waiting, to be removed again on leaving
     assertThat(downloads.invocations.size).isEqualTo(3)
+  }
+
+  @Test
+  fun `a downloaded book marked finished is among the finished books`() = runTest {
+    libraryItemRepository.libraryItem = book
+    downloads.downloads.value = listOf(bookDownload)
+    mediaProgressRepository.allProgressFlow.value = listOf(
+      mediaProgress(isFinished = true).copy(libraryItemId = book.id),
+    )
+
+    presenter.test {
+      var content = awaitLoaded().downloads.dataOrNull
+      while (content?.finishedBooks.isNullOrEmpty()) content = awaitItem().downloads.dataOrNull
+
+      assertThat(content?.finishedBooks).isEqualTo(listOf(DownloadEntry.Book(book, bookDownload)))
+      cancelAndIgnoreRemainingEvents()
+    }
   }
 
   @Test

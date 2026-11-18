@@ -5,6 +5,8 @@ package app.campfire.downloads.ui
 
 import androidx.compose.runtime.Immutable
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 
@@ -76,16 +78,24 @@ internal fun List<DownloadEntry>.asSections(kind: DownloadKind? = null): Downloa
 }
 
 /**
- * The downloaded books and ebooks whose item is marked finished, the ones most likely to be
- * taking up space for nothing. Episodes aren't among them: their progress isn't kept on the
- * episode, and finished ones can already be removed as they're finished, by a setting.
+ * The downloaded books and ebooks of the items marked finished, [finishedItemIds], the ones most
+ * likely to be taking up space for nothing. Episodes aren't among them: finished ones can already
+ * be removed as they're finished, by a setting.
  */
-internal val List<DownloadEntry>.finishedBooks: List<DownloadEntry>
-  get() = filter { entry ->
+internal fun List<DownloadEntry>.finishedBooks(finishedItemIds: Set<LibraryItemId>): List<DownloadEntry> =
+  filter { entry ->
     (entry is DownloadEntry.Book || entry is DownloadEntry.Ebook) &&
       entry.isFinished &&
-      entry.libraryItem?.userMediaProgress?.isFinished == true
+      entry.download.content.itemId in finishedItemIds
   }
+
+/**
+ * The items finished as a whole, going by [this] progress. An episode's progress says nothing of
+ * its show.
+ */
+internal fun List<MediaProgress>.finishedItemIds(): Set<LibraryItemId> =
+  filter { it.isFinished && it.episodeId.isNullOrEmpty() }
+    .mapTo(mutableSetOf()) { it.libraryItemId }
 
 /** How many downloads of one kind there are and what they take up. */
 @Immutable

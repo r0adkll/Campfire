@@ -122,12 +122,13 @@ fun DownloadsUi(
           NavigationBackButton(onClick = { state.eventSink(DownloadsUiEvent.Back) })
         },
         actions = {
-          val entries = state.downloads.dataOrNull?.entries.orEmpty()
+          val content = state.downloads.dataOrNull
+          val entries = content?.entries.orEmpty()
           val deleteFinishedTitle = stringResource(Res.string.dialog_delete_finished_title)
           val deleteAllTitle = stringResource(Res.string.dialog_delete_all_title)
           DownloadsActions(
             // Only enabled when there's something for them to delete
-            onDeleteFinished = entries.finishedBooks.takeIf { it.isNotEmpty() }?.let { finished ->
+            onDeleteFinished = content?.finishedBooks?.takeIf { it.isNotEmpty() }?.let { finished ->
               { confirming = BulkDelete(deleteFinishedTitle, finished) }
             },
             onDeleteAll = entries.takeIf { it.isNotEmpty() }?.let { all ->

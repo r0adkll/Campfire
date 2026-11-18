@@ -100,7 +100,7 @@ class DownloadSectionsTest {
 
   @Test
   fun `only downloaded books and ebooks marked finished are finished books`() {
-    val finishedItem = libraryItem(id = "finished", userMediaProgress = mediaProgress(isFinished = true))
+    val finishedItem = libraryItem(id = "finished")
     val finishedBook = DownloadEntry.Book(finishedItem, downloaded(DownloadContent.Audiobook("finished")))
     val finishedEbook = DownloadEntry.Ebook(finishedItem, downloaded(DownloadContent.Ebook("finished")))
     val stillGoing = DownloadEntry.Book(
@@ -109,9 +109,21 @@ class DownloadSectionsTest {
     )
     val finishedShowEpisode = a1.copy(libraryItem = finishedItem)
 
-    val finished = (all + listOf(finishedBook, finishedEbook, stillGoing, finishedShowEpisode)).finishedBooks
+    val finished = (all + listOf(finishedBook, finishedEbook, stillGoing, finishedShowEpisode))
+      .finishedBooks(setOf("finished"))
 
     assertThat(finished).containsExactly(finishedBook, finishedEbook)
+  }
+
+  @Test
+  fun `an item is finished by its own progress, not an episode's`() {
+    val progress = listOf(
+      mediaProgress(isFinished = true).copy(libraryItemId = "done"),
+      mediaProgress(isFinished = false).copy(libraryItemId = "going"),
+      mediaProgress(isFinished = true).copy(libraryItemId = "show", episodeId = "episode"),
+    )
+
+    assertThat(progress.finishedItemIds()).isEqualTo(setOf("done"))
   }
 
   @Test

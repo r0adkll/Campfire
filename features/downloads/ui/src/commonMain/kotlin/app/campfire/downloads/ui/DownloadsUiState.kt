@@ -28,6 +28,7 @@ data class DownloadsUiState(
  * @param entries every download listed, whatever the [filter], for acting on them all at once.
  * @param summary every download listed, whatever the [filter].
  * @param filter the one kind [sections] holds, or null for every kind.
+ * @param finishedBooks those of [entries] that are downloaded books and ebooks marked finished.
  */
 @Immutable
 data class DownloadsContent(
@@ -35,6 +36,7 @@ data class DownloadsContent(
   val summary: DownloadsSummary,
   val filter: DownloadKind?,
   val sections: DownloadSections,
+  val finishedBooks: List<DownloadEntry> = emptyList(),
 )
 
 @Immutable
