@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Android] Backing out of OpenID sign-in showing "Something went wrong with the OpenID provider"
 - [Desktop] Books not playing, and their cover missing from Now Playing, on servers that need custom headers, such as a Cloudflare Access service token
 - [Android] Playback history missing the play when a book starts, including when switching books or moving on to the next in the queue
 - Downloads hiding anything whose book or podcast can no longer be loaded, leaving no way to remove it

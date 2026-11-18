@@ -128,8 +128,10 @@ internal class UnusedAuthorizationFlow : AuthorizationFlow {
   ): Result<OpenIdAuthorization> = error("Unused")
 }
 
-/** Records each authorization request, then fails it as if the user backed out of the provider. */
-internal class RecordingAuthorizationFlow : AuthorizationFlow {
+/** Records each authorization request, then fails it with [failure]. */
+internal class RecordingAuthorizationFlow(
+  private val failure: Throwable = IllegalStateException("Provider failed"),
+) : AuthorizationFlow {
   val requests = mutableListOf<Pair<String, Map<String, String>?>>()
 
   override suspend fun getAuthorization(
@@ -137,7 +139,7 @@ internal class RecordingAuthorizationFlow : AuthorizationFlow {
     extraHeaders: Map<String, String>?,
   ): Result<OpenIdAuthorization> {
     requests += serverUrl to extraHeaders
-    return Result.failure(IllegalStateException("Cancelled"))
+    return Result.failure(failure)
   }
 }
 

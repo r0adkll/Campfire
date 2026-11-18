@@ -11,11 +11,13 @@ import app.campfire.common.screens.LoginScreen
 import app.campfire.core.navigation.ConnectLink
 import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.network.oidc.AuthorizationFlow
+import app.campfire.network.oidc.OpenIdException
 import app.campfire.ui.theming.api.AppTheme
 import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
+import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -388,7 +390,7 @@ class LoginPresenterTest {
     connectLinkInbox = FakeConnectLinkInbox(LINK_ID to ConnectLinkResult.Valid(carolLink(openId = true)))
 
     presenter(CONNECT_CAROL).test {
-      // The provider was left without signing in, so the user is back on the form
+      // The provider failed, so the user is back on the form
       assertThat(awaitItemMatching { it.authError != null }.authError).isEqualTo(AuthError.OAuthError)
       testScheduler.advanceUntilIdle()
       cancelAndIgnoreRemainingEvents()
@@ -399,6 +401,26 @@ class LoginPresenterTest {
     )
     // Still needed if the user tries again
     assertThat(connectLinkInbox.links.keys).containsOnly(LINK_ID)
+  }
+
+  @Test
+  fun `backing out of the OpenID provider returns to the form without an error`() = runTest {
+    authRepository = FakeAuthRepository(authMethods = listOf(AUTH_METHOD_OPENID))
+    val flow = RecordingAuthorizationFlow(failure = OpenIdException.AuthCancelled())
+    authorizationFlow = flow
+
+    presenter(LoginScreen.Additional).test {
+      awaitItem().eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+      awaitItemMatching { it.connectionState is ConnectionState.Success }
+        .eventSink(LoginUiEvent.StartOpenIdAuth)
+
+      awaitItemMatching { it.isAuthenticating }
+      val state = awaitItemMatching { !it.isAuthenticating }
+      assertThat(state.authError).isNull()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(flow.requests).hasSize(1)
   }
 
   @Test
