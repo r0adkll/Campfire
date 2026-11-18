@@ -14,10 +14,15 @@
 
   <application>
 
+    <!--
+      Handles its own configuration changes: when it signs in in a web view (cars, devices without
+      a browser), being recreated, say at a car's switch to night mode, would lose the page.
+    -->
     <activity
       android:name="app.campfire.network.oidc.WebAuthActivity"
       android:exported="true"
-      android:launchMode="singleTask">
+      android:launchMode="singleTask"
+      android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboard|keyboardHidden|navigation|uiMode">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
 

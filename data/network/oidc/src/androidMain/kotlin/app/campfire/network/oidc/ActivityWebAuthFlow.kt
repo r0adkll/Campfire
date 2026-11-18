@@ -27,7 +27,6 @@ internal class ActivityWebAuthFlow(
 
     val intent = prepareIntent(
       requestUrl = requestUrl.toString(),
-      redirectUri = redirectUri,
       preferredBrowserPackage = preferredBrowserPackage,
     )
     return launcher.launch(intent)
@@ -46,12 +45,10 @@ internal class ActivityWebAuthFlow(
 
   private fun prepareIntent(
     requestUrl: String,
-    redirectUri: String,
     preferredBrowserPackage: String?,
   ): Intent {
     return Intent(context, WebAuthActivity::class.java).apply {
       putExtra(EXTRA_KEY_URL, requestUrl)
-      putExtra(EXTRA_KEY_REDIRECTURL, redirectUri)
       preferredBrowserPackage?.let {
         putExtra(EXTRA_KEY_BROWSER_PACKAGE, it)
       }
