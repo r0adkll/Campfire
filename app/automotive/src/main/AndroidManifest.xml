@@ -63,6 +63,12 @@
       android:name="com.google.android.gms.car.application"
       tools:node="remove" />
 
+    <!-- Firebase starts from FirebaseInitializer, in release builds only, as on phones -->
+    <provider
+      android:name="com.google.firebase.provider.FirebaseInitProvider"
+      android:authorities="${applicationId}.firebaseinitprovider"
+      tools:node="remove" />
+
     <!-- Cars have no home screen widgets -->
     <receiver
       android:name="app.campfire.widgets.PlayerWidgetReceiver"

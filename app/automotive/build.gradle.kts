@@ -102,4 +102,6 @@ dependencies {
 
   implementation(libs.circuit.runtime)
   implementation(libs.circuit.foundation)
+
+  releaseImplementation(projects.data.crashreporting.firebase)
 }
