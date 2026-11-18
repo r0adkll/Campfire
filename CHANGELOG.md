@@ -9,46 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Connect to servers protected by Cloudflare Access with a service token
-- [Android] Add a server and its Cloudflare Access service token from a setup link, or by scanning its QR code
-- [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) full screen, or download them to read offline and find them in Downloads with your audiobooks, with your place kept in sync with Audiobookshelf
+- [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) in a full-screen reader, or download them to read offline, with your place kept in sync with Audiobookshelf
+- E-book details show the format, file size, contents, edition details and the chapter you're on, and audiobooks that come with an e-book show your reading progress alongside your listening progress
+- Work offline from the navigation drawer or Connection settings, until you turn it off, for a few hours, until you're back on Wi-Fi, or whenever you're on mobile data. Campfire runs from your downloads and syncs your progress when you're back online
+- Downloads has a screen of its own in the navigation, grouping audiobooks, podcasts and e-books with how much space they take up. Swipe a download away to remove it, retry one that failed, or clear finished books or a show's episodes in one go
 - Downloaded books and podcasts keep their cover art offline, even after the app's cache is cleared
-- Work offline from the navigation drawer or Connection settings — until you turn it off, for a few hours, or until you're back on Wi-Fi, or whenever you're on mobile data. Campfire stops contacting your server and runs from your downloads, then syncs your progress when you're back online
+- Connect to servers protected by Cloudflare Access with a service token
+- [Android] Add a Cloudflare Access server from a setup link or by scanning its QR code
+- Edit a book's details on your server, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, when your account is allowed to. You can also rescan or delete books and podcasts from your server
+- Long-press or right-click a book in any list to play or read it, download it, mark it finished, queue it, or add it to a playlist or collection
+- Change the dates you started and finished a book by tapping its progress bar
+- Swipe a podcast episode right to add it to the queue, or left to delete it from your server, when your account is allowed to
+- [Android, Desktop] Download podcast episodes automatically as you play or queue them, and remove them once you've finished listening
+- Each podcast's cover in Shows counts the episodes you haven't finished, and Shows and Latest check for new episodes every time you open them
+- Download, stop or remove an episode right from Latest
+- Podcast libraries have their own sort options, matching the web app, and sort by title by default
 - A book's details show its position in each series it belongs to
-- The library's list layout shows what you're sorting or filtering by, such as the publish year, size, date added, time left, or position in the filtered series
-- [Android] App updates have their own page in Settings, with what's new, your installed version and a check for updates, and Settings is badged while an update waits
-- Podcasts with downloaded episodes and downloaded e-books show the downloaded mark on their cover, as audiobooks do
-- [Android, Desktop] Download podcast episodes as you play them or add them to the queue, and remove their downloads once you finish listening, each with its own setting in Downloads settings
-- Podcast libraries have their own sort options, matching the web app (title, author, date added, size, number of episodes, file created and file modified), and sort by title by default instead of in no particular order
-- Each podcast's cover in Shows counts the episodes you haven't finished, and Shows refreshes every time you open it to keep the counts current
-- Change the dates you started and finished a book: tap its progress bar to see and change them, or tap "Set date" after marking it finished
-- Delete a book or podcast from your server, or have your server rescan its files, from its menu or by long-pressing or right-clicking it in a list, when your account is allowed to
-- Add a podcast episode to the queue, or take it back out, by swiping it to the right in Latest or on a show's page, or with its new queue button, with an Undo either way
-- Delete a podcast episode from your server, with its audio file or keeping it, by swiping it to the left in Latest or on a show's page, or from the bottom of its details, when your account is allowed to. Delete dialogs remember your last choice
-- Latest shows whether each episode is downloaded or downloading, and downloads, stops or removes it from there, as a show's page does
-- Edit a book's details on your server, such as its title, authors, series, description and genres, or match it against Audible, Google Books and your server's other sources to fill them in and get a new cover, reviewing each change or in one tap with Quick match, or choose a new cover from those sources, a web address or the book's own images, when your account is allowed to
-- Downloads in the navigation shows how many downloads you have, and its icon animates while anything is downloading; tap a book's download status to open Downloads
-- Long-press or right-click a book in any list to play or read it, download it, mark it finished, queue it, or add it to a playlist or collection, with its editing actions underneath when your account is allowed to
+- The library's list layout shows what you're sorting or filtering by, such as publish year, size or time left
+- [Android] App updates have their own page in Settings with what's new, and Campfire checks for updates whenever you come back to it
 
 ### Changed
 
-- Finishing a book or episode keeps its playback history and adds when you finished it, instead of clearing it
-- [Android] Books play using less battery on phones whose audio hardware can play them directly, at any speed, which you can turn off with Low-power playback in Playback settings
-- Your playback queue is kept when you close the player or switch accounts. Open it from Playlists to play, reorder or remove what's next, even when nothing is playing, and add books and episodes to it at any time
-- Podcast episodes your server is downloading show as a banner on Shows and Latest while they download, replacing the podcast Queue tab
-- Long titles on book and series cards start scrolling only once the list has been still for a moment, and pause where they are while you scroll
-- The custom theme builder shows Campfire's screens as you edit, with one tool at a time on phones and every control beside the preview on foldables and tablets. It lets you start from the colors of your own books' covers, pick a style by how it looks, choose any palette color and fine-tune the exact colors of any part of the app in light and dark mode, zooming in on the part, and warns when parts become hard to read, with a one-tap fix
-- The theme picker shows each theme as a small copy of Home with your own books, lets you switch between light, dark and the system setting at the top, and lets you edit, duplicate or delete your themes, or start a new one from a built-in theme. On foldables and tablets the themes sit in a list beside a large preview of the one in use, with light and dark side by side when there's room, split along the fold when the device is half-open
-- [Android] Alpha and beta builds update in-app through Drop, with no tester sign-in, and a Drop build page's Open in App offers that build in Campfire, whichever channel you're on
-- [Android] Check for app updates when you come back to Campfire, not only when it starts
-- [Android] The navigation drawer's update card shows what's new in the update, with download progress and a one-tap update
-- E-book reading progress shows to a tenth of a percent
-- E-book details show the format and file size, the chapter you're on, the book's contents and edition details in place of audiobook-only information, and let you continue reading or discard your reading progress
-- Audiobooks that come with an e-book show your reading progress alongside your listening progress
-- Latest checks for new podcast episodes every time you open it, instead of once a day
-- Your downloads have a screen of their own, opened from the navigation drawer or from View all downloads in Downloads settings, which now holds just the settings
-- Downloads groups what you've downloaded into audiobooks, podcasts and e-books, with episodes under their show and downloads still in progress at the top, and shows how much space they take up. Each download looks as it does in the rest of the app, with a button to play or read it. Swipe a download away to remove it, with a moment to undo, see how far along each one is, and retry a failed one where it's listed. Delete all your downloads, the books you've finished or a show's episodes in one go from the menus, and see downloads side by side on foldables, tablets and desktop
-- The greens and yellows that mean done, synced or connecting lean toward your theme's color instead of ignoring it
+- Your playback queue is kept when you close the player or switch accounts, and you can open it from Playlists to reorder or remove what's next, even when nothing is playing
+- What you were listening to moves to the top of Up Next when you start something else, instead of disappearing (turn off in Playback settings)
+- Finishing a book or episode keeps its playback history and records when you finished it
+- [Android] Books play using less battery on phones whose audio hardware can play them directly, at any speed (turn off with Low-power playback in Playback settings)
+- [Android] Playback errors say what went wrong, such as a connection, sign-in or missing file problem, with an error code to include in bug reports
+- The custom theme builder has been redesigned around a live preview of Campfire's screens. Start from your own books' cover colors, fine-tune any part of the app in light and dark mode, and get a one-tap fix when something becomes hard to read
+- The theme picker previews each theme with your own books, and lets you edit, duplicate or delete your themes
+- Colors that mean done, synced or connecting now match your theme
+- Podcast episodes your server is downloading show as a banner on Shows and Latest, replacing the podcast Queue tab
+- Long titles on cards wait until you stop scrolling before they scroll
 
 ### Deprecated
 
@@ -56,46 +47,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [Desktop] Books not playing, and their cover missing from Now Playing, on servers that need custom headers, such as a Cloudflare Access service token
-- [Android] Playback history missing the play when a book starts, including when switching books or moving on to the next in the queue
-- Downloads hiding anything whose book or podcast can no longer be loaded, leaving no way to remove it
-- [Android] Download progress standing still in Downloads
-- Downloads saying there are no downloads for a moment while it loads
-- Nothing loading and the connection indicator staying red after your server was briefly unreachable, until the app was restarted
-- Campfire taking up to ten more minutes to notice your server is back when its check was interrupted, such as by leaving the screen
-- Being signed out for no reason, most often after leaving a screen right as the app reopened from a long break
-- Requests going out with the previous account's sign-in right after switching accounts
-- Crash right after signing out of your only account
-- Signing out of one account switching you to another that needs to sign in again, where nothing would load
-- Reopening the app after your sign-in expired starting over from the welcome screen instead of asking you to sign in to that server again
-- Crash a few seconds after being asked to sign in again
-- [Android] Rewinding or skipping while paused not updating the time left, and the new position being lost if the app closed before you pressed play
-- Series cards on Home scrolling their titles even with Marquee scrolling turned off
-- The app feeling sluggish while a book is playing, and the library and podcast episode lists stuttering as you scroll
-- A series' missing books disappearing and reappearing every few seconds while one of its books plays
-- A book's chapter list jumping when you come back to it from its series or another page, and expanded chapters folding back up
+- The app feeling sluggish while a book is playing, and lists stuttering as you scroll
+- Being signed out for no reason, most often when reopening the app after a long break
+- Campfire staying offline until restarted, or taking up to ten minutes to notice your server was back, after it was briefly unreachable
+- Problems when signing out or switching accounts, including a crash when signing out of your only account and requests using the previous account's sign-in
+- Reopening the app after your sign-in expired starting over from the welcome screen, and a crash shortly after being asked to sign in again
+- Your server sign-in and custom headers being sent to other websites when loading cover art or following a redirect
+- [Desktop] Books not playing, and their cover missing from Now Playing, on servers that need custom headers
+- [Android] OpenID sign-in failing on servers that need custom headers
 - [Android] Books that had been streaming fine failing with "Unable to play this file" until the app's cache was cleared
-- [Android] Playback errors say what actually went wrong (connection, sign-in, missing file or unreadable audio) with an error code to include in bug reports, instead of always blaming the audio format
-- E-books in list views showing a length of "0s"; they show their file size instead, and podcasts show their episode count
-- What you were listening to disappearing when you start something else; it moves to the top of Up Next, which you can turn off in Playback settings
-- Series numbers show exactly as entered in Audiobookshelf, so dates like 2026.10.10 are no longer cut short or shown out of order
-- Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
-- Your server sign-in and custom connection headers being sent to other websites when Campfire loaded cover art and podcast artwork from them, or when your server redirected a request to them
-- [Android] OpenID sign-in failing on servers that need custom connection headers
-- Sorting the library by size leaving items in their original order
-- "1 hours ago" and similar wording when something happened a single minute, hour, day, month or year ago
-- Short titles in the playback bar showing faded edges as if they were about to scroll
-- Downloads without cover art showing a blank space in Settings > Downloads instead of the placeholder cover
-- Podcast episodes in a playlist showing another episode's download status
+- [Android] Rewinding or skipping while paused not updating the time left, or being lost if the app closed before you pressed play
+- [Android] Playback history missing the play when a book starts, including when moving on to the next in the queue
 - Books whose download failed or was stopped playing as though they were downloaded
-- The book you're listening to losing its checkmark, or being counted twice, while selecting books to remove from a collection
-- Empty space at the bottom of the theme picker, theme builder and Add Podcast while something is playing
-- Downloading a playlist skipping its podcast episodes
-- Podcast episodes in a playlist failing to play until their podcast's page had been opened
-- New podcast episodes missing from their podcast's page, Home, Latest and playlists, which stopped updating once Audiobookshelf rescanned an episode
-- Podcasts in Shows' list layout saying they have 0 episodes
-- Shows counting its podcasts as books
-- Marking a book finished or not finished, or discarding its progress, not showing on its card in the library until the library was reloaded
+- Podcast libraries not loading in Home, Shows and Latest when a podcast has a blank or hand-typed release date, as RSS and OPML imports often do
+- New podcast episodes no longer showing up once Audiobookshelf rescanned an episode
+- Podcast episodes in a playlist failing to play until their podcast's page was opened, being skipped when downloading the playlist, or showing another episode's download status
+- Shows saying podcasts have 0 episodes in the list layout, and counting podcasts as books
+- Marking a book finished or not finished, or discarding its progress, not updating its library card until the library was reloaded
+- A series' missing books disappearing and reappearing while one of its books plays
+- A book's chapter list jumping and folding back up when you return to it
+- Series numbers like 2026.10.10 being cut short or shown out of order; they now show exactly as entered
+- Sorting the library by size not sorting anything
+- E-books in lists showing a length of "0s" instead of their file size
+- "1 hours ago" and similar wording for a single minute, hour, day, month or year
+- Series cards on Home scrolling their titles with Marquee scrolling turned off
+- Short titles in the playback bar showing faded edges as if they were about to scroll
+- The book you're listening to losing its checkmark, or being counted twice, when selecting books to remove from a collection
+- Empty space at the bottom of some screens, such as Add Podcast, while something is playing
 
 ### Other Notes & Contributions
 
