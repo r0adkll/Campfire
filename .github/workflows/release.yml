@@ -169,17 +169,20 @@ jobs:
         run: |
           echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
 
+      # The Android Automotive OS app shares the phone app's package, so the same Firebase config
+      # serves both.
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $GOOGLE_SERVICES_JSON > app/automotive/google-services.json
 
-      # The AAB is signed with the release keystore as the Play App Signing *upload* key;
-      # Play re-signs it with the app signing key for distribution. Attached to the GitHub
+      # The AABs are signed with the release keystore as the Play App Signing *upload* key;
+      # Play re-signs them with the app signing key for distribution. Attached to the GitHub
       # release for upload to the Play Console.
-      - name: Build Standard Release (AAB for Play, APK for sideloading)
-        run: ./gradlew :app:android:bundleStandardRelease :app:android:assembleStandardRelease
+      - name: Build Standard Release (AABs for Play, APK for sideloading)
+        run: ./gradlew :app:android:bundleStandardRelease :app:android:assembleStandardRelease :app:automotive:bundleRelease
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
@@ -193,6 +196,13 @@ jobs:
         with:
           name: android-play-build-outputs
           path: app/android/build/outputs
+
+      - name: Upload Android Automotive OS build outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: automotive-play-build-outputs
+          path: app/automotive/build/outputs
 
       - name: Get release information
         id: get_release
@@ -208,6 +218,16 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: app/android/build/outputs/bundle/standardRelease/android-standard-release.aab
           asset_name: campfire-play-release.aab
+          asset_content_type: application/octet-stream
+
+      - name: Upload Android Automotive OS AAB to release
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: app/automotive/build/outputs/bundle/release/automotive-release.aab
+          asset_name: campfire-automotive-release.aab
           asset_content_type: application/octet-stream
 
       # The full-featured (non-FOSS) APK, self-signed with the release key, for users who prefer
@@ -343,6 +363,55 @@ jobs:
           bundle exec fastlane android "$LANE" \
             aab:app/android/build/outputs/bundle/standardRelease/android-standard-release.aab \
             mapping:app/android/build/outputs/mapping/standardRelease/mapping.txt
+        env:
+          LANE: ${{ github.event.release.prerelease && 'beta' || 'production' }}
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
+  # Uploads the Android Automotive OS AAB to that form factor's own Play track (automotive:beta for
+  # rc tags, automotive:production for final releases), with the phone release's notes. A job of
+  # its own, gated on the PLAY_AUTOMOTIVE_ENABLED repository variable: Play rejects uploads to an
+  # automotive track until Android Automotive OS is added as a form factor in the Play Console, and
+  # that must never fail a phone release. See docs/automotive.md.
+  automotive-play-upload:
+    name: Upload Android Automotive OS AAB to Google Play
+    needs: [ android-play ]
+    if: vars.PLAY_AUTOMOTIVE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check for Play credentials
+        id: creds
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON is not set; skipping Google Play upload"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: ruby/setup-ruby@v1
+        if: steps.creds.outputs.present == 'true'
+        with:
+          ruby-version: '4.0.9'
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v8
+        if: steps.creds.outputs.present == 'true'
+        with:
+          name: automotive-play-build-outputs
+          path: app/automotive/build/outputs
+
+      - name: Upload to Google Play
+        if: steps.creds.outputs.present == 'true'
+        run: |
+          bundle exec fastlane android "$LANE" \
+            form_factor:automotive \
+            aab:app/automotive/build/outputs/bundle/release/automotive-release.aab \
+            mapping:app/automotive/build/outputs/mapping/release/mapping.txt
         env:
           LANE: ${{ github.event.release.prerelease && 'beta' || 'production' }}
           SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
