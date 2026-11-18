@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -48,6 +54,8 @@ import app.campfire.downloads.ui.ShowDownloads
 import app.campfire.downloads.ui.key
 import app.campfire.downloads.ui.sizeInBytes
 import campfire.features.downloads.ui.generated.resources.Res
+import campfire.features.downloads.ui.generated.resources.action_delete_show_episodes
+import campfire.features.downloads.ui.generated.resources.action_more_options
 import campfire.features.downloads.ui.generated.resources.action_play_download
 import campfire.features.downloads.ui.generated.resources.downloads_section_episodes_size
 import campfire.features.downloads.ui.generated.resources.downloads_unknown_podcast
@@ -67,6 +75,7 @@ internal fun ShowDownloadsCard(
   onEpisodeClick: (DownloadEntry.Episode) -> Unit,
   onPlayClick: (DownloadEntry.Episode) -> Unit,
   onDelete: (DownloadEntry.Episode) -> Unit,
+  onDeleteAll: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -110,6 +119,29 @@ internal fun ShowDownloadsCard(
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+      }
+
+      var menuExpanded by remember { mutableStateOf(false) }
+      val moreLabel = stringResource(Res.string.action_more_options)
+      Box {
+        IconButtonTooltip(text = moreLabel) {
+          IconButton(onClick = { menuExpanded = true }) {
+            Icon(CampfireIcons.Rounded.MoreVert, contentDescription = moreLabel)
+          }
+        }
+        DropdownMenu(
+          expanded = menuExpanded,
+          onDismissRequest = { menuExpanded = false },
+        ) {
+          DropdownMenuItem(
+            text = { Text(stringResource(Res.string.action_delete_show_episodes)) },
+            leadingIcon = { Icon(CampfireIcons.Rounded.DeleteSweep, contentDescription = null) },
+            onClick = {
+              menuExpanded = false
+              onDeleteAll()
+            },
+          )
+        }
       }
     }
 

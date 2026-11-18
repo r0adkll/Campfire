@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress
 - Latest checks for new podcast episodes every time you open it, instead of once a day
 - Your downloads have a screen of their own, opened from the navigation drawer or from View all downloads in Downloads settings, which now holds just the settings
-- Downloads groups what you've downloaded into audiobooks, podcasts and e-books, with episodes under their show and downloads still in progress at the top, and shows how much space they take up. Each download looks as it does in the rest of the app, with a button to play or read it. Swipe a download away to remove it, with a moment to undo, see how far along each one is, and retry a failed one where it's listed
+- Downloads groups what you've downloaded into audiobooks, podcasts and e-books, with episodes under their show and downloads still in progress at the top, and shows how much space they take up. Each download looks as it does in the rest of the app, with a button to play or read it. Swipe a download away to remove it, with a moment to undo, see how far along each one is, and retry a failed one where it's listed. Delete all your downloads, the books you've finished or a show's episodes in one go from the menus, and see downloads side by side on foldables, tablets and desktop
 - The greens and yellows that mean done, synced or connecting lean toward your theme's color instead of ignoring it
 
 ### Deprecated

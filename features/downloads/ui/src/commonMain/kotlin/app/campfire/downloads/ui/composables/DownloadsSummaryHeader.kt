@@ -149,8 +149,6 @@ internal fun DownloadSectionHeader(
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier
       .fillMaxWidth()
-      // Opaque, as rows scroll under it while it's stuck to the top
-      .background(MaterialTheme.colorScheme.surface)
       .padding(vertical = 8.dp),
   ) {
     Text(
