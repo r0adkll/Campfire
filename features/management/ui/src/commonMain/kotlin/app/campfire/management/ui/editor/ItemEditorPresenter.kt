@@ -134,7 +134,26 @@ class ItemEditorPresenter(
         current.isBehind(latest.metadata, latest.tags)
     }
 
-    fun save() {
+    // Editing goes on from the details as saved, which the server's own copy has once it's fetched
+    suspend fun keepEditing() {
+      libraryItemRepository.fetchLibraryItem(screen.libraryItemId)
+        .onSuccess { fetched ->
+          val book = fetched.media as? Media.Book
+          draft = book?.asDraft()
+          editingSince = fetched.updatedAtMillis
+          isLoadFailed = book == null
+        }
+        .onFailure { error ->
+          bark(throwable = error) { "Failed to fetch ${screen.libraryItemId} again once saved" }
+          draft = null
+          isLoadFailed = true
+        }
+      keptChangesOver = null
+      filledFrom = null
+      isSaving = false
+    }
+
+    fun save(close: Boolean = true) {
       val current = draft ?: return
       val update = current.update()
       if (isSaving || !current.isValid || update.isEmpty) return
@@ -144,12 +163,12 @@ class ItemEditorPresenter(
       scope.launch {
         libraryItemRepository.updateBookDetails(screen.libraryItemId, update)
           .onSuccess { changed ->
-            Analytics.send(ActionEvent("edit_item", "saved", update.analyticsFields()))
-            navigator.pop()
+            Analytics.send(ActionEvent("edit_item", if (close) "saved" else "saved_kept", update.analyticsFields()))
             // On past this screen, which is gone once the save is told
             userScope.get().launch {
               tellSaved(snackbarHost, title, changed, undo = current.undoOf(update))
             }
+            if (close) navigator.pop() else keepEditing()
           }
           .onFailure { error ->
             bark(throwable = error) { "Failed to save the details of ${screen.libraryItemId}" }
@@ -205,6 +224,8 @@ class ItemEditorPresenter(
     ) { event ->
       when (event) {
         ItemEditorUiEvent.Save -> save()
+
+        ItemEditorUiEvent.SaveAndKeepEditing -> save(close = false)
 
         ItemEditorUiEvent.Close -> {
           if (draft?.changes.isNullOrEmpty()) {

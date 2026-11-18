@@ -3,84 +3,97 @@
 
 package app.campfire.downloads.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.Close
-import app.campfire.common.compose.icons.rounded.Dangerous
-import app.campfire.common.compose.icons.rounded.Delete
 import app.campfire.common.compose.icons.rounded.DeleteForever
-import app.campfire.common.compose.icons.rounded.Download
-import app.campfire.common.compose.icons.rounded.DownloadDone
-import app.campfire.common.compose.icons.rounded.Downloading
-import app.campfire.common.compose.icons.rounded.Headphones
-import app.campfire.common.compose.icons.rounded.MenuBook
-import app.campfire.common.compose.icons.rounded.Podcasts
-import app.campfire.common.compose.icons.rounded.Warning
+import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.MoreVert
+import app.campfire.common.compose.icons.rounded.Settings
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.widgets.CampfireTopAppBar
-import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.NavigationBackButton
-import app.campfire.common.compose.widgets.placeholderBookPainter
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.common.screens.DownloadsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
-import app.campfire.offline.Download
-import app.campfire.offline.Download.State.Downloaded
-import app.campfire.offline.Download.State.Downloading
-import app.campfire.offline.Download.State.Failed
-import app.campfire.offline.Download.State.Queued
-import app.campfire.offline.Download.State.Stopped
+import app.campfire.downloads.ui.composables.DownloadRow
+import app.campfire.downloads.ui.composables.DownloadSectionHeader
+import app.campfire.downloads.ui.composables.DownloadsSummaryHeader
+import app.campfire.downloads.ui.composables.ShowDownloadsCard
+import app.campfire.downloads.ui.composables.title
 import campfire.features.downloads.ui.generated.resources.Res
-import campfire.features.downloads.ui.generated.resources.action_delete_download
-import campfire.features.downloads.ui.generated.resources.action_dismiss
-import campfire.features.downloads.ui.generated.resources.action_stop_download
+import campfire.features.downloads.ui.generated.resources.action_delete_all
+import campfire.features.downloads.ui.generated.resources.action_delete_finished
+import campfire.features.downloads.ui.generated.resources.action_download_settings
+import campfire.features.downloads.ui.generated.resources.action_more_options
+import campfire.features.downloads.ui.generated.resources.action_undo_delete
+import campfire.features.downloads.ui.generated.resources.dialog_action_cancel
+import campfire.features.downloads.ui.generated.resources.dialog_action_delete
+import campfire.features.downloads.ui.generated.resources.dialog_delete_all_title
+import campfire.features.downloads.ui.generated.resources.dialog_delete_finished_title
+import campfire.features.downloads.ui.generated.resources.dialog_delete_message
+import campfire.features.downloads.ui.generated.resources.dialog_delete_show_title
 import campfire.features.downloads.ui.generated.resources.downloads_empty
+import campfire.features.downloads.ui.generated.resources.downloads_empty_hint
+import campfire.features.downloads.ui.generated.resources.downloads_error
+import campfire.features.downloads.ui.generated.resources.downloads_removed
+import campfire.features.downloads.ui.generated.resources.downloads_section_audiobooks
+import campfire.features.downloads.ui.generated.resources.downloads_section_ebooks
+import campfire.features.downloads.ui.generated.resources.downloads_section_in_progress
+import campfire.features.downloads.ui.generated.resources.downloads_section_podcasts
+import campfire.features.downloads.ui.generated.resources.downloads_section_unavailable
 import campfire.features.downloads.ui.generated.resources.downloads_title
-import campfire.features.downloads.ui.generated.resources.label_confirm_download_delete
-import campfire.features.downloads.ui.generated.resources.label_confirm_download_stop
+import campfire.features.downloads.ui.generated.resources.downloads_unknown_podcast
 import com.slack.circuit.codegen.annotations.CircuitInject
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(DownloadsScreen::class, UserScope::class)
@@ -89,7 +102,25 @@ fun DownloadsUi(
   state: DownloadsUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  UndoDeleteSnackbar(
+    pendingDelete = state.pendingDelete,
+    onUndo = { state.eventSink(DownloadsUiEvent.UndoDelete(it)) },
+    onCommit = { state.eventSink(DownloadsUiEvent.CommitDelete(it)) },
+  )
+
+  var confirming by remember { mutableStateOf<BulkDelete?>(null) }
+  confirming?.let { delete ->
+    ConfirmBulkDeleteDialog(
+      delete = delete,
+      onConfirm = {
+        confirming = null
+        state.eventSink(DownloadsUiEvent.DeleteDownloads(delete.entries))
+      },
+      onDismiss = { confirming = null },
+    )
+  }
+
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -97,355 +128,337 @@ fun DownloadsUi(
         navigationIcon = {
           NavigationBackButton(onClick = { state.eventSink(DownloadsUiEvent.Back) })
         },
+        actions = {
+          val content = state.downloads.dataOrNull
+          val entries = content?.entries.orEmpty()
+          val deleteFinishedTitle = stringResource(Res.string.dialog_delete_finished_title)
+          val deleteAllTitle = stringResource(Res.string.dialog_delete_all_title)
+          DownloadsActions(
+            // Only offered when there's something for them to delete
+            onDeleteFinished = content?.finishedBooks?.takeIf { it.isNotEmpty() }?.let { finished ->
+              { confirming = BulkDelete(deleteFinishedTitle, finished) }
+            },
+            onDeleteAll = entries.takeIf { it.isNotEmpty() }?.let { all ->
+              { confirming = BulkDelete(deleteAllTitle, all) }
+            },
+            onSettings = { state.eventSink(DownloadsUiEvent.OpenSettings) },
+          )
+        },
         scrollBehavior = scrollBehavior,
+        // The status bar's height is part of the bar rather than an inset around it, so it
+        // scrolls away with the bar and the list passes behind the status bar, as on a series
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars.asPaddingValues(),
       )
     },
     contentWindowInsets = CampfireWindowInsets,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
-    if (state.downloads.isEmpty()) {
-      EmptyState(
-        message = stringResource(Res.string.downloads_empty),
+    when (val downloads = state.downloads) {
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+
+      LoadState.Error -> ErrorListState(
+        message = stringResource(Res.string.downloads_error),
         modifier = Modifier
           .fillMaxSize()
           .padding(paddingValues),
       )
-    } else {
-      DownloadList(
-        downloads = state.downloads,
-        onClick = { state.eventSink(DownloadsUiEvent.DownloadClick(it)) },
-        onDeleteClick = { state.eventSink(DownloadsUiEvent.DeleteDownload(it)) },
-        contentPadding = paddingValues,
-      )
-    }
-  }
-}
 
-@Composable
-private fun DownloadList(
-  downloads: List<DownloadEntry>,
-  onClick: (DownloadEntry) -> Unit,
-  onDeleteClick: (DownloadEntry) -> Unit,
-  modifier: Modifier = Modifier,
-  contentPadding: PaddingValues = PaddingValues(),
-) {
-  var confirmingKey by remember { mutableStateOf<String?>(null) }
-  val showMediaType = downloads.hasMixedMediaTypes
-  LazyColumn(
-    contentPadding = contentPadding,
-    modifier = modifier.fillMaxSize(),
-  ) {
-    items(
-      items = downloads,
-      key = { it.confirmKey },
-    ) { entry ->
-      val key = entry.confirmKey
-      ConfirmationLayout(
-        showConfirmation = confirmingKey == key,
-        confirm = {
-          ConfirmDeleteListItem(
-            download = entry.download,
-            onDeleteClick = { onDeleteClick(entry) },
-            onDismissRequest = { confirmingKey = null },
-          )
-        },
-      ) {
-        ItemDownloadListItem(
-          entry = entry,
-          showMediaType = showMediaType,
-          onClick = { onClick(entry) },
-          onDeleteClick = { confirmingKey = key },
+      is LoadState.Loaded -> if (downloads.data.summary.count == 0) {
+        EmptyState(
+          message = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text(stringResource(Res.string.downloads_empty))
+              Text(
+                text = stringResource(Res.string.downloads_empty_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+              )
+            }
+          },
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        )
+      } else {
+        DownloadList(
+          content = downloads.data,
+          onFilterChange = { state.eventSink(DownloadsUiEvent.FilterChange(it)) },
+          onShowClick = { state.eventSink(DownloadsUiEvent.ShowClick(it)) },
+          onDeleteShow = { show, title -> confirming = BulkDelete(title, show.episodes) },
+          onClick = { state.eventSink(DownloadsUiEvent.DownloadClick(it)) },
+          onPlayClick = { state.eventSink(DownloadsUiEvent.PlayClick(it)) },
+          onRetryClick = { state.eventSink(DownloadsUiEvent.RetryDownload(it)) },
+          onDelete = { state.eventSink(DownloadsUiEvent.DeleteDownload(it)) },
+          contentPadding = paddingValues,
         )
       }
     }
   }
 }
-
-@Composable
-private fun ConfirmDeleteListItem(
-  download: Download,
-  onDeleteClick: () -> Unit,
-  onDismissRequest: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Row(
-    modifier = modifier
-      .background(MaterialTheme.colorScheme.secondaryContainer)
-      .fillMaxSize()
-      .padding(horizontal = 16.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-      text = when (download.state) {
-        Queued,
-        Stopped,
-        Downloading,
-        -> stringResource(Res.string.label_confirm_download_stop)
-
-        Downloaded,
-        Failed,
-        -> stringResource(Res.string.label_confirm_download_delete)
-      },
-      style = MaterialTheme.typography.bodyMedium,
-      modifier = Modifier
-        .weight(1f),
-    )
-
-    Spacer(Modifier.width(16.dp))
-
-    val dismissLabel = stringResource(Res.string.action_dismiss)
-    IconButtonTooltip(text = dismissLabel) {
-      OutlinedIconButton(
-        onClick = onDismissRequest,
-      ) {
-        Icon(
-          CampfireIcons.Rounded.Close,
-          contentDescription = dismissLabel,
-          modifier = Modifier.size(ButtonDefaults.IconSize),
-        )
-      }
-    }
-
-    Spacer(Modifier.width(4.dp))
-
-    Button(
-      onClick = onDeleteClick,
-      contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-    ) {
-      Icon(
-        when (download.state) {
-          Queued,
-          Downloading,
-          -> CampfireIcons.Rounded.Dangerous
-
-          Stopped,
-          Downloaded,
-          Failed,
-          -> CampfireIcons.Rounded.DeleteForever
-        },
-        contentDescription = null,
-        modifier = Modifier.size(ButtonDefaults.IconSize),
-      )
-      Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-      Text(
-        when (download.state) {
-          Queued,
-          Stopped,
-          Downloading,
-          -> stringResource(Res.string.action_stop_download)
-
-          Downloaded,
-          Failed,
-          -> stringResource(Res.string.action_delete_download)
-        },
-      )
-    }
-  }
-}
-
-private val DownloadEntry.confirmKey: String
-  get() = when (this) {
-    is DownloadEntry.Book -> libraryItem.id
-    is DownloadEntry.Episode -> "${libraryItem.id}:${episode.id}"
-    is DownloadEntry.Ebook -> "${libraryItem.id}:ebook"
-  }
-
-/** Whether [this] holds more than one kind of download, so each row says which it is. */
-internal val List<DownloadEntry>.hasMixedMediaTypes: Boolean
-  get() = distinctBy { it::class }.size > 1
-
-private val DownloadEntry.mediaTypeIcon: ImageVector
-  get() = when (this) {
-    is DownloadEntry.Book -> CampfireIcons.Rounded.Headphones
-    is DownloadEntry.Ebook -> CampfireIcons.Rounded.MenuBook
-    is DownloadEntry.Episode -> CampfireIcons.Rounded.Podcasts
-  }
 
 /**
- * The size of the download, after what it is: an ebook's format always, as its details show it,
- * and an audiobook's file format when [showFormat], next to other kinds of downloads.
+ * Tells that [pendingDelete] was taken off the list and offers to put it back. It's removed for
+ * good, by [onCommit], once the message goes without Undo being chosen.
  */
-internal fun DownloadEntry.supportingText(showFormat: Boolean): String = when (this) {
-  is DownloadEntry.Book -> {
-    val size = libraryItem.media.sizeInBytes.asReadableBytes()
-    // Only a single format reads cleanly; a book mixing them just shows its size
-    val format = libraryItem.media.tracks
-      .map { it.metadata.ext.removePrefix(".").uppercase() }
-      .filter { it.isNotBlank() }
-      .distinct()
-      .singleOrNull()
-    if (showFormat && format != null) "$format · $size" else size
-  }
-  is DownloadEntry.Ebook -> {
-    val size = download.totalBytes
-      .takeIf { it > 0L }
-      ?.asReadableBytes()
-      ?: libraryItem.media.sizeInBytes.asReadableBytes()
-    val format = libraryItem.media.ebookFormat?.uppercase()
-    if (format != null) "$format · $size" else size
-  }
-  is DownloadEntry.Episode -> buildString {
-    append(libraryItem.media.metadata.title ?: "<unknown podcast>")
-    append(" · ")
-    append(episode.sizeInBytes.asReadableBytes())
+@Composable
+private fun UndoDeleteSnackbar(
+  pendingDelete: DownloadEntry?,
+  onUndo: (DownloadEntry) -> Unit,
+  onCommit: (DownloadEntry) -> Unit,
+) {
+  val snackbarHost = LocalSnackBarHost.current
+  val message = pendingDelete?.let { stringResource(Res.string.downloads_removed, it.title()) }
+  val undoLabel = stringResource(Res.string.action_undo_delete)
+  val currentOnUndo by rememberUpdatedState(onUndo)
+  val currentOnCommit by rememberUpdatedState(onCommit)
+  LaunchedEffect(pendingDelete?.key) {
+    if (pendingDelete == null || message == null) return@LaunchedEffect
+    snackbarHost.currentSnackbarData?.dismiss()
+    val result = snackbarHost.showSnackbar(
+      message = message,
+      actionLabel = undoLabel,
+      duration = SnackbarDuration.Long,
+    )
+    when (result) {
+      SnackbarResult.ActionPerformed -> currentOnUndo(pendingDelete)
+      SnackbarResult.Dismissed -> currentOnCommit(pendingDelete)
+    }
   }
 }
 
+/** Several downloads to delete at once, once it's been asked about under [title]. */
+private data class BulkDelete(
+  val title: String,
+  val entries: List<DownloadEntry>,
+)
+
 @Composable
-internal fun ItemDownloadListItem(
-  entry: DownloadEntry,
-  showMediaType: Boolean,
-  onClick: () -> Unit,
-  onDeleteClick: () -> Unit,
+private fun ConfirmBulkDeleteDialog(
+  delete: BulkDelete,
+  onConfirm: () -> Unit,
+  onDismiss: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val item = entry.libraryItem
-  val download = entry.download
-  val titleText = when (entry) {
-    is DownloadEntry.Book,
-    is DownloadEntry.Ebook,
-    -> item.media.metadata.title ?: "<unknown item>"
-    is DownloadEntry.Episode -> entry.episode.title
-  }
-  ListItem(
-    headlineContent = { Text(titleText) },
-    supportingContent = {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        if (showMediaType) {
-          Icon(
-            entry.mediaTypeIcon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-          )
-          Spacer(Modifier.width(6.dp))
-        }
-        Text(entry.supportingText(showFormat = showMediaType))
-      }
-    },
-    leadingContent = {
-      ItemDownloadImage(
-        item = item,
-        download = download,
+  AlertDialog(
+    modifier = modifier,
+    onDismissRequest = onDismiss,
+    title = { Text(delete.title) },
+    text = {
+      Text(
+        pluralStringResource(
+          Res.plurals.dialog_delete_message,
+          delete.entries.size,
+          delete.entries.size,
+          delete.entries.sumOf { it.sizeOnDevice }.asReadableBytes(),
+        ),
       )
     },
-    trailingContent = {
-      val deleteOrStopLabel = stringResource(
-        when (download.state) {
-          Queued,
-          Stopped,
-          Downloading,
-          -> Res.string.action_stop_download
-
-          Downloaded,
-          Failed,
-          -> Res.string.action_delete_download
-        },
-      )
-      IconButtonTooltip(text = deleteOrStopLabel) {
-        FilledTonalIconButton(
-          onClick = onDeleteClick,
-          colors = IconButtonDefaults.filledTonalIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.error,
-          ),
-        ) {
-          Icon(
-            when (download.state) {
-              Queued,
-              Downloading,
-              -> CampfireIcons.Rounded.Dangerous
-
-              Stopped,
-              Downloaded,
-              Failed,
-              -> CampfireIcons.Rounded.Delete
-            },
-            contentDescription = deleteOrStopLabel,
-          )
-        }
+    confirmButton = {
+      TextButton(onClick = onConfirm) {
+        Text(stringResource(Res.string.dialog_action_delete))
       }
     },
-    colors = ListItemDefaults.colors(
-      containerColor = Color.Transparent,
-    ),
-    modifier = modifier.clickable(onClick = onClick),
+    dismissButton = {
+      TextButton(onClick = onDismiss) {
+        Text(stringResource(Res.string.dialog_action_cancel))
+      }
+    },
   )
 }
 
+/**
+ * What can be done to the downloads as a whole: their settings as an action on the top bar, and
+ * the deletes in a menu beside it. A delete with nothing to delete, null here, is left out, and
+ * the menu with it when that leaves it empty.
+ */
 @Composable
-private fun ItemDownloadImage(
-  item: LibraryItem,
-  download: Download,
+private fun DownloadsActions(
+  onDeleteFinished: (() -> Unit)?,
+  onDeleteAll: (() -> Unit)?,
+  onSettings: () -> Unit,
   modifier: Modifier = Modifier,
-  size: Dp = 56.dp,
 ) {
-  Box(
-    modifier = modifier
-      .clip(MaterialTheme.shapes.medium),
-    contentAlignment = Alignment.Center,
-  ) {
-    CoverImage(
-      imageUrl = item.media.coverImageUrl,
-      contentDescription = item.media.metadata.title,
-      placeholder = placeholderBookPainter(),
-      shape = MaterialTheme.shapes.medium,
-      size = size,
-    )
+  Row(modifier) {
+    val settingsLabel = stringResource(Res.string.action_download_settings)
+    IconButtonTooltip(text = settingsLabel) {
+      IconButton(onClick = onSettings) {
+        Icon(CampfireIcons.Rounded.Settings, contentDescription = settingsLabel)
+      }
+    }
 
-    if (
-      download.state != Downloaded
-    ) {
-      val downloadingColor = MaterialTheme.colorScheme.primaryContainer
-        .copy(alpha = 0.75f)
-      Box(
-        modifier = Modifier
-          .size(size)
-          .background(
-            color = when (download.state) {
-              Stopped,
-              Failed,
-              -> MaterialTheme.colorScheme.errorContainer.copy(0.90f)
-              else -> MaterialTheme.colorScheme.scrim.copy(0.6f)
-            },
-          )
-          .drawWithContent {
-            if (download.state == Downloading) {
-              val padding = 16.dp.toPx()
-              drawArc(
-                color = downloadingColor,
-                startAngle = -90f,
-                sweepAngle = 360f * (download.progress ?: 0f),
-                topLeft = Offset(-padding, -padding),
-                size = Size(this.size.width + (padding * 2), this.size.height + (padding * 2)),
-                useCenter = true,
-              )
-            }
-
-            drawContent()
-          },
-        contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-          when (download.state) {
-            Stopped,
-            -> CampfireIcons.Rounded.Download
-
-            Queued,
-            Downloading,
-            -> CampfireIcons.Rounded.Downloading
-
-            Failed -> CampfireIcons.Rounded.Warning
-            Downloaded -> CampfireIcons.Rounded.DownloadDone
-          },
-          contentDescription = null,
-          tint = when (download.state) {
-            Stopped,
-            Failed,
-            -> MaterialTheme.colorScheme.error
-            else -> Color.White
-          },
-        )
+    if (onDeleteFinished != null || onDeleteAll != null) {
+      var expanded by remember { mutableStateOf(false) }
+      val moreLabel = stringResource(Res.string.action_more_options)
+      Box {
+        IconButtonTooltip(text = moreLabel) {
+          IconButton(onClick = { expanded = true }) {
+            Icon(CampfireIcons.Rounded.MoreVert, contentDescription = moreLabel)
+          }
+        }
+        DropdownMenu(
+          expanded = expanded,
+          onDismissRequest = { expanded = false },
+        ) {
+          if (onDeleteFinished != null) {
+            DropdownMenuItem(
+              text = { Text(stringResource(Res.string.action_delete_finished)) },
+              leadingIcon = { Icon(CampfireIcons.Rounded.DeleteSweep, contentDescription = null) },
+              onClick = {
+                expanded = false
+                onDeleteFinished()
+              },
+            )
+          }
+          if (onDeleteAll != null) {
+            DropdownMenuItem(
+              text = { Text(stringResource(Res.string.action_delete_all)) },
+              leadingIcon = { Icon(CampfireIcons.Rounded.DeleteForever, contentDescription = null) },
+              onClick = {
+                expanded = false
+                onDeleteAll()
+              },
+            )
+          }
+        }
       }
     }
   }
 }
+
+/**
+ * The summary, then each section that has anything in it under a heading. Rows sit in as many columns as fit, one on a phone, with the summary
+ * and the headings across them all.
+ *
+ * @param onDeleteShow called to delete every downloaded episode of a show, with the title to ask
+ *   about it under.
+ */
+@Composable
+internal fun DownloadList(
+  content: DownloadsContent,
+  onFilterChange: (DownloadKind?) -> Unit,
+  onShowClick: (LibraryItem) -> Unit,
+  onDeleteShow: (ShowDownloads, title: String) -> Unit,
+  onClick: (DownloadEntry) -> Unit,
+  onPlayClick: (DownloadEntry) -> Unit,
+  onRetryClick: (DownloadEntry) -> Unit,
+  onDelete: (DownloadEntry) -> Unit,
+  modifier: Modifier = Modifier,
+  contentPadding: PaddingValues = PaddingValues(),
+) {
+  val sections = content.sections
+  val layoutDirection = LocalLayoutDirection.current
+  LazyVerticalGrid(
+    columns = GridCells.Adaptive(RowMinWidth),
+    contentPadding = PaddingValues(
+      start = contentPadding.calculateStartPadding(layoutDirection) + ListPadding,
+      end = contentPadding.calculateEndPadding(layoutDirection) + ListPadding,
+      top = contentPadding.calculateTopPadding() + RowSpacing,
+      bottom = contentPadding.calculateBottomPadding() + ListPadding,
+    ),
+    verticalArrangement = Arrangement.spacedBy(RowSpacing),
+    horizontalArrangement = Arrangement.spacedBy(RowSpacing),
+    modifier = modifier.fillMaxSize(),
+  ) {
+    item(key = "summary", span = { GridItemSpan(maxLineSpan) }, contentType = "summary") {
+      DownloadsSummaryHeader(
+        summary = content.summary,
+        filter = content.filter,
+        onFilterChange = onFilterChange,
+      )
+    }
+
+    fun rows(entries: List<DownloadEntry>) = items(
+      items = entries,
+      key = { it.key },
+      contentType = { "download" },
+    ) { entry ->
+      DownloadRow(
+        entry = entry,
+        onClick = { onClick(entry) },
+        onPlayClick = { onPlayClick(entry) },
+        onRetryClick = { onRetryClick(entry) },
+        onDelete = { onDelete(entry) },
+        modifier = Modifier.animateItem(),
+      )
+    }
+
+    if (sections.inProgress.isNotEmpty()) {
+      // What's been fetched so far says little, so these are only counted
+      sectionHeader(Res.string.downloads_section_in_progress, sections.inProgress.size, sizeInBytes = 0L)
+      rows(sections.inProgress)
+    }
+
+    if (sections.audiobooks.isNotEmpty()) {
+      sectionHeader(
+        title = Res.string.downloads_section_audiobooks,
+        count = sections.audiobooks.size,
+        sizeInBytes = sections.audiobooks.sumOf { it.sizeInBytes },
+      )
+      rows(sections.audiobooks)
+    }
+
+    if (sections.shows.isNotEmpty()) {
+      sectionHeader(
+        title = Res.string.downloads_section_podcasts,
+        count = sections.shows.sumOf { it.episodes.size },
+        sizeInBytes = sections.shows.sumOf { it.sizeInBytes },
+      )
+      items(
+        items = sections.shows,
+        key = { "show:${it.libraryItem.id}" },
+        contentType = { "show" },
+      ) { show ->
+        val deleteTitle = stringResource(
+          Res.string.dialog_delete_show_title,
+          show.libraryItem.media.metadata.title ?: stringResource(Res.string.downloads_unknown_podcast),
+        )
+        ShowDownloadsCard(
+          show = show,
+          onShowClick = { onShowClick(show.libraryItem) },
+          onEpisodeClick = onClick,
+          onPlayClick = onPlayClick,
+          onDelete = onDelete,
+          onDeleteAll = { onDeleteShow(show, deleteTitle) },
+          modifier = Modifier.animateItem(),
+        )
+      }
+    }
+
+    if (sections.ebooks.isNotEmpty()) {
+      sectionHeader(
+        title = Res.string.downloads_section_ebooks,
+        count = sections.ebooks.size,
+        sizeInBytes = sections.ebooks.sumOf { it.sizeInBytes },
+      )
+      rows(sections.ebooks)
+    }
+
+    if (sections.unavailable.isNotEmpty()) {
+      sectionHeader(
+        title = Res.string.downloads_section_unavailable,
+        count = sections.unavailable.size,
+        sizeInBytes = sections.unavailable.sumOf { it.sizeInBytes },
+      )
+      rows(sections.unavailable)
+    }
+  }
+}
+
+private fun LazyGridScope.sectionHeader(title: StringResource, count: Int, sizeInBytes: Long) {
+  item(key = "header:${title.key}", span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
+    DownloadSectionHeader(
+      title = stringResource(title),
+      count = count,
+      sizeInBytes = sizeInBytes,
+      modifier = Modifier.animateItem(),
+    )
+  }
+}
+
+private val ListPadding = 16.dp
+private val RowSpacing = 8.dp
+
+/** The narrowest a row gets before the list takes fewer columns: a phone is one column wide. */
+private val RowMinWidth = 340.dp

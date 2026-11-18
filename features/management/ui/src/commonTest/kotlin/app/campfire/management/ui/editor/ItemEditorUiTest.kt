@@ -5,6 +5,9 @@ package app.campfire.management.ui.editor
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
@@ -15,6 +18,9 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -34,6 +40,10 @@ import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.layout.LocalWorkspacePreview
+import app.campfire.common.compose.layout.WorkspacePreview
+import app.campfire.common.compose.widgets.primaryShortcut
+import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
@@ -45,7 +55,9 @@ import app.campfire.management.ui.match.matchUiState
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isTrue
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
@@ -389,6 +401,103 @@ class ItemEditorUiTest {
     assertThat(draft!!.newCover).isEqualTo(null)
   }
 
+  @Test
+  fun theLayoutFollowsTheWindow() {
+    assertThat(EditorLayout.of(WindowSizeClass(minWidthDp = 412, minHeightDp = 915), Platform.ANDROID))
+      .isEqualTo(EditorLayout.Tabs)
+    // A foldable, or a desktop window, with no room for the sections beside the form and preview
+    assertThat(EditorLayout.of(WindowSizeClass(minWidthDp = 1000, minHeightDp = 800), Platform.DESKTOP))
+      .isEqualTo(EditorLayout.Tabs)
+    assertThat(EditorLayout.of(WindowSizeClass(minWidthDp = 1280, minHeightDp = 800), Platform.ANDROID))
+      .isEqualTo(EditorLayout.Rail)
+    assertThat(EditorLayout.of(WindowSizeClass(minWidthDp = 1440, minHeightDp = 900), Platform.DESKTOP))
+      .isEqualTo(EditorLayout.Desktop)
+  }
+
+  @Test
+  fun aWideWindowListsTheSectionsUnderTheBook() = runComposeUiTest {
+    setEditor(layout = EditorLayout.Rail, width = 800.dp, height = 1000.dp)
+
+    onNodeWithTag("editor_book").assertExists()
+    onNodeWithTag("tab_Cover").assertDoesNotExist()
+    onNodeWithTag("editor_footer").assertDoesNotExist()
+    // Without shortcuts to show, as there may well be no keyboard
+    onNodeWithText(primaryShortcut("1"), useUnmergedTree = true).assertDoesNotExist()
+
+    onNodeWithTag("field_title").performTextReplacement("Children of Memory")
+    onNode(hasTestTag("section_Details") and hasAnyDescendant(hasContentDescription("Changed")), useUnmergedTree = true)
+      .assertExists()
+    onNode(hasTestTag("section_Cover") and hasAnyDescendant(hasContentDescription("Changed")), useUnmergedTree = true)
+      .assertDoesNotExist()
+    // The top bar still saves, and leaves
+    onNodeWithTag("editor_save").performClick()
+    onNodeWithTag("section_Cover").performClick()
+
+    events.assertEvents(ItemEditorUiEvent.Save, ItemEditorUiEvent.ShowSection(EditorSection.Cover))
+  }
+
+  @Test
+  fun aDesktopSavesFromItsFootAndCanStay() = runComposeUiTest {
+    setEditor(layout = EditorLayout.Desktop, width = 900.dp, height = 1000.dp)
+
+    onNodeWithTag("editor_footer").assertExists()
+    onNodeWithTag("editor_save_stay").assertIsNotEnabled()
+    onNodeWithTag("editor_discard").assertIsNotEnabled()
+
+    onNodeWithTag("field_title").performTextReplacement("Children of Memory")
+
+    onNodeWithText("1 change").assertExists()
+    onNodeWithTag("editor_save_stay").performClick()
+    onNodeWithTag("editor_save").performClick()
+    onNodeWithTag("editor_discard").performClick()
+    events.assertEvents(
+      ItemEditorUiEvent.SaveAndKeepEditing,
+      ItemEditorUiEvent.Save,
+      ItemEditorUiEvent.ResetChanges,
+    )
+  }
+
+  @Test
+  fun aDesktopsShortcutsSaveAndMoveBetweenSections() = runComposeUiTest {
+    setEditor(layout = EditorLayout.Desktop, width = 900.dp, height = 1000.dp)
+
+    onNodeWithText(primaryShortcut("S"), useUnmergedTree = true).assertExists()
+    onNodeWithText(primaryShortcut("2"), useUnmergedTree = true).assertExists()
+
+    onNodeWithTag("field_title").performTextReplacement("Children of Memory")
+    onNodeWithTag("field_title").performKeyInput {
+      withKeyDown(Key.CtrlLeft) { pressKey(Key.S) }
+      withKeyDown(Key.MetaLeft) { pressKey(Key.Three) }
+    }
+
+    events.assertEvents(ItemEditorUiEvent.SaveAndKeepEditing, ItemEditorUiEvent.ShowSection(EditorSection.Match))
+  }
+
+  @Test
+  fun aDesktopLaysTheFieldsOutInRows() = runComposeUiTest {
+    setEditor(layout = EditorLayout.Desktop, width = 900.dp, height = 1000.dp)
+
+    val title = onNodeWithTag("field_title").getUnclippedBoundsInRoot()
+    val subtitle = onNodeWithTag("field_subtitle").getUnclippedBoundsInRoot()
+    assertThat(subtitle.top).isEqualTo(title.top)
+    assertThat(subtitle.left).isGreaterThan(title.right)
+    onNodeWithText("People").assertDoesNotExist()
+  }
+
+  @Test
+  fun coverAndMatchPutThePreviewAway() = runComposeUiTest {
+    val preview = WorkspacePreview()
+    var section by mutableStateOf(EditorSection.Cover)
+    setEditor(sectionOf = { section }, workspacePreview = preview)
+
+    waitForIdle()
+    assertThat(preview.isHidden).isTrue()
+
+    section = EditorSection.Details
+    waitForIdle()
+    assertThat(preview.isHidden).isFalse()
+  }
+
   private fun ComposeUiTest.setEditor(
     item: LoadState<out LibraryItem> = LoadState.Loaded(book),
     withDraft: Boolean = true,
@@ -404,6 +513,9 @@ class ItemEditorUiTest {
     newCoverUrl: String? = null,
     width: Dp = 400.dp,
     height: Dp = 1600.dp,
+    layout: EditorLayout = EditorLayout.Tabs,
+    sectionOf: () -> EditorSection = { section },
+    workspacePreview: WorkspacePreview = WorkspacePreview(),
   ) {
     draft = if (withDraft) {
       BookDetailsDraft(details, book.media.tags).apply {
@@ -421,12 +533,14 @@ class ItemEditorUiTest {
             minWidthDp = width.value.toInt(),
             minHeightDp = height.value.toInt(),
           ),
+          LocalWorkspacePreview provides workspacePreview,
         ) {
-          ItemEditorUi(
+          ItemEditor(
+            layout = layout,
             state = ItemEditorUiState(
               item = item,
               draft = draft,
-              section = section,
+              section = sectionOf(),
               cover = coverUiState(),
               match = match,
               filledFrom = filledFrom,

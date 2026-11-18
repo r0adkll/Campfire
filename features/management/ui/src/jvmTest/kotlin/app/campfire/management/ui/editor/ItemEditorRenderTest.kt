@@ -89,6 +89,14 @@ class ItemEditorRenderTest {
   @Test
   fun wideWhole() = render("item-editor-wide-whole.png", width = 960, height = 1500)
 
+  /** The editor's part of a tablet on its side, beside the navigation rail and the preview */
+  @Test
+  fun tablet() = render("item-editor-tablet.png", width = 800, height = 800, layout = EditorLayout.Rail)
+
+  /** The editor's part of a desktop window, beside the navigation rail and the preview */
+  @Test
+  fun desktop() = render("item-editor-desktop.png", width = 960, height = 900, layout = EditorLayout.Desktop)
+
   @Test
   fun filledFromAMatch() = render("item-editor-filled.png", width = 412, height = 915, filled = true)
 
@@ -170,6 +178,52 @@ class ItemEditorRenderTest {
     ),
   )
 
+  /** The editor's part of a desktop window on Cover, which puts the preview away */
+  @Test
+  fun desktopCover() = render(
+    "item-editor-desktop-cover.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Cover,
+    layout = EditorLayout.Desktop,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      bookImages = BookImages.Loaded(listOf(bookImage("cover.jpg", isCover = true), bookImage("folder.png"))),
+      results = listOf(
+        CoverResults(MatchProvider("audible", "Audible.com"), CoverSearch.Found(CoverResults3)),
+        CoverResults(MatchProvider("google", "Google Books"), CoverSearch.Found(listOf("https://books.google.com/a"))),
+        CoverResults(MatchProvider("openlibrary", "Open Library"), CoverSearch.Searching),
+        CoverResults(MatchProvider("itunes", "iTunes"), CoverSearch.Found(emptyList())),
+      ),
+      sizes = mapOf(
+        CoverResults3[0] to ImageSize(2400, 2400),
+        CoverResults3[1] to ImageSize(2400, 2400),
+        CoverResults3[2] to ImageSize(1000, 1000),
+        "https://books.google.com/a" to ImageSize(512, 800),
+      ),
+    ),
+  )
+
+  /** The editor's part of a desktop window on Match, reviewing a result beside them */
+  @Test
+  fun desktopMatch() = render(
+    "item-editor-desktop-match.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Match,
+    reviewing = true,
+    layout = EditorLayout.Desktop,
+  )
+
+  @Test
+  fun desktopMatchUnreviewed() = render(
+    "item-editor-desktop-match-unreviewed.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Match,
+    layout = EditorLayout.Desktop,
+  )
+
   @Test
   fun coverSearchSideways() = render(
     "item-editor-cover-landscape.png",
@@ -246,6 +300,7 @@ class ItemEditorRenderTest {
     reviewing: Boolean = false,
     filled: Boolean = false,
     cover: CoverUiState = coverUiState(),
+    layout: EditorLayout = EditorLayout.Tabs,
   ) {
     val renders = File("build/renders").apply { mkdirs() }
     val draft = BookDetailsDraft(details, tags).apply {
@@ -295,7 +350,7 @@ class ItemEditorRenderTest {
           // The app's overlay host sits inside its theme, so its sheets are themed too
           CampfireTheme(useDarkColors = false) {
             ContentWithOverlays {
-              Editor(draft, section, cover, match, filledFrom = "Audible.com".takeIf { filled })
+              Editor(draft, section, cover, match, filledFrom = "Audible.com".takeIf { filled }, layout = layout)
             }
           }
         }
@@ -315,8 +370,10 @@ class ItemEditorRenderTest {
     cover: CoverUiState,
     match: MatchUiState,
     filledFrom: String?,
+    layout: EditorLayout,
   ) {
-    ItemEditorUi(
+    ItemEditor(
+      layout = layout,
       state = ItemEditorUiState(
         item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
         draft = draft,

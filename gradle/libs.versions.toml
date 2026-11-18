@@ -16,7 +16,7 @@ androidxshapes = "1.1.0"
 appcompat = "1.8.0"
 burst = "2.14.0"
 cadence = "0.2.0"
-clikt = "5.2.0"
+clikt = "5.2.1"
 core-ktx = "1.19.1"
 coroutines = "1.11.0"
 drop = "0.6.0"
@@ -292,7 +292,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 turbine = "app.cash.turbine:turbine:1.2.1"
 leakCanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
-robolectric = "org.robolectric:robolectric:4.18"
+robolectric = "org.robolectric:robolectric:4.18.1"
 strikt-core = "io.strikt:strikt-core:0.35.1"
 assertk = "com.willowtreeapps.assertk:assertk:0.28.1"
 

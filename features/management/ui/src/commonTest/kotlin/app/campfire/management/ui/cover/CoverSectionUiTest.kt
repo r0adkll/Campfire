@@ -16,6 +16,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
@@ -203,9 +204,42 @@ class CoverSectionUiTest {
     onNodeWithTag("cover_preview_next").assertDoesNotExist()
   }
 
-  private fun ComposeUiTest.setSection(state: CoverUiState) = setSection { state }
+  @Test
+  fun aWideSectionLaysEveryWayToANewCoverOutAtOnce() = runComposeUiTest {
+    setSection(
+      wide = true,
+      state = coverUiState(
+        bookImages = BookImages.Loaded(listOf(bookImage("cover.jpg", isCover = true), bookImage("folder.jpg"))),
+        results = listOf(CoverResults(Audible, CoverSearch.Found(listOf(AudibleCover)))),
+      ),
+    )
 
-  private fun ComposeUiTest.setSection(state: () -> CoverUiState) {
+    onNodeWithTag("cover_mode_address").assertDoesNotExist()
+    onNodeWithTag("cover_address").assertExists()
+    onNodeWithTag("cover_search_title").assertExists()
+    onNodeWithTag("cover_result").assertExists()
+    onNodeWithText("folder.jpg").assertExists()
+
+    onNodeWithText("Use").performScrollTo().performClick()
+    onNodeWithTag("cover_remove").performScrollTo().performClick()
+    events.assertEvents(
+      CoverUiEvent.UseBookImage(bookImage("folder.jpg")),
+      CoverUiEvent.Remove,
+    )
+  }
+
+  @Test
+  fun aWideSectionWithoutTheUploadPermissionSaysWhyThereIsNoSearch() = runComposeUiTest {
+    setSection(wide = true, state = coverUiState(canUseAddresses = false))
+
+    onNodeWithTag("cover_search_title").assertDoesNotExist()
+    onNodeWithTag("cover_address").assertDoesNotExist()
+    onNodeWithText("Searching for covers, or using one from an address, takes the upload permission").assertExists()
+  }
+
+  private fun ComposeUiTest.setSection(state: CoverUiState, wide: Boolean = false) = setSection(wide) { state }
+
+  private fun ComposeUiTest.setSection(wide: Boolean = false, state: () -> CoverUiState) {
     setContent {
       // The window the sheet a cover's looked at in reads to choose its side
       CompositionLocalProvider(LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 400, minHeightDp = 900)) {
@@ -213,7 +247,13 @@ class CoverSectionUiTest {
           CoverSection(
             state = state().copy(eventSink = events),
             enabled = true,
-            modifier = Modifier.size(width = 400.dp, height = 1600.dp),
+            wide = wide,
+            modifier = if (wide) {
+              // Within the test's window, which takes no clicks past its edge
+              Modifier.size(width = 1000.dp, height = 760.dp)
+            } else {
+              Modifier.size(width = 400.dp, height = 1600.dp)
+            },
           )
         }
       }

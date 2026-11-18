@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -47,8 +48,10 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ArrowForward
 import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.ShortcutHint
 import app.campfire.common.compose.widgets.coverImageShape
 import app.campfire.common.compose.widgets.placeholderBookPainter
+import app.campfire.common.compose.widgets.primaryShortcut
 import app.campfire.common.compose.widgets.sheets.LocalSheetPresentation
 import app.campfire.common.compose.widgets.sheets.SheetPresentation
 import app.campfire.management.api.match.ImageSize
@@ -75,6 +78,9 @@ import campfire.features.management.ui.generated.resources.review_add
 import campfire.features.management.ui.generated.resources.review_all
 import campfire.features.management.ui.generated.resources.review_apply_form
 import campfire.features.management.ui.generated.resources.review_apply_save
+import campfire.features.management.ui.generated.resources.review_column_current
+import campfire.features.management.ui.generated.resources.review_column_field
+import campfire.features.management.ui.generated.resources.review_column_new
 import campfire.features.management.ui.generated.resources.review_cover_larger
 import campfire.features.management.ui.generated.resources.review_cover_needs_upload
 import campfire.features.management.ui.generated.resources.review_cover_no_undo
@@ -94,6 +100,9 @@ import campfire.features.management.ui.generated.resources.review_selected
 import campfire.features.management.ui.generated.resources.review_title
 import campfire.features.management.ui.generated.resources.review_unchanged
 import campfire.features.management.ui.generated.resources.review_use_new_cover
+import campfire.features.management.ui.generated.resources.review_value_none
+import campfire.features.management.ui.generated.resources.shortcut_apply
+import campfire.features.management.ui.generated.resources.shortcut_toggle
 import campfire.features.management.ui.generated.resources.value_no
 import campfire.features.management.ui.generated.resources.value_yes
 import kotlin.math.roundToInt
@@ -103,7 +112,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * A result's details beside the book's, each to take or leave, and the ways to apply those taken,
- * as the content of the sheet the review opens in over the results.
+ * as the content of the sheet the review opens in over the results, or [inline] beside them, where
+ * the details line up in columns. With [showShortcuts], the keys for it are shown by its actions.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -112,12 +122,14 @@ internal fun MatchReviewSheet(
   enabled: Boolean,
   eventSink: (MatchUiEvent) -> Unit,
   modifier: Modifier = Modifier,
+  inline: Boolean = false,
+  showShortcuts: Boolean = false,
 ) {
   var showUnchanged by remember(review.match) { mutableStateOf(false) }
   val canApply = enabled && review.selected.isNotEmpty()
-  // A side sheet is as tall as its region, so its buttons go to the foot; a bottom sheet is only
-  // as tall as what's in it, so they follow the details
-  val fillHeight = LocalSheetPresentation.current == SheetPresentation.Side
+  // A side sheet is as tall as its region, and the review inline as tall as the editor, so their
+  // buttons go to the foot; a bottom sheet is only as tall as what's in it, so they follow the details
+  val fillHeight = inline || LocalSheetPresentation.current == SheetPresentation.Side
 
   Column(modifier = modifier.testTag("match_review")) {
     LazyColumn(modifier = Modifier.weight(1f, fill = fillHeight).testTag("review_rows")) {
@@ -150,6 +162,11 @@ internal fun MatchReviewSheet(
           )
         }
       }
+      if (inline && review.details.isNotEmpty()) {
+        item(key = "columns") {
+          ColumnHeaders(providerName = review.providerName)
+        }
+      }
       items(review.details, key = { it.field }) { row ->
         ReviewRow(
           row = row,
@@ -158,6 +175,7 @@ internal fun MatchReviewSheet(
           merge = review.merges[row.field] ?: ListMerge.Replace,
           onToggle = { eventSink(MatchUiEvent.Toggle(row.field)) },
           onMerge = { eventSink(MatchUiEvent.Merge(row.field, it)) },
+          inColumns = inline,
         )
       }
       if (review.unchanged.isNotEmpty()) {
@@ -187,12 +205,22 @@ internal fun MatchReviewSheet(
             merge = ListMerge.Replace,
             onToggle = {},
             onMerge = {},
+            inColumns = inline,
           )
         }
       }
     }
 
     HorizontalDivider()
+    if (showShortcuts) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp),
+      ) {
+        ShortcutHint(key = "Space", action = stringResource(Res.string.shortcut_toggle))
+        ShortcutHint(key = primaryShortcut("↵"), action = stringResource(Res.string.shortcut_apply))
+      }
+    }
     FlowRow(
       horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
       verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -430,6 +458,40 @@ internal fun compareCoverSizes(new: ImageSize?, current: ImageSize?): StringReso
   }
 }
 
+/** What each column of the review's details holds */
+@Composable
+private fun ColumnHeaders(
+  providerName: String,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 24.dp, vertical = 4.dp),
+  ) {
+    Spacer(Modifier.width(CheckboxWidth))
+    ColumnHeader(stringResource(Res.string.review_column_field), Modifier.width(FieldColumnWidth))
+    ColumnHeader(stringResource(Res.string.review_column_current), Modifier.weight(1f))
+    ColumnHeader(stringResource(Res.string.review_column_new, providerName), Modifier.weight(1f))
+  }
+}
+
+@Composable
+private fun ColumnHeader(
+  text: String,
+  modifier: Modifier = Modifier,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.labelMedium,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    maxLines = 1,
+    overflow = TextOverflow.Ellipsis,
+    modifier = modifier,
+  )
+}
+
 @Composable
 private fun ReviewRow(
   row: MatchRow,
@@ -439,7 +501,12 @@ private fun ReviewRow(
   onToggle: () -> Unit,
   onMerge: (ListMerge) -> Unit,
   modifier: Modifier = Modifier,
+  inColumns: Boolean = false,
 ) {
+  if (inColumns) {
+    ColumnsReviewRow(row, checked, enabled, merge, onToggle, onMerge, modifier)
+    return
+  }
   Row(
     horizontalArrangement = Arrangement.spacedBy(12.dp),
     modifier = modifier
@@ -475,6 +542,60 @@ private fun ReviewRow(
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
+    }
+  }
+}
+
+/** A detail as the book has it beside the result's, each in its own column */
+@Composable
+private fun ColumnsReviewRow(
+  row: MatchRow,
+  checked: Boolean,
+  enabled: Boolean,
+  merge: ListMerge,
+  onToggle: () -> Unit,
+  onMerge: (ListMerge) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val lines = if (row.field == MatchField.Description) 4 else 3
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    modifier = modifier
+      .fillMaxWidth()
+      .toggleable(value = checked, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() })
+      .padding(horizontal = 24.dp, vertical = 10.dp)
+      .testTag("review_row_${row.field.name}"),
+  ) {
+    Checkbox(checked = checked, onCheckedChange = null, enabled = enabled, modifier = Modifier.width(CheckboxWidth))
+    Text(
+      text = stringResource(row.field.label),
+      style = MaterialTheme.typography.labelLarge,
+      color = MaterialTheme.colorScheme.primary,
+      modifier = Modifier
+        .width(FieldColumnWidth)
+        .padding(top = 2.dp),
+    )
+    Text(
+      text = row.current?.display() ?: stringResource(Res.string.review_value_none),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      maxLines = lines,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier.weight(1f),
+    )
+    Column(
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+      modifier = Modifier.weight(1f),
+    ) {
+      Text(
+        text = row.new.display(),
+        style = MaterialTheme.typography.bodyMedium,
+        maxLines = lines,
+        overflow = TextOverflow.Ellipsis,
+      )
+      if (row.isListMergeable && checked && row.current != null) {
+        MergeChoice(merge = merge, enabled = enabled, onMerge = onMerge)
+      }
     }
   }
 }
@@ -530,6 +651,9 @@ private val MatchField.label: StringResource
     MatchField.Explicit -> Res.string.label_explicit
     MatchField.Abridged -> Res.string.label_abridged
   }
+
+private val CheckboxWidth = 24.dp
+private val FieldColumnWidth = 96.dp
 
 /** The most a cover takes in the review, where two have to fit side by side */
 private val CoverHeroSize = 140.dp

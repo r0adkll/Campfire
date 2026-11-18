@@ -65,6 +65,8 @@ fun LibraryItemListItem(
   meta: List<LibraryItemMeta> = listOf(libraryItem.defaultMeta),
   // An extra line under the subtitle, such as the series the item belongs to
   supportingText: String? = null,
+  // Whether an ebook's format is badged on its cover, for rows that don't say it among their facts
+  showEbookFormat: Boolean = true,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
   // Whether a long press or a right click offers the item's actions, for rows that stand for the
   // item itself rather than, say, a playlist's entry, which may be one of a podcast's episodes
@@ -125,7 +127,7 @@ fun LibraryItemListItem(
             .size(ThumbnailSize),
         )
 
-        if (libraryItem.isEbookOnly) {
+        if (libraryItem.isEbookOnly && showEbookFormat) {
           EbookFormatBadge(
             format = libraryItem.media.ebookFormat.orEmpty(),
             offlineStatus = offlineStatus,

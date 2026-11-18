@@ -1,9 +1,53 @@
 <resources>
   <string name="downloads_title">Downloads</string>
   <string name="downloads_empty">No downloads yet!</string>
+  <string name="downloads_empty_hint">Download a book or an episode from its page to listen without a connection.</string>
+  <string name="action_more_options">More options</string>
+  <string name="action_delete_finished">Delete finished books</string>
+  <string name="action_delete_all">Delete all downloads</string>
+  <string name="action_download_settings">Download settings</string>
+  <string name="action_delete_show_episodes">Delete all episodes</string>
+  <string name="dialog_delete_finished_title">Delete finished books?</string>
+  <string name="dialog_delete_all_title">Delete all downloads?</string>
+  <string name="dialog_delete_show_title">Delete all episodes of %1$s?</string>
+  <plurals name="dialog_delete_message">
+    <item quantity="one">%1$d download will be removed from this device, freeing %2$s.</item>
+    <item quantity="other">%1$d downloads will be removed from this device, freeing %2$s.</item>
+  </plurals>
+  <string name="dialog_action_delete">Delete</string>
+  <string name="dialog_action_cancel">Cancel</string>
   <string name="action_delete_download">Delete</string>
-  <string name="action_stop_download">Stop</string>
-  <string name="action_dismiss">Dismiss</string>
-  <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
-  <string name="label_confirm_download_stop">Are you sure you want to stop this download?</string>
+  <string name="action_cancel_download">Cancel download</string>
+  <string name="action_retry_download">Retry</string>
+  <string name="action_resume_download">Resume</string>
+  <string name="action_play_download">Play</string>
+  <string name="action_read_download">Read</string>
+  <string name="action_undo_delete">Undo</string>
+  <string name="downloads_removed">Removed %1$s</string>
+  <string name="downloads_error">Couldn't load your downloads</string>
+  <string name="downloads_unknown_item">Unknown title</string>
+  <string name="downloads_unknown_podcast">Unknown podcast</string>
+  <string name="downloads_unavailable_title">Unavailable item</string>
+  <string name="downloads_unavailable_description">Details unavailable</string>
+  <string name="download_status_queued">Waiting to download</string>
+  <string name="download_status_stopped">Stopped</string>
+  <string name="download_status_failed">Download failed</string>
+  <string name="download_status_progress">%1$d%</string>
+  <string name="download_status_progress_bytes">%1$d% · %2$s of %3$s</string>
+  <plurals name="downloads_summary">
+    <item quantity="one">%1$d download · %2$s</item>
+    <item quantity="other">%1$d downloads · %2$s</item>
+  </plurals>
+  <string name="downloads_filter_all">All</string>
+  <string name="downloads_filter_count">%1$s %2$d</string>
+  <string name="downloads_section_in_progress">In progress</string>
+  <string name="downloads_section_audiobooks">Audiobooks</string>
+  <string name="downloads_section_podcasts">Podcasts</string>
+  <string name="downloads_section_ebooks">E-books</string>
+  <string name="downloads_section_unavailable">Unavailable</string>
+  <string name="downloads_section_count">%1$d</string>
+  <plurals name="downloads_section_episodes_size">
+    <item quantity="one">%1$d episode · %2$s</item>
+    <item quantity="other">%1$d episodes · %2$s</item>
+  </plurals>
 </resources>

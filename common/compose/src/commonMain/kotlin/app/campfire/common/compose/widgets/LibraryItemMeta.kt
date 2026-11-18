@@ -53,6 +53,9 @@ sealed interface LibraryItemMeta {
   data class Length(val duration: Duration) : LibraryItemMeta
   data class Remaining(val duration: Duration) : LibraryItemMeta
   data class Size(val bytes: Long) : LibraryItemMeta
+
+  /** The item's file format, such as M4B or EPUB, shown as given. */
+  data class Format(val label: String) : LibraryItemMeta
   data class Episodes(val count: Int) : LibraryItemMeta
   data class Tracks(val count: Int) : LibraryItemMeta
   data class PublishedYear(val year: String) : LibraryItemMeta
@@ -114,6 +117,7 @@ private val LibraryItemMeta.icon: ImageVector
     is LibraryItemMeta.Length -> CampfireIcons.Rounded.Schedule
     is LibraryItemMeta.Remaining -> CampfireIcons.Rounded.Timer
     is LibraryItemMeta.Size -> CampfireIcons.Rounded.SdStorage
+    is LibraryItemMeta.Format -> CampfireIcons.Rounded.Description
     is LibraryItemMeta.Episodes -> CampfireIcons.Rounded.Podcasts
     is LibraryItemMeta.Tracks -> CampfireIcons.Rounded.QueueMusic
     is LibraryItemMeta.PublishedYear -> CampfireIcons.Rounded.CalendarMonth
@@ -129,6 +133,7 @@ private fun LibraryItemMeta.label(): String = when (this) {
   is LibraryItemMeta.Length -> duration.thresholdReadoutFormat()
   is LibraryItemMeta.Remaining -> stringResource(Res.string.duration_remaining, duration.thresholdReadoutFormat())
   is LibraryItemMeta.Size -> bytes.asReadableBytes()
+  is LibraryItemMeta.Format -> label
   is LibraryItemMeta.Episodes -> pluralStringResource(Res.plurals.item_meta_episode_count, count, count)
   is LibraryItemMeta.Tracks -> pluralStringResource(Res.plurals.item_meta_track_count, count, count)
   is LibraryItemMeta.PublishedYear -> year
