@@ -8,6 +8,14 @@
   <string name="action_save_close">Save &amp; close</string>
   <string name="shortcut_save">save</string>
   <string name="shortcut_close">close</string>
+  <string name="shortcut_browse">browse</string>
+  <string name="shortcut_toggle">toggle</string>
+  <string name="shortcut_apply">apply to form</string>
+  <string name="match_review_empty">Pick a result to compare it with the book</string>
+  <string name="review_column_field">Field</string>
+  <string name="review_column_current">Current</string>
+  <string name="review_column_new">From %1$s</string>
+  <string name="review_value_none">None</string>
   <string name="cd_editor_sections">Parts of the editor</string>
   <plurals name="editor_changes">
     <item quantity="one">%1$d change</item>

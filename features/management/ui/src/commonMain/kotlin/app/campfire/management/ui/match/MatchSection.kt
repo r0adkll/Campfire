@@ -4,19 +4,23 @@
 package app.campfire.management.ui.match
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material3.Button
@@ -32,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +47,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -52,6 +66,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Check
 import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.ShortcutHint
 import app.campfire.common.compose.widgets.coverImageShape
 import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
@@ -66,11 +81,13 @@ import campfire.features.management.ui.generated.resources.match_confidence
 import campfire.features.management.ui.generated.resources.match_empty
 import campfire.features.management.ui.generated.resources.match_failed
 import campfire.features.management.ui.generated.resources.match_results
+import campfire.features.management.ui.generated.resources.match_review_empty
 import campfire.features.management.ui.generated.resources.match_same_asin
 import campfire.features.management.ui.generated.resources.match_same_length
 import campfire.features.management.ui.generated.resources.match_source
 import campfire.features.management.ui.generated.resources.match_sources_failed
 import campfire.features.management.ui.generated.resources.match_title
+import campfire.features.management.ui.generated.resources.shortcut_browse
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -82,20 +99,79 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Matching the book against a source: a search and its results and, once one is picked, the
- * review of what it would change, in a sheet over them.
+ * review of what it would change, beside them with [inlineReview], or in a sheet over them. With
+ * [showShortcuts], the keys that browse the results and apply the review are shown.
  */
 @Composable
 internal fun MatchSection(
   state: MatchUiState,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  inlineReview: Boolean = false,
+  showShortcuts: Boolean = false,
 ) {
-  MatchSearchPane(
-    state = state,
-    enabled = enabled,
-    modifier = modifier.fillMaxSize(),
-  )
-  ReviewSheet(state = state, enabled = enabled)
+  if (!inlineReview) {
+    MatchSearchPane(
+      state = state,
+      enabled = enabled,
+      modifier = modifier.fillMaxSize(),
+    )
+    ReviewSheet(state = state, enabled = enabled)
+    return
+  }
+
+  Row(
+    modifier = modifier
+      .fillMaxSize()
+      .onKeyEvent { event ->
+        val review = state.review
+        val apply = event.type == KeyEventType.KeyDown &&
+          event.key == Key.Enter &&
+          (event.isCtrlPressed || event.isMetaPressed)
+        if (apply && enabled && review != null && review.selected.isNotEmpty()) {
+          state.eventSink(MatchUiEvent.ApplyToForm)
+        }
+        apply
+      },
+  ) {
+    MatchSearchPane(
+      state = state,
+      enabled = enabled,
+      browsable = true,
+      showShortcuts = showShortcuts,
+      modifier = Modifier
+        .width(SearchPaneWidth)
+        .fillMaxHeight(),
+    )
+    VerticalDivider()
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxHeight(),
+    ) {
+      val review = state.review
+      if (review != null) {
+        MatchReviewSheet(
+          review = review,
+          enabled = enabled,
+          eventSink = state.eventSink,
+          inline = true,
+          showShortcuts = showShortcuts,
+          modifier = Modifier.fillMaxSize(),
+        )
+      } else {
+        Text(
+          text = stringResource(Res.string.match_review_empty),
+          style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier
+            .padding(24.dp)
+            .testTag("match_review_empty"),
+        )
+      }
+    }
+  }
 }
 
 /**
@@ -132,16 +208,60 @@ private fun ReviewSheet(
   }
 }
 
+/**
+ * The search and its results. When [browsable], picking a result focuses them, so the arrow keys
+ * move the review between them.
+ */
 @Composable
 private fun MatchSearchPane(
   state: MatchUiState,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  browsable: Boolean = false,
+  showShortcuts: Boolean = false,
 ) {
   val search = state.search
+  val listState = rememberLazyListState()
+  val resultsFocus = remember { FocusRequester() }
+  val matches = (search as? MatchSearch.Found)?.matches.orEmpty()
+  val reviewing = matches.indexOf(state.review?.match)
+
+  // The result browsed to stays in sight
+  LaunchedEffect(browsable, reviewing) {
+    if (!browsable || reviewing < 0) return@LaunchedEffect
+    val item = reviewing + ItemsBeforeResults
+    if (listState.layoutInfo.visibleItemsInfo.none { it.index == item }) listState.animateScrollToItem(item)
+  }
+
   // The search scrolls away with the results, which a short window, like a phone on its side,
   // has little room for under the top bar
-  LazyColumn(modifier = modifier.imePadding().testTag("match_results")) {
+  LazyColumn(
+    state = listState,
+    modifier = modifier
+      .imePadding()
+      .then(
+        if (browsable) {
+          Modifier
+            .focusRequester(resultsFocus)
+            .onKeyEvent { event ->
+              val step = when (event.key) {
+                Key.DirectionUp -> -1
+                Key.DirectionDown -> 1
+                else -> return@onKeyEvent false
+              }
+              if (event.type == KeyEventType.KeyDown && matches.isNotEmpty()) {
+                val next = matches.getOrNull(if (reviewing < 0) 0 else reviewing + step)
+                if (next != null) state.eventSink(MatchUiEvent.Review(next))
+              }
+              true
+            }
+            .focusable()
+        } else {
+          Modifier
+        },
+      )
+      .testTag("match_results"),
+  ) {
     item(key = "search") {
       SearchHeader(
         state = state,
@@ -167,6 +287,7 @@ private fun MatchSearchPane(
           ResultsHeader(
             count = search.matches.size,
             bookDuration = state.bookDuration,
+            showShortcuts = showShortcuts,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
           )
         }
@@ -176,7 +297,10 @@ private fun MatchSearchPane(
             bookDuration = state.bookDuration,
             bookAsin = state.bookAsin,
             selected = match == state.review?.match,
-            onClick = { state.eventSink(MatchUiEvent.Review(match)) },
+            onClick = {
+              if (browsable) resultsFocus.requestFocus()
+              state.eventSink(MatchUiEvent.Review(match))
+            },
           )
         }
       }
@@ -278,19 +402,29 @@ private fun SearchHeader(
 private fun ResultsHeader(
   count: Int,
   bookDuration: Duration?,
+  showShortcuts: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val results = pluralStringResource(Res.plurals.match_results, count, count)
-  Text(
-    text = if (bookDuration != null) {
-      "$results · ${stringResource(Res.string.match_book_length, bookDuration.readoutFormat().trim())}"
-    } else {
-      results
-    },
-    style = MaterialTheme.typography.labelLarge,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier = modifier,
-  )
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    Text(
+      text = if (bookDuration != null) {
+        "$results · ${stringResource(Res.string.match_book_length, bookDuration.readoutFormat().trim())}"
+      } else {
+        results
+      },
+      style = MaterialTheme.typography.labelLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.weight(1f),
+    )
+    if (showShortcuts) {
+      ShortcutHint(key = "↑ ↓", action = stringResource(Res.string.shortcut_browse))
+    }
+  }
 }
 
 /** A result, with what tells it apart: its length beside the book's and how well it matches */
@@ -444,6 +578,9 @@ private fun Notice(
 }
 
 private val SearchPaneWidth = 400.dp
+
+/** The search, its progress and the count of results come before the results in the list */
+private const val ItemsBeforeResults = 3
 private val CandidateCoverSize = 64.dp
 
 /** A source's length within this of the book's is as good as the same */

@@ -178,6 +178,52 @@ class ItemEditorRenderTest {
     ),
   )
 
+  /** The editor's part of a desktop window on Cover, which puts the preview away */
+  @Test
+  fun desktopCover() = render(
+    "item-editor-desktop-cover.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Cover,
+    layout = EditorLayout.Desktop,
+    cover = coverUiState(
+      currentSize = ImageSize(640, 640),
+      bookImages = BookImages.Loaded(listOf(bookImage("cover.jpg", isCover = true), bookImage("folder.png"))),
+      results = listOf(
+        CoverResults(MatchProvider("audible", "Audible.com"), CoverSearch.Found(CoverResults3)),
+        CoverResults(MatchProvider("google", "Google Books"), CoverSearch.Found(listOf("https://books.google.com/a"))),
+        CoverResults(MatchProvider("openlibrary", "Open Library"), CoverSearch.Searching),
+        CoverResults(MatchProvider("itunes", "iTunes"), CoverSearch.Found(emptyList())),
+      ),
+      sizes = mapOf(
+        CoverResults3[0] to ImageSize(2400, 2400),
+        CoverResults3[1] to ImageSize(2400, 2400),
+        CoverResults3[2] to ImageSize(1000, 1000),
+        "https://books.google.com/a" to ImageSize(512, 800),
+      ),
+    ),
+  )
+
+  /** The editor's part of a desktop window on Match, reviewing a result beside them */
+  @Test
+  fun desktopMatch() = render(
+    "item-editor-desktop-match.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Match,
+    reviewing = true,
+    layout = EditorLayout.Desktop,
+  )
+
+  @Test
+  fun desktopMatchUnreviewed() = render(
+    "item-editor-desktop-match-unreviewed.png",
+    width = 1200,
+    height = 900,
+    section = EditorSection.Match,
+    layout = EditorLayout.Desktop,
+  )
+
   @Test
   fun coverSearchSideways() = render(
     "item-editor-cover-landscape.png",
