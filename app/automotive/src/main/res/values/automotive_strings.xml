@@ -4,4 +4,6 @@
   <string name="browse_sign_in_message">Sign in to your Audiobookshelf server to listen</string>
   <!-- The button under browse_sign_in_message, which opens the sign-in screen -->
   <string name="browse_sign_in_action">Sign in</string>
+  <!-- Title of Campfire's settings screen in the car -->
+  <string name="car_settings_label">Campfire settings</string>
 </resources>

@@ -16,6 +16,9 @@
   <string name="setting_sleep_subtitle">Timers, shake to reset, and haptics</string>
   <string name="setting_android_auto_title">Android Auto</string>
   <string name="setting_android_auto_subtitle">Categories, ordering, and layout</string>
+  <!-- The Android Auto section's name in Campfire for cars with Google built-in, where it sets up the car's own media app -->
+  <string name="setting_car_browse_title">Browsing</string>
+  <string name="setting_car_browse_subtitle">What the car shows, in which order and layout</string>
   <string name="setting_updates_title">App updates</string>
   <string name="setting_about_title">About</string>
   <string name="setting_about_subtitle">Developer, attributions, and version</string>

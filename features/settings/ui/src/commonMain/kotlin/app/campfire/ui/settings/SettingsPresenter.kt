@@ -47,6 +47,7 @@ import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.PrivacySettings
+import app.campfire.settings.api.SettingsSections
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.settings.api.tiers
@@ -131,6 +132,7 @@ class SettingsPresenter(
   private val hlsPlaybackSupport: HlsPlaybackSupport,
   private val sleepSettings: SleepSettings,
   private val androidAutoSettings: AndroidAutoSettings,
+  private val settingsSections: SettingsSections,
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val downloads: Downloads,
@@ -279,6 +281,7 @@ class SettingsPresenter(
       keepSignedInAfterReinstall = keepSignedInAfterReinstall.takeIf { tokenBackup.isAvailable },
       isShakingAvailable = remember { shakeDetector.isAvailable },
       isAndroidAutoPaneVisible = currentPlatform == Platform.ANDROID,
+      isCar = settingsSections.isCar,
       applicationInfo = applicationInfo,
       appearanceSettings = AppearanceSettingsInfo(
         appTheme = appTheme,

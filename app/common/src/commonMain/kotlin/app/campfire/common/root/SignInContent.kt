@@ -55,66 +55,81 @@ class SignInContent(
     onSignedIn: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-  ) {
-    val windowInsets = WindowInsets.systemBars
-      .exclude(WindowInsets.statusBars)
-      .exclude(WindowInsets.navigationBars)
-
-    CompositionLocalProvider(
-      LocalWindowSizeClass provides currentWindowSizeClass(),
-      LocalWindowChromeInsets provides windowInsets,
-      LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
-    ) {
-      UserComponentContent(userSessionManager) { userComponent ->
-        when (val session = userComponent.currentUserSession) {
-          is UserSession.LoggedIn -> LaunchedEffect(session.key) { onSignedIn() }
-          else -> SignInWindow(
-            userComponent = userComponent,
-            session = session,
-            windowInsets = windowInsets,
-            onClose = onClose,
-            modifier = modifier,
-          )
-        }
-      }
+  ) = StandaloneWindow(userSessionManager) { userComponent, windowInsets ->
+    when (val session = userComponent.currentUserSession) {
+      is UserSession.LoggedIn -> LaunchedEffect(session.key) { onSignedIn() }
+      else -> SignInWindow(
+        userComponent = userComponent,
+        session = session,
+        windowInsets = windowInsets,
+        themeSettings = themeSettings,
+        onClose = onClose,
+        modifier = modifier,
+      )
     }
   }
+}
 
-  @Composable
-  private fun SignInWindow(
-    userComponent: UserComponent,
-    session: UserSession,
-    windowInsets: WindowInsets,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
+/**
+ * A window showing one part of the app on its own, outside the app's root: the window's size
+ * class, chrome insets and retained state around the current user's component.
+ */
+@Composable
+internal fun StandaloneWindow(
+  userSessionManager: UserSessionManager,
+  content: @Composable (UserComponent, WindowInsets) -> Unit,
+) {
+  val windowInsets = WindowInsets.systemBars
+    .exclude(WindowInsets.statusBars)
+    .exclude(WindowInsets.navigationBars)
+
+  CompositionLocalProvider(
+    LocalWindowSizeClass provides currentWindowSizeClass(),
+    LocalWindowChromeInsets provides windowInsets,
+    LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
   ) {
-    // Both offer a back button: the form is all this window shows, and some cars have no back key
-    val rootScreen = when (session) {
-      is UserSession.NeedsAuthentication -> LoginScreen.ReAuthentication(session.server, canClose = true)
-      else -> LoginScreen.Additional
+    UserComponentContent(userSessionManager) { userComponent ->
+      content(userComponent, windowInsets)
     }
-    val backStack = key(session) {
-      rememberSaveableBackStack(rootScreen, circuitSaver = rememberDefaultCircuitSaver())
-    }
-    val baseNavigator = key(session) { rememberCircuitNavigator(backStack) { onClose() } }
-    val navigator = rememberInterceptingNavigator(
-      navigator = baseNavigator,
-      eventListeners = userComponent.navigationEventListeners,
-    )
+  }
+}
 
-    CircuitCompositionLocals(userComponent.circuit) {
-      CampfireTheme(
-        colorScheme = { colorScheme(AppTheme.Fixed.Tent) },
-        useDarkColors = themeSettings.shouldUseDarkColors(),
-      ) {
-        CompositionLocalProvider(LocalContentLayout provides ContentLayout.Root) {
-          LoggedOutUi(
-            backstack = backStack,
-            navigator = navigator,
-            windowInsets = windowInsets,
-            modifier = modifier,
-          )
-        }
+/** The login form, for a [StandaloneWindow] whose user isn't signed in. */
+@Composable
+internal fun SignInWindow(
+  userComponent: UserComponent,
+  session: UserSession,
+  windowInsets: WindowInsets,
+  themeSettings: ThemeSettings,
+  onClose: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  // Both offer a back button: the form is all this window shows, and some cars have no back key
+  val rootScreen = when (session) {
+    is UserSession.NeedsAuthentication -> LoginScreen.ReAuthentication(session.server, canClose = true)
+    else -> LoginScreen.Additional
+  }
+  val backStack = key(session) {
+    rememberSaveableBackStack(rootScreen, circuitSaver = rememberDefaultCircuitSaver())
+  }
+  val baseNavigator = key(session) { rememberCircuitNavigator(backStack) { onClose() } }
+  val navigator = rememberInterceptingNavigator(
+    navigator = baseNavigator,
+    eventListeners = userComponent.navigationEventListeners,
+  )
+
+  CircuitCompositionLocals(userComponent.circuit) {
+    CampfireTheme(
+      colorScheme = { colorScheme(AppTheme.Fixed.Tent) },
+      useDarkColors = themeSettings.shouldUseDarkColors(),
+    ) {
+      CompositionLocalProvider(LocalContentLayout provides ContentLayout.Root) {
+        LoggedOutUi(
+          backstack = backStack,
+          navigator = navigator,
+          windowInsets = windowInsets,
+          modifier = modifier,
+        )
       }
     }
   }

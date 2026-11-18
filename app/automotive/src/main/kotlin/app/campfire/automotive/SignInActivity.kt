@@ -5,7 +5,6 @@ package app.campfire.automotive
 
 import android.app.Application
 import android.app.PendingIntent
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,8 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
-import androidx.core.net.toUri
 import app.campfire.audioplayer.impl.browse.BrowseSignInPrompt
 import app.campfire.audioplayer.impl.browse.BrowseSignInPromptProvider
 import app.campfire.audioplayer.impl.browse.PhoneBrowseSignInPromptProvider
@@ -22,8 +19,6 @@ import app.campfire.common.root.SignInContent
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
@@ -45,7 +40,7 @@ class SignInActivity : ComponentActivity() {
 
     setContent {
       CompositionLocalProvider(
-        LocalUriHandler provides SafeUriHandler(),
+        LocalUriHandler provides CarUriHandler(this),
       ) {
         component.signInContent(
           onSignedIn = ::finish,
@@ -58,17 +53,6 @@ class SignInActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     component.componentActivityPlugins.forEach { it.unregister() }
-  }
-
-  /** Most cars have no browser, so a link that nothing can open is ignored rather than crashing. */
-  private inner class SafeUriHandler : UriHandler {
-    override fun openUri(uri: String) {
-      try {
-        startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
-      } catch (e: ActivityNotFoundException) {
-        bark(LogPriority.WARN, throwable = e) { "Nothing on this car can open $uri" }
-      }
-    }
   }
 }
 

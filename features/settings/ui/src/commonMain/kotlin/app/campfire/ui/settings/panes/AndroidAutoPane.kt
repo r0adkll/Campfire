@@ -72,6 +72,7 @@ import campfire.features.settings.ui.generated.resources.android_auto_unavailabl
 import campfire.features.settings.ui.generated.resources.android_auto_unavailable_warning_body
 import campfire.features.settings.ui.generated.resources.android_auto_unavailable_warning_title
 import campfire.features.settings.ui.generated.resources.setting_android_auto_title
+import campfire.features.settings.ui.generated.resources.setting_car_browse_title
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableColumn
@@ -83,19 +84,26 @@ internal fun AndroidAutoPane(
   modifier: Modifier = Modifier,
 ) {
   SettingPaneLayout(
-    title = { Text(stringResource(Res.string.setting_android_auto_title)) },
+    title = {
+      Text(
+        stringResource(if (state.isCar) Res.string.setting_car_browse_title else Res.string.setting_android_auto_title),
+      )
+    },
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-    if (!state.androidAutoSettings.isAndroidAutoAvailable) {
-      UnavailableWarningCard()
-    }
+    // A car has no Android Auto app: these categories set up its own media app
+    if (!state.isCar) {
+      if (!state.androidAutoSettings.isAndroidAutoAvailable) {
+        UnavailableWarningCard()
+      }
 
-    ActionSetting(
-      headlineContent = { Text(stringResource(Res.string.android_auto_open_settings)) },
-      leadingContent = { Icon(CampfireIcons.Rounded.OpenInNew, contentDescription = null) },
-      onClick = { state.eventSink(AndroidAutoSettingEvent.OpenAndroidAutoSettings) },
-    )
+      ActionSetting(
+        headlineContent = { Text(stringResource(Res.string.android_auto_open_settings)) },
+        leadingContent = { Icon(CampfireIcons.Rounded.OpenInNew, contentDescription = null) },
+        onClick = { state.eventSink(AndroidAutoSettingEvent.OpenAndroidAutoSettings) },
+      )
+    }
 
     Header(
       title = { Text(stringResource(Res.string.android_auto_header_categories)) },
