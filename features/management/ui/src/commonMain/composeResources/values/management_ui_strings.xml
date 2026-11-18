@@ -5,6 +5,10 @@
   <string name="action_close_editor">Close editor</string>
   <string name="action_save">Save</string>
   <string name="action_discard">Discard</string>
+  <string name="action_save_close">Save &amp; close</string>
+  <string name="shortcut_save">save</string>
+  <string name="shortcut_close">close</string>
+  <string name="cd_editor_sections">Parts of the editor</string>
   <plurals name="editor_changes">
     <item quantity="one">%1$d change</item>
     <item quantity="other">%1$d changes</item>

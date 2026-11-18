@@ -93,6 +93,8 @@ fun AdaptiveCampfireLayout(
   modifier: Modifier = Modifier,
   /** App-wide snackbars, drawn over the content and bottom navigation; position it in the box. */
   snackbarHost: @Composable BoxScope.() -> Unit = {},
+  /** Closes the supporting pane whatever it shows, as when a workspace wants its room for now */
+  hideSupportingContent: Boolean = false,
 ) {
   val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -108,6 +110,7 @@ fun AdaptiveCampfireLayout(
   val supportingContentState =
     if (
       (showSupportingContent || windowSizeClass.isWidthAtLeastExtraLarge) &&
+      !hideSupportingContent &&
       isSupportingPaneEnabled &&
       isLoggedIn
     ) {

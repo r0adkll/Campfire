@@ -52,6 +52,8 @@ import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.LocalSnackBarHost
+import app.campfire.common.compose.layout.LocalWorkspacePreview
+import app.campfire.common.compose.layout.WorkspacePreview
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
@@ -317,6 +319,8 @@ private fun LoggedInUi(
   val workspace by remember(backstack) {
     derivedStateOf { backstack.topRecord?.screen as? WorkspaceScreen }
   }
+  // Whether the open workspace has put away the preview beside it for now
+  val workspacePreview = remember { WorkspacePreview() }
 
   // If the user is switching between form factors, i.e. opening/closing a foldable
   // then we'll want to re-orientate the root and detail back stacks so the content
@@ -653,6 +657,8 @@ private fun LoggedInUi(
         )
       },
       showSupportingContent = detailRootScreen !is EmptyScreen,
+      // Only the workspace the preview is beside can put it away
+      hideSupportingContent = workspace != null && workspacePreview.isHidden,
       supportingContentWidth = supportingPaneWidth,
       onSupportingContentWidthChange = onSupportingPaneWidthChange,
       supportingContent = {
@@ -671,7 +677,10 @@ private fun LoggedInUi(
   val libraryItemActions = remember(libraryItemActionsFactory, homeNavigator) {
     libraryItemActionsFactory.create(homeNavigator)
   }
-  CompositionLocalProvider(LocalLibraryItemActions provides libraryItemActions) {
+  CompositionLocalProvider(
+    LocalLibraryItemActions provides libraryItemActions,
+    LocalWorkspacePreview provides workspacePreview,
+  ) {
     if (tabletopSplit != null) {
       TabletopSplitLayout(
         split = tabletopSplit,

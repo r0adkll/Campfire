@@ -100,10 +100,19 @@ import com.mohamedrejeb.richeditor.ui.material3.OutlinedRichTextEditor
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * The book's details as fields, in one column or, with [twoColumns], two: what it is on the
- * leading side, how it was published and identified on the trailing one.
- */
+/** How the form lays its fields out for the room it has */
+internal enum class FormLayout {
+  /** One field under the other, in groups under headers */
+  SingleColumn,
+
+  /** What the book is on the leading side, how it was published and identified on the trailing one */
+  TwoColumns,
+
+  /** Rows of fields that go together side by side, without headers, as a desktop lays them out */
+  Dense,
+}
+
+/** The book's details as fields, laid out as [layout] has them */
 @Composable
 internal fun DetailsForm(
   draft: BookDetailsDraft,
@@ -118,7 +127,7 @@ internal fun DetailsForm(
   onReload: () -> Unit,
   onKeepMine: () -> Unit,
   onDismissFilledFrom: () -> Unit,
-  twoColumns: Boolean,
+  layout: FormLayout,
   inlineSuggestions: Boolean,
   modifier: Modifier = Modifier,
 ) = CompositionLocalProvider(LocalInlineSuggestions provides inlineSuggestions) {
@@ -132,11 +141,11 @@ internal fun DetailsForm(
       .verticalScroll(rememberScrollState()),
   ) {
     Column(
-      verticalArrangement = Arrangement.spacedBy(GroupSpacing),
+      verticalArrangement = Arrangement.spacedBy(if (layout == FormLayout.Dense) FieldSpacing else GroupSpacing),
       modifier = Modifier
         .widthIn(max = MaxFormWidth)
         .fillMaxWidth()
-        .padding(16.dp),
+        .padding(if (layout == FormLayout.Dense) 24.dp else 16.dp),
     ) {
       if (!canEdit) {
         Banner(text = stringResource(Res.string.banner_cant_edit))
@@ -175,8 +184,10 @@ internal fun DetailsForm(
         )
       }
 
-      if (twoColumns) {
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+      when (layout) {
+        FormLayout.Dense -> DenseFields(draft, suggestions, enabled, canSeeExplicit)
+
+        FormLayout.TwoColumns -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
           Column(
             verticalArrangement = Arrangement.spacedBy(GroupSpacing),
             modifier = Modifier.weight(1f),
@@ -196,15 +207,17 @@ internal fun DetailsForm(
             FlagFields(draft, enabled, canSeeExplicit)
           }
         }
-      } else {
-        IdentityFields(draft, enabled)
-        PeopleFields(draft, suggestions, enabled)
-        SeriesFields(draft, suggestions, enabled)
-        DescriptionField(draft, enabled)
-        PublishingFields(draft, suggestions, enabled)
-        ClassificationFields(draft, suggestions, enabled)
-        IdentifierFields(draft, enabled)
-        FlagFields(draft, enabled, canSeeExplicit)
+
+        FormLayout.SingleColumn -> {
+          IdentityFields(draft, enabled)
+          PeopleFields(draft, suggestions, enabled)
+          SeriesFields(draft, suggestions, enabled)
+          DescriptionField(draft, enabled)
+          PublishingFields(draft, suggestions, enabled)
+          ClassificationFields(draft, suggestions, enabled)
+          IdentifierFields(draft, enabled)
+          FlagFields(draft, enabled, canSeeExplicit)
+        }
       }
 
       Text(
@@ -213,6 +226,43 @@ internal fun DetailsForm(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
+  }
+}
+
+/** Every field, with those that go together side by side and no headers between them */
+@Composable
+private fun DenseFields(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  canSeeExplicit: Boolean,
+) {
+  Row(horizontalArrangement = Arrangement.spacedBy(FieldSpacing)) {
+    TitleField(draft, enabled, Modifier.weight(2f))
+    SubtitleField(draft, enabled, Modifier.weight(1f))
+  }
+  Row(horizontalArrangement = Arrangement.spacedBy(FieldSpacing)) {
+    AuthorsField(draft, suggestions, enabled, Modifier.weight(1f))
+    NarratorsField(draft, suggestions, enabled, Modifier.weight(1f))
+  }
+  SeriesFields(draft, suggestions, enabled, showHeader = false)
+  DescriptionField(draft, enabled)
+  Row(horizontalArrangement = Arrangement.spacedBy(FieldSpacing)) {
+    PublisherField(draft, suggestions, enabled, Modifier.weight(1f))
+    PublishedYearField(draft, enabled, Modifier.width(YearFieldWidth))
+    LanguageField(draft, suggestions, enabled, Modifier.width(LanguageFieldWidth))
+  }
+  Row(horizontalArrangement = Arrangement.spacedBy(FieldSpacing)) {
+    GenresField(draft, suggestions, enabled, Modifier.weight(1f))
+    TagsField(draft, suggestions, enabled, Modifier.weight(1f))
+  }
+  Row(horizontalArrangement = Arrangement.spacedBy(FieldSpacing)) {
+    IsbnField(draft, enabled, Modifier.weight(1f))
+    AsinField(draft, enabled, Modifier.weight(1f))
+  }
+  Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+    ExplicitField(draft, enabled, canSeeExplicit, Modifier.weight(1f))
+    AbridgedField(draft, enabled, Modifier.weight(1f))
   }
 }
 
@@ -226,24 +276,8 @@ private fun IdentityFields(
     verticalArrangement = Arrangement.spacedBy(FieldSpacing),
     modifier = modifier,
   ) {
-    TextDetailField(
-      state = draft.title,
-      label = Res.string.label_title,
-      changed = draft.isChanged(BookDetail.Title),
-      enabled = enabled,
-      error = Res.string.error_title_required.takeIf { draft.isTitleMissing },
-      capitalization = KeyboardCapitalization.Sentences,
-      modifier = Modifier.fillMaxWidth().testTag("field_title"),
-    )
-    TextDetailField(
-      state = draft.subtitle,
-      label = Res.string.label_subtitle,
-      changed = draft.isChanged(BookDetail.Subtitle),
-      enabled = enabled,
-      placeholder = Res.string.placeholder_optional,
-      capitalization = KeyboardCapitalization.Sentences,
-      modifier = Modifier.fillMaxWidth().testTag("field_subtitle"),
-    )
+    TitleField(draft, enabled, Modifier.fillMaxWidth())
+    SubtitleField(draft, enabled, Modifier.fillMaxWidth())
   }
 }
 
@@ -259,24 +293,8 @@ private fun PeopleFields(
     modifier = modifier,
   ) {
     SectionHeader(Res.string.section_people)
-    TokenField(
-      state = draft.authors,
-      label = Res.string.label_authors,
-      changed = draft.isChanged(BookDetail.Authors),
-      suggestions = suggestions.authors,
-      enabled = enabled,
-      tag = "field_authors",
-      modifier = Modifier.fillMaxWidth(),
-    )
-    TokenField(
-      state = draft.narrators,
-      label = Res.string.label_narrators,
-      changed = draft.isChanged(BookDetail.Narrators),
-      suggestions = suggestions.narrators,
-      enabled = enabled,
-      tag = "field_narrators",
-      modifier = Modifier.fillMaxWidth(),
-    )
+    AuthorsField(draft, suggestions, enabled, Modifier.fillMaxWidth())
+    NarratorsField(draft, suggestions, enabled, Modifier.fillMaxWidth())
   }
 }
 
@@ -286,15 +304,19 @@ private fun SeriesFields(
   suggestions: DetailSuggestions,
   enabled: Boolean,
   modifier: Modifier = Modifier,
+  showHeader: Boolean = true,
 ) {
   // A row that was just added gets the focus, to type its name
   var added by remember { mutableStateOf<SeriesRowState?>(null) }
+  val changed = draft.isChanged(BookDetail.Series)
 
   Column(
     verticalArrangement = Arrangement.spacedBy(FieldSpacing),
     modifier = modifier,
   ) {
-    SectionHeader(Res.string.section_series, changed = draft.isChanged(BookDetail.Series))
+    if (showHeader) {
+      SectionHeader(Res.string.section_series, changed = changed)
+    }
     draft.series.forEachIndexed { index, row ->
       key(row) {
         SeriesRow(
@@ -305,6 +327,8 @@ private fun SeriesFields(
           // The series the other rows name
           excluding = draft.series.filter { it !== row }.map { it.name.text.toString().trim() },
           enabled = enabled,
+          // Without a header to mark, the first row's label says the series changed
+          changed = !showHeader && index == 0 && changed,
           focusOnStart = row === added,
           onRemove = { draft.removeSeries(row) },
         )
@@ -337,6 +361,7 @@ private fun SeriesRow(
   suggestions: List<String>,
   excluding: List<String>,
   enabled: Boolean,
+  changed: Boolean,
   focusOnStart: Boolean,
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
@@ -360,7 +385,7 @@ private fun SeriesRow(
       TextDetailField(
         state = row.name,
         label = Res.string.label_series_name,
-        changed = false,
+        changed = changed,
         enabled = enabled,
         error = when (error) {
           SeriesRowError.MissingName -> Res.string.error_series_name_missing
@@ -434,46 +459,10 @@ private fun PublishingFields(
     modifier = modifier,
   ) {
     SectionHeader(Res.string.section_publishing)
-    SuggestingTextField(
-      state = draft.publisher,
-      suggestions = suggestions.publishers,
-      enabled = enabled,
-      modifier = Modifier.fillMaxWidth(),
-    ) { anchor ->
-      TextDetailField(
-        state = draft.publisher,
-        label = Res.string.label_publisher,
-        changed = draft.isChanged(BookDetail.Publisher),
-        enabled = enabled,
-        capitalization = KeyboardCapitalization.Sentences,
-        modifier = anchor.fillMaxWidth().testTag("field_publisher"),
-      )
-    }
+    PublisherField(draft, suggestions, enabled, Modifier.fillMaxWidth())
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-      TextDetailField(
-        state = draft.publishedYear,
-        label = Res.string.label_published_year,
-        changed = draft.isChanged(BookDetail.PublishedYear),
-        enabled = enabled,
-        error = Res.string.error_year_invalid.takeIf { draft.isPublishedYearInvalid },
-        keyboardType = KeyboardType.Number,
-        modifier = Modifier.width(YearFieldWidth).testTag("field_published_year"),
-      )
-      SuggestingTextField(
-        state = draft.language,
-        suggestions = suggestions.languages,
-        enabled = enabled,
-        modifier = Modifier.weight(1f),
-      ) { anchor ->
-        TextDetailField(
-          state = draft.language,
-          label = Res.string.label_language,
-          changed = draft.isChanged(BookDetail.Language),
-          enabled = enabled,
-          capitalization = KeyboardCapitalization.Sentences,
-          modifier = anchor.fillMaxWidth().testTag("field_language"),
-        )
-      }
+      PublishedYearField(draft, enabled, Modifier.width(YearFieldWidth))
+      LanguageField(draft, suggestions, enabled, Modifier.weight(1f))
     }
   }
 }
@@ -490,25 +479,8 @@ private fun ClassificationFields(
     modifier = modifier,
   ) {
     SectionHeader(Res.string.section_classification)
-    TokenField(
-      state = draft.genres,
-      label = Res.string.label_genres,
-      changed = draft.isChanged(BookDetail.Genres),
-      suggestions = suggestions.genres,
-      enabled = enabled,
-      tag = "field_genres",
-      modifier = Modifier.fillMaxWidth(),
-    )
-    TokenField(
-      state = draft.tags,
-      label = Res.string.label_tags,
-      changed = draft.isChanged(BookDetail.Tags),
-      suggestions = suggestions.tags,
-      enabled = enabled,
-      tag = "field_tags",
-      capitalization = KeyboardCapitalization.Sentences,
-      modifier = Modifier.fillMaxWidth(),
-    )
+    GenresField(draft, suggestions, enabled, Modifier.fillMaxWidth())
+    TagsField(draft, suggestions, enabled, Modifier.fillMaxWidth())
   }
 }
 
@@ -524,24 +496,8 @@ private fun IdentifierFields(
   ) {
     SectionHeader(Res.string.section_identifiers)
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-      TextDetailField(
-        state = draft.isbn,
-        label = Res.string.label_isbn,
-        changed = draft.isChanged(BookDetail.Isbn),
-        enabled = enabled,
-        keyboardType = KeyboardType.Ascii,
-        modifier = Modifier.weight(1f).testTag("field_isbn"),
-      )
-      TextDetailField(
-        state = draft.asin,
-        label = Res.string.label_asin,
-        changed = draft.isChanged(BookDetail.Asin),
-        enabled = enabled,
-        keyboardType = KeyboardType.Ascii,
-        capitalization = KeyboardCapitalization.Characters,
-        monospace = true,
-        modifier = Modifier.weight(1f).testTag("field_asin"),
-      )
+      IsbnField(draft, enabled, Modifier.weight(1f))
+      AsinField(draft, enabled, Modifier.weight(1f))
     }
   }
 }
@@ -554,26 +510,251 @@ private fun FlagFields(
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier) {
-    SwitchDetailRow(
-      label = Res.string.label_explicit,
-      checked = draft.explicit,
-      onCheckedChange = { draft.explicit = it },
-      changed = draft.isChanged(BookDetail.Explicit),
+    ExplicitField(draft, enabled, canSeeExplicit)
+    AbridgedField(draft, enabled)
+  }
+}
+
+@Composable
+private fun TitleField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextDetailField(
+    state = draft.title,
+    label = Res.string.label_title,
+    changed = draft.isChanged(BookDetail.Title),
+    enabled = enabled,
+    error = Res.string.error_title_required.takeIf { draft.isTitleMissing },
+    capitalization = KeyboardCapitalization.Sentences,
+    modifier = modifier.testTag("field_title"),
+  )
+}
+
+@Composable
+private fun SubtitleField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextDetailField(
+    state = draft.subtitle,
+    label = Res.string.label_subtitle,
+    changed = draft.isChanged(BookDetail.Subtitle),
+    enabled = enabled,
+    placeholder = Res.string.placeholder_optional,
+    capitalization = KeyboardCapitalization.Sentences,
+    modifier = modifier.testTag("field_subtitle"),
+  )
+}
+
+@Composable
+private fun AuthorsField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TokenField(
+    state = draft.authors,
+    label = Res.string.label_authors,
+    changed = draft.isChanged(BookDetail.Authors),
+    suggestions = suggestions.authors,
+    enabled = enabled,
+    tag = "field_authors",
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun NarratorsField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TokenField(
+    state = draft.narrators,
+    label = Res.string.label_narrators,
+    changed = draft.isChanged(BookDetail.Narrators),
+    suggestions = suggestions.narrators,
+    enabled = enabled,
+    tag = "field_narrators",
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun PublisherField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  SuggestingTextField(
+    state = draft.publisher,
+    suggestions = suggestions.publishers,
+    enabled = enabled,
+    modifier = modifier,
+  ) { anchor ->
+    TextDetailField(
+      state = draft.publisher,
+      label = Res.string.label_publisher,
+      changed = draft.isChanged(BookDetail.Publisher),
       enabled = enabled,
-      warning = Res.string.warning_explicit_hidden.takeIf {
-        !canSeeExplicit && draft.explicit && draft.isChanged(BookDetail.Explicit)
-      },
-      modifier = Modifier.testTag("field_explicit"),
-    )
-    SwitchDetailRow(
-      label = Res.string.label_abridged,
-      checked = draft.abridged,
-      onCheckedChange = { draft.abridged = it },
-      changed = draft.isChanged(BookDetail.Abridged),
-      enabled = enabled,
-      modifier = Modifier.testTag("field_abridged"),
+      capitalization = KeyboardCapitalization.Sentences,
+      modifier = anchor.fillMaxWidth().testTag("field_publisher"),
     )
   }
+}
+
+@Composable
+private fun PublishedYearField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextDetailField(
+    state = draft.publishedYear,
+    label = Res.string.label_published_year,
+    changed = draft.isChanged(BookDetail.PublishedYear),
+    enabled = enabled,
+    error = Res.string.error_year_invalid.takeIf { draft.isPublishedYearInvalid },
+    keyboardType = KeyboardType.Number,
+    modifier = modifier.testTag("field_published_year"),
+  )
+}
+
+@Composable
+private fun LanguageField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  SuggestingTextField(
+    state = draft.language,
+    suggestions = suggestions.languages,
+    enabled = enabled,
+    modifier = modifier,
+  ) { anchor ->
+    TextDetailField(
+      state = draft.language,
+      label = Res.string.label_language,
+      changed = draft.isChanged(BookDetail.Language),
+      enabled = enabled,
+      capitalization = KeyboardCapitalization.Sentences,
+      modifier = anchor.fillMaxWidth().testTag("field_language"),
+    )
+  }
+}
+
+@Composable
+private fun GenresField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TokenField(
+    state = draft.genres,
+    label = Res.string.label_genres,
+    changed = draft.isChanged(BookDetail.Genres),
+    suggestions = suggestions.genres,
+    enabled = enabled,
+    tag = "field_genres",
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun TagsField(
+  draft: BookDetailsDraft,
+  suggestions: DetailSuggestions,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TokenField(
+    state = draft.tags,
+    label = Res.string.label_tags,
+    changed = draft.isChanged(BookDetail.Tags),
+    suggestions = suggestions.tags,
+    enabled = enabled,
+    tag = "field_tags",
+    capitalization = KeyboardCapitalization.Sentences,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun IsbnField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextDetailField(
+    state = draft.isbn,
+    label = Res.string.label_isbn,
+    changed = draft.isChanged(BookDetail.Isbn),
+    enabled = enabled,
+    keyboardType = KeyboardType.Ascii,
+    modifier = modifier.testTag("field_isbn"),
+  )
+}
+
+@Composable
+private fun AsinField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  TextDetailField(
+    state = draft.asin,
+    label = Res.string.label_asin,
+    changed = draft.isChanged(BookDetail.Asin),
+    enabled = enabled,
+    keyboardType = KeyboardType.Ascii,
+    capitalization = KeyboardCapitalization.Characters,
+    monospace = true,
+    modifier = modifier.testTag("field_asin"),
+  )
+}
+
+@Composable
+private fun ExplicitField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  canSeeExplicit: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  SwitchDetailRow(
+    label = Res.string.label_explicit,
+    checked = draft.explicit,
+    onCheckedChange = { draft.explicit = it },
+    changed = draft.isChanged(BookDetail.Explicit),
+    enabled = enabled,
+    warning = Res.string.warning_explicit_hidden.takeIf {
+      !canSeeExplicit && draft.explicit && draft.isChanged(BookDetail.Explicit)
+    },
+    modifier = modifier.testTag("field_explicit"),
+  )
+}
+
+@Composable
+private fun AbridgedField(
+  draft: BookDetailsDraft,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  SwitchDetailRow(
+    label = Res.string.label_abridged,
+    checked = draft.abridged,
+    onCheckedChange = { draft.abridged = it },
+    changed = draft.isChanged(BookDetail.Abridged),
+    enabled = enabled,
+    modifier = modifier.testTag("field_abridged"),
+  )
 }
 
 @Composable
@@ -728,6 +909,7 @@ private val GroupSpacing = 20.dp
 private val FieldSpacing = 12.dp
 private val YearFieldWidth = 112.dp
 private val SequenceFieldWidth = 96.dp
+private val LanguageFieldWidth = 168.dp
 
 // Puts the button level with the field beside it, whose label sits above its outline
 private val RemoveButtonTopPadding = 8.dp

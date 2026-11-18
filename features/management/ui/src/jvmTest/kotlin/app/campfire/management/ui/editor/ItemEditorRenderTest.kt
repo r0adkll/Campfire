@@ -89,6 +89,14 @@ class ItemEditorRenderTest {
   @Test
   fun wideWhole() = render("item-editor-wide-whole.png", width = 960, height = 1500)
 
+  /** The editor's part of a tablet on its side, beside the navigation rail and the preview */
+  @Test
+  fun tablet() = render("item-editor-tablet.png", width = 800, height = 800, layout = EditorLayout.Rail)
+
+  /** The editor's part of a desktop window, beside the navigation rail and the preview */
+  @Test
+  fun desktop() = render("item-editor-desktop.png", width = 960, height = 900, layout = EditorLayout.Desktop)
+
   @Test
   fun filledFromAMatch() = render("item-editor-filled.png", width = 412, height = 915, filled = true)
 
@@ -246,6 +254,7 @@ class ItemEditorRenderTest {
     reviewing: Boolean = false,
     filled: Boolean = false,
     cover: CoverUiState = coverUiState(),
+    layout: EditorLayout = EditorLayout.Tabs,
   ) {
     val renders = File("build/renders").apply { mkdirs() }
     val draft = BookDetailsDraft(details, tags).apply {
@@ -295,7 +304,7 @@ class ItemEditorRenderTest {
           // The app's overlay host sits inside its theme, so its sheets are themed too
           CampfireTheme(useDarkColors = false) {
             ContentWithOverlays {
-              Editor(draft, section, cover, match, filledFrom = "Audible.com".takeIf { filled })
+              Editor(draft, section, cover, match, filledFrom = "Audible.com".takeIf { filled }, layout = layout)
             }
           }
         }
@@ -315,8 +324,10 @@ class ItemEditorRenderTest {
     cover: CoverUiState,
     match: MatchUiState,
     filledFrom: String?,
+    layout: EditorLayout,
   ) {
-    ItemEditorUi(
+    ItemEditor(
+      layout = layout,
       state = ItemEditorUiState(
         item = LoadState.Loaded(libraryItem(id = "book", media = media(metadata = details))),
         draft = draft,

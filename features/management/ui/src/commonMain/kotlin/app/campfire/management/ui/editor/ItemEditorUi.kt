@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
@@ -52,9 +54,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.layout.HideWorkspacePreview
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
@@ -76,9 +80,6 @@ import campfire.features.management.ui.generated.resources.editor_changes
 import campfire.features.management.ui.generated.resources.editor_load_failed
 import campfire.features.management.ui.generated.resources.editor_subtitle
 import campfire.features.management.ui.generated.resources.editor_title
-import campfire.features.management.ui.generated.resources.tab_cover
-import campfire.features.management.ui.generated.resources.tab_details
-import campfire.features.management.ui.generated.resources.tab_match
 import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -87,6 +88,19 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ItemEditorUi(
   state: ItemEditorUiState,
+  modifier: Modifier = Modifier,
+) {
+  ItemEditor(
+    state = state,
+    layout = EditorLayout.of(LocalWindowSizeClass.current),
+    modifier = modifier,
+  )
+}
+
+@Composable
+internal fun ItemEditor(
+  state: ItemEditorUiState,
+  layout: EditorLayout,
   modifier: Modifier = Modifier,
 ) {
   val draft = state.draft
@@ -101,6 +115,12 @@ fun ItemEditorUi(
     onBack = { if (!state.isSaving) state.eventSink(ItemEditorUiEvent.Close) },
   )
 
+  // Cover and Match compare covers and details of their own, so they take the preview's room too
+  HideWorkspacePreview(hidden = draft != null && state.section != EditorSection.Details)
+
+  // The sections someone who can't change the book can't go to aren't offered
+  val sections = if (state.canEdit) EditorSection.entries else listOf(EditorSection.Details)
+
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
 
   BoxWithConstraints(
@@ -109,9 +129,21 @@ fun ItemEditorUi(
       // After the focused field, which can take Escape to close its suggestions first
       .onKeyEvent { event ->
         if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+        val withShortcutKey = event.isCtrlPressed || event.isMetaPressed
+        val sectionKey = SectionKeys.indexOf(event.key)
         when {
-          event.key == Key.S && (event.isCtrlPressed || event.isMetaPressed) -> {
-            if (canSave) state.eventSink(ItemEditorUiEvent.Save)
+          event.key == Key.S && withShortcutKey -> {
+            // Saving stays where there's a Save & close beside it, as on a desktop
+            if (canSave) {
+              state.eventSink(
+                if (layout == EditorLayout.Desktop) ItemEditorUiEvent.SaveAndKeepEditing else ItemEditorUiEvent.Save,
+              )
+            }
+            true
+          }
+
+          sectionKey >= 0 && withShortcutKey && draft != null -> {
+            sections.getOrNull(sectionKey)?.let { state.eventSink(ItemEditorUiEvent.ShowSection(it)) }
             true
           }
 
@@ -125,7 +157,6 @@ fun ItemEditorUi(
       },
   ) {
     val isWide = maxWidth >= WideWidth
-    val twoColumns = maxWidth >= TwoColumnWidth
 
     // A short window, such as a phone on its side, has little room left under the top bar once the
     // keyboard is up, so the bar gives way while typing there and comes back once that stops, as
@@ -138,6 +169,7 @@ fun ItemEditorUi(
       scrollBehavior.state.heightOffset = if (barGivesWay) scrollBehavior.state.heightOffsetLimit else 0f
     }
 
+    val showRail = layout.hasRail && draft != null
     Scaffold(
       topBar = {
         Column {
@@ -146,10 +178,13 @@ fun ItemEditorUi(
             changeCount = changes.size,
             canSave = canSave,
             isWide = isWide,
+            // The book is named beside its sections, and the actions are along the foot
+            showBook = !showRail,
+            showActions = layout != EditorLayout.Desktop || draft == null,
             scrollBehavior = scrollBehavior,
           )
           // The tabs give way to the keyboard along with the top bar
-          if (draft != null && state.canEdit && !barGivesWay) {
+          if (!layout.hasRail && draft != null && state.canEdit && !barGivesWay) {
             EditorTabs(
               section = state.section,
               onSelect = { state.eventSink(ItemEditorUiEvent.ShowSection(it)) },
@@ -157,68 +192,48 @@ fun ItemEditorUi(
           }
         }
       },
+      bottomBar = {
+        if (layout == EditorLayout.Desktop && draft != null) {
+          EditorFooter(
+            changeCount = changes.size,
+            canSave = canSave,
+            isSaving = state.isSaving,
+            onDiscard = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
+            onSave = { state.eventSink(ItemEditorUiEvent.SaveAndKeepEditing) },
+            onSaveAndClose = { state.eventSink(ItemEditorUiEvent.Save) },
+          )
+        }
+      },
       modifier = if (barGivesWay) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
-      when {
-        draft != null && state.section == EditorSection.Cover -> CoverSection(
-          state = state.cover,
-          enabled = state.canEdit && !state.isSaving,
-          modifier = Modifier
-            .padding(padding)
-            .consumeWindowInsets(padding),
-        )
-
-        draft != null && state.section == EditorSection.Match -> MatchSection(
-          state = state.match,
-          enabled = state.canEdit && !state.isSaving,
-          modifier = Modifier
-            .padding(padding)
-            .consumeWindowInsets(padding),
-        )
-
-        draft != null -> DetailsForm(
-          draft = draft,
-          enabled = state.canEdit && !state.isSaving,
-          canEdit = state.canEdit,
-          canSeeExplicit = state.canSeeExplicit,
-          suggestions = state.suggestions,
-          isBehindServer = state.isBehindServer,
-          filledFrom = state.filledFrom,
-          currentCoverUrl = state.item.dataOrNull?.media?.takeIf { it.coverPath != null }?.coverImageUrl,
-          onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
-          onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
-          onDismissFilledFrom = { state.eventSink(ItemEditorUiEvent.DismissFilledFrom) },
-          twoColumns = twoColumns,
-          inlineSuggestions = isShort,
-          // The keyboard's padding includes the navigation bar the scaffold's already does
-          modifier = Modifier
-            .padding(padding)
-            .consumeWindowInsets(padding),
-        )
-
-        state.isLoadFailed || state.item is LoadState.Error -> Column(
-          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-        ) {
-          Text(
-            text = stringResource(Res.string.editor_load_failed),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+      Row(
+        modifier = Modifier
+          .padding(padding)
+          .consumeWindowInsets(padding),
+      ) {
+        if (showRail) {
+          SectionRail(
+            item = state.item.dataOrNull,
+            section = state.section,
+            sections = sections,
+            changes = changes,
+            showShortcuts = layout == EditorLayout.Desktop,
+            onSelect = { state.eventSink(ItemEditorUiEvent.ShowSection(it)) },
+            modifier = Modifier
+              .width(SectionRailWidth)
+              .fillMaxHeight(),
           )
-          TextButton(
-            onClick = { state.eventSink(ItemEditorUiEvent.RetryLoad) },
-            modifier = Modifier.testTag("editor_retry"),
-          ) {
-            Text(stringResource(Res.string.action_retry))
-          }
         }
-
-        else -> Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-          CircularProgressIndicator()
+        BoxWithConstraints(Modifier.weight(1f)) {
+          EditorBody(
+            state = state,
+            formLayout = when {
+              layout == EditorLayout.Desktop && maxWidth >= DenseWidth -> FormLayout.Dense
+              layout != EditorLayout.Desktop && maxWidth >= TwoColumnWidth -> FormLayout.TwoColumns
+              else -> FormLayout.SingleColumn
+            },
+            inlineSuggestions = isShort,
+          )
         }
       }
     }
@@ -229,6 +244,71 @@ fun ItemEditorUi(
       onDiscard = { state.eventSink(ItemEditorUiEvent.ConfirmDiscard) },
       onKeepEditing = { state.eventSink(ItemEditorUiEvent.CancelDiscard) },
     )
+  }
+}
+
+/** The section being edited, or why there's nothing to edit yet */
+@Composable
+private fun EditorBody(
+  state: ItemEditorUiState,
+  formLayout: FormLayout,
+  inlineSuggestions: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  val draft = state.draft
+  Box(modifier = modifier.fillMaxSize()) {
+    when {
+      draft != null && state.section == EditorSection.Cover -> CoverSection(
+        state = state.cover,
+        enabled = state.canEdit && !state.isSaving,
+      )
+
+      draft != null && state.section == EditorSection.Match -> MatchSection(
+        state = state.match,
+        enabled = state.canEdit && !state.isSaving,
+      )
+
+      draft != null -> DetailsForm(
+        draft = draft,
+        enabled = state.canEdit && !state.isSaving,
+        canEdit = state.canEdit,
+        canSeeExplicit = state.canSeeExplicit,
+        suggestions = state.suggestions,
+        isBehindServer = state.isBehindServer,
+        filledFrom = state.filledFrom,
+        currentCoverUrl = state.item.dataOrNull?.media?.takeIf { it.coverPath != null }?.coverImageUrl,
+        onReload = { state.eventSink(ItemEditorUiEvent.ResetChanges) },
+        onKeepMine = { state.eventSink(ItemEditorUiEvent.KeepChanges) },
+        onDismissFilledFrom = { state.eventSink(ItemEditorUiEvent.DismissFilledFrom) },
+        layout = formLayout,
+        inlineSuggestions = inlineSuggestions,
+      )
+
+      state.isLoadFailed || state.item is LoadState.Error -> Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+      ) {
+        Text(
+          text = stringResource(Res.string.editor_load_failed),
+          style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(
+          onClick = { state.eventSink(ItemEditorUiEvent.RetryLoad) },
+          modifier = Modifier.testTag("editor_retry"),
+        ) {
+          Text(stringResource(Res.string.action_retry))
+        }
+      }
+
+      else -> Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+      ) {
+        CircularProgressIndicator()
+      }
+    }
   }
 }
 
@@ -246,17 +326,7 @@ private fun EditorTabs(
       Tab(
         selected = entry == section,
         onClick = { onSelect(entry) },
-        text = {
-          Text(
-            stringResource(
-              when (entry) {
-                EditorSection.Details -> Res.string.tab_details
-                EditorSection.Cover -> Res.string.tab_cover
-                EditorSection.Match -> Res.string.tab_match
-              },
-            ),
-          )
-        },
+        text = { Text(stringResource(entry.label)) },
         modifier = Modifier.testTag("tab_${entry.name}"),
       )
     }
@@ -269,6 +339,8 @@ private fun EditorTopBar(
   changeCount: Int,
   canSave: Boolean,
   isWide: Boolean,
+  showBook: Boolean,
+  showActions: Boolean,
   scrollBehavior: TopAppBarScrollBehavior,
   modifier: Modifier = Modifier,
 ) {
@@ -295,7 +367,7 @@ private fun EditorTopBar(
           overflow = TextOverflow.Ellipsis,
         )
         val item = state.item.dataOrNull
-        val title = item?.media?.metadata?.title
+        val title = item?.media?.metadata?.title?.takeIf { showBook }
         if (title != null) {
           val author = item.media.metadata.authorName
           Text(
@@ -309,6 +381,7 @@ private fun EditorTopBar(
       }
     },
     actions = {
+      if (!showActions) return@CampfireTopAppBar
       if (isWide && changeCount > 0) {
         Text(
           text = pluralStringResource(Res.plurals.editor_changes, changeCount, changeCount),
@@ -421,3 +494,9 @@ private val ShortHeight: Dp = 480.dp
 
 /** Wide enough for the form's two columns */
 private val TwoColumnWidth: Dp = 720.dp
+
+/** Wide enough for the form's rows of fields side by side, as a desktop lays them out */
+private val DenseWidth: Dp = 560.dp
+
+/** The number keys that move to the sections, in order, with the shortcut key held */
+private val SectionKeys = listOf(Key.One, Key.Two, Key.Three)
