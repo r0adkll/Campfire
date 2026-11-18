@@ -4,6 +4,7 @@
 package app.campfire.downloads.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +37,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +45,7 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -66,6 +69,7 @@ import campfire.features.downloads.ui.generated.resources.Res
 import campfire.features.downloads.ui.generated.resources.action_delete_all
 import campfire.features.downloads.ui.generated.resources.action_delete_finished
 import campfire.features.downloads.ui.generated.resources.action_download_settings
+import campfire.features.downloads.ui.generated.resources.action_more_options
 import campfire.features.downloads.ui.generated.resources.action_undo_delete
 import campfire.features.downloads.ui.generated.resources.dialog_action_cancel
 import campfire.features.downloads.ui.generated.resources.dialog_action_delete
@@ -127,7 +131,7 @@ fun DownloadsUi(
           val deleteFinishedTitle = stringResource(Res.string.dialog_delete_finished_title)
           val deleteAllTitle = stringResource(Res.string.dialog_delete_all_title)
           DownloadsActions(
-            // Only enabled when there's something for them to delete
+            // Only offered when there's something for them to delete
             onDeleteFinished = content?.finishedBooks?.takeIf { it.isNotEmpty() }?.let { finished ->
               { confirming = BulkDelete(deleteFinishedTitle, finished) }
             },
@@ -267,8 +271,9 @@ private fun ConfirmBulkDeleteDialog(
 }
 
 /**
- * What can be done to the downloads as a whole, each an action on the top bar. A delete with
- * nothing to delete, null here, is disabled rather than left out, so the others keep their places.
+ * What can be done to the downloads as a whole: their settings as an action on the top bar, and
+ * the deletes in a menu beside it. A delete with nothing to delete, null here, is left out, and
+ * the menu with it when that leaves it empty.
  */
 @Composable
 private fun DownloadsActions(
@@ -278,37 +283,48 @@ private fun DownloadsActions(
   modifier: Modifier = Modifier,
 ) {
   Row(modifier) {
-    DownloadsAction(
-      label = stringResource(Res.string.action_delete_finished),
-      icon = CampfireIcons.Rounded.DeleteSweep,
-      onClick = onDeleteFinished,
-    )
-    DownloadsAction(
-      label = stringResource(Res.string.action_delete_all),
-      icon = CampfireIcons.Rounded.DeleteForever,
-      onClick = onDeleteAll,
-    )
-    DownloadsAction(
-      label = stringResource(Res.string.action_download_settings),
-      icon = CampfireIcons.Rounded.Settings,
-      onClick = onSettings,
-    )
-  }
-}
+    val settingsLabel = stringResource(Res.string.action_download_settings)
+    IconButtonTooltip(text = settingsLabel) {
+      IconButton(onClick = onSettings) {
+        Icon(CampfireIcons.Rounded.Settings, contentDescription = settingsLabel)
+      }
+    }
 
-@Composable
-private fun DownloadsAction(
-  label: String,
-  icon: ImageVector,
-  onClick: (() -> Unit)?,
-  modifier: Modifier = Modifier,
-) {
-  IconButtonTooltip(text = label, modifier = modifier) {
-    IconButton(
-      onClick = { onClick?.invoke() },
-      enabled = onClick != null,
-    ) {
-      Icon(icon, contentDescription = label)
+    if (onDeleteFinished != null || onDeleteAll != null) {
+      var expanded by remember { mutableStateOf(false) }
+      val moreLabel = stringResource(Res.string.action_more_options)
+      Box {
+        IconButtonTooltip(text = moreLabel) {
+          IconButton(onClick = { expanded = true }) {
+            Icon(CampfireIcons.Rounded.MoreVert, contentDescription = moreLabel)
+          }
+        }
+        DropdownMenu(
+          expanded = expanded,
+          onDismissRequest = { expanded = false },
+        ) {
+          if (onDeleteFinished != null) {
+            DropdownMenuItem(
+              text = { Text(stringResource(Res.string.action_delete_finished)) },
+              leadingIcon = { Icon(CampfireIcons.Rounded.DeleteSweep, contentDescription = null) },
+              onClick = {
+                expanded = false
+                onDeleteFinished()
+              },
+            )
+          }
+          if (onDeleteAll != null) {
+            DropdownMenuItem(
+              text = { Text(stringResource(Res.string.action_delete_all)) },
+              leadingIcon = { Icon(CampfireIcons.Rounded.DeleteForever, contentDescription = null) },
+              onClick = {
+                expanded = false
+                onDeleteAll()
+              },
+            )
+          }
+        }
+      }
     }
   }
 }
