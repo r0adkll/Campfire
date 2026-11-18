@@ -276,7 +276,7 @@ play-services-auth-blockstore = "com.google.android.gms:play-services-auth-block
 play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:23.0.0"
 # Pinned to the version play-services-cast-framework resolves so behavior is unchanged;
 # declared explicitly because :infra:audioplayer:cast uses mediarouter APIs directly.
-androidx-mediarouter = "androidx.mediarouter:mediarouter:1.8.1"
+androidx-mediarouter = "androidx.mediarouter:mediarouter:1.9.0"
 zxing-core = "com.google.zxing:core:3.5.4"
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 jna = { module = "net.java.dev.jna:jna-jpms", version.ref = "jna" }
