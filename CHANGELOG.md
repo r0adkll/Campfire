@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress
 - Latest checks for new podcast episodes every time you open it, instead of once a day
 - Your downloads have a screen of their own, opened from the navigation drawer or from View all downloads in Downloads settings, which now holds just the settings
+- Downloads lets you retry a failed download where it's listed, and offers to cancel a download in progress rather than stop it, since nothing of it is kept
 - The greens and yellows that mean done, synced or connecting lean toward your theme's color instead of ignoring it
 
 ### Deprecated
@@ -54,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Downloads hiding anything whose book or podcast can no longer be loaded, leaving no way to remove it
+- [Android] Download progress standing still in Downloads
+- Downloads saying there are no downloads for a moment while it loads
 - Nothing loading and the connection indicator staying red after your server was briefly unreachable, until the app was restarted
 - Campfire taking up to ten more minutes to notice your server is back when its check was interrupted, such as by leaving the screen
 - Being signed out for no reason, most often after leaving a screen right as the app reopened from a long break

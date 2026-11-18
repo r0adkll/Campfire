@@ -26,15 +26,15 @@ class DownloadEntryTextTest {
   fun `an audiobook shows its format only next to other kinds of downloads`() {
     val entry = DownloadEntry.Book(audiobook(".m4b"), download())
 
-    assertThat(entry.supportingText(showFormat = true)).isEqualTo("M4B · $bookSize")
-    assertThat(entry.supportingText(showFormat = false)).isEqualTo(bookSize)
+    assertThat(entry.supportingText(showFormat = true, unknownPodcast = UNKNOWN)).isEqualTo("M4B · $bookSize")
+    assertThat(entry.supportingText(showFormat = false, unknownPodcast = UNKNOWN)).isEqualTo(bookSize)
   }
 
   @Test
   fun `an audiobook mixing formats shows just its size`() {
     val entry = DownloadEntry.Book(audiobook(".mp3", ".m4a"), download())
 
-    assertThat(entry.supportingText(showFormat = true)).isEqualTo(bookSize)
+    assertThat(entry.supportingText(showFormat = true, unknownPodcast = UNKNOWN)).isEqualTo(bookSize)
   }
 
   @Test
@@ -44,14 +44,16 @@ class DownloadEntryTextTest {
       download(contentLength = 2048L),
     )
 
-    assertThat(entry.supportingText(showFormat = false)).isEqualTo("EPUB · ${2048L.asReadableBytes()}")
+    assertThat(entry.supportingText(showFormat = false, unknownPodcast = UNKNOWN)).isEqualTo(
+      "EPUB · ${2048L.asReadableBytes()}",
+    )
   }
 
   @Test
   fun `an ebook whose size isn't known yet falls back to the item's`() {
     val entry = DownloadEntry.Ebook(libraryItem(numTracks = 0, ebookFormat = "cbz"), download())
 
-    assertThat(entry.supportingText(showFormat = true)).isEqualTo("CBZ · $bookSize")
+    assertThat(entry.supportingText(showFormat = true, unknownPodcast = UNKNOWN)).isEqualTo("CBZ · $bookSize")
   }
 
   @Test
@@ -59,8 +61,37 @@ class DownloadEntryTextTest {
     val item = libraryItem()
     val entry = DownloadEntry.Episode(item, episode(sizeInBytes = 4096L), download())
 
-    assertThat(entry.supportingText(showFormat = true))
+    assertThat(entry.supportingText(showFormat = true, unknownPodcast = UNKNOWN))
       .isEqualTo("${item.media.metadata.title} · ${4096L.asReadableBytes()}")
+  }
+
+  @Test
+  fun `an episode of an untitled podcast says so`() {
+    val media = libraryItem().media as Media.Book
+    val item = libraryItem().copy(
+      media = media.copy(metadata = (media.metadata as Media.Metadata.Book).copy(title = null)),
+    )
+    val entry = DownloadEntry.Episode(item, episode(sizeInBytes = 4096L), download())
+
+    assertThat(entry.supportingText(showFormat = true, unknownPodcast = UNKNOWN))
+      .isEqualTo("$UNKNOWN · ${4096L.asReadableBytes()}")
+  }
+
+  @Test
+  fun `a download whose item can't be found shows what it takes up, when that's known`() {
+    val sized = DownloadEntry.Unavailable(download(), sizeInBytes = 4096L)
+    val unsized = DownloadEntry.Unavailable(download(), sizeInBytes = 0L)
+
+    assertThat(sized.supportingText(showFormat = true, unknownPodcast = UNKNOWN)).isEqualTo(4096L.asReadableBytes())
+    assertThat(unsized.supportingText(showFormat = true, unknownPodcast = UNKNOWN)).isEqualTo("")
+  }
+
+  @Test
+  fun `a download whose item can't be found isn't a kind of its own`() {
+    val book = DownloadEntry.Book(audiobook(".m4b"), download())
+    val unavailable = DownloadEntry.Unavailable(download(), sizeInBytes = 0L)
+
+    assertThat(listOf(book, unavailable).hasMixedMediaTypes).isFalse()
   }
 
   @Test
@@ -117,3 +148,5 @@ class DownloadEntryTextTest {
     sizeInBytes = sizeInBytes,
   )
 }
+
+private const val UNKNOWN = "Unknown podcast"

@@ -14,6 +14,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
 import kotlin.test.Test
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -100,15 +101,39 @@ class DownloadEntriesTest {
   }
 
   @Test
-  fun downloadsWithoutTheirItemOrEpisode_areLeftOut() {
+  fun downloadsStillLookedUp_orWithoutTheirEpisode_areLeftOut() {
     val entries = listOf(
-      Download(DownloadContent.Audiobook("deleted"), Download.State.Downloaded),
-      Download(DownloadContent.Audiobook("not_found"), Download.State.Downloaded),
+      Download(DownloadContent.Audiobook("looking_up"), Download.State.Downloaded),
       Download(DownloadContent.Episode("podcast", "gone"), Download.State.Downloaded),
       Download(DownloadContent.Episode("book", "ep_1"), Download.State.Downloaded),
-    ).asDownloadEntries(items + ("not_found" to null))
+    ).asDownloadEntries(items)
 
     assertThat(entries).isEmpty()
+  }
+
+  @Test
+  fun anItemNotFound_getsOneRow_forAllItsDownloads() {
+    val audiobook = Download(
+      content = DownloadContent.Audiobook("not_found"),
+      state = Download.State.Downloaded,
+      bytes = 300L,
+      totalBytes = 300L,
+      updatedAtMs = 1,
+    )
+    // Part way: its whole size isn't known, so what's fetched so far counts
+    val ebook = Download(
+      content = DownloadContent.Ebook("not_found"),
+      state = Download.State.Failed,
+      bytes = 20L,
+      updatedAtMs = 5,
+    )
+
+    val entries = listOf(audiobook, ebook, audiobookDownloaded).asDownloadEntries(items + ("not_found" to null))
+
+    assertThat(entries).containsExactly(
+      DownloadEntry.Unavailable(ebook, sizeInBytes = 320L),
+      DownloadEntry.Book(book, audiobookDownloaded),
+    )
   }
 
   @Test
@@ -117,7 +142,7 @@ class DownloadEntriesTest {
     val shownAt = mutableMapOf<LibraryItemId, Long>()
     val collecting = launch {
       downloads.asDownloadEntries(::item).collect { entries ->
-        entries.forEach { shownAt.getOrPut(it.libraryItem.id) { testScheduler.currentTime } }
+        entries.forEach { shownAt.getOrPut(it.download.content.itemId) { testScheduler.currentTime } }
       }
     }
 
@@ -133,7 +158,34 @@ class DownloadEntriesTest {
   }
 
   @Test
-  fun eachItem_isLookedUpOnce_andOneNotFound_isLeftOut() = runTest {
+  fun theListIsHeldBack_untilItsFirstRowIsReady() = runTest {
+    val emissions = mutableListOf<List<DownloadEntry>>()
+    val collecting = launch {
+      MutableStateFlow(listOf(ebookAt(0))).asDownloadEntries(::item).collect { emissions += it }
+    }
+
+    delay(LOOKUP_MS + 1)
+    collecting.cancel()
+
+    // Never an empty list while the ebook's item was being looked up
+    assertThat(emissions).containsExactly(listOf(DownloadEntry.Ebook(ebookOnly, ebookAt(0))))
+  }
+
+  @Test
+  fun noDownloads_isAnEmptyList() = runTest {
+    val emissions = mutableListOf<List<DownloadEntry>>()
+    val collecting = launch {
+      MutableStateFlow(emptyList<Download>()).asDownloadEntries(::item).collect { emissions += it }
+    }
+
+    testScheduler.runCurrent()
+    collecting.cancel()
+
+    assertThat(emissions).containsExactly(emptyList<DownloadEntry>())
+  }
+
+  @Test
+  fun eachItem_isLookedUpOnce_andOneNotFound_showsUnavailable() = runTest {
     val downloads = MutableStateFlow(listOf(ebookAt(0)))
     var entries = emptyList<DownloadEntry>()
     val collecting = launch { downloads.asDownloadEntries(::item).collect { entries = it } }
@@ -146,7 +198,8 @@ class DownloadEntriesTest {
     collecting.cancel()
 
     assertThat(lookups).containsOnly(ebookOnly.id to 1, "deleted" to 1)
-    assertThat(entries.map { it.libraryItem.id }).containsExactly(ebookOnly.id)
+    assertThat(entries.map { it.download.content.itemId }).containsExactly(ebookOnly.id, "deleted")
+    assertThat(entries.last()).isEqualTo(DownloadEntry.Unavailable(deleted, sizeInBytes = 0L))
   }
 }
 

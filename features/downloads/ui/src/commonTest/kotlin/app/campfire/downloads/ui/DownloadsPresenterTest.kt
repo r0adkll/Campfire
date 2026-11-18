@@ -5,6 +5,7 @@ package app.campfire.downloads.ui
 
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.common.screens.DownloadsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -15,7 +16,6 @@ import app.campfire.offline.test.FakeDownloads
 import app.campfire.offline.test.FakeDownloads.Invocation
 import assertk.assertThat
 import assertk.assertions.containsExactly
-import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -47,18 +47,62 @@ class DownloadsPresenterTest {
     downloads.downloads.value = listOf(bookDownload)
 
     presenter.test {
-      // Rows show once their items are looked up
-      var state = awaitItem()
-      while (state.downloads.isEmpty()) state = awaitItem()
-
-      assertThat(state.downloads).containsExactly(DownloadEntry.Book(book, bookDownload))
+      // Loading until the first row's item is looked up, never an empty list
+      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
+      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loaded(listOf(DownloadEntry.Book(book, bookDownload))))
     }
   }
 
   @Test
   fun `shows nothing without downloads`() = runTest {
     presenter.test {
-      assertThat(awaitItem().downloads).isEmpty()
+      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
+      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loaded(emptyList<DownloadEntry>()))
+    }
+  }
+
+  @Test
+  fun `a download whose item can't be found still shows`() = runTest {
+    // The repository has no item to give
+    downloads.downloads.value = listOf(bookDownload)
+
+    presenter.test {
+      assertThat(awaitItem().downloads).isEqualTo(LoadState.Loading)
+      assertThat(awaitItem().downloads)
+        .isEqualTo(LoadState.Loaded(listOf(DownloadEntry.Unavailable(bookDownload, sizeInBytes = 0L))))
+    }
+  }
+
+  @Test
+  fun `clicking a download whose item can't be found opens nothing`() = runTest {
+    presenter.test {
+      awaitItem().eventSink(DownloadsUiEvent.DownloadClick(DownloadEntry.Unavailable(bookDownload, 0L)))
+
+      navigator.expectNoGoToEvents()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `retrying a failed download starts it again`() = runTest {
+    val failed = bookDownload.copy(state = Download.State.Failed)
+
+    presenter.test {
+      awaitItem().eventSink(DownloadsUiEvent.RetryDownload(DownloadEntry.Book(book, failed)))
+
+      assertThat(downloads.invocations).containsExactly(Invocation.Download(listOf(failed.content)))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `deleting a download whose item can't be found removes everything of the item`() = runTest {
+    presenter.test {
+      awaitItem().eventSink(DownloadsUiEvent.DeleteDownload(DownloadEntry.Unavailable(bookDownload, 0L)))
+      testScheduler.runCurrent()
+
+      assertThat(downloads.invocations).containsExactly(Invocation.DeleteAll(book.id))
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -88,6 +132,7 @@ class DownloadsPresenterTest {
 
       assertThat(navigator.awaitNextScreen())
         .isEqualTo(LibraryItemScreen(libraryItemId = "podcast", episodeId = "ep_1"))
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -97,6 +142,7 @@ class DownloadsPresenterTest {
       awaitItem().eventSink(DownloadsUiEvent.DeleteDownload(DownloadEntry.Book(book, bookDownload)))
 
       assertThat(downloads.invocations).containsExactly(Invocation.Delete(bookDownload.content))
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -106,6 +152,7 @@ class DownloadsPresenterTest {
       awaitItem().eventSink(DownloadsUiEvent.Back)
 
       navigator.awaitPop()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 }
