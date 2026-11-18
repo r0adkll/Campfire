@@ -27,7 +27,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +52,7 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.common.screens.DownloadsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -115,7 +115,7 @@ fun DownloadsUi(
     )
   }
 
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -183,7 +183,8 @@ fun DownloadsUi(
           onRetryClick = { state.eventSink(DownloadsUiEvent.RetryDownload(it)) },
           onDelete = { state.eventSink(DownloadsUiEvent.DeleteDownload(it)) },
           // Starts under the top bar rather than scrolling beneath it, where a heading stuck to
-          // the top of the list would be hidden
+          // the top of the list would be hidden. The bar gives up its height as it scrolls away,
+          // so the headings then stick below the status bar
           modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
           contentPadding = PaddingValues(
             start = paddingValues.calculateStartPadding(layoutDirection),
