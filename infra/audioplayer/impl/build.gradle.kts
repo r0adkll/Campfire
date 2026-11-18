@@ -22,6 +22,12 @@ buildConfig {
 
 kotlin {
 
+  android {
+    withHostTest {
+      isReturnDefaultValues = true
+    }
+  }
+
   /**
    * NOTE: These have to match the iOS targets configured in
    * [app.campfire.convention.KotlinMultiplatformConventionPlugin]
