@@ -3,7 +3,7 @@
 
 package app.campfire.audioplayer.impl.macos
 
-import app.campfire.account.api.AccountManager
+import app.campfire.audioplayer.impl.ServerRequestHeaders
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.UserId
 import java.net.URI
@@ -15,20 +15,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Downloads cover images for Now Playing with the user's bearer token. Covers are small and
+ * Downloads cover images for Now Playing with the user's server credentials. Covers are small and
  * change only when the item changes, so one fetch per URL with no persistent cache is enough.
  */
 internal class HttpArtworkLoader(
-  private val accountManager: AccountManager,
+  private val serverRequestHeaders: ServerRequestHeaders,
   private val client: HttpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
 ) : ArtworkLoader {
 
   override suspend fun load(url: String, userId: UserId): ByteArray? {
-    val token = runCatching { accountManager.getToken(userId)?.accessToken }.getOrNull()
+    val headers = runCatching { serverRequestHeaders.forUrl(userId, url) }.getOrDefault(emptyMap())
     return withContext(Dispatchers.IO) {
       val request = HttpRequest.newBuilder(URI(url))
         .timeout(Duration.ofSeconds(20))
-        .apply { if (token != null) header("Authorization", "Bearer $token") }
+        .apply { headers.forEach { (name, value) -> header(name, value) } }
         .GET()
         .build()
       val response = client.send(request, HttpResponse.BodyHandlers.ofByteArray())

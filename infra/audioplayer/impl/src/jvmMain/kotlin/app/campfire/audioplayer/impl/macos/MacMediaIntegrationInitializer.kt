@@ -3,8 +3,8 @@
 
 package app.campfire.audioplayer.impl.macos
 
-import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.impl.ServerRequestHeaders
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
@@ -25,7 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 class MacMediaIntegrationInitializer(
   private val holder: AudioPlayerHolder,
   private val settings: PlaybackSettings,
-  private val accountManager: AccountManager,
+  private val serverRequestHeaders: ServerRequestHeaders,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {
 
@@ -39,7 +39,7 @@ class MacMediaIntegrationInitializer(
         holder = holder,
         settings = settings,
         bridge = MacNowPlayingBridge(),
-        artworkLoader = HttpArtworkLoader(accountManager),
+        artworkLoader = HttpArtworkLoader(serverRequestHeaders),
         scope = applicationScope,
       ).start()
     }.onFailure { ebark(it) { "Now Playing integration unavailable" } }

@@ -66,10 +66,12 @@ import kotlinx.coroutines.withContext
  * up each time the track is opened, so a download that finishes mid-session is picked up at the
  * next track and a deleted one falls back to streaming.
  *
- * Authentication: track URLs are hydrated without credentials; [AccessTokenProvider] supplies the
- * token that is appended as a query parameter when an item is opened (the only mechanism libvlc
- * supports). ABS access tokens expire after about an hour, so a very long single track may need
- * a re-open after expiry — the play-session flow with credential-free URLs is the planned fix.
+ * Authentication: track URLs are hydrated without credentials. An engine that sends request
+ * headers gets them from [RequestHeadersProvider] when an item is opened — the bearer token plus
+ * the account's extra headers, which a server behind an access proxy needs. Otherwise
+ * [AccessTokenProvider] supplies the token, appended as a query parameter (the only mechanism
+ * libvlc supports). ABS access tokens expire after about an hour, so a very long single track may
+ * need a re-open after expiry — the play-session flow with credential-free URLs is the planned fix.
  *
  * Threading: all mutable state below is confined to [engineDispatcher], a single thread. Public
  * [AudioPlayer] calls (which arrive on the UI thread) enqueue work onto it and return immediately,
@@ -82,6 +84,7 @@ class DesktopAudioPlayer(
   sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
+  private val requestHeadersProvider: RequestHeadersProvider,
   private val audioOutputController: AudioOutputController,
   private val offlineTrackFiles: OfflineTrackFiles = OfflineTrackFiles { _, _, _ -> null },
   private val engineDispatcher: CoroutineDispatcher = newEngineDispatcher(),
@@ -94,6 +97,14 @@ class DesktopAudioPlayer(
    */
   fun interface AccessTokenProvider {
     suspend fun accessToken(userId: UserId): String?
+  }
+
+  /**
+   * Supplies the headers that authenticate streaming a URL as a user, re-read on every item open
+   * like [AccessTokenProvider]. Empty for a URL that isn't on the user's server.
+   */
+  fun interface RequestHeadersProvider {
+    suspend fun requestHeaders(userId: UserId, url: String): Map<String, String>
   }
 
   /** Locates the downloaded copy of a track, if it has one. */
@@ -402,9 +413,8 @@ class DesktopAudioPlayer(
 
   /**
    * Opens [index] at [offset] from its download when there is one, otherwise streamed with the
-   * freshest access token: as a bearer header when the
-   * engine sends headers (which also reaches HLS segment requests), otherwise stamped onto the
-   * item's URL.
+   * freshest credentials: as request headers when the engine sends them (which also reach HLS
+   * segment requests), otherwise as an access token stamped onto the item's URL.
    */
   private suspend fun openItem(engine: PlaybackEngine, index: Int, offset: Duration, playWhenReady: Boolean) {
     val item = queue[index]
@@ -422,15 +432,15 @@ class DesktopAudioPlayer(
     }
 
     val userId = session?.userId
-    val token = userId?.let { accessTokenProvider.accessToken(it) }
     if (engine.supportsRequestHeaders) {
-      val headers = if (token.isNullOrEmpty() || !item.uri.startsWith("http", ignoreCase = true)) {
+      val headers = if (userId == null || !item.uri.startsWith("http", ignoreCase = true)) {
         emptyMap()
       } else {
-        mapOf("Authorization" to "Bearer $token")
+        requestHeadersProvider.requestHeaders(userId, item.uri)
       }
       engine.open(item, offset, playWhenReady, headers)
     } else {
+      val token = userId?.let { accessTokenProvider.accessToken(it) }
       engine.open(item.copy(uri = item.uri.withAccessToken(token)), offset, playWhenReady)
     }
   }
