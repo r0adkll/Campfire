@@ -39,6 +39,7 @@ import app.campfire.core.navigation.ConnectLink
 import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
+import app.campfire.network.oidc.OpenIdException
 import app.campfire.qrscanner.QrCodeScanner
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
@@ -240,7 +241,8 @@ class LoginPresenter(
           }
           .onFailure {
             isAuthenticating = false
-            authError = it.toOAuthAuthError()
+            // Backing out of the provider isn't an error: the form is still there to try again
+            authError = if (it is OpenIdException.AuthCancelled) null else it.toOAuthAuthError()
           }
       }
     }
