@@ -18,6 +18,7 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 
 # Build platforms
 ./gradlew :app:android:assembleAlphaRelease     # Android APK
+./gradlew :app:automotive:assembleDebug         # Android Automotive OS APK (same package, Play's AAOS track)
 ./gradlew :app:desktop:packageDistributionForCurrentOS  # Desktop
 ./gradlew iosSimulatorArm64Test                 # iOS tests
 

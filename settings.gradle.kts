@@ -101,6 +101,7 @@ extensions.configure<KoverSettingsExtension> {
 rootProject.name = "Campfire"
 include(
   ":app:android",
+  ":app:automotive",
   ":app:common",
   ":app:desktop",
   ":app:ios",

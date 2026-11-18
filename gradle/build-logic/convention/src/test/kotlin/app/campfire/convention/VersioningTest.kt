@@ -28,6 +28,15 @@ class VersioningTest {
   }
 
   @Test
+  fun `automotive codes stay apart from phone codes and under the Play ceiling`() {
+    val release = deriveVersionCode("1.2.1")!!
+
+    assertEquals(1_001_020_199, automotiveVersionCode(release))
+    assertTrue(automotiveVersionCode(release) > DEV_VERSION_CODE)
+    assertTrue(automotiveVersionCode(DEV_VERSION_CODE) <= MAX_PLAY_VERSION_CODE)
+  }
+
+  @Test
   fun `rejects non-semver and alpha tags`() {
     assertNull(deriveVersionCode("0.2.1-alpha"))
     assertNull(deriveVersionCode("not-a-version"))

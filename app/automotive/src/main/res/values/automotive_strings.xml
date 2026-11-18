@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Shown by the car's media app while nobody is signed in to Campfire -->
+  <string name="browse_sign_in_message">Sign in to your Audiobookshelf server to listen</string>
+  <!-- The button under browse_sign_in_message, which opens the sign-in screen -->
+  <string name="browse_sign_in_action">Sign in</string>
+</resources>

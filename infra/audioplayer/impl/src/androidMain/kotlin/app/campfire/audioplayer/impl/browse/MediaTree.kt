@@ -81,16 +81,24 @@ class MediaTree(
   private val androidAutoSettings: AndroidAutoSettings,
 ) {
 
-  val root
-    get() = MediaItem.Builder()
-      .setMediaId(ROOT_ID)
-      .setMediaMetadata(
-        MediaMetadata.Builder()
-          .setIsBrowsable(true)
-          .setIsPlayable(false)
-          .build(),
-      )
-      .build()
+  companion object {
+    /**
+     * The browse root. It's the same for everyone, signed in or not: the media session answers
+     * the root's children with a sign-in prompt instead while nobody is signed in.
+     */
+    val root: MediaItem
+      get() = MediaItem.Builder()
+        .setMediaId(ROOT_ID)
+        .setMediaMetadata(
+          MediaMetadata.Builder()
+            .setIsBrowsable(true)
+            .setIsPlayable(false)
+            .build(),
+        )
+        .build()
+
+    const val ROOT_MEDIA_ID = ROOT_ID
+  }
 
   /**
    * Return one page of a parent's children. The full child list is loaded (and cached)

@@ -18,6 +18,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.impl.browse.BrowseSignInPromptProvider
 import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.ActivityIntentProvider
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -57,6 +59,7 @@ interface AudioPlayerComponent {
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope
   val androidAutoSettings: AndroidAutoSettings // AppScope
   val userSessionManager: UserSessionManager // AppScope
+  val browseSignInPromptProvider: BrowseSignInPromptProvider // AppScope
 }
 
 @ContributesTo(UserScope::class)
@@ -79,10 +82,6 @@ class AudioPlayerService : MediaLibraryService() {
     ComponentHolder.component<AudioPlayerComponent>()
   }
 
-  private val userComponent by lazy {
-    ComponentHolder.component<AudioPlayerUserComponent>()
-  }
-
   override fun onCreate() {
     super.onCreate()
     bark(LogPriority.INFO) { "AudioPlayerService::onCreate()" }
@@ -102,9 +101,13 @@ class AudioPlayerService : MediaLibraryService() {
         serviceScope = serviceScope,
         player = player,
         component = component,
-        userComponent = userComponent,
+        userComponent = { ComponentHolder.component<AudioPlayerUserComponent>() },
       ),
     )
+      // Browsing signed out answers with a sign-in error. Legacy browsers (Android Auto, Android
+      // Automotive OS) can't receive it from the call, so it's copied onto the session's playback
+      // state, as a fatal error since nothing can play until someone signs in.
+      .setLibraryErrorReplicationMode(MediaLibrarySession.LIBRARY_ERROR_REPLICATION_MODE_FATAL)
       .setSessionActivity(
         PendingIntent.getActivity(
           this,
@@ -140,6 +143,30 @@ class AudioPlayerService : MediaLibraryService() {
     setMediaNotificationProvider(mediaNotificationProvider)
 
     observeBrowseTreeInvalidation()
+    observeSignedInUser()
+  }
+
+  /**
+   * Refresh connected browsers when someone signs in, out, or switches accounts: signing in
+   * clears the sign-in error and loads their library, signing out has the browser ask again and
+   * get the sign-in prompt, and drops whatever it kept from the previous user (recent searches).
+   */
+  private fun observeSignedInUser() {
+    serviceScope.launch {
+      component.userSessionManager.observe()
+        .filter { it != UserSession.Loading }
+        .map { (it as? UserSession.LoggedIn)?.key }
+        .distinctUntilChanged()
+        .drop(1)
+        .collect { signedInKey ->
+          bark { "Signed-in user changed (signed in: ${signedInKey != null}), refreshing browsers" }
+          withContext(Dispatchers.Main) {
+            val session = session ?: return@withContext
+            if (signedInKey != null) session.clearReplicatedLibraryError()
+            session.notifyChildrenChanged(MediaTree.ROOT_MEDIA_ID, Int.MAX_VALUE, null)
+          }
+        }
+    }
   }
 
   /**

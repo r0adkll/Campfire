@@ -98,7 +98,7 @@ internal fun LoggedOutWindow(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun LoggedOutUi(
+internal fun LoggedOutUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
   windowInsets: WindowInsets,
