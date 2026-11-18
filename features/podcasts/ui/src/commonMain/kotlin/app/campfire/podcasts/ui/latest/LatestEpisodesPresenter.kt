@@ -10,7 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.recordFinished
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.message.showAddedToQueue
 import app.campfire.common.compose.message.showEpisodeDeleted
@@ -63,7 +64,7 @@ class LatestEpisodesPresenter(
   private val podcastsRepository: PodcastsRepository,
   private val sessionsRepository: SessionsRepository,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val playbackController: PlaybackController,
   private val sessionQueue: SessionQueue,
   private val downloads: Downloads,
@@ -176,7 +177,7 @@ class LatestEpisodesPresenter(
             scope.launch {
               sessionsRepository.markDeleted(episode.libraryItemId, episode.id)
               mediaProgressRepository.markFinished(episode.libraryItemId, episode.id)
-              playbackHistoryRepository.clear(episode.libraryItemId, episode.id)
+              playbackHistoryRecorder.recordFinished(episode.libraryItemId, episode.duration, episode.id)
             }
           }
 

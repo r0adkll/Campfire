@@ -15,6 +15,7 @@ import app.campfire.core.model.Session
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.uuid.Uuid
 
 @UnstableApi
 class PlaybackHistoryForwardingPlayer(
@@ -30,17 +31,40 @@ class PlaybackHistoryForwardingPlayer(
   private val episodeId: PodcastEpisodeId?
     get() = session()?.episodeId
 
+  /** The session the most recent Play was recorded against. */
+  private var lastPlaySessionId: Uuid? = null
+
   override fun play() {
+    val wasPlayWhenReady = playWhenReady
     super.play()
-    libraryItemId?.let {
-      val fromPosition = overallPosition.milliseconds
-      recorder.record(
-        libraryItemId = it,
-        episodeId = episodeId,
-        type = PlaybackActionType.Play,
-        fromPosition = fromPosition,
-      )
-    }
+    recordPlayIfStarted(wasPlayWhenReady)
+  }
+
+  /**
+   * Starting a session with autoplay ([app.campfire.audioplayer.AudioPlayer.prepare]) begins
+   * playback through `playWhenReady` rather than [play], so record that too.
+   */
+  override fun setPlayWhenReady(playWhenReady: Boolean) {
+    val wasPlayWhenReady = this.playWhenReady
+    super.setPlayWhenReady(playWhenReady)
+    if (playWhenReady) recordPlayIfStarted(wasPlayWhenReady)
+  }
+
+  /**
+   * Records a Play unless the same session was already playing, since nothing changed. A new
+   * session prepared while the player is already playing (switching books, queue auto-advance)
+   * still counts as a start; re-preparing the same session (HLS fallback, cache recovery) does not.
+   */
+  private fun recordPlayIfStarted(wasPlayWhenReady: Boolean) {
+    val session = session() ?: return
+    if (wasPlayWhenReady && session.id == lastPlaySessionId) return
+    lastPlaySessionId = session.id
+    recorder.record(
+      libraryItemId = session.libraryItem.id,
+      episodeId = session.episodeId,
+      type = PlaybackActionType.Play,
+      fromPosition = overallPosition.milliseconds,
+    )
   }
 
   override fun pause() {

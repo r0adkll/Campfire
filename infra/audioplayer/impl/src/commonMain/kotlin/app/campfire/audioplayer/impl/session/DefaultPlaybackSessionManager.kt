@@ -5,7 +5,8 @@ package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.QueueOnStop
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.recordFinished
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
@@ -35,7 +36,7 @@ class DefaultPlaybackSessionManager(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val playbackSettings: PlaybackSettings,
   private val downloads: Downloads,
@@ -83,7 +84,7 @@ class DefaultPlaybackSessionManager(
         // For podcast sessions, scope all the finishing operations to the playing episode
         // so siblings (other episodes' progress / history / sessions) aren't clobbered.
         mediaProgressRepository.markFinished(libraryItemId, session.episodeId)
-        playbackHistoryRepository.clear(libraryItemId, session.episodeId)
+        playbackHistoryRecorder.recordFinished(libraryItemId, session.duration, session.episodeId)
 
         // Check if we have an item next in the queue
         val nextItem = sessionQueue.pop()

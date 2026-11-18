@@ -7,12 +7,13 @@ import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayer.Invocation
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
-import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.common.test.session
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
 import app.campfire.home.ui.libraryItem
@@ -50,12 +51,13 @@ class DefaultPlaybackSessionManagerTest {
   private val downloads = FakeDownloads()
   private val downloadSettings = FakeDownloadSettings()
   private val userRepository = FakeUserRepository()
+  private val historyRecorder = FakePlaybackHistoryRecorder()
 
   private val manager = DefaultPlaybackSessionManager(
     sessionsRepository = sessionsRepository,
     sessionQueue = sessionQueue,
     mediaProgressRepository = FakeMediaProgressRepository(),
-    playbackHistoryRepository = FakePlaybackHistoryRepository(),
+    playbackHistoryRecorder = historyRecorder,
     audioPlayerHolder = FakeAudioPlayerHolder().apply { setCurrentPlayer(player) },
     playbackSettings = playbackSettings,
     downloads = downloads,
@@ -362,6 +364,51 @@ class DefaultPlaybackSessionManagerTest {
     player.lastPrepare().onFinished(book.id)
 
     assertThat(downloads.invocations).isEmpty()
+  }
+
+  @Test
+  fun `finishing a book records a Finished action at its end`() = runTest(testDispatcher) {
+    val session = session(libraryItem = book)
+    sessionsRepository.createSession = session
+    manager.startSession(book.id)
+
+    player.lastPrepare().onFinished(book.id)
+
+    assertThat(historyRecorder.records).containsExactly(
+      FakePlaybackHistoryRecorder.Record(book.id, PlaybackActionType.Finished, session.duration),
+    )
+  }
+
+  @Test
+  fun `finishing an episode records a Finished action for that episode`() = runTest(testDispatcher) {
+    val session = episodeSession(episodeA)
+    sessionsRepository.createSession = session
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(historyRecorder.records).containsExactly(
+      FakePlaybackHistoryRecorder.Record(
+        libraryItemId = podcast.id,
+        type = PlaybackActionType.Finished,
+        fromPosition = session.duration,
+        episodeId = episodeA.id,
+      ),
+    )
+  }
+
+  @Test
+  fun `finishing records a Finished action even when the queue moves on`() = runTest(testDispatcher) {
+    sessionQueue.add(podcast, episodeB)
+    sessionsRepository.createSession = episodeSession(episodeA)
+    manager.startSession(podcast.id, episodeId = episodeA.id)
+    sessionsRepository.createSession = episodeSession(episodeB)
+
+    player.lastPrepare().onFinished(podcast.id)
+
+    assertThat(historyRecorder.records.map { it.type to it.episodeId })
+      .containsExactly(PlaybackActionType.Finished to episodeA.id)
+    assertThat(player.preparedEpisodeIds()).containsExactly("a", "b")
   }
 
   private fun FakeSessionQueue.keys() = queue.map { it.key }

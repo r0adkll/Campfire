@@ -4,10 +4,9 @@
 package app.campfire.playlists.ui.detail
 
 import app.campfire.analytics.test.FakeAnalytics
-import app.campfire.audioplayer.history.PlaybackAction
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
-import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.common.test.mediaProgress
 import app.campfire.common.test.session
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -33,11 +32,9 @@ import assertk.assertions.isEqualTo
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.Test
-import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.LocalDateTime
 
 class PlaylistDetailPresenterTest {
 
@@ -46,8 +43,9 @@ class PlaylistDetailPresenterTest {
   private val mediaProgressRepository = FakeMediaProgressRepository()
   private val sessionsRepository = FakeSessionsRepository()
   private val playbackController = FakePlaybackController()
-  private val playbackHistoryRepository = FakePlaybackHistoryRepository()
   private val downloads = FakeDownloads()
+
+  private val playbackHistoryRecorder = FakePlaybackHistoryRecorder()
 
   private fun presenter(userScope: CoroutineScope) = PlaylistDetailPresenter(
     screen = screen,
@@ -61,7 +59,7 @@ class PlaylistDetailPresenterTest {
     userRepository = FakeUserRepository(),
     libraryViewSettings = TestLibraryViewSettings(),
     mediaProgressRepository = mediaProgressRepository,
-    playbackHistoryRepository = playbackHistoryRepository,
+    playbackHistoryRecorder = playbackHistoryRecorder,
     userScopeHolder = CoroutineScopeHolder { userScope },
   )
 
@@ -83,8 +81,6 @@ class PlaylistDetailPresenterTest {
       mediaProgress(playing.id, currentTime = 50f),
     )
     sessionsRepository.currentSessionFlow.value = session(libraryItem = playing)
-    playbackHistoryRepository.history[FakePlaybackHistoryRepository.HistoryKey(playing.id)] =
-      listOf(playAction(playing.id))
 
     presenter.test {
       val state = awaitItemMatching { it.playlistItems.size == 5 && it.progressStates.size == 2 }
@@ -104,11 +100,14 @@ class PlaylistDetailPresenterTest {
         .containsExactly(MarkAllFinished(finishing))
       assertThat(sessionsRepository.invocations.filterIsInstance<MarkDeleted>())
         .containsExactly(*finishing.map { MarkDeleted(it.libraryItemId, it.episodeId) }.toTypedArray())
+      // Once per book or episode, though the playlist may hold it more than once
+      assertThat(playbackHistoryRecorder.records.map { MediaProgressKey(it.libraryItemId, it.episodeId) })
+        .containsExactly(*finishing.toTypedArray())
+      assertThat(playbackHistoryRecorder.records.map { it.type }.distinct())
+        .containsExactly(PlaybackActionType.Finished)
       // The current session is one being finished, so playback stops
       assertThat(playbackController.session)
         .isEqualTo(PlaybackControllerSession.Stopped(itemId = playing.id))
-      assertThat(playbackHistoryRepository.history.getValue(FakePlaybackHistoryRepository.HistoryKey(playing.id)))
-        .isEmpty()
 
       cancelAndIgnoreRemainingEvents()
     }
@@ -232,16 +231,6 @@ class PlaylistDetailPresenterTest {
     libraryItemId = libraryItemId,
     episodeId = episodeId,
     libraryItem = libraryItem(id = libraryItemId),
-  )
-
-  private fun playAction(libraryItemId: String) = PlaybackAction(
-    id = 1L,
-    libraryItemId = libraryItemId,
-    userId = "user",
-    type = PlaybackActionType.Play,
-    timestamp = LocalDateTime(2026, 1, 1, 0, 0),
-    fromPosition = Duration.ZERO,
-    toPosition = null,
   )
 }
 

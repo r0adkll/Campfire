@@ -17,7 +17,8 @@ import app.campfire.analytics.events.Click
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.recordFinished
 import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.SeriesEntry
@@ -29,7 +30,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.offline.Downloads
@@ -60,9 +60,9 @@ class SeriesDetailPresenter(
   private val bookInfoRegistry: BookInfoRegistry,
   private val bookInfoSettings: BookInfoProviderSettings,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val sessionsRepository: SessionsRepository,
   private val playbackController: PlaybackController,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesDetailUiState> {
@@ -148,9 +148,8 @@ class SeriesDetailPresenter(
           if (isUpdatingProgress || unfinishedItems.isEmpty()) return@SeriesDetailUiState
           analytics.send(ActionEvent("mark_series_finished", Click))
           isUpdatingProgress = true
-          val itemIds = unfinishedItems.map { it.id }
           launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
-            markFinished(itemIds)
+            markFinished(unfinishedItems)
           }
         }
         SeriesDetailUiEvent.MarkSeriesNotFinished -> {
@@ -193,17 +192,17 @@ class SeriesDetailPresenter(
     }
   }
 
-  /** Matches marking a single book finished: playback stops and its session and history go. */
-  private suspend fun markFinished(itemIds: List<LibraryItemId>) {
+  /** Matches marking a single book finished: playback stops, its session goes, and it's recorded. */
+  private suspend fun markFinished(items: List<LibraryItem>) {
     val playingItemId = sessionsRepository.getCurrentSession()?.libraryItem?.id
-    if (playingItemId != null && playingItemId in itemIds) {
+    if (playingItemId != null && items.any { it.id == playingItemId }) {
       playbackController.stopSession(playingItemId)
     }
 
-    itemIds.forEach { itemId ->
-      sessionsRepository.markDeleted(itemId)
-      mediaProgressRepository.markFinished(itemId)
-      playbackHistoryRepository.clear(itemId)
+    items.forEach { item ->
+      sessionsRepository.markDeleted(item.id)
+      mediaProgressRepository.markFinished(item.id)
+      playbackHistoryRecorder.recordFinished(item.id, item.media.duration)
     }
   }
 }

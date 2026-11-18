@@ -15,4 +15,7 @@ enum class PlaybackActionType {
   SeekForward,
   SeekBackward,
   Sync,
+
+  /** Playback reached the end of the book or episode. */
+  Finished,
 }

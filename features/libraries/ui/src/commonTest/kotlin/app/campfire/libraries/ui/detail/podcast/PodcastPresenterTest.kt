@@ -7,11 +7,13 @@ import androidx.compose.material3.SnackbarData
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.withCompositionLocal
 import app.campfire.audioplayer.test.PlaybackControllerSession
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.common.test.session
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.BaseLibraryItemPresenterTest
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
@@ -140,6 +142,14 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
       testScheduler.advanceUntilIdle()
       assertThat(mediaProgressRepository.invocations)
         .contains(FakeMediaProgressRepository.Invocation.MarkFinished(podcast.id, "ep_1"))
+      assertThat(playbackHistoryRecorder.records).containsExactly(
+        FakePlaybackHistoryRecorder.Record(
+          podcast.id,
+          PlaybackActionType.Finished,
+          episode.duration,
+          episodeId = "ep_1",
+        ),
+      )
       cancelAndIgnoreRemainingEvents()
     }
   }

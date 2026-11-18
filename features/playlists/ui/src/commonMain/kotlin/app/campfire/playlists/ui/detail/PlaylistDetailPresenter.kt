@@ -18,7 +18,8 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.recordFinished
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -58,7 +59,7 @@ class PlaylistDetailPresenter(
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
   private val mediaProgressRepository: MediaProgressRepository,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : Presenter<PlaylistDetailUiState> {
 
@@ -259,10 +260,18 @@ class PlaylistDetailPresenter(
             )
           }
 
+          // The same item can appear more than once; record its finish once
+          val finishing = unfinishedKeys.mapNotNull { key -> playlistItems.firstOrNull { it.progressKey == key } }
           launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
             unfinishedKeys.forEach { sessionsRepository.markDeleted(it.libraryItemId, it.episodeId) }
             mediaProgressRepository.markAllFinished(unfinishedKeys)
-            unfinishedKeys.forEach { playbackHistoryRepository.clear(it.libraryItemId, it.episodeId) }
+            finishing.forEach { item ->
+              playbackHistoryRecorder.recordFinished(
+                libraryItemId = item.libraryItemId,
+                duration = item.episode?.duration ?: item.libraryItem.media.duration,
+                episodeId = item.episodeId,
+              )
+            }
           }
         }
 
