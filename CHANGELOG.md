@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audiobooks that come with an e-book show your reading progress alongside your listening progress
 - Latest checks for new podcast episodes every time you open it, instead of once a day
 - Your downloads have a screen of their own, opened from the navigation drawer or from View all downloads in Downloads settings, which now holds just the settings
-- Downloads lets you retry a failed download where it's listed, and offers to cancel a download in progress rather than stop it, since nothing of it is kept
+- Downloads lists what you've downloaded as it looks in the rest of the app, with a button to play or read each one. Swipe a download away to remove it, with a moment to undo, see how far along each download is, and retry a failed one where it's listed
 - The greens and yellows that mean done, synced or connecting lean toward your theme's color instead of ignoring it
 
 ### Deprecated
