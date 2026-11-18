@@ -17,10 +17,12 @@ class FirebaseConventionPlugin : Plugin<Project> {
       // in the app module, so nothing Firebase reaches the foss flavor. App Distribution is
       // upload-only: existing testers still get alpha/beta builds from it, but the in-app
       // updater is Drop's.
-      val googleServicesFile = rootProject.file("app/android/google-services.json")
+      // Each app module brings its own: CI writes one for app/android, and an app without one
+      // (app/automotive until it's set up in Firebase) builds without Firebase rather than failing
+      val googleServicesFile = file("google-services.json")
       if (!googleServicesFile.exists()) {
         logger.lifecycle(
-          "Firebase plugins disabled: app/android/google-services.json not found. " +
+          "Firebase plugins disabled for $path: google-services.json not found. " +
             "APK will compile but Firebase runtime features will be inactive.",
         )
         return
