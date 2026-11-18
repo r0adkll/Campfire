@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Desktop] Books not playing, and their cover missing from Now Playing, on servers that need custom headers, such as a Cloudflare Access service token
 - Nothing loading and the connection indicator staying red after your server was briefly unreachable, until the app was restarted
 - Campfire taking up to ten more minutes to notice your server is back when its check was interrupted, such as by leaving the screen
 - Being signed out for no reason, most often after leaving a screen right as the app reopened from a long break

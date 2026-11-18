@@ -75,6 +75,12 @@ class DesktopAudioPlayerTest {
     sleepTimerManagerFactory = sleepTimer.factory,
     engineFactory = factory,
     accessTokenProvider = { accessToken },
+    requestHeadersProvider = { _, _ ->
+      buildMap {
+        putAll(extraHeaders)
+        accessToken?.let { put("Authorization", "Bearer $it") }
+      }
+    },
     audioOutputController = audioOutput,
     offlineTrackFiles = { itemId, episodeId, track -> downloadedTracks[Triple(itemId, episodeId, track.index)] },
     engineDispatcher = UnconfinedTestDispatcher(testScheduler),
@@ -84,6 +90,8 @@ class DesktopAudioPlayerTest {
   private val downloadedTracks = mutableMapOf<Triple<LibraryItemId, String?, Int>, String>()
 
   private var accessToken: String? = null
+
+  private var extraHeaders: Map<String, String> = emptyMap()
 
   private suspend fun DesktopAudioPlayer.prepareBook(
     currentTime: Duration = Duration.ZERO,
@@ -526,6 +534,24 @@ class DesktopAudioPlayerTest {
     player.seekTo(45.minutes)
     assertThat(engine.opens.last().item.uri).isEqualTo("/Users/me/Downloads/book/2.m4b")
     assertThat(engine.opens.last().headers).isEqualTo(emptyMap())
+  }
+
+  @Test
+  fun `an engine that sends headers also gets the account's extra headers`() = runTest {
+    accessToken = "abc123"
+    extraHeaders = mapOf("CF-Access-Client-Id" to "id", "CF-Access-Client-Secret" to "secret")
+    engine.supportsRequestHeaders = true
+    val player = player()
+    val tracks = listOf(track(1, 0f, 1800f).copy(contentUrl = "https://abs.example.com/api/items/i/file/1"))
+    player.prepare(session(tracks = tracks), playImmediately = true) { }
+
+    assertThat(engine.opens.single().headers).isEqualTo(
+      mapOf(
+        "CF-Access-Client-Id" to "id",
+        "CF-Access-Client-Secret" to "secret",
+        "Authorization" to "Bearer abc123",
+      ),
+    )
   }
 
   @Test

@@ -114,6 +114,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
       engineFactory = engineFactory,
       accessTokenProvider = { token },
+      requestHeadersProvider = { _, _ -> mapOf("Authorization" to "Bearer $token") },
       audioOutputController = FakeAudioOutputController(),
     )
 
