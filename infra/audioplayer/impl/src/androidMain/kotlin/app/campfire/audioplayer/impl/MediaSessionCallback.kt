@@ -35,8 +35,10 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -132,24 +134,7 @@ internal class MediaSessionCallback(
       "onPlaybackResumptionInternal(controller=${controller.packageName}, isForPlayback=$isForPlayback)"
     }
 
-    // Resumption is often triggered from the background (Bluetooth / media button) where the
-    // server may be unreachable. Resolving the session hits the repository layer, so guard it:
-    // an exception escaping here would leave the freshly started foreground service without a
-    // notification and Android would kill the process.
-    try {
-      val userComponent = signedInUserComponent()
-      userComponent?.sessionsRepository?.getCurrentSession()?.let { session ->
-        userComponent.playbackSessionManager.startSession(
-          libraryItemId = session.libraryItem.id,
-          playImmediately = isForPlayback,
-          episodeId = session.episodeId,
-        )
-      }
-    } catch (e: CancellationException) {
-      throw e
-    } catch (e: Exception) {
-      bark(LogPriority.ERROR, throwable = e) { "Failed to resume playback from current session" }
-    }
+    resumeCurrentSession(playImmediately = isForPlayback)
 
     // Return an error from this response as we've taken responsibility for starting playback and
     // resolving / setting the media item(s).
@@ -294,6 +279,19 @@ internal class MediaSessionCallback(
     startIndex: Int,
     startPositionMs: Long,
   ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+    // A spoken request ("play Project Hail Mary on Campfire") arrives as one item with only a query
+    val searchQuery = mediaItems.singleOrNull()
+      ?.takeIf { it.mediaId.isEmpty() }
+      ?.requestMetadata?.searchQuery
+    if (searchQuery != null) {
+      return serviceScope.future {
+        playFromSearch(mediaSession, searchQuery)
+
+        // As below: playback is started by the session manager, not from these items
+        error("Deliberately not return here")
+      }
+    }
+
     if (mediaItems.size == 1) {
       return serviceScope.future {
         // Podcast episode entries from the media tree encode their episode id into the
@@ -334,6 +332,69 @@ internal class MediaSessionCallback(
       return MediaSession.MediaItemsWithStartPosition(resolvedItems, startIndex, startPositionMs)
     } else {
       error("Media items contain an unplayable item!")
+    }
+  }
+
+  /**
+   * Play what a spoken request asked for: the matching book, or for a bare "play Campfire" whatever
+   * was playing last. Tells the car when nobody is signed in or nothing matches, so the assistant
+   * can say so rather than go quiet.
+   */
+  private suspend fun playFromSearch(mediaSession: MediaSession, query: String) {
+    val userComponent = signedInUserComponent()
+    if (userComponent == null) {
+      sendError(mediaSession, component.browseSignInPromptProvider.prompt().toSessionError())
+      return
+    }
+    if (query.isBlank()) {
+      resumeCurrentSession(playImmediately = true)
+      return
+    }
+
+    val libraryItemId = try {
+      userComponent.mediaTree.findBook(query)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(LogPriority.ERROR, throwable = e) { "Search for a spoken request failed" }
+      null
+    }
+    if (libraryItemId == null) {
+      sendError(
+        mediaSession,
+        SessionError(SessionError.ERROR_BAD_VALUE, context.getString(R.string.voice_search_no_match, query)),
+      )
+      return
+    }
+    userComponent.playbackSessionManager.startSession(libraryItemId = libraryItemId)
+  }
+
+  /** Media3 wants its session used from the thread it was built on, the main thread. */
+  private suspend fun sendError(mediaSession: MediaSession, error: SessionError) {
+    withContext(Dispatchers.Main) { mediaSession.sendError(error) }
+  }
+
+  /**
+   * Start the signed-in user's most recent session again. Often called from the background
+   * (Bluetooth, a media button, a voice request) where the server may be unreachable, and
+   * resolving the session hits the repository layer, so it's guarded: an exception escaping here
+   * would leave a freshly started foreground service without a notification, and Android would
+   * kill the process.
+   */
+  private suspend fun resumeCurrentSession(playImmediately: Boolean) {
+    try {
+      val userComponent = signedInUserComponent()
+      userComponent?.sessionsRepository?.getCurrentSession()?.let { session ->
+        userComponent.playbackSessionManager.startSession(
+          libraryItemId = session.libraryItem.id,
+          playImmediately = playImmediately,
+          episodeId = session.episodeId,
+        )
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(LogPriority.ERROR, throwable = e) { "Failed to resume playback from current session" }
     }
   }
 

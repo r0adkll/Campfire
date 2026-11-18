@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <application>
+    <!-- Debug only: try voice requests with adb (see VoiceSearchReceiver) -->
+    <receiver
+      android:name="app.campfire.automotive.debug.VoiceSearchReceiver"
+      android:exported="true" />
+  </application>
+</manifest>
