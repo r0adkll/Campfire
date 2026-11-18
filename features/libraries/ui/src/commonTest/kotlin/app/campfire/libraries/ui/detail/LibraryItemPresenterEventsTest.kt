@@ -4,8 +4,10 @@
 package app.campfire.libraries.ui.detail
 
 import app.campfire.analytics.events.AnalyticEvent
+import app.campfire.audioplayer.history.PlaybackAction
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.PlaybackControllerSession
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository.HistoryKey
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.DownloadsScreen
 import app.campfire.common.screens.SeriesDetailScreen
@@ -13,6 +15,7 @@ import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.session
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
@@ -47,12 +50,14 @@ import assertk.assertions.single
 import com.slack.circuit.test.CircuitReceiveTurbine
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.datetime.LocalDateTime
 
 class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
 
@@ -475,6 +480,7 @@ private val SeriesClick = EventTest(
 
 private val DiscardProgress = EventTest(
   event = LibraryItemUiEvent.DiscardProgress(libraryItem(TestLibraryItemId)),
+  setup = { playbackHistoryRepository.history[HistoryKey(TestLibraryItemId)] = listOf(TestPlayAction) },
   assert = {
     assertThat(analytics.events)
       .single()
@@ -495,11 +501,15 @@ private val DiscardProgress = EventTest(
       .firstInstanceOf<FakeMediaProgressRepository.Invocation.DeleteProgress>()
       .prop(FakeMediaProgressRepository.Invocation.DeleteProgress::libraryItemId)
       .isEqualTo(TestLibraryItemId)
+
+    // Resetting progress starts the listen over, so its history goes with it
+    assertThat(playbackHistoryRepository.history.getValue(HistoryKey(TestLibraryItemId))).isEmpty()
   },
 )
 
 private val MarkFinished = EventTest(
   event = LibraryItemUiEvent.MarkFinished(libraryItem(TestLibraryItemId)),
+  setup = { playbackHistoryRepository.history[HistoryKey(TestLibraryItemId)] = listOf(TestPlayAction) },
   assert = {
     assertThat(analytics.events)
       .single()
@@ -520,7 +530,23 @@ private val MarkFinished = EventTest(
       .firstInstanceOf<FakeMediaProgressRepository.Invocation.MarkFinished>()
       .prop(FakeMediaProgressRepository.Invocation.MarkFinished::libraryItemId)
       .isEqualTo(TestLibraryItemId)
+
+    // Only resetting progress clears history; finishing keeps the listen's history
+    assertThat(playbackHistoryRepository.history.getValue(HistoryKey(TestLibraryItemId)))
+      .containsExactly(TestPlayAction)
+    assertThat(playbackHistoryRecorder.records.map { it.libraryItemId to it.type })
+      .containsExactly(TestLibraryItemId to PlaybackActionType.Finished)
   },
+)
+
+private val TestPlayAction = PlaybackAction(
+  id = 1L,
+  libraryItemId = TestLibraryItemId,
+  userId = "user",
+  type = PlaybackActionType.Play,
+  timestamp = LocalDateTime(2026, 1, 1, 0, 0),
+  fromPosition = Duration.ZERO,
+  toPosition = null,
 )
 
 private val MarkNotFinished = EventTest(

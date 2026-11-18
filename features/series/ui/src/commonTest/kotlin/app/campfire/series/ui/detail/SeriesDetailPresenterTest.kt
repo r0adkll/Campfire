@@ -6,7 +6,7 @@ package app.campfire.series.ui.detail
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
-import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.api.SeriesEntry
@@ -18,6 +18,7 @@ import app.campfire.common.test.mediaProgress
 import app.campfire.common.test.session
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.PlaybackActionType
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
 import app.campfire.home.ui.mediaMetadata
@@ -47,6 +48,8 @@ class SeriesDetailPresenterTest {
   private val sessionsRepository = FakeSessionsRepository()
   private val playbackController = FakePlaybackController()
 
+  private val playbackHistoryRecorder = FakePlaybackHistoryRecorder()
+
   private fun presenter(userScope: CoroutineScope) = SeriesDetailPresenter(
     screen = screen,
     navigator = navigator,
@@ -55,9 +58,9 @@ class SeriesDetailPresenterTest {
     bookInfoRegistry = registry,
     bookInfoSettings = settings,
     mediaProgressRepository = mediaProgressRepository,
+    playbackHistoryRecorder = playbackHistoryRecorder,
     sessionsRepository = sessionsRepository,
     playbackController = playbackController,
-    playbackHistoryRepository = FakePlaybackHistoryRepository(),
     userScopeHolder = CoroutineScopeHolder { userScope },
     analytics = FakeAnalytics(),
   )
@@ -208,6 +211,10 @@ class SeriesDetailPresenterTest {
 
       assertThat(markedFinishedIds()).containsExactly("in-progress", "unstarted")
       assertThat(markedDeletedSessionIds()).containsExactly("in-progress", "unstarted")
+      assertThat(playbackHistoryRecorder.records).containsExactly(
+        FakePlaybackHistoryRecorder.Record("in-progress", PlaybackActionType.Finished, inProgress.media.duration),
+        FakePlaybackHistoryRecorder.Record("unstarted", PlaybackActionType.Finished, unstarted.media.duration),
+      )
       assertThat(playbackController.session)
         .isEqualTo(PlaybackControllerSession.Stopped(itemId = "in-progress"))
       cancelAndIgnoreRemainingEvents()
