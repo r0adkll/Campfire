@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -142,6 +145,10 @@ fun DownloadsUi(
           )
         },
         scrollBehavior = scrollBehavior,
+        // The status bar's height is part of the bar rather than an inset around it, so it
+        // scrolls away with the bar and the list passes behind the status bar, as on a series
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars.asPaddingValues(),
       )
     },
     contentWindowInsets = CampfireWindowInsets,
