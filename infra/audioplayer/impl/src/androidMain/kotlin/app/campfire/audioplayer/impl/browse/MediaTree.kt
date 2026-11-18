@@ -405,6 +405,21 @@ class MediaTree(
   }
 
   /**
+   * The book a spoken request means ("play Project Hail Mary on Campfire"): the best matching
+   * book, or else the first book of the best matching series. Podcasts aren't matched, since a
+   * show still needs an episode picked.
+   */
+  suspend fun findBook(query: String): LibraryItemId? {
+    val result = searchRepository.searchCurrentLibrary(query)
+      .firstOrNull { it !is SearchResult.Loading } as? SearchResult.Success
+      ?: return null
+    result.books.firstOrNull { it.media is Media.Book }?.let { return it.id }
+    return result.series.firstNotNullOfOrNull { series ->
+      series.books?.firstOrNull { it.media is Media.Book }?.id
+    }
+  }
+
+  /**
    * Return one page of the results for [query], serving from the cache populated by
    * [search] so paging doesn't re-hit the search repository per page.
    */

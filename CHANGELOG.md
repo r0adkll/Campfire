@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [Android] Listen in cars with Google built-in (Android Automotive OS): sign in on the car's screen while parked, then browse and play your library from the car's media app
+- [Android] Listen in cars with Google built-in (Android Automotive OS): sign in on the car's screen while parked, then browse and play your library from the car's media app, or ask for a book by voice
 - Connect to servers protected by Cloudflare Access with a service token
 - [Android] Add a server and its Cloudflare Access service token from a setup link, or by scanning its QR code
 - [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) full screen, or download them to read offline and find them in Downloads with your audiobooks, with your place kept in sync with Audiobookshelf
