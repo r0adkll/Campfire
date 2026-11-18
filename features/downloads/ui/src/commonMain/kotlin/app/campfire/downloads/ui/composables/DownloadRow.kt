@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -94,28 +95,10 @@ internal fun DownloadRow(
   onDelete: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  // Remembered rather than saved, so a row put back by Undo isn't restored swiped away
-  val positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
-  val swipeState = remember { SwipeToDismissBoxState(SwipeToDismissBoxValue.Settled, positionalThreshold) }
-  val deleteLabel = stringResource(entry.download.deleteLabel)
-  SwipeToDismissBox(
-    state = swipeState,
-    enableDismissFromStartToEnd = false,
-    onDismiss = {
-      if (it != SwipeToDismissBoxValue.Settled) onDelete()
-    },
-    backgroundContent = {
-      Spacer(Modifier.weight(1f))
-      AnimatedRemoveBackgroundContent(swipeState)
-    },
-    modifier = modifier.semantics {
-      customActions = listOf(
-        CustomAccessibilityAction(deleteLabel) {
-          onDelete()
-          true
-        },
-      )
-    },
+  SwipeToDelete(
+    deleteLabel = stringResource(entry.download.deleteLabel),
+    onDelete = onDelete,
+    modifier = modifier,
   ) {
     if (entry.download.state == Download.State.Downloaded && entry !is DownloadEntry.Unavailable) {
       DownloadedRow(
@@ -134,6 +117,42 @@ internal fun DownloadRow(
       )
     }
   }
+}
+
+/**
+ * [content] that's swiped toward the start of the line to call [onDelete], as playlist and queue
+ * rows are, and that offers the same as an accessibility action named [deleteLabel].
+ */
+@Composable
+internal fun SwipeToDelete(
+  deleteLabel: String,
+  onDelete: () -> Unit,
+  modifier: Modifier = Modifier,
+  content: @Composable RowScope.() -> Unit,
+) {
+  // Remembered rather than saved, so a row put back by Undo isn't restored swiped away
+  val positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
+  val swipeState = remember { SwipeToDismissBoxState(SwipeToDismissBoxValue.Settled, positionalThreshold) }
+  SwipeToDismissBox(
+    state = swipeState,
+    enableDismissFromStartToEnd = false,
+    onDismiss = {
+      if (it != SwipeToDismissBoxValue.Settled) onDelete()
+    },
+    backgroundContent = {
+      Spacer(Modifier.weight(1f))
+      AnimatedRemoveBackgroundContent(swipeState)
+    },
+    modifier = modifier.semantics {
+      customActions = listOf(
+        CustomAccessibilityAction(deleteLabel) {
+          onDelete()
+          true
+        },
+      )
+    },
+    content = content,
+  )
 }
 
 /** What the entry is called: its book's title, or its episode's. */
@@ -158,7 +177,7 @@ private fun DownloadEntry.subtitle(): String = when (this) {
  * What removing the download is called. Removing one that's still going cancels it and keeps
  * nothing of it, so it's never called stopping or pausing.
  */
-private val Download.deleteLabel: StringResource
+internal val Download.deleteLabel: StringResource
   get() = if (isInProgress) Res.string.action_cancel_download else Res.string.action_delete_download
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
