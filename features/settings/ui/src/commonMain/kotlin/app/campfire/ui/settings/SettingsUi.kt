@@ -81,6 +81,8 @@ import campfire.features.settings.ui.generated.resources.setting_android_auto_su
 import campfire.features.settings.ui.generated.resources.setting_android_auto_title
 import campfire.features.settings.ui.generated.resources.setting_appearance_subtitle
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
+import campfire.features.settings.ui.generated.resources.setting_car_browse_subtitle
+import campfire.features.settings.ui.generated.resources.setting_car_browse_title
 import campfire.features.settings.ui.generated.resources.setting_connection_subtitle
 import campfire.features.settings.ui.generated.resources.setting_connection_title
 import campfire.features.settings.ui.generated.resources.setting_developer_subtitle
@@ -173,6 +175,7 @@ private fun TwoPaneLayout(
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
       showDeveloperPane = state.developerSettings.developerModeEnabled,
       showAndroidAutoPane = state.isAndroidAutoPaneVisible,
+      isCar = state.isCar,
       appUpdates = state.appUpdates,
       modifier = Modifier
         .padding(top = 16.dp)
@@ -232,6 +235,7 @@ private fun OnePaneLayout(
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     showDeveloperPane = state.developerSettings.developerModeEnabled,
     showAndroidAutoPane = state.isAndroidAutoPaneVisible,
+    isCar = state.isCar,
     appUpdates = state.appUpdates,
     modifier = modifier
       .systemBarsPadding()
@@ -267,18 +271,20 @@ private fun SettingsRootPane(
   onBackClick: () -> Unit,
   showDeveloperPane: Boolean,
   showAndroidAutoPane: Boolean,
+  isCar: Boolean,
   appUpdates: AppUpdatesSettingsInfo?,
   modifier: Modifier = Modifier,
   isTwoPane: Boolean = false,
 ) {
   Scaffold(
     topBar = {
-      if (!isTwoPane) {
+      // A car always gets the way out: it may have no back button, and Settings is its own window
+      if (!isTwoPane || isCar) {
         CampfireTopAppBar(
           title = { Text(stringResource(Res.string.settings_title)) },
           navigationIcon = {
             val windowSizeClass = LocalWindowSizeClass.current
-            if (!windowSizeClass.isSupportingPaneEnabled) {
+            if (isCar || !windowSizeClass.isSupportingPaneEnabled) {
               NavigationBackButton(onClick = onBackClick)
             }
           },
@@ -328,40 +334,43 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Connection)
         },
-        shape = SettingsPaneDefaults.middleShape(),
+        // In a car it ends the group: the car draws the library and player, and looks nothing up
+        shape = if (isCar) SettingsPaneDefaults.bottomShape() else SettingsPaneDefaults.middleShape(),
       )
 
-      // Appearance
-      SettingPaneListItem(
-        selected = pane == SettingsPane.Appearance && isTwoPane,
-        icon = {
-          Icon(
-            CampfireIcons.Rounded.Palette,
-            contentDescription = null,
-          )
-        },
-        title = { Text(stringResource(Res.string.setting_appearance_title)) },
-        subtitle = { Text(stringResource(Res.string.setting_appearance_subtitle)) },
-        onClick = {
-          onPaneClick(SettingsPane.Appearance)
-        },
-        shape = SettingsPaneDefaults.middleShape(),
-      )
+      if (!isCar) {
+        // Appearance
+        SettingPaneListItem(
+          selected = pane == SettingsPane.Appearance && isTwoPane,
+          icon = {
+            Icon(
+              CampfireIcons.Rounded.Palette,
+              contentDescription = null,
+            )
+          },
+          title = { Text(stringResource(Res.string.setting_appearance_title)) },
+          subtitle = { Text(stringResource(Res.string.setting_appearance_subtitle)) },
+          onClick = {
+            onPaneClick(SettingsPane.Appearance)
+          },
+          shape = SettingsPaneDefaults.middleShape(),
+        )
 
-      // Connected book info providers (standalone screen)
-      SettingPaneListItem(
-        selected = false,
-        icon = {
-          Icon(
-            CampfireIcons.Outline.Library,
-            contentDescription = null,
-          )
-        },
-        title = { Text(stringResource(Res.string.setting_providers_title)) },
-        subtitle = { Text(stringResource(Res.string.setting_providers_subtitle)) },
-        onClick = onConnectedProvidersClick,
-        shape = SettingsPaneDefaults.bottomShape(),
-      )
+        // Connected book info providers (standalone screen)
+        SettingPaneListItem(
+          selected = false,
+          icon = {
+            Icon(
+              CampfireIcons.Outline.Library,
+              contentDescription = null,
+            )
+          },
+          title = { Text(stringResource(Res.string.setting_providers_title)) },
+          subtitle = { Text(stringResource(Res.string.setting_providers_subtitle)) },
+          onClick = onConnectedProvidersClick,
+          shape = SettingsPaneDefaults.bottomShape(),
+        )
+      }
 
       Spacer(Modifier.height(8.dp))
 
@@ -429,8 +438,18 @@ private fun SettingsRootPane(
               contentDescription = null,
             )
           },
-          title = { Text(stringResource(Res.string.setting_android_auto_title)) },
-          subtitle = { Text(stringResource(Res.string.setting_android_auto_subtitle)) },
+          title = {
+            Text(
+              stringResource(if (isCar) Res.string.setting_car_browse_title else Res.string.setting_android_auto_title),
+            )
+          },
+          subtitle = {
+            Text(
+              stringResource(
+                if (isCar) Res.string.setting_car_browse_subtitle else Res.string.setting_android_auto_subtitle,
+              ),
+            )
+          },
           onClick = {
             onPaneClick(SettingsPane.AndroidAuto)
           },

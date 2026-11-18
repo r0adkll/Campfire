@@ -40,6 +40,8 @@ data class SettingsUiState(
   val keepSignedInAfterReinstall: Boolean? = null,
   val isShakingAvailable: Boolean,
   val isAndroidAutoPaneVisible: Boolean,
+  /** Settings in the car app: no appearance or book info, and browsing set up for the car. */
+  val isCar: Boolean = false,
   val applicationInfo: ApplicationInfo,
   val offline: OfflineState,
   /** Whether the Wi-Fi based ways to work offline apply on this device. */
