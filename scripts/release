@@ -33,8 +33,11 @@ Usage:
   scripts/release --notes-model sonnet  # condense the store changelog with another model
   scripts/release set-ew-token     # store the emulator.wtf API token in the macOS Keychain
 
-Needs a test server for baseline generation: campfire_server_url / campfire_username /
-campfire_password as Gradle properties (~/.gradle/gradle.properties or ORG_GRADLE_PROJECT_*).
+Needs a test server for baseline generation, as Gradle properties (~/.gradle/gradle.properties or
+ORG_GRADLE_PROJECT_*): campfire_baseline_server_url / campfire_baseline_username /
+campfire_baseline_password when set (passed to Gradle via -Pcampfire_test_server=baseline), otherwise
+the default campfire_server_url / campfire_username / campfire_password. A dedicated baseline set
+lets your everyday server sit behind Cloudflare Access, which the generator can't sign in through.
 The versionCode math mirrors gradle/build-logic Versioning.kt (MMmmppRR: rc number, or 99 for
 a final release) so the fastlane file name always matches the code CI derives from the tag.
 """
@@ -80,7 +83,8 @@ BASELINE_GRADLE_ARGS = [
     ":app:android:generateBaselineProfile",
     "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile",
 ]
-BASELINE_PROPERTIES = ("campfire_server_url", "campfire_username", "campfire_password")
+CREDENTIAL_FIELDS = ("server_url", "username", "password")
+BASELINE_TEST_SERVER = "baseline"
 EMULATOR_WTF_GRADLE_ARG = "-Pcampfire.config.useEmulatorWtf=true"
 EMULATOR_WTF_TOKEN_ENV = "EW_API_TOKEN"
 KEYCHAIN_SERVICE = "emulator.wtf"
@@ -290,6 +294,21 @@ def show_log_tail(log_path, lines=25):
 def open_in_editor(path):
     editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or shutil.which("nano") or "vi"
     subprocess.run([*editor.split(), str(path)], cwd=REPO_ROOT)
+
+
+def baseline_credential_args():
+    """Gradle args selecting the generator's sign-in credentials, plus any missing property names.
+
+    Prefers the dedicated campfire_baseline_* set; a partly configured one is reported as missing
+    rather than silently mixed with the default set.
+    """
+    baseline = [f"campfire_{BASELINE_TEST_SERVER}_{field}" for field in CREDENTIAL_FIELDS]
+    present = [name for name in baseline if has_gradle_property(name)]
+    if present:
+        info(f"signing the generator in with the campfire_{BASELINE_TEST_SERVER}_* test server")
+        return [f"-Pcampfire_test_server={BASELINE_TEST_SERVER}"], [n for n in baseline if n not in present]
+    default = [f"campfire_{field}" for field in CREDENTIAL_FIELDS]
+    return [], [name for name in default if not has_gradle_property(name)]
 
 
 def has_gradle_property(name):
@@ -615,7 +634,7 @@ def step_baseline(ui, args, dry_run):
         info("skipped — the release ships the profiles currently in app/android/src/main")
         return
 
-    missing = [name for name in BASELINE_PROPERTIES if not has_gradle_property(name)]
+    credential_args, missing = baseline_credential_args()
     if missing:
         error("the generator needs a test server to sign in to; missing Gradle properties: " + ", ".join(missing))
         info("set them in ~/.gradle/gradle.properties (or ORG_GRADLE_PROJECT_<name> env vars)")
@@ -623,7 +642,7 @@ def step_baseline(ui, args, dry_run):
             return
         raise Abort("configure the test server properties and re-run")
 
-    command = ["./gradlew", *BASELINE_GRADLE_ARGS]
+    command = ["./gradlew", *BASELINE_GRADLE_ARGS, *credential_args]
     env = None
     where = "local managed device"
     if choice == "e":

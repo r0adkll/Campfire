@@ -12,11 +12,22 @@ val noTestCredentials = providers.gradleProperty("campfire_no_test_credentials")
 fun testCredential(name: String): String? =
   if (noTestCredentials) null else providers.gradleProperty(name).orNull
 
+// -Pcampfire_test_server=<name> prefills the login form from a named credential set,
+// campfire_<name>_server_url / _username / _password, instead of the default one (e.g. scripts/release
+// signs the baseline profile generator in to a server that isn't behind Cloudflare Access).
+val testServer = providers.gradleProperty("campfire_test_server").orNull?.takeIf { it.isNotBlank() }
+fun testServerCredential(field: String): String? {
+  if (testServer == null) return testCredential("campfire_$field")
+  val name = "campfire_${testServer}_$field"
+  return testCredential(name)
+    ?: if (noTestCredentials) null else error("-Pcampfire_test_server=$testServer needs the Gradle property $name")
+}
+
 buildConfig {
   packageName("app.campfire.auth.ui")
-  buildConfigField("String?", "TEST_SERVER_URL", testCredential("campfire_server_url"))
-  buildConfigField("String?", "TEST_USERNAME", testCredential("campfire_username"))
-  buildConfigField("String?", "TEST_PASSWORD", testCredential("campfire_password"))
+  buildConfigField("String?", "TEST_SERVER_URL", testServerCredential("server_url"))
+  buildConfigField("String?", "TEST_USERNAME", testServerCredential("username"))
+  buildConfigField("String?", "TEST_PASSWORD", testServerCredential("password"))
   buildConfigField(
     "Int",
     "FAKE_RESTORABLE_ACCOUNTS",
