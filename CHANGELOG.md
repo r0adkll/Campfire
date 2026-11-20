@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Other Notes & Contributions
+
+## [1.3.0]
+
+### Added
+
 - [Android, iOS] Read e-books and comics (EPUB, MOBI, AZW3, FB2 and CBZ) in a full-screen reader, or download them to read offline, with your place kept in sync with Audiobookshelf
 - E-book details show the format, file size, contents, edition details and the chapter you're on, and audiobooks that come with an e-book show your reading progress alongside your listening progress
 - Work offline from the navigation drawer or Connection settings, until you turn it off, for a few hours, until you're back on Wi-Fi, or whenever you're on mobile data. Campfire runs from your downloads and syncs your progress when you're back online
@@ -41,10 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Podcast episodes your server is downloading show as a banner on Shows and Latest, replacing the podcast Queue tab
 - Long titles on cards wait until you stop scrolling before they scroll
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - The app feeling sluggish while a book is playing, and lists stuttering as you scroll
@@ -74,8 +84,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Short titles in the playback bar showing faded edges as if they were about to scroll
 - The book you're listening to losing its checkmark, or being counted twice, when selecting books to remove from a collection
 - Empty space at the bottom of some screens, such as Add Podcast, while something is playing
-
-### Other Notes & Contributions
 
 ## [1.2.1]
 
@@ -652,6 +660,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial Alpha Release.
 
+[1.3.0]: https://github.com/r0adkll/Campfire/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/r0adkll/Campfire/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/r0adkll/Campfire/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/r0adkll/Campfire/compare/1.0.5...1.1.0

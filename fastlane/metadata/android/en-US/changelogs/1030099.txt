@@ -1,0 +1,14 @@
+New:
+- E-book and comic reader with synced progress, also offline
+- Offline mode and a Downloads screen
+- Cloudflare Access support
+- Edit, match and rescan books on your server
+- Auto-download podcast episodes
+Improved:
+- Queue kept and editable
+- Redesigned theme builder with live preview
+- Lower battery use, clearer playback errors
+Fixed:
+- Sluggishness and random sign-outs
+- Reconnecting after the server was unreachable
+- Podcast loading, playlists, sorting and series numbers
