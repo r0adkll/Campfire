@@ -2,7 +2,7 @@
 agp = "9.5.1"
 about-libraries = "15.3.0"
 accompanist = "0.37.3"
-androidxlifecycle = "2.11.0"
+androidxlifecycle = "2.11.1"
 androidxactivity = "1.13.0"
 androidxcamera = "1.7.0"
 androidxfragment = "1.9.1"
