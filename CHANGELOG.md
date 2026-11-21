@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Servers using plain HTTP with a host name failing to connect
 - [iOS] Opening the app stopping audio playing in other apps
 - A podcast's playback history in the player showing, jumping to, and clearing every episode's events instead of the playing episode's
+- [Android] Playback history missing pauses from the notification, lock screen, headphones, car or Cast device, when headphones disconnect or playback fails, or when starting another book
 
 ### Other Notes & Contributions
 
