@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Android] Playback history missing pauses from the notification, lock screen, headphones, car or Cast device, when headphones disconnect or playback fails, or when starting another book
+
 ### Other Notes & Contributions
 
 ## [1.3.0]
