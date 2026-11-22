@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
@@ -33,7 +34,9 @@ import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
+import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -72,6 +75,9 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val libraryViewSettings: LibraryViewSettings,
+  private val playbackSettings: PlaybackSettings,
+  private val sessionsRepository: SessionsRepository,
+  private val audioPlayerHolder: AudioPlayerHolder,
   private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
@@ -127,6 +133,16 @@ class LibraryItemPresenter(
       libraryViewSettings.observeDeleteItemFilesByDefault()
     }.collectAsState()
 
+    val playbackHistoryEnabled by remember {
+      playbackSettings.observePlaybackHistoryEnabled()
+    }.collectAsState()
+
+    // Only which item is playing: the session itself changes with every saved position
+    val playingItem by remember {
+      sessionsRepository.observePlayingItem()
+    }.collectAsState(null)
+    val isPlaying = playingItem?.libraryItemId == screen.libraryItemId
+
     val user = userSession.requiredUser
     val libraryItem = libraryItemContentState.dataOrNull
     val itemActions = remember(user, libraryItem) { libraryItem?.let { user.itemActions(it) }.orEmpty() }
@@ -140,6 +156,9 @@ class LibraryItemPresenter(
       itemActions = itemActions,
       quickMatchSource = quickMatchSource?.name,
       deleteFilesByDefault = deleteFilesByDefault,
+      // A podcast's history is kept per episode, which the item's menu can't pick
+      showPlaybackHistory = playbackHistoryEnabled && libraryItem?.mediaType == MediaType.Book,
+      isPlaying = isPlaying,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -174,6 +193,12 @@ class LibraryItemPresenter(
                 )
               }
           }
+        }
+
+        is LibraryItemUiEvent.PlaybackHistoryJump -> {
+          // Playback may have moved on to another item while the history was open
+          if (!isPlaying) return@LibraryItemUiState
+          audioPlayerHolder.currentPlayer.value?.seekTo(event.position)
         }
 
         is LibraryItemUiEvent.EditClick -> {

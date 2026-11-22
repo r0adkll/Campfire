@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Playback history in a book's menu, to look back on its listening or jump to a moment while it plays
 
 - [iOS] Download audiobooks and podcast episodes to listen offline. Downloads carry on while Campfire is in the background, and can wait for Wi-Fi
 

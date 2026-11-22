@@ -28,6 +28,7 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.ContentUiState
@@ -37,9 +38,18 @@ import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
+import app.campfire.sessions.api.PlaybackHistoryUi
+import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.isLessThan
+import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.overlay.OverlayHost
+import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 @OptIn(
   ExperimentalTestApi::class,
@@ -62,6 +72,8 @@ class LibraryItemUiTest {
       )
     }
   }
+
+  private val playbackHistoryUi = RecordingPlaybackHistoryUi()
 
   @Test
   fun testErrorList() = runComposeUiTest {
@@ -280,6 +292,68 @@ class LibraryItemUiTest {
     onNodeWithTag("item_actions_button").assertDoesNotExist()
   }
 
+  @Test
+  fun playbackHistory_isInTheMenu_evenWithoutItemActions() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(itemActions = emptyList()).copy(showPlaybackHistory = true)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_playback_history").performClick()
+    waitForIdle()
+
+    assertThat(playbackHistoryUi.shown).containsExactly(Shown("", canJump = false))
+    events.assertNoEvents()
+  }
+
+  @Test
+  fun playbackHistory_whilePlaying_jumpsToWhatWasPicked() = runComposeUiTest {
+    playbackHistoryUi.picks = 12.minutes
+    setContent {
+      TestLibraryItem(
+        loadedState(ItemAction.entries).copy(showPlaybackHistory = true, isPlaying = true),
+      )
+    }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_playback_history").performClick()
+    waitForIdle()
+
+    assertThat(playbackHistoryUi.shown).containsExactly(Shown("", canJump = true))
+    events.assertEvent(LibraryItemUiEvent.PlaybackHistoryJump(12.minutes))
+  }
+
+  @Test
+  fun playbackHistory_sitsJustAboveDeleting() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(ItemAction.entries).copy(showPlaybackHistory = true)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+
+    val top = { tag: String -> onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot.top }
+    assertThat(top("item_action_rescan")).isLessThan(top("item_action_playback_history"))
+    assertThat(top("item_action_playback_history")).isLessThan(top("item_action_delete"))
+  }
+
+  @Test
+  fun playbackHistory_withoutDeleting_isLast() = runComposeUiTest {
+    setContent {
+      TestLibraryItem(
+        loadedState(ItemAction.entries - ItemAction.Delete).copy(showPlaybackHistory = true),
+      )
+    }
+
+    onNodeWithTag("item_actions_button").performClick()
+
+    val top = { tag: String -> onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot.top }
+    assertThat(top("item_action_rescan")).isLessThan(top("item_action_playback_history"))
+  }
+
+  @Test
+  fun playbackHistory_turnedOff_isNotInTheMenu() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_playback_history").assertDoesNotExist()
+  }
+
   private fun loadedState(
     itemActions: List<ItemAction>,
     deleteFilesByDefault: Boolean = true,
@@ -306,11 +380,13 @@ class LibraryItemUiTest {
       CompositionLocalProvider(
         LocalWindowSizeClass provides WindowSizeClass(minWidthDp = 720, minHeightDp = 1080),
         LocalContentLayout provides ContentLayout.Root,
+        LocalOverlayHost provides rememberOverlayHost(),
       ) {
         LibraryItem(
           screen = LibraryItemScreen(""),
           state = state,
           addToCollectionDialog = addToCollectionDialog,
+          playbackHistoryUi = playbackHistoryUi,
           modifier = modifier,
         )
       }
@@ -325,5 +401,21 @@ private class TestContentSlot(
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
     Box(modifier = modifier.testTag(id))
+  }
+}
+
+private data class Shown(val libraryItemId: LibraryItemId, val canJump: Boolean)
+
+private class RecordingPlaybackHistoryUi : PlaybackHistoryUi {
+  val shown = mutableListOf<Shown>()
+  var picks: Duration? = null
+
+  override suspend fun showPlaybackHistory(
+    overlayHost: OverlayHost,
+    libraryItemId: LibraryItemId,
+    canJump: Boolean,
+  ): Duration? {
+    shown += Shown(libraryItemId, canJump)
+    return picks
   }
 }

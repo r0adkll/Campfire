@@ -105,6 +105,7 @@ import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.description.showEpisodeDescriptionBottomSheet
 import app.campfire.sessions.ui.sheets.equalizer.showEqualizerBottomSheet
 import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
+import app.campfire.sessions.ui.sheets.history.jumpPosition
 import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
 import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
@@ -711,8 +712,7 @@ internal fun rememberPlaybackOptionActions(
       scope.launch {
         val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
         if (result is PlaybackHistoryResult.Selected) {
-          val position = result.action.toPosition ?: result.action.fromPosition
-          playerState.eventSink(PlayerUiEvent.Seek.Position(position))
+          playerState.eventSink(PlayerUiEvent.Seek.Position(result.action.jumpPosition))
         }
       }
     },

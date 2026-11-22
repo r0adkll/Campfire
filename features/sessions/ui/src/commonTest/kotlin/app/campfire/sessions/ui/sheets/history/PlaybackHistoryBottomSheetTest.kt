@@ -8,6 +8,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
@@ -55,7 +56,28 @@ class PlaybackHistoryBottomSheetTest {
     assertThat(results).containsExactly(PlaybackHistoryResult.Selected(play))
   }
 
-  private fun ComposeUiTest.setSheet(vararg actions: PlaybackAction) {
+  @Test
+  fun `the playing item's history can be jumped through and cleared`() = runComposeUiTest {
+    setSheet(play)
+
+    onNodeWithText("Tap an event to jump to that position").assertIsDisplayed()
+    onNodeWithContentDescription("Clear history").assertIsDisplayed()
+  }
+
+  @Test
+  fun `history that can't be jumped through is only for reading`() = runComposeUiTest {
+    setSheet(play, canJump = false)
+
+    onNodeWithText("Played").assertIsDisplayed()
+    onNodeWithText("Played").assertHasNoClickAction()
+    onNodeWithText("Played").performClick()
+    onNodeWithText("Tap an event to jump to that position").assertDoesNotExist()
+    onNodeWithContentDescription("Clear history").assertDoesNotExist()
+
+    assertThat(results).isEmpty()
+  }
+
+  private fun ComposeUiTest.setSheet(vararg actions: PlaybackAction, canJump: Boolean = true) {
     repository.history[FakePlaybackHistoryRepository.HistoryKey(ITEM_ID)] = actions.toList()
     val component = object : PlaybackHistoryBottomSheetComponent {
       override val playbackHistoryRepository: PlaybackHistoryRepository = repository
@@ -69,6 +91,7 @@ class PlaybackHistoryBottomSheetTest {
       CampfireTheme {
         PlaybackHistoryBottomSheet(
           libraryItemId = ITEM_ID,
+          canJump = canJump,
           navigator = navigator,
           component = component,
         )

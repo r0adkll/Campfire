@@ -3,10 +3,12 @@
 
 package app.campfire.libraries.ui.detail
 
+import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.mediaProgress as testMediaProgress
+import app.campfire.common.test.session
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Media
 import app.campfire.core.model.SeriesSequence
@@ -37,13 +39,16 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isCloseTo
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import assertk.assertions.prop
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.test.runTest
 
 class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
@@ -90,6 +95,64 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         ItemAction.QuickMatch,
         ItemAction.Delete,
       )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun aBook_offersItsPlaybackHistory() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      assertThat(awaitLoadedItem().showPlaybackHistory).isTrue()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun playbackHistoryTurnedOff_isNotOffered() = runTest {
+    playbackSettings.playbackHistoryEnabled = false
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      assertThat(awaitLoadedItem().showPlaybackHistory).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun jumpingThroughHistory_whilePlaying_seeksThePlayer() = runTest {
+    val item = emptyLibraryItem()
+    libraryItemRepository.libraryItemFlow.emit(item)
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = item)
+    audioPlayerHolder.setCurrentPlayer(audioPlayer)
+
+    presenter.test {
+      val state = awaitItemMatching { it.isPlaying }
+
+      state.eventSink(LibraryItemUiEvent.PlaybackHistoryJump(12.minutes))
+
+      assertThat(audioPlayer.invocations)
+        .firstInstanceOf<FakeAudioPlayer.Invocation.SeekTo>()
+        .prop(FakeAudioPlayer.Invocation.SeekTo::value)
+        .isEqualTo(12.minutes)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun jumpingThroughHistory_whileAnotherItemPlays_leavesThePlayerAlone() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = emptyLibraryItem(id = "other_item"))
+    audioPlayerHolder.setCurrentPlayer(audioPlayer)
+
+    presenter.test {
+      val state = awaitLoadedItem()
+      assertThat(state.isPlaying).isFalse()
+
+      state.eventSink(LibraryItemUiEvent.PlaybackHistoryJump(12.minutes))
+
+      assertThat(audioPlayer.invocations).isEmpty()
       cancelAndIgnoreRemainingEvents()
     }
   }

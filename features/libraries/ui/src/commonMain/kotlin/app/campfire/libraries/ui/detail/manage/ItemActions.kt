@@ -124,6 +124,8 @@ internal fun ItemActionsMenu(
   modifier: Modifier = Modifier,
   /** Items to show before [actions], set apart from them by a divider */
   leading: (@Composable ColumnScope.() -> Unit)? = null,
+  /** Items to show after the other [actions], just above deleting */
+  beforeDelete: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
   DropdownMenu(
     expanded = expanded,
@@ -136,12 +138,14 @@ internal fun ItemActionsMenu(
       if (actions.isNotEmpty()) HorizontalDivider()
     }
     actions.forEachIndexed { index, action ->
+      if (action == ItemAction.Delete) beforeDelete?.invoke(this)
       ItemActionMenuItem(
         action = action,
         onClick = { onAction(action) },
-        divided = action == ItemAction.Delete && index > 0,
+        divided = action == ItemAction.Delete && (index > 0 || beforeDelete != null),
       )
     }
+    if (ItemAction.Delete !in actions) beforeDelete?.invoke(this)
   }
 }
 

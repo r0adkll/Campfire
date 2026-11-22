@@ -37,6 +37,7 @@ import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.sessions.test.FakeStreamingRoutePredictor
+import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
@@ -76,6 +77,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val themeManager = FakeThemeManager()
   internal val themeSettings = TestThemeSettings()
   internal val libraryViewSettings = TestLibraryViewSettings()
+  internal val playbackSettings = FakePlaybackSettings()
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
   internal val bookInfoRegistry = FakeBookInfoRegistry()
@@ -149,6 +151,9 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     libraryViewSettings = libraryViewSettings,
+    playbackSettings = playbackSettings,
+    sessionsRepository = sessionsRepository,
+    audioPlayerHolder = audioPlayerHolder,
     dispatcherProvider = dispatcherProvider,
   )
 

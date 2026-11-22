@@ -24,6 +24,7 @@ import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
+import kotlin.time.Duration
 
 @Immutable
 data class LibraryItemUiState(
@@ -38,6 +39,10 @@ data class LibraryItemUiState(
   val quickMatchSource: String? = null,
   /** Whether deleting the item starts with deleting its files chosen, the last choice confirmed. */
   val deleteFilesByDefault: Boolean = true,
+  /** Whether the item's playback history can be looked at, from its menu */
+  val showPlaybackHistory: Boolean = false,
+  /** Whether the item is the one playing, so a moment in its history can be jumped to */
+  val isPlaying: Boolean = false,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -58,6 +63,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object AddToQueue : LibraryItemUiEvent
   data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
+
+  /** Jump the playing item to [position], picked from its playback history. */
+  data class PlaybackHistoryJump(val position: Duration) : LibraryItemUiEvent
 
   data class PlayClick(val method: PlayMethod?) : LibraryItemUiEvent
 

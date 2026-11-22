@@ -61,6 +61,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableFormat
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
+import app.campfire.sessions.api.PlaybackHistoryUi
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
 import campfire.features.sessions.ui.generated.resources.Res
@@ -76,9 +77,13 @@ import campfire.features.sessions.ui.generated.resources.history_context_skip_ne
 import campfire.features.sessions.ui.generated.resources.history_context_skip_previous
 import campfire.features.sessions.ui.generated.resources.history_context_sync
 import campfire.features.sessions.ui.generated.resources.history_empty_message
+import campfire.features.sessions.ui.generated.resources.history_jump_hint
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.OverlayNavigator
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
+import kotlin.time.Duration
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -92,8 +97,27 @@ sealed interface PlaybackHistoryResult {
   data class Selected(val action: PlaybackAction) : PlaybackHistoryResult
 }
 
+@ContributesBinding(UserScope::class)
+@Inject
+class OverlayPlaybackHistoryUi : PlaybackHistoryUi {
+
+  override suspend fun showPlaybackHistory(
+    overlayHost: OverlayHost,
+    libraryItemId: LibraryItemId,
+    canJump: Boolean,
+  ): Duration? {
+    val result = overlayHost.showPlaybackHistoryBottomSheet(libraryItemId, canJump)
+    return (result as? PlaybackHistoryResult.Selected)?.action?.jumpPosition
+  }
+}
+
+/** Where jumping to this event lands: where it left playback */
+internal val PlaybackAction.jumpPosition: Duration
+  get() = toPosition ?: fromPosition
+
 suspend fun OverlayHost.showPlaybackHistoryBottomSheet(
   libraryItemId: LibraryItemId,
+  canJump: Boolean = true,
 ): PlaybackHistoryResult {
   return show(
     AdaptiveSheetOverlay<LibraryItemId, PlaybackHistoryResult>(
@@ -103,6 +127,7 @@ suspend fun OverlayHost.showPlaybackHistoryBottomSheet(
     ) { model, overlayNavigator ->
       PlaybackHistoryBottomSheet(
         libraryItemId = model,
+        canJump = canJump,
         navigator = overlayNavigator,
         modifier = Modifier.navigationBarsPadding(),
       )
@@ -114,6 +139,7 @@ suspend fun OverlayHost.showPlaybackHistoryBottomSheet(
 internal fun PlaybackHistoryBottomSheet(
   libraryItemId: LibraryItemId,
   modifier: Modifier = Modifier,
+  canJump: Boolean = true,
   navigator: OverlayNavigator<PlaybackHistoryResult>,
   component: PlaybackHistoryBottomSheetComponent = rememberComponent(),
 ) {
@@ -132,17 +158,21 @@ internal fun PlaybackHistoryBottomSheet(
       Text(stringResource(Res.string.history_bottomsheet_title))
     },
     subtitle = {
-      Text(
-        text = "Tap an event to jump to that position",
-        style = MaterialTheme.typography.labelMedium,
-        fontStyle = FontStyle.Italic,
-        fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.tertiary,
-      )
+      // Only events that can be jumped to are worth telling to tap
+      if (canJump) {
+        Text(
+          text = stringResource(Res.string.history_jump_hint),
+          style = MaterialTheme.typography.labelMedium,
+          fontStyle = FontStyle.Italic,
+          fontWeight = FontWeight.Medium,
+          color = MaterialTheme.colorScheme.tertiary,
+        )
+      }
     },
     trailingContent = {
+      // A book that isn't playing shows its history only to be read, so it isn't cleared from here
       AnimatedVisibility(
-        visible = actions.isNotEmpty(),
+        visible = actions.isNotEmpty() && canJump,
         modifier = Modifier.align(Alignment.CenterEnd),
       ) {
         val clearHistoryLabel = stringResource(Res.string.action_clear_history)
@@ -229,7 +259,7 @@ internal fun PlaybackHistoryBottomSheet(
             PlaybackHistoryItem(
               action = action,
               // Jumping to a Finished entry would seek to the very end and finish the book again
-              modifier = if (action.type == PlaybackActionType.Finished) {
+              modifier = if (!canJump || action.type == PlaybackActionType.Finished) {
                 Modifier
               } else {
                 Modifier.clickable {

@@ -40,6 +40,7 @@
   <string name="menu_item_add_playlist">Add to playlist</string>
   <string name="menu_item_add_collection">Add to collection</string>
   <string name="menu_item_download">Download</string>
+  <string name="menu_item_playback_history">Playback history</string>
 
   <string name="remaining_duration_format">%1$s left</string>
   <string name="remaining_duration_finished">Finished on %1$s</string>

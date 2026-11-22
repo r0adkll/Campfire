@@ -92,6 +92,16 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
+  fun aPodcast_doesNotOfferItsPlaybackHistory() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      assertThat(awaitLoaded().showPlaybackHistory).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun episodeDownloads_changeThatEpisodesDownload() = runTest {
     libraryItemRepository.libraryItemFlow.emit(podcast)
 
