@@ -24,15 +24,17 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
 class DesktopOfflineDownloadManagerTest {
 
   private val userRoot: File = createTempDirectory("campfire-home").toFile()
   private val previousUserRoot: String? = System.setProperty("java.util.prefs.userRoot", userRoot.absolutePath)
-  private val scope = CoroutineScope(Job())
+  private val job = Job()
+  private val scope = CoroutineScope(job)
 
   private val tracks = listOf(track(1, 0f, 60f))
   private val book = session(tracks = tracks).libraryItem
@@ -60,7 +62,8 @@ class DesktopOfflineDownloadManagerTest {
 
   @AfterTest
   fun tearDown() {
-    scope.cancel()
+    // Wait for in-flight queue work to stop before deleting the directory it writes to
+    runBlocking { job.cancelAndJoin() }
     if (previousUserRoot == null) {
       System.clearProperty("java.util.prefs.userRoot")
     } else {
