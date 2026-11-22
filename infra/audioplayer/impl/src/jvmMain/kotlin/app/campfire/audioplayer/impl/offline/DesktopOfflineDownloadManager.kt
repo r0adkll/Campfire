@@ -22,7 +22,9 @@ import dev.zacsweers.metro.binding
 import io.ktor.client.HttpClient
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.io.files.Path
 
 /**
  * Desktop offline downloads, stored under the app's config directory next to its database. See
@@ -40,10 +42,11 @@ class DesktopOfflineDownloadManager(
 ) : OfflineDownloadManager {
 
   private val queue = OfflineDownloadQueue(
-    store = OfflineDownloadStore(downloadsDirectory()),
+    store = OfflineDownloadStore(Path(downloadsDirectory().absolutePath)),
     fetcher = HttpFileFetcher(client, accountManager, tokenRefresher),
     currentUser = { (userSessionManager.current as? UserSession.LoggedIn)?.user },
     scope = scope,
+    ioDispatcher = Dispatchers.IO,
   )
 
   /** The absolute path of a fully downloaded copy of [track], or null when it should stream. */

@@ -51,6 +51,8 @@ kotlin {
 
         implementation(libs.compose.runtime)
         implementation(libs.ktor.client.core)
+        implementation(libs.kotlinx.io.core)
+        implementation(libs.kotlinx.serialization.json)
 
         implementation(projects.core)
         implementation(projects.data.db.core)
@@ -117,7 +119,6 @@ kotlin {
       dependencies {
         implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
-        implementation(libs.kotlinx.serialization.json)
       }
     }
 

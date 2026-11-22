@@ -22,32 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-
-/**
- * Streams one remote file into a `.part` file, resuming from whatever a previous attempt left
- * behind via an HTTP `Range` request.
- */
-internal fun interface FileFetcher {
-
-  /**
-   * Download [request] into [partFile], appending to its current contents when the server honors
-   * a range request. Returns once the full body is on disk; throws on failure or cancellation,
-   * leaving [partFile] in place for a later resume.
-   *
-   * @param onProgress called with (bytes on disk, total bytes or <= 0 when unknown)
-   */
-  suspend fun fetch(request: FetchRequest, partFile: File, onProgress: (Long, Long) -> Unit)
-}
-
-internal data class FetchRequest(
-  val url: String,
-  val userId: String,
-  val serverUrl: String,
-  val expectedBytes: Long,
-)
-
-/** A failure that retrying won't fix — a rejected credential, a missing file, a denied permission. */
-internal class PermanentFetchException(message: String) : IOException(message)
+import kotlinx.io.files.Path
 
 /**
  * [FileFetcher] over the [app.campfire.network.di.DownloadClient], which streams bodies without
@@ -62,7 +37,11 @@ internal class HttpFileFetcher(
   private val tokenRefresher: TokenRefresher,
 ) : FileFetcher {
 
-  override suspend fun fetch(request: FetchRequest, partFile: File, onProgress: (Long, Long) -> Unit) {
+  override suspend fun fetch(request: FetchRequest, partFile: Path, onProgress: (Long, Long) -> Unit) {
+    fetch(request, File(partFile.toString()), onProgress)
+  }
+
+  private suspend fun fetch(request: FetchRequest, partFile: File, onProgress: (Long, Long) -> Unit) {
     val token = accountManager.getToken(request.userId)?.accessToken
     if (fetch(request, token, partFile, onProgress)) return
 
