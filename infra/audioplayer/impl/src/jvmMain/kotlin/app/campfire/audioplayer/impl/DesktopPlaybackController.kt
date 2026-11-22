@@ -73,8 +73,17 @@ class DesktopPlaybackController(
     episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
-      playbackSessionManager.stopSession(itemId, queue, episodeId)
+      // Stop the current item before the manager hands over to the queue: releasing afterwards
+      // would tear down the player the next item was just prepared on.
       audioPlayerHolder.release()
+      if (queue == QueueOnStop.PlayNext) initializeAudioPlayerIfNeeded()
+
+      playbackSessionManager.stopSession(itemId, queue, episodeId)
+
+      // Nothing took over, so don't leave an idle player (and its engine thread) behind
+      if (audioPlayerHolder.currentPlayer.value?.preparedSession == null) {
+        audioPlayerHolder.release()
+      }
     }
   }
 
