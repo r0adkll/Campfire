@@ -6,6 +6,7 @@ package app.campfire.audioplayer.impl.kvo
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSNotificationName
+import platform.Foundation.NSOperationQueue
 import platform.darwin.NSObject
 import platform.darwin.NSObjectProtocol
 
@@ -24,7 +25,8 @@ class NSNotificationObservable<Obj : NSObject>(
     observer = notificationCenter.addObserverForName(
       name = name,
       `object` = nsObject,
-      queue = null,
+      // Handlers touch the player, which is main-thread confined
+      queue = NSOperationQueue.mainQueue,
       usingBlock = { notification -> action(nsObject, notification) },
     )
   }

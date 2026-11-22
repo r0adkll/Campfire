@@ -15,6 +15,12 @@ import platform.MediaPlayer.MPRemoteCommandHandlerStatus
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusCommandFailed
 import platform.MediaPlayer.MPSkipIntervalCommand
 
+/** Detach this command's handlers and grey it out, so a released player is no longer reachable. */
+fun MPRemoteCommand.disable() {
+  removeTarget(null)
+  setEnabled(false)
+}
+
 fun <Command : MPRemoteCommand> Command.enable(
   enabled: Boolean = true,
   setup: Command.() -> Unit = {},

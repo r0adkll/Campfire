@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * It owns no audio state of its own — [AudioOutputSettings] is the source of truth for the slider
  * position, and the player observes it. That indirection is what keeps the control alive across
- * session churn: `DesktopAudioPlayer` is built when a session starts and released when it stops,
+ * session churn: `EngineAudioPlayer` is built when a session starts and released when it stops,
  * and the native engine inside it is created lazily and reborn at full volume every time, so
  * neither is a durable home for a user preference.
  *

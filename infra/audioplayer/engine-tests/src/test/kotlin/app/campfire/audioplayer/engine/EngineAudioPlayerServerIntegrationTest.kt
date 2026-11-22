@@ -7,8 +7,9 @@ import app.campfire.audioplayer.AudioPlayer.State
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.engine.vlc.VlcPlaybackEngine
-import app.campfire.audioplayer.impl.DesktopAudioPlayer
+import app.campfire.audioplayer.impl.EngineAudioPlayer
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.impl.engine.newAudioEngineDispatcher
 import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.core.extensions.seconds
@@ -54,7 +55,7 @@ import kotlinx.serialization.json.jsonPrimitive
  *
  * Self-skips when the credentials or VLC are absent so CI is unaffected. Audio is muted.
  */
-class DesktopAudioPlayerServerIntegrationTest {
+class EngineAudioPlayerServerIntegrationTest {
 
   private val json = Json { ignoreUnknownKeys = true }
   private val http = HttpClient.newHttpClient()
@@ -108,7 +109,7 @@ class DesktopAudioPlayerServerIntegrationTest {
     )
 
     val settings = FakePlaybackSettings()
-    val player = DesktopAudioPlayer(
+    val player = EngineAudioPlayer(
       settings = settings,
       equalizerSettings = FakeEqualizerSettings(),
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
@@ -116,6 +117,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       accessTokenProvider = { token },
       requestHeadersProvider = { _, _ -> mapOf("Authorization" to "Bearer $token") },
       audioOutputController = FakeAudioOutputController(),
+      engineDispatcher = newAudioEngineDispatcher(),
     )
 
     try {

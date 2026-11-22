@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * A single-item audio engine: it plays exactly one [MediaItem] at a time and knows nothing about
- * queues, chapters, or sessions. [DesktopAudioPlayer][app.campfire.audioplayer.impl.DesktopAudioPlayer]
+ * queues, chapters, or sessions. [EngineAudioPlayer][app.campfire.audioplayer.impl.EngineAudioPlayer]
  * owns the queue and the chapter timeline and drives the engine one item at a time, so swapping
- * the underlying library (libvlc today, FFmpeg tomorrow) only means re-implementing this.
+ * the underlying library (libvlc or FFmpeg on desktop, AVPlayer on iOS) only means re-implementing this.
  *
  * Threading contract:
  * - Every method is invoked from the owner's single engine thread. Implementations may block that
@@ -68,7 +68,7 @@ interface PlaybackEngine {
   /**
    * Route output to [device], or back to the system default when null. Persists across [open]
    * calls. Default no-op for engines that cannot choose — see
-   * [DesktopAudioEngineProvider.supportsDeviceSelection].
+   * `DesktopAudioEngineProvider.supportsDeviceSelection`.
    */
   fun setAudioDevice(device: AudioDevice?) {}
 

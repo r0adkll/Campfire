@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [iOS] Audiobooks not playing, freezing on books without chapters, skipping to the wrong chapter, and the queue not moving on to the next book
+
 ### Other Notes & Contributions
 
 ## [1.3.0]

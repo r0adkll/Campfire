@@ -11,6 +11,7 @@ import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.impl.engine.newAudioEngineDispatcher
 import app.campfire.audioplayer.impl.offline.DesktopOfflineDownloadManager
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
@@ -98,7 +99,7 @@ class DesktopPlaybackController(
       // Constructing the player is cheap; the native engine is created lazily on its own thread
       // the first time a session is prepared.
       audioPlayerHolder.setCurrentPlayer(
-        DesktopAudioPlayer(
+        EngineAudioPlayer(
           settings = playbackSettings,
           equalizerSettings = equalizerSettings,
           sleepTimerManagerFactory = sleepTimerManagerFactory,
@@ -107,6 +108,7 @@ class DesktopPlaybackController(
           requestHeadersProvider = serverRequestHeaders::forUrl,
           audioOutputController = audioOutputController,
           offlineTrackFiles = offlineDownloadManager::localPathFor,
+          engineDispatcher = newAudioEngineDispatcher(),
         ),
       )
     }

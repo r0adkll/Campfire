@@ -13,8 +13,8 @@ import io.ktor.http.URLParserException
 import io.ktor.http.Url
 
 /**
- * The credentials the user client sends, for desktop requests made outside it (the FFmpeg engine,
- * the Now Playing cover loader): the bearer token plus the account's extra headers, such as a
+ * The credentials the user client sends, for requests made outside it (the FFmpeg and AVPlayer
+ * engines, the desktop Now Playing cover loader): the bearer token plus the account's extra headers, such as a
  * Cloudflare Access service token. Without the extra headers a server behind an access proxy
  * answers with a redirect to its login page.
  *

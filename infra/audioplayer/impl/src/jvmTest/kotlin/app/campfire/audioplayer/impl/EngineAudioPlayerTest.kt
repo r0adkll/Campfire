@@ -13,6 +13,7 @@ import app.campfire.audioplayer.impl.engine.FakePlaybackEngine.Open
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
 import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.profileOrNull
 import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.fixtures.chapter
@@ -26,6 +27,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
@@ -41,7 +43,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 
-class DesktopAudioPlayerTest {
+class EngineAudioPlayerTest {
 
   private val engine = FakePlaybackEngine()
   private val sleepTimer = FakeSleepTimerManager()
@@ -69,7 +71,7 @@ class DesktopAudioPlayerTest {
 
   private fun TestScope.player(
     factory: PlaybackEngine.Factory = PlaybackEngine.Factory { engine },
-  ) = DesktopAudioPlayer(
+  ) = EngineAudioPlayer(
     settings = settings,
     equalizerSettings = equalizerSettings,
     sleepTimerManagerFactory = sleepTimer.factory,
@@ -93,11 +95,11 @@ class DesktopAudioPlayerTest {
 
   private var extraHeaders: Map<String, String> = emptyMap()
 
-  private suspend fun DesktopAudioPlayer.prepareBook(
+  private suspend fun EngineAudioPlayer.prepareBook(
     currentTime: Duration = Duration.ZERO,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
-    chapters: List<Chapter> = this@DesktopAudioPlayerTest.chapters,
+    chapters: List<Chapter> = this@EngineAudioPlayerTest.chapters,
     hlsStreamUrl: String? = null,
   ) = prepare(book(currentTime, chapters, hlsStreamUrl), playImmediately, chapterId) { finished += it }
 
@@ -345,6 +347,23 @@ class DesktopAudioPlayerTest {
     engine.emit(PlaybackEngineEvent.Error(IllegalStateException("boom")))
     assertThat(player.error.value).isNotNull().isInstanceOf<IllegalStateException>()
     assertThat(player.state.value).isEqualTo(State.Paused)
+    assertThat(player.playRequested).isFalse()
+  }
+
+  @Test
+  fun `play after a mid-stream error reopens the item where it stopped`() = runTest {
+    val player = player()
+    player.prepareBook()
+    playing()
+    position(12.minutes)
+
+    engine.emit(PlaybackEngineEvent.Error(IllegalStateException("connection lost")))
+    assertThat(player.state.value).isEqualTo(State.Paused)
+
+    player.playPause()
+    assertThat(player.error.value).isNull()
+    assertThat(player.state.value).isEqualTo(State.Buffering)
+    assertThat(engine.opens.last()).isEqualTo(openOf(0, 12.minutes))
   }
 
   @Test
@@ -391,6 +410,43 @@ class DesktopAudioPlayerTest {
 
     engine.emit(PlaybackEngineEvent.StateChanged(EngineState.Idle))
     assertThat(player.state.value).isEqualTo(State.Playing)
+  }
+
+  @Test
+  fun `without equalizer settings the equalizer is unsupported and never reaches the engine`() = runTest {
+    val player = EngineAudioPlayer(
+      settings = settings,
+      equalizerSettings = null,
+      sleepTimerManagerFactory = sleepTimer.factory,
+      engineFactory = { engine },
+      accessTokenProvider = { null },
+      requestHeadersProvider = { _, _ -> emptyMap() },
+      audioOutputController = audioOutput,
+      engineDispatcher = UnconfinedTestDispatcher(testScheduler),
+    )
+    player.prepareBook()
+    assertThat(player.equalizer.value).isEqualTo(EqualizerState.Unsupported)
+
+    player.setEqualizer(equalizerSettings.equalizerProfile.copy(enabled = true))
+    assertThat(player.equalizer.value).isEqualTo(EqualizerState.Unsupported)
+    assertThat(engine.equalizer).isNull()
+  }
+
+  @Test
+  fun `play requested follows the user's intent, not the engine's state`() = runTest {
+    val player = player()
+    player.prepareBook(playImmediately = false)
+    assertThat(player.playRequested).isFalse()
+
+    player.playPause()
+    assertThat(player.playRequested).isTrue()
+
+    // The engine pausing on its own (an OS audio interruption) leaves the intent in place
+    engine.emit(PlaybackEngineEvent.StateChanged(EngineState.Paused))
+    assertThat(player.playRequested).isTrue()
+
+    player.pause()
+    assertThat(player.playRequested).isFalse()
   }
 
   @Test
