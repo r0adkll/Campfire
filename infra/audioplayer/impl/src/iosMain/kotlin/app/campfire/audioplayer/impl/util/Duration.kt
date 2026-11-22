@@ -4,7 +4,6 @@
 package app.campfire.audioplayer.impl.util
 
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.cinterop.CValue
@@ -20,14 +19,11 @@ fun Duration.asCMTime(): CValue<CMTime> = CMTimeMakeWithSeconds(
   preferredTimescale = NSEC_PER_SEC.toInt(),
 )
 
+/**
+ * This time as a [Duration], or null when it isn't a finite number — an indefinite or invalid
+ * `CMTime` (an item that failed to load, a live stream) reads as NaN, which [Duration] rejects.
+ */
 @OptIn(ExperimentalForeignApi::class)
-fun Long.asCMTimeFromMillis(): CValue<CMTime> = milliseconds.asCMTime()
-
-@OptIn(ExperimentalForeignApi::class)
-fun Double.asCMTimeSeconds(): CValue<CMTime> = CMTimeMakeWithSeconds(this, NSEC_PER_SEC.toInt())
-
-@OptIn(ExperimentalForeignApi::class)
-val CValue<CMTime>.seconds: Duration get() = CMTimeGetSeconds(this).seconds
-
-@OptIn(ExperimentalForeignApi::class)
-val ZERO_CM_TIME: CValue<CMTime> get() = CMTimeMakeWithSeconds(0.0, NSEC_PER_SEC.toInt())
+fun CValue<CMTime>.durationOrNull(): Duration? = CMTimeGetSeconds(this)
+  .takeIf { it.isFinite() }
+  ?.seconds

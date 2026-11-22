@@ -3,11 +3,13 @@
 
 package app.campfire.audioplayer.impl
 
+import app.campfire.account.api.AccountManager
+import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.QueueOnStop
+import app.campfire.audioplayer.impl.engine.AvPlayerEngine
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
-import app.campfire.audioplayer.impl.player.NowPlaying
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -18,15 +20,16 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
-import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
+import platform.AVFAudio.AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
 import platform.AVFAudio.setActive
 
 @OptIn(ExperimentalForeignApi::class)
@@ -37,9 +40,11 @@ class IosPlaybackController(
   private val playbackSessionManager: PlaybackSessionManager,
   private val playbackSettings: PlaybackSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
-  private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
+  private val accountManager: AccountManager,
+  private val serverRequestHeaders: ServerRequestHeaders,
+  private val audioOutputController: AudioOutputController,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -71,10 +76,18 @@ class IosPlaybackController(
     episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
-      disableAudioSession()
-      NowPlaying.reset()
-      playbackSessionManager.stopSession(itemId, queue, episodeId)
+      // Stop the current item before the manager hands over to the queue: releasing afterwards
+      // would tear down the player the next item was just prepared on.
       audioPlayerHolder.release()
+      if (queue == QueueOnStop.PlayNext) initializeAudioPlayerIfNeeded()
+
+      playbackSessionManager.stopSession(itemId, queue, episodeId)
+
+      // Nothing took over, so give the audio session back to other apps
+      if (audioPlayerHolder.currentPlayer.value?.preparedSession == null) {
+        audioPlayerHolder.release()
+        disableAudioSession()
+      }
     }
   }
 
@@ -92,24 +105,36 @@ class IosPlaybackController(
 
   private fun disableAudioSession() {
     try {
-      AVAudioSession.sharedInstance().apply {
-        setCategory(AVAudioSessionCategoryPlayback, null)
-        setActive(false, null)
-      }
+      AVAudioSession.sharedInstance().setActive(
+        false,
+        withOptions = AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation,
+        error = null,
+      )
     } catch (e: Exception) {
-      bark(LogPriority.ERROR, throwable = e) { "Error setting up iOS AudioSession" }
+      bark(LogPriority.ERROR, throwable = e) { "Error deactivating iOS AudioSession" }
     }
   }
 
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
       bark { "Initializing IosAudioPlayer..." }
+      val enginePlayer = EngineAudioPlayer(
+        settings = playbackSettings,
+        // AVPlayer has no equalizer hook; the player reports EqualizerState.Unsupported
+        equalizerSettings = null,
+        sleepTimerManagerFactory = sleepTimerManagerFactory,
+        engineFactory = { AvPlayerEngine() },
+        accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
+        requestHeadersProvider = serverRequestHeaders::forUrl,
+        audioOutputController = audioOutputController,
+        // AVPlayer and its callbacks are main-thread bound
+        engineDispatcher = Dispatchers.Main,
+      )
       audioPlayerHolder.setCurrentPlayer(
         IosAudioPlayer(
+          delegate = enginePlayer,
           settings = playbackSettings,
-          fatherTime = fatherTime,
           artworkLoader = artworkLoader,
-          sleepTimerManagerFactory = sleepTimerManagerFactory,
         ),
       )
     }

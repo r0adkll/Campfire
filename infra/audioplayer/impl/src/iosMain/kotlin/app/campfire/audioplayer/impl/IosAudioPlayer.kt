@@ -5,109 +5,103 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
+import app.campfire.audioplayer.impl.kvo.observe
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
-import app.campfire.audioplayer.impl.mediaitem.IosMediaItemBuilder
-import app.campfire.audioplayer.impl.player.IosPlayer
+import app.campfire.audioplayer.impl.player.InterruptionType
 import app.campfire.audioplayer.impl.player.NowPlaying
+import app.campfire.audioplayer.impl.player.disable
 import app.campfire.audioplayer.impl.player.enable
-import app.campfire.audioplayer.impl.player.getPreferredIntervals
+import app.campfire.audioplayer.impl.player.getPreviousRoute
+import app.campfire.audioplayer.impl.player.hasPrivateOutput
+import app.campfire.audioplayer.impl.player.interruptionShouldResume
+import app.campfire.audioplayer.impl.player.isOldDeviceUnavailable
 import app.campfire.audioplayer.impl.player.preferredIntervals
 import app.campfire.audioplayer.impl.player.supportedPlaybackRates
-import app.campfire.audioplayer.impl.sleep.SleepTimerManager
-import app.campfire.audioplayer.impl.sleep.VolumeFadeController
-import app.campfire.audioplayer.model.EqualizerState
-import app.campfire.audioplayer.model.Metadata
-import app.campfire.audioplayer.model.PlaybackTimer
-import app.campfire.audioplayer.model.RunningTimer
-import app.campfire.core.audio.EqualizerProfile
-import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.Cork
+import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
-import app.campfire.core.time.FatherTime
-import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionInterruptionNotification
+import platform.AVFAudio.AVAudioSessionRouteChangeNotification
+import platform.Foundation.NSNotification
+import platform.Foundation.NSNotificationCenter
 import platform.MediaPlayer.MPChangePlaybackPositionCommandEvent
 import platform.MediaPlayer.MPChangePlaybackRateCommandEvent
 import platform.MediaPlayer.MPRemoteCommandCenter
-import platform.MediaPlayer.MPRemoteCommandEvent
-import platform.MediaPlayer.MPRemoteCommandHandlerStatus
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusCommandFailed
-import platform.MediaPlayer.MPRemoteCommandHandlerStatusNoSuchContent
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-import platform.MediaPlayer.MPSkipIntervalCommand
 import platform.UIKit.UIApplication
 import platform.UIKit.beginReceivingRemoteControlEvents
 import platform.UIKit.endReceivingRemoteControlEvents
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
 
+/**
+ * The iOS [AudioPlayer]: the shared [EngineAudioPlayer] (queue, chapter timeline, sync, sleep
+ * timer) driving an [AvPlayerEngine][app.campfire.audioplayer.impl.engine.AvPlayerEngine], plus
+ * the iOS system integration around it — the Now Playing entry, remote commands (lock screen,
+ * Control Center, headphones, CarPlay), audio interruptions and route changes.
+ *
+ * Everything here runs on the main thread, as does the delegate's engine.
+ */
 class IosAudioPlayer(
+  private val delegate: EngineAudioPlayer,
   private val settings: PlaybackSettings,
-  private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
-  sleepTimerManagerFactory: SleepTimerManager.Factory,
-) : AudioPlayer {
+) : AudioPlayer by delegate {
 
-  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-  private val sleepTimerManager = sleepTimerManagerFactory.create(this)
-
-  override var preparedSession: Session? = null
-  private var finishedListener: OnFinishedListener? = null
-
-  override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
-
-  // AVPlayer offers no equalizer hook; a future phase can add one via an
-  // MTAudioProcessingTap or an AVAudioEngine pipeline.
-  override val equalizer: StateFlow<EqualizerState> = MutableStateFlow(EqualizerState.Unsupported)
-
-  override val runningTimer: StateFlow<RunningTimer?>
-    get() = sleepTimerManager.runningTimer
-
-  private val player = IosPlayer(
-    scope = scope,
-    skipToPreviousResetThreshold = settings.trackResetThreshold,
-    onFinished = {
-      scope.launch {
-        finishedListener?.invoke(
-          preparedSession?.libraryItem?.id ?: return@launch,
-        )
-      }
+  private val scope = CoroutineScope(
+    SupervisorJob() + Dispatchers.Main + CoroutineExceptionHandler { _, throwable ->
+      bark(LogPriority.ERROR, throwable = throwable) { "iOS player integration failed" }
     },
   )
 
-  override val state: StateFlow<AudioPlayer.State> = player.state
-  override val error: StateFlow<Throwable?> = MutableStateFlow(null)
-  override val currentTime: StateFlow<Duration> = player.currentPosition
-  override val overallTime: StateFlow<Duration> = player.overallPosition
-  override val currentDuration: StateFlow<Duration> = player.currentDuration
+  private val sessionObservers = listOf(
+    AVAudioSession.sharedInstance().let { session ->
+      NSNotificationCenter.defaultCenter.observe(
+        name = AVAudioSessionInterruptionNotification,
+        nsObject = session,
+      ) { _, notification -> notification?.let(::onInterruption) }
+    },
+    AVAudioSession.sharedInstance().let { session ->
+      NSNotificationCenter.defaultCenter.observe(
+        name = AVAudioSessionRouteChangeNotification,
+        nsObject = session,
+      ) { _, notification -> notification?.let(::onRouteChange) }
+    },
+  )
 
-  private var fadeJob: Job? = null
+  /** Playback was running when an interruption (a call, Siri, an alarm) took the audio session. */
+  private var resumeAfterInterruption = false
 
   init {
-    bark { "Initializing $this" }
-
-    player.currentMetadata
-      .onEach { mediaMetadata ->
-        currentMetadata.value = Metadata(
-          title = mediaMetadata?.title,
-          artworkUri = mediaMetadata?.artworkUri,
-        )
-
-        sleepTimerManager.endOfChapter()
-      }
-      .launchIn(scope)
+    combine(
+      delegate.state,
+      delegate.currentTime,
+      delegate.currentDuration,
+      delegate.currentMetadata,
+      delegate.playbackSpeed,
+    ) { state, time, duration, metadata, speed ->
+      NowPlaying.update(
+        title = metadata.title,
+        elapsed = time,
+        duration = duration,
+        rate = if (state == AudioPlayer.State.Playing) speed.toDouble() else 0.0,
+        defaultRate = speed.toDouble(),
+      )
+    }.launchIn(scope)
   }
 
   override suspend fun prepare(
@@ -116,323 +110,139 @@ class IosAudioPlayer(
     chapterId: Int?,
     onFinished: OnFinishedListener,
   ) {
-    preparedSession = session
-    finishedListener = onFinished
-    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
-    player.prePrepare()
-
-    setupRemoteTransportControls()
-
-    // Setup now playing with session and artwork information
     scope.launch {
-      NowPlaying.updateSession(session)
-      artworkLoader.load(session.libraryItem.media.coverImageUrl)?.let { artwork ->
-        NowPlaying.updateSession(session, artwork)
-      }
+      NowPlaying.setSession(session)
+      setupRemoteCommands()
+      artworkLoader.load(session.libraryItem.media.coverImageUrl)?.let(NowPlaying::setArtwork)
     }
-
-    // Build the media items and adapt them to the platform
-    val mediaItems = IosMediaItemBuilder.build(session)
-    player.setMediaItems(mediaItems)
-
-    player.setPlaybackSpeed(playbackSpeed.value)
-
-    // Seek the media player
-    var startTimeInChapterMs = 0L
-    val podcastEpisode = session.episode
-    if (podcastEpisode != null) {
-      val resumeMs = session.currentTime
-        .takeIf { it.isFinite() && it > 0.seconds }
-        ?.inWholeMilliseconds
-        ?: 0L
-      player.currentItemIndex = 0
-      startTimeInChapterMs = resumeMs
-      currentMetadata.value = Metadata(
-        title = podcastEpisode.title,
-        artworkUri = session.libraryItem.media.coverImageUrl,
-      )
-    } else if (chapterId != null) {
-      val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
-        ?: error("Unable to find chapter to start")
-
-      for (index in mediaItems.indices) {
-        val item = mediaItems[index]
-        val track = item.tracks.find { it.id == chapterId }
-        if (track != null) {
-          startTimeInChapterMs = track.startMs - item.startOffset.inWholeMilliseconds
-          player.currentItemIndex = index
-          break
-        }
-      }
-
-      bark {
-        """
-          Preparing iOS media player(
-            chapter = $chapter,
-            overallProgress = $startTimeInChapterMs,
-            chapterId = $chapterId,
-          )
-        """.trimIndent()
-      }
-    } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
-      val chapter = session.chapter
-      val track = session.audioTrack
-      if (chapter != null) {
-        val progressInChapter = (session.currentTime - chapter.start.seconds)
-
-        val timestampInMillis = session.currentTime.inWholeMilliseconds
-        var mediaItemOffsetMs = 0L
-        for (index in mediaItems.indices) {
-          val mediaItem = mediaItems[index]
-          val mediaItemDuration = mediaItem.duration.inWholeMilliseconds
-          val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
-          if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
-            player.currentItemIndex = index
-            startTimeInChapterMs = timestampInMillis - mediaItemOffsetMs
-            break
-          }
-          mediaItemOffsetMs = mediaItemEnd
-        }
-
-        bark {
-          """
-          Preparing iOS media player(
-            chapter = $chapter,
-            progressInChapter = $progressInChapter,
-            mediaItemIndex = ${player.currentItemIndex},
-            startTimeInChapterMs = $startTimeInChapterMs,
-            session-currentTime = ${session.currentTime.inWholeMilliseconds}
-          )
-          """.trimIndent()
-        }
-
-        // Hydrate the current states so the UI reflects appropriately
-        currentMetadata.value = Metadata(
-          title = chapter.title,
-          artworkUri = session.libraryItem.media.coverImageUrl,
-        )
-      } else if (track != null) {
-        val progressInChapter = (session.currentTime - track.startOffset.seconds)
-
-        val timestampInMillis = session.currentTime.inWholeMilliseconds
-        var mediaItemOffsetMs = 0L
-        for (index in mediaItems.indices) {
-          val mediaItem = mediaItems[index]
-          val mediaItemDuration = mediaItem.duration.inWholeMilliseconds
-          val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
-          if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
-            player.currentItemIndex = index
-            startTimeInChapterMs = timestampInMillis - mediaItemOffsetMs
-            break
-          }
-          mediaItemOffsetMs = mediaItemEnd
-        }
-
-        bark {
-          """
-          Preparing iOS media player(
-            chapter = $chapter,
-            progressInChapter = $progressInChapter,
-            mediaItemIndex = ${player.currentItemIndex},
-            startTimeInChapterMs = $startTimeInChapterMs,
-            session-currentTime = ${session.currentTime.inWholeMilliseconds}
-          )
-          """.trimIndent()
-        }
-
-        // Hydrate the current states so the UI reflects appropriately
-        currentMetadata.value = Metadata(
-          title = track.taggedTitle,
-          artworkUri = session.libraryItem.media.coverImageUrl,
-        )
-      } else {
-        CrashReporter.record(
-          InvalidPlaybackSessionException(
-            session,
-            "Session Time is > 0, unable to find chapter/track info",
-          ),
-        )
-      }
-    }
-
-    if (playImmediately) {
-      sleepTimerManager.onSessionStart()
-    }
-
-    player.prepare(playImmediately, startTimeInChapterMs)
+    delegate.prepare(session, playImmediately, chapterId, onFinished)
   }
 
   override fun release() {
-    stop()
-  }
-
-  override fun pause() {
-    player.pause()
-  }
-
-  override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    fadeJob?.cancel()
-
-    // Nothing else attenuates output here — there is no app-level volume on this platform, so
-    // the fade's multiplier is the whole gain and it releases back to unity on its own.
-    return VolumeFadeController.fade(
-      scope = scope,
-      duration = duration,
-      tickRate = tickRate,
-      setFade = { player.volume = it },
-      onPause = { player.pause() },
-    ).also { fadeJob = it }
-  }
-
-  override fun playPause() {
-    if (state.value == AudioPlayer.State.Paused) {
-      sleepTimerManager.onSessionStart()
-    }
-
-    player.playPause()
+    tearDown()
+    delegate.release()
   }
 
   override fun stop() {
-    preparedSession = null
-    finishedListener = null
-    player.close()
-    scope.launch {
+    tearDown()
+    delegate.stop()
+  }
+
+  private fun tearDown() {
+    sessionObservers.forEach(AutoCloseable::close)
+    // Cancelled first, so no further Now Playing update lands after the reset below
+    scope.cancel()
+    dispatch_async(dispatch_get_main_queue()) {
+      MPRemoteCommandCenter.sharedCommandCenter().disableAll()
       UIApplication.sharedApplication.endReceivingRemoteControlEvents()
-    }.invokeOnCompletion {
-      scope.cancel()
+      NowPlaying.reset()
     }
   }
 
-  override fun seekTo(itemIndex: Int) {
-    // From the UI perspective [itemIndex] is the chapter id when making this call
-    // However, since we don't have a 1-to-1 mapping of chapters -> MediaItems in the
-    // iOS player [itemIndex] is essentially track id and the player will find and jump
-    // accordingly
-    player.seekTo(itemIndex)
-  }
+  private fun onInterruption(notification: NSNotification) {
+    when (InterruptionType.fromNotification(notification)) {
+      InterruptionType.Began -> {
+        // The system has already paused AVPlayer; record the intent so the player's own
+        // play/pause toggle stays in step, and remember whether to come back
+        resumeAfterInterruption = delegate.playRequested
+        ibark { "Audio interruption began (wasPlaying=$resumeAfterInterruption)" }
+        if (resumeAfterInterruption) delegate.pause()
+      }
 
-  override fun seekTo(progress: Float) {
-    player.seekTo(progress)
-  }
+      InterruptionType.Ended -> {
+        val shouldResume = notification.interruptionShouldResume()
+        ibark { "Audio interruption ended (shouldResume=$shouldResume, wasPlaying=$resumeAfterInterruption)" }
+        if (shouldResume && resumeAfterInterruption && !delegate.playRequested) {
+          delegate.playPause()
+        }
+        resumeAfterInterruption = false
+      }
 
-  override fun seekTo(timestamp: Duration) {
-    player.seekTo(timestamp)
-  }
-
-  override fun skipToNext() {
-    player.skipToNext()
-  }
-
-  override fun skipToPrevious() {
-    player.skipToPrevious()
-  }
-
-  override fun seekForward() {
-    player.seekForward(settings.forwardTimeMs)
-  }
-
-  override fun seekBackward() {
-    player.seekBackward(settings.backwardTimeMs)
-  }
-
-  override fun setPlaybackSpeed(speed: Float) {
-    playbackSpeed.value = speed
-    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
-    player.setPlaybackSpeed(speed)
-  }
-
-  override fun setEqualizer(profile: EqualizerProfile) {
-    // Unsupported on iOS; see [equalizer]
-  }
-
-  override fun setTimer(timer: PlaybackTimer) {
-    sleepTimerManager.setTimer(timer)
-  }
-
-  override fun clearTimer() {
-    sleepTimerManager.clearTimer()
-  }
-
-  private fun setupRemoteTransportControls() {
-    scope.launch {
-      UIApplication.sharedApplication.beginReceivingRemoteControlEvents()
+      InterruptionType.Unknown -> Unit
     }
+  }
 
+  private fun onRouteChange(notification: NSNotification) {
+    // Headphones unplugged, a headset or car disconnected: pause rather than continue on the speaker
+    if (notification.isOldDeviceUnavailable() && notification.getPreviousRoute()?.hasPrivateOutput() == true) {
+      ibark { "Private audio output went away; pausing" }
+      delegate.pause()
+    }
+  }
+
+  private fun setupRemoteCommands() {
+    UIApplication.sharedApplication.beginReceivingRemoteControlEvents()
     val commandCenter = MPRemoteCommandCenter.sharedCommandCenter()
 
-    val playPauseHandler: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = {
-      playPause()
+    commandCenter.playCommand.enable {
+      if (!delegate.playRequested) delegate.playPause()
       MPRemoteCommandHandlerStatusSuccess
     }
-
-    commandCenter.playCommand.enable(action = playPauseHandler)
-    commandCenter.pauseCommand.enable(action = playPauseHandler)
-    commandCenter.togglePlayPauseCommand.enable(action = playPauseHandler)
+    commandCenter.pauseCommand.enable {
+      delegate.pause()
+      MPRemoteCommandHandlerStatusSuccess
+    }
+    commandCenter.togglePlayPauseCommand.enable {
+      delegate.playPause()
+      MPRemoteCommandHandlerStatusSuccess
+    }
 
     commandCenter.skipForwardCommand.enable(
       setup = { preferredIntervals(settings.forwardTimeMs) },
-      action = { event ->
-        when (val command = event.command) {
-          is MPSkipIntervalCommand -> {
-            command.getPreferredIntervals().firstOrNull()?.let { interval ->
-              player.seekForward(interval.inWholeMilliseconds)
-              MPRemoteCommandHandlerStatusSuccess
-            } ?: MPRemoteCommandHandlerStatusCommandFailed
-          }
-          else -> MPRemoteCommandHandlerStatusNoSuchContent
-        }
-      },
-    )
-
+    ) {
+      delegate.seekForward()
+      MPRemoteCommandHandlerStatusSuccess
+    }
     commandCenter.skipBackwardCommand.enable(
       setup = { preferredIntervals(settings.backwardTimeMs) },
-      action = { event ->
-        when (val command = event.command) {
-          is MPSkipIntervalCommand -> {
-            command.getPreferredIntervals().firstOrNull()?.let { interval ->
-              player.seekBackward(interval.inWholeMilliseconds)
-              MPRemoteCommandHandlerStatusSuccess
-            } ?: MPRemoteCommandHandlerStatusCommandFailed
-          }
-          else -> MPRemoteCommandHandlerStatusNoSuchContent
-        }
-      },
-    )
+    ) {
+      delegate.seekBackward()
+      MPRemoteCommandHandlerStatusSuccess
+    }
 
     commandCenter.nextTrackCommand.enable {
-      if (settings.remoteNextPrevSkipsChapters) {
-        skipToNext()
-      } else {
-        seekForward()
-      }
+      if (settings.remoteNextPrevSkipsChapters) delegate.skipToNext() else delegate.seekForward()
       MPRemoteCommandHandlerStatusSuccess
     }
-
     commandCenter.previousTrackCommand.enable {
-      if (settings.remoteNextPrevSkipsChapters) {
-        skipToPrevious()
-      } else {
-        seekBackward()
-      }
+      if (settings.remoteNextPrevSkipsChapters) delegate.skipToPrevious() else delegate.seekBackward()
       MPRemoteCommandHandlerStatusSuccess
     }
 
-    commandCenter.changePlaybackPositionCommand.enable {
-      val event = it as? MPChangePlaybackPositionCommandEvent
-        ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent
-      val newProgress = event.positionTime.seconds / currentDuration.value
-      player.seekTo(newProgress.toFloat())
+    // The scrubber is chapter-relative, like the elapsed time and duration published to Now Playing
+    commandCenter.changePlaybackPositionCommand.enable { event ->
+      val position = (event as? MPChangePlaybackPositionCommandEvent)?.positionTime?.seconds
+      val duration = delegate.currentDuration.value
+      if (position == null || duration <= Duration.ZERO) return@enable MPRemoteCommandHandlerStatusCommandFailed
+      delegate.seekTo((position / duration).toFloat())
       MPRemoteCommandHandlerStatusSuccess
     }
 
     commandCenter.changePlaybackRateCommand.enable(
       setup = { supportedPlaybackRates(settings.playbackRates) },
-      action = { event ->
-        val playbackRateEvent = event as? MPChangePlaybackRateCommandEvent
-          ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent
-        setPlaybackSpeed(playbackRateEvent.playbackRate)
-        MPRemoteCommandHandlerStatusSuccess
-      },
-    )
+    ) { event ->
+      val rate = (event as? MPChangePlaybackRateCommandEvent)?.playbackRate
+        ?: return@enable MPRemoteCommandHandlerStatusCommandFailed
+      delegate.setPlaybackSpeed(rate)
+      MPRemoteCommandHandlerStatusSuccess
+    }
+  }
+
+  private fun MPRemoteCommandCenter.disableAll() {
+    listOf(
+      playCommand,
+      pauseCommand,
+      togglePlayPauseCommand,
+      skipForwardCommand,
+      skipBackwardCommand,
+      nextTrackCommand,
+      previousTrackCommand,
+      changePlaybackPositionCommand,
+      changePlaybackRateCommand,
+    ).forEach { it.disable() }
+  }
+
+  private companion object : Cork {
+    override val tag: String = "IosAudioPlayer"
   }
 }

@@ -36,16 +36,15 @@ import app.campfire.core.model.loggableId
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
-import java.util.concurrent.Executors
+import kotlin.concurrent.Volatile
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CloseableCoroutineDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,8 +53,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * The desktop [AudioPlayer]: a queue of whole audio files driven through a single-item
- * [PlaybackEngine], with chapter semantics derived from the session's [ChapterTimeline].
+ * The desktop and iOS [AudioPlayer]: a queue of whole audio files driven through a single-item
+ * [PlaybackEngine] (libvlc or FFmpeg on desktop, AVPlayer on iOS), with chapter semantics derived
+ * from the session's [ChapterTimeline].
  *
  * Queue shape: one item per audio track (or one item for a podcast episode / HLS stream). Books
  * are never sliced into clipped chapter items — a single-file book is opened once and chapters
@@ -73,21 +73,24 @@ import kotlinx.coroutines.withContext
  * libvlc supports). ABS access tokens expire after about an hour, so a very long single track may
  * need a re-open after expiry — the play-session flow with credential-free URLs is the planned fix.
  *
- * Threading: all mutable state below is confined to [engineDispatcher], a single thread. Public
+ * Threading: all mutable state below is confined to [engineDispatcher], a single thread (a
+ * dedicated one on desktop, the main thread on iOS, where AVPlayer lives). Public
  * [AudioPlayer] calls (which arrive on the UI thread) enqueue work onto it and return immediately,
  * so native calls never block the UI. Engine events are collected on the same thread. The exposed
  * [StateFlow]s are the only cross-thread surface.
  */
-class DesktopAudioPlayer(
+class EngineAudioPlayer(
   private val settings: PlaybackSettings,
-  private val equalizerSettings: EqualizerSettings,
+  /** Null when the platform's engines have no equalizer, which reports [EqualizerState.Unsupported]. */
+  private val equalizerSettings: EqualizerSettings?,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
   private val requestHeadersProvider: RequestHeadersProvider,
   private val audioOutputController: AudioOutputController,
   private val offlineTrackFiles: OfflineTrackFiles = OfflineTrackFiles { _, _, _ -> null },
-  private val engineDispatcher: CoroutineDispatcher = newEngineDispatcher(),
+  /** Single-threaded; closed on [stop] when it is a [CloseableCoroutineDispatcher]. */
+  private val engineDispatcher: CoroutineDispatcher,
 ) : AudioPlayer {
 
   /**
@@ -126,12 +129,20 @@ class DesktopAudioPlayer(
   override val currentDuration = MutableStateFlow(Duration.ZERO)
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
-  override val equalizer = MutableStateFlow<EqualizerState>(
-    EqualizerState.Available(equalizerSettings.equalizerProfile),
+  override val equalizer = MutableStateFlow(
+    equalizerSettings?.let { EqualizerState.Available(it.equalizerProfile) } ?: EqualizerState.Unsupported,
   )
 
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
+
+  /**
+   * Whether the user wants playback running, regardless of what the engine is doing right now. A
+   * platform that pauses the engine behind the player's back (an iOS audio interruption) reads it
+   * to decide whether to resume afterwards.
+   */
+  val playRequested: Boolean
+    get() = playWhenReady
 
   // region Engine-thread-confined state (the @Volatile fields are also read from callers)
 
@@ -154,6 +165,7 @@ class DesktopAudioPlayer(
   private var itemDuration: Duration? = null
 
   /** The user's intent — distinct from the engine's transient state (opening, buffering). */
+  @Volatile
   private var playWhenReady = false
   private var engineState = EngineState.Idle
 
@@ -230,12 +242,14 @@ class DesktopAudioPlayer(
     finishedListener = onFinished
     error.value = null
     playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
-    equalizer.value = EqualizerState.Available(equalizerSettings.equalizerProfileFor(session.libraryItem.id))
+    equalizerSettings?.let { settings ->
+      equalizer.value = EqualizerState.Available(settings.equalizerProfileFor(session.libraryItem.id))
+    }
     state.value = AudioPlayer.State.Initializing
 
     val engine = ensureEngine() ?: return@withContext
 
-    val timeline = ChapterTimeline(session).also { this@DesktopAudioPlayer.timeline = it }
+    val timeline = ChapterTimeline(session).also { this@EngineAudioPlayer.timeline = it }
     singleStream = session.episode == null && session.hlsStreamUrl != null
     queue = if (singleStream) MediaItemBuilder.build(session) else MediaItemBuilder.buildTracks(session)
     queueTracks = when {
@@ -311,6 +325,16 @@ class DesktopAudioPlayer(
     if (playWhenReady) {
       playWhenReady = false
       engine.pause()
+    } else if (error.value != null) {
+      // A failed item can't always resume in place (AVPlayer can't); open it again where it
+      // stopped, with fresh credentials
+      error.value = null
+      playWhenReady = true
+      val (index, offset) = timeline?.let { locate(it, overallTime.value) } ?: (currentIndex to Duration.ZERO)
+      currentIndex = index
+      itemDuration = null
+      state.value = AudioPlayer.State.Buffering
+      openItem(engine, index, offset, playWhenReady = true)
     } else {
       playWhenReady = true
       engine.play()
@@ -332,7 +356,7 @@ class DesktopAudioPlayer(
       state.value = AudioPlayer.State.Disabled
     }.invokeOnCompletion {
       scope.cancel()
-      (engineDispatcher as? ExecutorCoroutineDispatcher)?.close()
+      (engineDispatcher as? CloseableCoroutineDispatcher)?.close()
     }
   }
 
@@ -390,6 +414,7 @@ class DesktopAudioPlayer(
   }
 
   override fun setEqualizer(profile: EqualizerProfile) {
+    val equalizerSettings = equalizerSettings ?: return
     equalizer.value = EqualizerState.Available(profile)
     onEngine {
       equalizerSettings.setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
@@ -456,7 +481,7 @@ class DesktopAudioPlayer(
       engineFactory.create().also { created ->
         engine = created
         created.setRate(playbackSpeed.value)
-        created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
+        (equalizer.value.profileOrNull ?: equalizerSettings?.equalizerProfile)?.let { created.apply(it) }
         // A new engine starts at unity on the system default; both live in settings, not in here
         applyOutputGain()
         applyOutputDevice()
@@ -580,9 +605,16 @@ class DesktopAudioPlayer(
     ebark(cause) { "Playback error" }
     CrashReporter.record(cause)
     error.value = cause
-    // Leave the controls usable rather than stuck on a spinner
-    if (state.value == AudioPlayer.State.Buffering || state.value == AudioPlayer.State.Initializing) {
-      state.value = AudioPlayer.State.Paused
+    // Leave the controls usable rather than stuck on a spinner, with play as the next action
+    // (which retries the item — see playPause)
+    playWhenReady = false
+    when (state.value) {
+      AudioPlayer.State.Buffering,
+      AudioPlayer.State.Initializing,
+      AudioPlayer.State.Playing,
+      -> state.value = AudioPlayer.State.Paused
+
+      else -> Unit
     }
   }
 
@@ -712,17 +744,11 @@ class DesktopAudioPlayer(
   // endregion
 
   companion object : Cork {
-    override val tag: String = "DesktopAudioPlayer"
+    override val tag: String = "EngineAudioPlayer"
     override val enabled: Boolean = true
 
     private const val BASS_BOOST_MAX_DB = 6f
     private val STALL_GRACE = 750.milliseconds
     private const val BASS_BOOST_BAND_COUNT = 2
-
-    private fun newEngineDispatcher(): CoroutineDispatcher {
-      return Executors.newSingleThreadExecutor { runnable ->
-        Thread(runnable, "campfire-audio-engine").apply { isDaemon = true }
-      }.asCoroutineDispatcher()
-    }
   }
 }

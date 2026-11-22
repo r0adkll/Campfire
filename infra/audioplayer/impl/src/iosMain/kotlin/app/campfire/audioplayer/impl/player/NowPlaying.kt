@@ -3,13 +3,9 @@
 
 package app.campfire.audioplayer.impl.player
 
-import app.campfire.audioplayer.impl.mediaitem.MediaItem
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import platform.MediaPlayer.MPMediaItemArtwork
 import platform.MediaPlayer.MPMediaItemPropertyAlbumTitle
 import platform.MediaPlayer.MPMediaItemPropertyArtist
@@ -17,77 +13,65 @@ import platform.MediaPlayer.MPMediaItemPropertyArtwork
 import platform.MediaPlayer.MPMediaItemPropertyPlaybackDuration
 import platform.MediaPlayer.MPMediaItemPropertyTitle
 import platform.MediaPlayer.MPNowPlayingInfoCenter
+import platform.MediaPlayer.MPNowPlayingInfoMediaTypeAudio
 import platform.MediaPlayer.MPNowPlayingInfoPropertyDefaultPlaybackRate
 import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
 import platform.MediaPlayer.MPNowPlayingInfoPropertyExternalContentIdentifier
 import platform.MediaPlayer.MPNowPlayingInfoPropertyIsLiveStream
+import platform.MediaPlayer.MPNowPlayingInfoPropertyMediaType
 import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 
+/**
+ * The system Now Playing entry (lock screen, Control Center, CarPlay's now-playing screen).
+ *
+ * Main-thread only. The book is the album, its author the artist, and the current chapter the
+ * title; elapsed time and duration are chapter-relative, matching the in-app scrubber.
+ */
 object NowPlaying {
-  private val infoMutex = Mutex()
+
   private val info = mutableMapOf<Any?, Any?>()
 
-  suspend fun update(
-    currentTime: Duration,
-    currentDuration: Duration,
-    defaultRate: Double,
-    rate: Double,
-    metadata: MediaItem.Metadata,
-  ) = infoMutex.withLock {
-    // Set playback information
-    info[MPMediaItemPropertyPlaybackDuration] = currentDuration.toDouble(DurationUnit.SECONDS)
-    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime.toDouble(DurationUnit.SECONDS)
-    info[MPNowPlayingInfoPropertyPlaybackRate] = rate
-    info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = defaultRate
-
-    // Set metadata
-    info[MPMediaItemPropertyTitle] = metadata.title
-    info[MPMediaItemPropertyArtist] = metadata.artist
-    info[MPMediaItemPropertyAlbumTitle] = metadata.albumTitle
-
-    dispatch()
-  }
-
-  suspend fun update(
-    defaultRate: Double,
-    rate: Double,
-  ) = infoMutex.withLock {
-    info[MPNowPlayingInfoPropertyPlaybackRate] = rate
-    info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = defaultRate
-    dispatch()
-  }
-
-  suspend fun updateSession(
-    session: Session,
-    artwork: MPMediaItemArtwork? = null,
-  ) = infoMutex.withLock {
-    if (artwork != null) {
-      info[MPMediaItemPropertyArtwork] = artwork
-    } else if (shouldFetchCoverImage(session.libraryItem.id)) {
-      info[MPMediaItemPropertyArtwork] = null
+  fun setSession(session: Session) {
+    val itemId = session.libraryItem.id
+    if (info[MPNowPlayingInfoPropertyExternalContentIdentifier] != itemId) {
+      info.remove(MPMediaItemPropertyArtwork)
     }
-
-    info[MPNowPlayingInfoPropertyExternalContentIdentifier] = session.libraryItem.id
+    val metadata = session.libraryItem.media.metadata
+    info[MPNowPlayingInfoPropertyExternalContentIdentifier] = itemId
+    info[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaTypeAudio
     info[MPNowPlayingInfoPropertyIsLiveStream] = false
-    info[MPMediaItemPropertyTitle] = session.libraryItem.media.metadata.title
-    info[MPMediaItemPropertyArtist] = session.libraryItem.media.metadata.authorName
-    info[MPMediaItemPropertyAlbumTitle] = session.libraryItem.media.metadata.title
-
+    info[MPMediaItemPropertyTitle] = session.episode?.title ?: metadata.title
+    info[MPMediaItemPropertyArtist] = metadata.authorName
+    info[MPMediaItemPropertyAlbumTitle] = metadata.title
     dispatch()
   }
 
-  suspend fun reset() = infoMutex.withLock {
+  fun setArtwork(artwork: MPMediaItemArtwork) {
+    info[MPMediaItemPropertyArtwork] = artwork
+    dispatch()
+  }
+
+  fun update(
+    title: String?,
+    elapsed: Duration,
+    duration: Duration,
+    rate: Double,
+    defaultRate: Double,
+  ) {
+    title?.let { info[MPMediaItemPropertyTitle] = it }
+    info[MPMediaItemPropertyPlaybackDuration] = duration.toDouble(DurationUnit.SECONDS)
+    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed.toDouble(DurationUnit.SECONDS)
+    info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+    info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = defaultRate
+    dispatch()
+  }
+
+  fun reset() {
     info.clear()
     MPNowPlayingInfoCenter.defaultCenter().setNowPlayingInfo(null)
   }
 
-  private fun shouldFetchCoverImage(itemId: LibraryItemId): Boolean {
-    return info[MPNowPlayingInfoPropertyExternalContentIdentifier] != itemId ||
-      info[MPMediaItemPropertyArtwork] == null
-  }
-
   private fun dispatch() {
-    val filteredInfo = info.filterValues { it != null }
-    MPNowPlayingInfoCenter.defaultCenter().setNowPlayingInfo(filteredInfo)
+    MPNowPlayingInfoCenter.defaultCenter().setNowPlayingInfo(info.filterValues { it != null })
   }
 }
