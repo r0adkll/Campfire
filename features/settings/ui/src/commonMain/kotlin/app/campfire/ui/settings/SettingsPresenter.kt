@@ -289,9 +289,8 @@ class SettingsPresenter(
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
-        isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
+        isWifiOnlyAvailable = currentPlatform != Platform.DESKTOP,
         downloadOnWifiOnly = downloadOnWifiOnly,
-        isAudioDownloadAvailable = currentPlatform != Platform.IOS,
         downloadEpisodesOnPlayOrQueue = downloadEpisodesOnPlayOrQueue,
         deleteFinishedEpisodes = deleteFinishedEpisodes,
         downloadCount = downloadCount,

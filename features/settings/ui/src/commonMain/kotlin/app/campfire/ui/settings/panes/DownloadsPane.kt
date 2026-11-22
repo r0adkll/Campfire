@@ -59,23 +59,21 @@ internal fun DownloadsPane(
       )
     }
 
-    if (state.downloadsSettings.isAudioDownloadAvailable) {
-      Header(title = { Text(stringResource(Res.string.download_header_episodes)) })
+    Header(title = { Text(stringResource(Res.string.download_header_episodes)) })
 
-      SwitchSetting(
-        value = state.downloadsSettings.downloadEpisodesOnPlayOrQueue,
-        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadEpisodesOnPlayOrQueue(it)) },
-        headlineContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_title)) },
-        supportingContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_description)) },
-      )
+    SwitchSetting(
+      value = state.downloadsSettings.downloadEpisodesOnPlayOrQueue,
+      onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadEpisodesOnPlayOrQueue(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_download_episodes_on_play_or_queue_description)) },
+    )
 
-      SwitchSetting(
-        value = state.downloadsSettings.deleteFinishedEpisodes,
-        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes(it)) },
-        headlineContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_title)) },
-        supportingContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_description)) },
-      )
-    }
+    SwitchSetting(
+      value = state.downloadsSettings.deleteFinishedEpisodes,
+      onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DeleteFinishedEpisodes(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_delete_finished_episodes_description)) },
+    )
 
     Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
 
