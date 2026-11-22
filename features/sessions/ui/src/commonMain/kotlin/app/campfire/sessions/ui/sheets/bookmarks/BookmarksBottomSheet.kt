@@ -79,6 +79,7 @@ import app.campfire.common.compose.widgets.SizedIcon
 import app.campfire.common.compose.widgets.circularReveal
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.coroutines.flatMapLatestOrElse
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
@@ -106,10 +107,7 @@ import com.slack.circuit.overlay.OverlayHost
 import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -153,7 +151,6 @@ suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): 
   )
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 private fun BookmarksBottomSheet(
   libraryItemId: LibraryItemId,
@@ -164,7 +161,7 @@ private fun BookmarksBottomSheet(
   val scope = rememberCoroutineScope()
 
   val currentTime by remember {
-    component.audioPlayerHolder.currentPlayer.filterNotNull().flatMapLatest { it.overallTime }
+    component.audioPlayerHolder.currentPlayer.flatMapLatestOrElse(0.seconds) { it.overallTime }
   }.collectAsState(0.seconds)
 
   val loadState by remember {

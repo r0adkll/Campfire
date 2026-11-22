@@ -16,7 +16,15 @@ fun <T> Flow<T?>.ifNull(mapper: suspend () -> T): Flow<T> = map {
   it ?: mapper()
 }
 
+fun <T, R> Flow<T?>.flatMapIfNotNull(mapper: suspend (T) -> Flow<R>): Flow<R?> =
+  flatMapLatestOrElse<T, R?>(null, mapper)
+
+/**
+ * Follows [mapper] on the latest non-null value, emitting [whenNull] while the upstream is null.
+ * Unlike `filterNotNull().flatMapLatest { … }`, a null stops collecting the previous value's flow,
+ * so it can be released.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T, R> Flow<T?>.flatMapIfNotNull(mapper: suspend (T) -> Flow<R>): Flow<R?> = flatMapLatest {
-  if (it != null) mapper(it) else flowOf(null)
+fun <T, R> Flow<T?>.flatMapLatestOrElse(whenNull: R, mapper: suspend (T) -> Flow<R>): Flow<R> = flatMapLatest {
+  if (it != null) mapper(it) else flowOf(whenNull)
 }

@@ -32,6 +32,7 @@ kotlin {
       dependencies {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
+        implementation(libs.bundles.test.impl)
       }
     }
 

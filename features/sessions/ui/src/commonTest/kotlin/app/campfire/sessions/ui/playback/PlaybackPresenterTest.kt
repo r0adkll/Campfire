@@ -4,6 +4,7 @@
 package app.campfire.sessions.ui.playback
 
 import app.campfire.audioplayer.AudioDevice
+import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
@@ -28,6 +29,7 @@ import assertk.assertions.isNull
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 
@@ -95,6 +97,41 @@ class PlaybackPresenterTest {
       val state = awaitItemMatching { it.playerState.duration > 0.minutes }
       assertThat(state.playerState.time).isEqualTo(30.minutes)
       assertThat(state.playerState.metadata.title).isEqualTo("Chapter 2")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `releasing the player stops observing it and falls back to disabled`() = runTest {
+    val player = FakeAudioPlayer().apply {
+      state.value = AudioPlayer.State.Playing
+      playbackSpeed.value = 2f
+    }
+    audioPlayerHolder.setCurrentPlayer(player)
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      presenter.present(expanded = false)
+    }.test {
+      awaitItemMatching { it.playerState.state == AudioPlayer.State.Playing && it.playerState.speed == 2f }
+
+      // What each platform does when playback shuts down: the released player must be let go
+      audioPlayerHolder.release()
+
+      val state = awaitItemMatching { it.playerState.state == AudioPlayer.State.Disabled }
+      assertThat(state.playerState.speed).isEqualTo(1f)
+      val playerFlows = mapOf<String, MutableStateFlow<*>>(
+        "state" to player.state,
+        "error" to player.error,
+        "overallTime" to player.overallTime,
+        "currentTime" to player.currentTime,
+        "currentDuration" to player.currentDuration,
+        "currentMetadata" to player.currentMetadata,
+        "playbackSpeed" to player.playbackSpeed,
+        "equalizer" to player.equalizer,
+        "runningTimer" to player.runningTimer,
+      )
+      assertThat(playerFlows.mapValues { it.value.subscriptionCount.value })
+        .isEqualTo(playerFlows.mapValues { 0 })
       cancelAndIgnoreRemainingEvents()
     }
   }
