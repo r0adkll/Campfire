@@ -14,7 +14,9 @@ internal fun Project.configureAndroid(computeNamespace: Boolean = true) {
     if (computeNamespace) {
       namespace = "app.campfire.${path.substring(1).replace(':', '.').replace("-", "_")}"
     }
-    compileSdk { version = release(Versions.compileSdk) }
+    compileSdk {
+      version = release(Versions.compileSdk) { minorApiLevel = Versions.compileSdkMinor }
+    }
 
     with(defaultConfig) {
       minSdk = Versions.minSdk

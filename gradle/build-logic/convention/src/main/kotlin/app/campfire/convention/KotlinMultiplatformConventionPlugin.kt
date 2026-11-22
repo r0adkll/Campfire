@@ -39,7 +39,9 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
       if (pluginManager.hasPlugin("com.android.kotlin.multiplatform.library")) {
         extensions.configure<KotlinMultiplatformAndroidLibraryExtension>("android") {
           namespace = "app.campfire.${target.path.substring(1).replace(':', '.').replace("-", "_")}"
-          compileSdk = Versions.compileSdk
+          compileSdk {
+            version = release(Versions.compileSdk) { minorApiLevel = Versions.compileSdkMinor }
+          }
           minSdk = Versions.minSdk
           // Required for Compose Multiplatform resources on Android (CMP-9547)
           androidResources { enable = true }
