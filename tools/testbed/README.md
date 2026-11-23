@@ -9,6 +9,8 @@ real server or a personal AVD.
   and a Podcasts library, a little listening progress, one playlist. Sign-in is `demo` / `campfire`.
 - **Emulator**: the `campfire-testbed` AVD (phone, android-36 google_apis, headless by default).
 - **App**: `fossDebug`, signed in through the debug-only `setup` intent.
+- **iOS**: `up --no-device` gives the iOS Simulator the same server; `.claude/skills/ios-simulator`
+  builds the app for it and drives it with AXe.
 
 It shares its server, emulator and app automation with the store screenshot tool through
 `tools/harness/`; the prerequisites are the same (see `tools/screenshots/README.md`).
