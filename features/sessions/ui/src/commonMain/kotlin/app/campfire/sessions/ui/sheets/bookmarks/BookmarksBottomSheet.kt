@@ -152,7 +152,7 @@ suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): 
 }
 
 @Composable
-private fun BookmarksBottomSheet(
+internal fun BookmarksBottomSheet(
   libraryItemId: LibraryItemId,
   onBookmarkClick: (Bookmark) -> Unit,
   modifier: Modifier = Modifier,
