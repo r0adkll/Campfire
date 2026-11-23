@@ -21,6 +21,7 @@ import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.core.coroutines.flatMapIfNotNull
+import app.campfire.core.coroutines.flatMapLatestOrElse
 import app.campfire.core.extensions.asDateTime
 import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.readableFormat
@@ -44,6 +45,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -195,77 +197,46 @@ class PlaybackPresenter(
   ): PlayerUiState {
     val scope = rememberCoroutineScope()
 
-    val player by remember {
+    val playerState = remember {
       audioPlayerHolder.currentPlayer
     }.collectAsState()
+    val player by playerState
 
-    val time by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.currentTime.map { time ->
-            time.inWholeSeconds.seconds
-          }
-        }
-    }.collectAsState(Duration.ZERO)
+    val time by playerState.collectFromPlayer(Duration.ZERO) {
+      it.currentTime.map { time ->
+        time.inWholeSeconds.seconds
+      }
+    }
 
-    val bookTime by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.overallTime.map { time ->
-            time.inWholeSeconds.seconds
-          }
-        }
-    }.collectAsState(Duration.ZERO)
+    val bookTime by playerState.collectFromPlayer(Duration.ZERO) {
+      it.overallTime.map { time ->
+        time.inWholeSeconds.seconds
+      }
+    }
 
-    val duration by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.currentDuration
-        }
-    }.collectAsState(Duration.ZERO)
+    val duration by playerState.collectFromPlayer(Duration.ZERO) {
+      it.currentDuration
+    }
 
-    val metadata by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.currentMetadata
-        }
-    }.collectAsState(Metadata())
+    val metadata by playerState.collectFromPlayer(Metadata()) {
+      it.currentMetadata
+    }
 
-    val state by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.state
-        }
-    }.collectAsState(AudioPlayer.State.Disabled)
+    val state by playerState.collectFromPlayer(AudioPlayer.State.Disabled) {
+      it.state
+    }
 
-    val speed by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.playbackSpeed
-        }
-    }.collectAsState(1f)
+    val speed by playerState.collectFromPlayer(1f) {
+      it.playbackSpeed
+    }
 
-    val equalizer by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.equalizer
-        }
-    }.collectAsState(EqualizerState.Unsupported)
+    val equalizer by playerState.collectFromPlayer(EqualizerState.Unsupported) {
+      it.equalizer
+    }
 
-    val timer by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.runningTimer
-        }
-    }.collectAsState(null)
+    val timer by playerState.collectFromPlayer(null) {
+      it.runningTimer
+    }
 
     val bookmarks by remember {
       snapshotFlow { session.value?.libraryItem?.id }
@@ -278,13 +249,9 @@ class PlaybackPresenter(
         }
     }.collectAsState(emptyList())
 
-    val error by remember {
-      snapshotFlow { player }
-        .filterNotNull()
-        .flatMapLatest {
-          it.error
-        }
-    }.collectAsState(null)
+    val error by playerState.collectFromPlayer(null) {
+      it.error
+    }
 
     val bookTimeEnabled by remember {
       playbackSettings.observeBookTimeInPlaybackUi()
@@ -353,6 +320,19 @@ class PlaybackPresenter(
       }
     }
   }
+
+  /**
+   * Collects [select] from this player, or [whenNoPlayer] while there is none. The holder clears
+   * its player when the playback service is destroyed, and this must let go of it then: holding
+   * the released player leaks the service and shows its stale state.
+   */
+  @Composable
+  private fun <T> State<AudioPlayer?>.collectFromPlayer(
+    whenNoPlayer: T,
+    select: (AudioPlayer) -> Flow<T>,
+  ): State<T> = remember {
+    snapshotFlow { value }.flatMapLatestOrElse(whenNoPlayer, select)
+  }.collectAsState(whenNoPlayer)
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
