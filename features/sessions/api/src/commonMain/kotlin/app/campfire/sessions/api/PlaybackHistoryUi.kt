@@ -11,15 +11,13 @@ import kotlin.time.Duration
 interface PlaybackHistoryUi {
 
   /**
-   * Shows [libraryItemId]'s playback history.
+   * Shows [libraryItemId]'s playback history. While the player has the item loaded an event can be
+   * picked to jump to and the history cleared; otherwise it is only for reading.
    *
-   * @param canJump whether an event can be picked to jump to its position; when false the history
-   * is only for reading
    * @return the position of the event picked, or null when none was
    */
   suspend fun showPlaybackHistory(
     overlayHost: OverlayHost,
     libraryItemId: LibraryItemId,
-    canJump: Boolean,
   ): Duration?
 }

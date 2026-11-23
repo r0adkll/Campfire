@@ -104,6 +104,7 @@ import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.description.showEpisodeDescriptionBottomSheet
 import app.campfire.sessions.ui.sheets.equalizer.showEqualizerBottomSheet
+import app.campfire.sessions.ui.sheets.history.PlaybackHistoryInput
 import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
 import app.campfire.sessions.ui.sheets.history.jumpPosition
 import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
@@ -710,7 +711,11 @@ internal fun rememberPlaybackOptionActions(
     },
     onHistoryClick = {
       scope.launch {
-        val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
+        val current = session ?: return@launch
+        // A podcast keeps its history per episode, so just the playing one's is shown and cleared
+        val result = overlayHost.showPlaybackHistoryBottomSheet(
+          PlaybackHistoryInput(current.libraryItem.id, current.episodeId),
+        )
         if (result is PlaybackHistoryResult.Selected) {
           playerState.eventSink(PlayerUiEvent.Seek.Position(result.action.jumpPosition))
         }

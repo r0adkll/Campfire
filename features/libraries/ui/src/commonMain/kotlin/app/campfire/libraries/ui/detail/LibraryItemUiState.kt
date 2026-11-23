@@ -24,7 +24,6 @@ import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
-import kotlin.time.Duration
 
 @Immutable
 data class LibraryItemUiState(
@@ -33,16 +32,12 @@ data class LibraryItemUiState(
   val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out ContentUiState>,
-  /** What the account may do to the item on the server, in the order its menu shows them. */
+  /** What can be done with the item from its menu, in the order the menu shows them. */
   val itemActions: List<ItemAction> = emptyList(),
   /** The source a quick match would ask, by name, while asking whether to go ahead */
   val quickMatchSource: String? = null,
   /** Whether deleting the item starts with deleting its files chosen, the last choice confirmed. */
   val deleteFilesByDefault: Boolean = true,
-  /** Whether the item's playback history can be looked at, from its menu */
-  val showPlaybackHistory: Boolean = false,
-  /** Whether the item is the one playing, so a moment in its history can be jumped to */
-  val isPlaying: Boolean = false,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -64,8 +59,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
 
-  /** Jump the playing item to [position], picked from its playback history. */
-  data class PlaybackHistoryJump(val position: Duration) : LibraryItemUiEvent
+  /** Show the item's playback history, to jump to a moment of it. */
+  data object PlaybackHistoryClick : LibraryItemUiEvent
 
   data class PlayClick(val method: PlayMethod?) : LibraryItemUiEvent
 

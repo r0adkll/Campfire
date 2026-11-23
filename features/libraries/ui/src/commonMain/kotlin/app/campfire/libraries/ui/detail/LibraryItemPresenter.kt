@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
-import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
@@ -29,12 +28,12 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
 import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
-import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ThemeSettings
@@ -51,6 +50,7 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.retained.collectAsRetainedState
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
@@ -76,8 +76,7 @@ class LibraryItemPresenter(
   private val themeSettings: ThemeSettings,
   private val libraryViewSettings: LibraryViewSettings,
   private val playbackSettings: PlaybackSettings,
-  private val sessionsRepository: SessionsRepository,
-  private val audioPlayerHolder: AudioPlayerHolder,
+  private val playbackHistory: ItemPlaybackHistory,
   private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
@@ -128,6 +127,7 @@ class LibraryItemPresenter(
     // The app's own, so what a change did is told without passing it through the screen's state,
     // and which outlasts this screen to offer undoing a quick match
     val snackbarHost = LocalSnackBarHost.current
+    val overlayHost = LocalOverlayHost.current
 
     val deleteFilesByDefault by remember {
       libraryViewSettings.observeDeleteItemFilesByDefault()
@@ -137,15 +137,11 @@ class LibraryItemPresenter(
       playbackSettings.observePlaybackHistoryEnabled()
     }.collectAsState()
 
-    // Only which item is playing: the session itself changes with every saved position
-    val playingItem by remember {
-      sessionsRepository.observePlayingItem()
-    }.collectAsState(null)
-    val isPlaying = playingItem?.libraryItemId == screen.libraryItemId
-
     val user = userSession.requiredUser
     val libraryItem = libraryItemContentState.dataOrNull
-    val itemActions = remember(user, libraryItem) { libraryItem?.let { user.itemActions(it) }.orEmpty() }
+    val itemActions = remember(user, libraryItem, playbackHistoryEnabled) {
+      libraryItem?.let { user.itemActions(it, playbackHistoryEnabled) }.orEmpty()
+    }
 
     return LibraryItemUiState(
       user = user,
@@ -156,9 +152,6 @@ class LibraryItemPresenter(
       itemActions = itemActions,
       quickMatchSource = quickMatchSource?.name,
       deleteFilesByDefault = deleteFilesByDefault,
-      // A podcast's history is kept per episode, which the item's menu can't pick
-      showPlaybackHistory = playbackHistoryEnabled && libraryItem?.mediaType == MediaType.Book,
-      isPlaying = isPlaying,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -195,10 +188,8 @@ class LibraryItemPresenter(
           }
         }
 
-        is LibraryItemUiEvent.PlaybackHistoryJump -> {
-          // Playback may have moved on to another item while the history was open
-          if (!isPlaying) return@LibraryItemUiState
-          audioPlayerHolder.currentPlayer.value?.seekTo(event.position)
+        LibraryItemUiEvent.PlaybackHistoryClick -> {
+          scope.launch { playbackHistory.show(overlayHost, screen.libraryItemId) }
         }
 
         is LibraryItemUiEvent.EditClick -> {

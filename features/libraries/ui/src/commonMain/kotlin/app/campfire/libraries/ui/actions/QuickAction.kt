@@ -87,4 +87,5 @@ fun quickActions(
  * read, and a podcast has its collections or what the server would let [user] do to it.
  */
 fun User.canActOn(item: LibraryItem): Boolean =
-  item.media is Media.Book || canEditCollections || itemActions(item).isNotEmpty()
+  // Only a book has its playback history in the menu, and a book is acted on already
+  item.media is Media.Book || canEditCollections || itemActions(item, playbackHistoryEnabled = false).isNotEmpty()

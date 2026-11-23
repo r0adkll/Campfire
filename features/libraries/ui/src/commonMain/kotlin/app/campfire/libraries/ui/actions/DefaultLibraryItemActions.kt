@@ -22,11 +22,13 @@ import app.campfire.libraries.api.ItemChangeNotAllowedException
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.ui.detail.manage.ItemAction
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
 import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.manage.editorSection
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.item_delete_failed
@@ -59,6 +61,8 @@ class DefaultLibraryItemActionsFactory(
   private val quickMatcher: QuickMatcher,
   private val quickActions: ItemQuickActions,
   private val libraryViewSettings: LibraryViewSettings,
+  private val playbackSettings: PlaybackSettings,
+  private val playbackHistory: ItemPlaybackHistory,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActionsFactory {
 
@@ -69,14 +73,16 @@ class DefaultLibraryItemActionsFactory(
     quickMatcher = quickMatcher,
     quickActions = quickActions,
     libraryViewSettings = libraryViewSettings,
+    playbackSettings = playbackSettings,
+    playbackHistory = playbackHistory,
     coroutineScopeHolder = coroutineScopeHolder,
   )
 }
 
 /**
  * What a library item's card offers on a long press or a right click: the [QuickAction]s for the
- * account's own listening, then the ones the server would take from it, as the detail screen's
- * menu has. The work runs on past the card, which a delete takes out of its list.
+ * account's own listening, then the [ItemAction]s it can take, as the detail screen's menu has.
+ * The work runs on past the card, which a delete takes out of its list.
  */
 class DefaultLibraryItemActions(
   private val navigator: Navigator,
@@ -85,6 +91,8 @@ class DefaultLibraryItemActions(
   private val quickMatcher: QuickMatcher,
   private val quickActions: ItemQuickActions,
   private val libraryViewSettings: LibraryViewSettings,
+  private val playbackSettings: PlaybackSettings,
+  private val playbackHistory: ItemPlaybackHistory,
   private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : LibraryItemActions {
 
@@ -102,7 +110,7 @@ class DefaultLibraryItemActions(
   ) {
     val user = userRepository.userFlow.value
     if (!user.canActOn(item)) return
-    val actions = user.itemActions(item)
+    val actions = user.itemActions(item, playbackSettings.playbackHistoryEnabled)
 
     val choice = if (pointer != null) {
       overlayHost.showItemActionsMenu(item, quickActions::actionsFor, actions, pointer)
@@ -142,6 +150,8 @@ class DefaultLibraryItemActions(
           snackbarHost.showSnackbar(rescan(item))
         }
       }
+
+      ItemAction.PlaybackHistory -> playbackHistory.show(overlayHost, item.id)
 
       ItemAction.Delete -> {
         val hardDelete = overlayHost.showDeleteItemDialog(

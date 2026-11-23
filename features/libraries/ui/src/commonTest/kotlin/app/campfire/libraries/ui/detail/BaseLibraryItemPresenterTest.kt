@@ -25,7 +25,10 @@ import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.manage.FakeLibraryRepository
+import app.campfire.libraries.ui.detail.manage.FakePlaybackHistoryUi
 import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
+import app.campfire.libraries.ui.detail.manage.NoOverlayHost
 import app.campfire.libraries.ui.detail.manage.quickMatcher
 import app.campfire.libraries.ui.detail.podcast.FakeEpisodeDeletingPodcastsRepository
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
@@ -43,6 +46,7 @@ import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
+import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.FakeNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -139,6 +143,7 @@ abstract class BaseLibraryItemPresenterTest {
 
   internal val libraryRepository = FakeLibraryRepository()
   internal val matchRepository = FakeQuickMatchRepository()
+  internal val playbackHistoryUi = FakePlaybackHistoryUi()
 
   private val libraryItemPresenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),
@@ -152,15 +157,17 @@ abstract class BaseLibraryItemPresenterTest {
     themeSettings = themeSettings,
     libraryViewSettings = libraryViewSettings,
     playbackSettings = playbackSettings,
-    sessionsRepository = sessionsRepository,
-    audioPlayerHolder = audioPlayerHolder,
+    playbackHistory = ItemPlaybackHistory(playbackHistoryUi, audioPlayerHolder),
     dispatcherProvider = dispatcherProvider,
   )
 
   internal val presenter: Presenter<LibraryItemUiState> = object : Presenter<LibraryItemUiState> {
     @Composable
     override fun present(): LibraryItemUiState = withCompositionLocal(LocalSnackBarHost provides snackbarHost) {
-      libraryItemPresenter.present()
+      // The presenter shows the item's playback history in an overlay
+      withCompositionLocal(LocalOverlayHost provides NoOverlayHost) {
+        libraryItemPresenter.present()
+      }
     }
   }
 }

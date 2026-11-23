@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,15 +31,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -56,7 +52,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.History
 import app.campfire.common.compose.icons.rounded.LibraryAdd
 import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.layout.ContentLayout
@@ -75,7 +70,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.User
 import app.campfire.core.model.User.Permissions
@@ -107,21 +101,15 @@ import app.campfire.libraries.ui.detail.manage.editorSection
 import app.campfire.offline.Download
 import app.campfire.offline.DownloadContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
-import app.campfire.sessions.api.PlaybackHistoryUi
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
 import campfire.features.libraries.ui.generated.resources.cd_more_actions
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.genres_title
-import campfire.features.libraries.ui.generated.resources.menu_item_playback_history
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.codegen.annotations.CircuitInject
-import com.slack.circuit.overlay.LocalOverlayHost
-import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import kotlin.time.Duration
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -131,7 +119,6 @@ fun LibraryItem(
   screen: LibraryItemScreen,
   state: LibraryItemUiState,
   addToCollectionDialog: AddToCollectionDialog,
-  playbackHistoryUi: PlaybackHistoryUi,
   modifier: Modifier = Modifier,
 ) {
   MaterialExpressiveTheme(
@@ -141,7 +128,6 @@ fun LibraryItem(
       screen = screen,
       state = state,
       addToCollectionDialog = addToCollectionDialog,
-      playbackHistoryUi = playbackHistoryUi,
       modifier = modifier,
     )
   }
@@ -153,7 +139,6 @@ fun LibraryItemContent(
   screen: LibraryItemScreen,
   state: LibraryItemUiState,
   addToCollectionDialog: AddToCollectionDialog,
-  playbackHistoryUi: PlaybackHistoryUi,
   modifier: Modifier,
 ) = SharedElementTransitionScope {
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
@@ -163,9 +148,6 @@ fun LibraryItemContent(
   var showDeleteDialog by remember { mutableStateOf(false) }
 
   val snackBarHost = remember { SnackbarHostState() }
-  val scope = rememberCoroutineScope()
-  // The sheet stays open across recompositions, so what it picked goes to the latest state's sink
-  val latestState by rememberUpdatedState(state)
   val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
 
   Scaffold(
@@ -222,7 +204,7 @@ fun LibraryItemContent(
             }
           }
 
-          if (state.itemActions.isNotEmpty() || state.showPlaybackHistory) {
+          if (state.itemActions.isNotEmpty()) {
             // Anchors the menu under its button
             Box {
               val moreActionsLabel = stringResource(Res.string.cd_more_actions)
@@ -250,36 +232,11 @@ fun LibraryItemContent(
                       Analytics.send(ActionEvent("rescan_item", Click))
                       state.eventSink(LibraryItemUiEvent.RescanClick)
                     }
+                    ItemAction.PlaybackHistory -> state.eventSink(LibraryItemUiEvent.PlaybackHistoryClick)
                     ItemAction.Delete -> showDeleteDialog = true
                   }
                 },
                 onDismissRequest = { showOverflowMenu = false },
-                beforeDelete = if (!state.showPlaybackHistory) {
-                  null
-                } else {
-                  {
-                    val overlayHost = LocalOverlayHost.current
-                    DropdownMenuItem(
-                      text = { Text(stringResource(Res.string.menu_item_playback_history)) },
-                      leadingIcon = { Icon(CampfireIcons.Rounded.History, contentDescription = null) },
-                      onClick = {
-                        showOverflowMenu = false
-                        Analytics.send(ActionEvent("playback_history", Click))
-                        scope.launch {
-                          val position = playbackHistoryUi.showPlaybackHistory(
-                            overlayHost = overlayHost,
-                            libraryItemId = screen.libraryItemId,
-                            canJump = state.isPlaying,
-                          )
-                          if (position != null) {
-                            latestState.eventSink(LibraryItemUiEvent.PlaybackHistoryJump(position))
-                          }
-                        }
-                      },
-                      modifier = Modifier.testTag("item_action_playback_history"),
-                    )
-                  }
-                },
               )
             }
           }
@@ -522,13 +479,6 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
           @Composable
           override fun Content(item: LibraryItem, onDismiss: () -> Unit, modifier: Modifier) {
           }
-        },
-        playbackHistoryUi = object : PlaybackHistoryUi {
-          override suspend fun showPlaybackHistory(
-            overlayHost: OverlayHost,
-            libraryItemId: LibraryItemId,
-            canJump: Boolean,
-          ): Duration? = null
         },
         modifier = Modifier,
       )
