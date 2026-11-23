@@ -10,6 +10,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.QueueOnStop
 import app.campfire.audioplayer.impl.engine.AvPlayerEngine
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
+import app.campfire.audioplayer.impl.offline.IosOfflineDownloadManager
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -45,6 +46,7 @@ class IosPlaybackController(
   private val accountManager: AccountManager,
   private val serverRequestHeaders: ServerRequestHeaders,
   private val audioOutputController: AudioOutputController,
+  private val offlineDownloadManager: IosOfflineDownloadManager,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -127,6 +129,7 @@ class IosPlaybackController(
         accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
         requestHeadersProvider = serverRequestHeaders::forUrl,
         audioOutputController = audioOutputController,
+        offlineTrackFiles = offlineDownloadManager::localPathFor,
         // AVPlayer and its callbacks are main-thread bound
         engineDispatcher = Dispatchers.Main,
       )

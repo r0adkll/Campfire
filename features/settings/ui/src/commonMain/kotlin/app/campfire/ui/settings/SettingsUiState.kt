@@ -95,11 +95,9 @@ data class AppearanceSettingsInfo(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
-  /** Only where downloads can wait for Wi-Fi (Android); desktop never reports mobile data. */
+  /** Only where downloads can wait for Wi-Fi (Android, iOS); desktop never reports mobile data. */
   val isWifiOnlyAvailable: Boolean,
   val downloadOnWifiOnly: Boolean,
-  /** Only where audio can be downloaded at all, which iOS can't yet. */
-  val isAudioDownloadAvailable: Boolean,
   val downloadEpisodesOnPlayOrQueue: Boolean,
   val deleteFinishedEpisodes: Boolean,
   /** Everything downloaded or downloading, which the Downloads screen lists. */

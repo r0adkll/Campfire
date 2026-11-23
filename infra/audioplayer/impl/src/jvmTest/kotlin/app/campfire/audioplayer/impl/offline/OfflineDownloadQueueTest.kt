@@ -34,6 +34,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -66,6 +68,7 @@ class OfflineDownloadQueueTest {
     scope: CoroutineScope = queueScope,
     currentUser: User? = downloadingUser,
     retryDelays: List<Duration> = listOf(1.seconds, 1.seconds),
+    downloadsAllowed: Flow<Boolean>? = null,
     fetch: suspend (FetchRequest, File, (Long, Long) -> Unit) -> Unit = { request, part, _ ->
       part.appendText(request.url)
     },
@@ -81,6 +84,7 @@ class OfflineDownloadQueueTest {
     clock = { testScheduler.currentTime },
     retryDelays = retryDelays,
     progressInterval = Duration.ZERO,
+    downloadsAllowed = downloadsAllowed,
   )
 
   private fun OfflineDownloadQueue.path(track: AudioTrack, episodeId: String? = null) =
@@ -124,6 +128,57 @@ class OfflineDownloadQueueTest {
     gate.complete(Unit)
     advanceUntilIdle()
     assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+  }
+
+  @Test
+  fun `a download waits, queued, until downloads are allowed`() = runTest {
+    val allowed = MutableStateFlow(false)
+    val queue = queue(downloadsAllowed = allowed)
+
+    queue.download(book)
+    advanceUntilIdle()
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Queued)
+    assertThat(fetches).isEmpty()
+
+    allowed.value = true
+    advanceUntilIdle()
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+    assertThat(fetches.map { it.url }).containsExactly("/track1.m4b", "/track2.m4b")
+  }
+
+  @Test
+  fun `a download cut off by downloads no longer being allowed pauses instead of failing`() = runTest {
+    val allowed = MutableStateFlow(true)
+    val cancelled = CompletableDeferred<Unit>()
+    val queue = queue(downloadsAllowed = allowed) { request, part, _ ->
+      if (request.url == "/track1.m4b" && !cancelled.isCompleted) {
+        part.writeText("abc")
+        try {
+          awaitCancellation()
+        } finally {
+          cancelled.complete(Unit)
+        }
+      }
+      part.appendText(request.url)
+    }
+
+    queue.download(book)
+    runCurrent()
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Downloading)
+
+    allowed.value = false
+    advanceUntilIdle()
+    assertThat(cancelled.isCompleted).isTrue()
+    val paused = queue.getForItem(book)
+    assertThat(paused.state).isEqualTo(State.Queued)
+    assertThat(paused.progress.bytes).isEqualTo(3L)
+
+    allowed.value = true
+    advanceUntilIdle()
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+    // Resumed from the partial file, and the pause didn't count as a failed attempt
+    assertThat(File(queue.path(tracks[0])!!).readText()).isEqualTo("abc/track1.m4b")
+    assertThat(fetches.map { it.url }).containsExactly("/track1.m4b", "/track1.m4b", "/track2.m4b")
   }
 
   @Test

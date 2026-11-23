@@ -16,6 +16,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         applicationComponent.startupInitializer.initialize()
         return true
     }
+
+    // iOS relaunches or wakes the app to hand over downloads that finished in the background
+    func application(
+        _: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        _ = BackgroundDownloadsKt.handleEventsForBackgroundURLSession(
+            identifier: identifier,
+            completionHandler: completionHandler
+        )
+    }
 }
 
 @main

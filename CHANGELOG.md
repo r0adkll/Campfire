@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [iOS] Download audiobooks and podcast episodes to listen offline. Downloads carry on while Campfire is in the background, and can wait for Wi-Fi
+
 ### Changed
 
 ### Deprecated

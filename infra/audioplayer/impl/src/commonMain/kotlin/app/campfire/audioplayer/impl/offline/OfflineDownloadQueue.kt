@@ -19,8 +19,10 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -28,9 +30,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -48,6 +52,9 @@ import kotlinx.io.files.Path
  * - Transient failures retry after [retryDelays], resuming where they left off; a download that
  *   exhausts them (or fails permanently) reports [OfflineDownload.State.Failed] until requested
  *   again.
+ * - With [downloadsAllowed], files are only fetched while it says so. A download that's cut off
+ *   (working offline, leaving Wi-Fi) goes back to queued and carries on once allowed again,
+ *   rather than failing.
  */
 internal class OfflineDownloadQueue(
   private val store: OfflineDownloadStore,
@@ -59,6 +66,7 @@ internal class OfflineDownloadQueue(
   maxParallelDownloads: Int = DEFAULT_PARALLEL_DOWNLOADS,
   private val retryDelays: List<Duration> = DEFAULT_RETRY_DELAYS,
   private val progressInterval: Duration = 250.milliseconds,
+  private val downloadsAllowed: Flow<Boolean>? = null,
 ) : OfflineDownloadManager {
 
   private data class Entry(
@@ -299,17 +307,24 @@ internal class OfflineDownloadQueue(
     )
     var attempt = 0
     while (true) {
+      awaitAllowed(manifest, file, part)
       updateFile(manifest, file) {
         it.copy(status = FileProgress.Status.Downloading, bytes = part.length(), updatedAtMs = clock())
       }
       try {
         var lastPublished = 0L
-        fetcher.fetch(request, part) { bytes, total ->
-          val now = clock()
-          if (now - lastPublished >= progressInterval.inWholeMilliseconds) {
-            lastPublished = now
-            updateFile(manifest, file) { FileProgress(FileProgress.Status.Downloading, bytes, total, now) }
+        val fetched = whileAllowed {
+          fetcher.fetch(request, part) { bytes, total ->
+            val now = clock()
+            if (now - lastPublished >= progressInterval.inWholeMilliseconds) {
+              lastPublished = now
+              updateFile(manifest, file) { FileProgress(FileProgress.Status.Downloading, bytes, total, now) }
+            }
           }
+        }
+        if (!fetched) {
+          ibark { "Download of track ${file.trackIndex} paused until downloads are allowed again" }
+          continue
         }
         part.moveOnto(completed)
         updateFile(manifest, file) {
@@ -332,6 +347,36 @@ internal class OfflineDownloadQueue(
         }
         wbark(e) { "Download of track ${file.trackIndex} interrupted, retrying (attempt ${attempt + 1})" }
         delay(retryDelays[attempt++])
+      }
+    }
+  }
+
+  /** Waits, reporting [file] as queued, until [downloadsAllowed] lets downloads fetch. */
+  private suspend fun awaitAllowed(manifest: DownloadManifest, file: DownloadManifest.File, part: Path) {
+    val allowed = downloadsAllowed ?: return
+    if (allowed.first()) return
+    updateFile(manifest, file) {
+      it.copy(status = FileProgress.Status.Queued, bytes = part.length(), updatedAtMs = clock())
+    }
+    allowed.first { it }
+  }
+
+  /** Runs [fetch] unless downloads stop being allowed first, which cancels it; returns false when they did. */
+  private suspend fun whileAllowed(fetch: suspend () -> Unit): Boolean {
+    val allowed = downloadsAllowed ?: return fetch().let { true }
+    return coroutineScope {
+      val work = async { fetch() }
+      val watcher = launch {
+        allowed.first { !it }
+        work.cancel()
+      }
+      try {
+        work.await()
+        true
+      } catch (e: CancellationException) {
+        if (work.isCancelled && isActive) false else throw e
+      } finally {
+        watcher.cancel()
       }
     }
   }
