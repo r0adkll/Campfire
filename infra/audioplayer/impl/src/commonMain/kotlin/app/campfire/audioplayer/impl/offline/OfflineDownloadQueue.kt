@@ -11,19 +11,13 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.User
 import app.campfire.core.model.loggableId
-import java.io.File
-import java.io.IOException
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
@@ -40,9 +34,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.io.IOException
+import kotlinx.io.files.Path
 
 /**
- * The desktop offline download engine: fetches every audio file of a book (or a single podcast
+ * The offline download engine for desktop and iOS: fetches every audio file of a book (or a single podcast
  * episode) into [store], a few downloads at a time, and exposes their progress.
  *
  * - Requests are persisted as a [DownloadManifest] before any byte is fetched, so a download
@@ -58,8 +54,8 @@ internal class OfflineDownloadQueue(
   private val fetcher: FileFetcher,
   private val currentUser: () -> User?,
   private val scope: CoroutineScope,
-  private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-  private val clock: () -> Long = System::currentTimeMillis,
+  private val ioDispatcher: CoroutineDispatcher,
+  private val clock: () -> Long = { Clock.System.now().toEpochMilliseconds() },
   maxParallelDownloads: Int = DEFAULT_PARALLEL_DOWNLOADS,
   private val retryDelays: List<Duration> = DEFAULT_RETRY_DELAYS,
   private val progressInterval: Duration = 250.milliseconds,
@@ -75,7 +71,7 @@ internal class OfflineDownloadQueue(
   }
 
   private val entries = MutableStateFlow<Map<OfflineDownloadKey, Entry>>(emptyMap())
-  private val jobs = ConcurrentHashMap<OfflineDownloadKey, Job>()
+  private val jobs = MutableStateFlow<Map<OfflineDownloadKey, Job>>(emptyMap())
   private val permits = Semaphore(maxParallelDownloads)
 
   private val commands = Channel<suspend () -> Unit>(Channel.UNLIMITED)
@@ -183,7 +179,7 @@ internal class OfflineDownloadQueue(
     loader.value
     submit {
       entries.value.values
-        .filter { entry -> !entry.isFinished && !entry.hasFailed && jobs[entry.manifest.key]?.isActive != true }
+        .filter { entry -> !entry.isFinished && !entry.hasFailed && !isRunning(entry.manifest.key) }
         .forEach { entry -> start(entry.manifest) }
     }
   }
@@ -195,7 +191,7 @@ internal class OfflineDownloadQueue(
   fun localPathFor(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?, track: AudioTrack): String? {
     val key = OfflineDownloadKey(libraryItemId, episodeId)
     val file = state()[key]?.manifest?.files?.find { it.trackIndex == track.index } ?: return null
-    return store.completedFile(key, file).takeIf { it.isFile }?.absolutePath
+    return store.completedFile(key, file).takeIf { it.isFile() }?.toString()
   }
 
   private fun enqueue(key: OfflineDownloadKey, title: String, subtitle: String, tracks: List<AudioTrack>) {
@@ -228,13 +224,13 @@ internal class OfflineDownloadQueue(
     loader.value
     var alreadyActive = false
     entries.update { current ->
-      alreadyActive = current[key]?.let { it.download.isActive && jobs[key]?.isActive == true } == true
+      alreadyActive = current[key]?.let { it.download.isActive && isRunning(key) } == true
       if (alreadyActive) current else current + (key to Entry(manifest, progressOnDisk(manifest)))
     }
     if (alreadyActive) return
 
     submit {
-      jobs.remove(key)?.cancelAndJoin()
+      takeJob(key)?.cancelAndJoin()
       store.write(manifest)
       start(manifest)
     }
@@ -244,7 +240,7 @@ internal class OfflineDownloadQueue(
     loader.value
     entries.update { it - key }
     submit {
-      jobs.remove(key)?.cancelAndJoin()
+      takeJob(key)?.cancelAndJoin()
       store.delete(key)
     }
   }
@@ -260,8 +256,20 @@ internal class OfflineDownloadQueue(
     val job = scope.launch(ioDispatcher) {
       permits.withPermit { fetchAll(manifest) }
     }
-    jobs[key] = job
-    job.invokeOnCompletion { jobs.remove(key, job) }
+    jobs.update { it + (key to job) }
+    job.invokeOnCompletion { jobs.update { if (it[key] === job) it - key else it } }
+  }
+
+  private fun isRunning(key: OfflineDownloadKey): Boolean = jobs.value[key]?.isActive == true
+
+  /** Removes and returns [key]'s download job, to stop it. */
+  private fun takeJob(key: OfflineDownloadKey): Job? {
+    var taken: Job? = null
+    jobs.update { current ->
+      taken = current[key]
+      current - key
+    }
+    return taken
   }
 
   private suspend fun fetchAll(manifest: DownloadManifest) {
@@ -269,7 +277,7 @@ internal class OfflineDownloadQueue(
     ibark { "Downloading ${manifest.files.size} file(s) for ${key.libraryItemId.loggableId}" }
     for (file in manifest.files) {
       val completed = store.completedFile(key, file)
-      if (completed.isFile) {
+      if (completed.isFile()) {
         updateFile(manifest, file) {
           FileProgress(FileProgress.Status.Completed, completed.length(), completed.length(), clock())
         }
@@ -281,7 +289,7 @@ internal class OfflineDownloadQueue(
   }
 
   /** Fetches one file with retries. Returns false once it has failed for good. */
-  private suspend fun fetchFile(manifest: DownloadManifest, file: DownloadManifest.File, completed: File): Boolean {
+  private suspend fun fetchFile(manifest: DownloadManifest, file: DownloadManifest.File, completed: Path): Boolean {
     val part = store.partFile(manifest.key, file)
     val request = FetchRequest(
       url = file.url,
@@ -303,7 +311,7 @@ internal class OfflineDownloadQueue(
             updateFile(manifest, file) { FileProgress(FileProgress.Status.Downloading, bytes, total, now) }
           }
         }
-        moveIntoPlace(part, completed)
+        part.moveOnto(completed)
         updateFile(manifest, file) {
           FileProgress(FileProgress.Status.Completed, completed.length(), completed.length(), clock())
         }
@@ -344,8 +352,8 @@ internal class OfflineDownloadQueue(
   private fun progressOnDisk(manifest: DownloadManifest): Map<Int, FileProgress> =
     manifest.files.associate { file ->
       val completed = store.completedFile(manifest.key, file)
-      file.trackIndex to if (completed.isFile) {
-        FileProgress(FileProgress.Status.Completed, completed.length(), completed.length(), completed.lastModified())
+      file.trackIndex to if (completed.isFile()) {
+        FileProgress(FileProgress.Status.Completed, completed.length(), completed.length(), completed.modifiedAtMs())
       } else {
         FileProgress(FileProgress.Status.Queued, store.partFile(manifest.key, file).length())
       }
@@ -353,14 +361,6 @@ internal class OfflineDownloadQueue(
 
   private fun Map<OfflineDownloadKey, Entry>.downloadFor(key: OfflineDownloadKey): OfflineDownload =
     this[key]?.download ?: OfflineDownload(libraryItemId = key.libraryItemId, episodeId = key.episodeId)
-
-  private fun moveIntoPlace(part: File, target: File) {
-    try {
-      Files.move(part.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-    } catch (_: AtomicMoveNotSupportedException) {
-      Files.move(part.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
-    }
-  }
 
   companion object : Cork {
     override val tag: String = "OfflineDownloads"

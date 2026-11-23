@@ -27,6 +27,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.files.Path
 
 class HttpFileFetcherTest {
 
@@ -94,7 +95,7 @@ class HttpFileFetcherTest {
     accountManager.extraHeaders = mapOf("X-Proxy" to "secret")
     val progress = mutableListOf<Pair<Long, Long>>()
 
-    fetcher.fetch(request, part) { bytes, total -> progress += bytes to total }
+    fetcher.fetch(request, Path(part.path)) { bytes, total -> progress += bytes to total }
 
     assertThat(part.readText()).isEqualTo("0123456789")
     assertThat(progress.last()).isEqualTo(10L to 10L)
@@ -111,7 +112,7 @@ class HttpFileFetcherTest {
   fun `resumes a partial file with a range request`() = runTest {
     part.writeText("0123")
 
-    fetcher.fetch(request, part) { _, _ -> }
+    fetcher.fetch(request, Path(part.path)) { _, _ -> }
 
     assertThat(part.readText()).isEqualTo("0123456789")
     assertThat(requests.single()["Range"]).isEqualTo("bytes=4-")
@@ -125,7 +126,7 @@ class HttpFileFetcherTest {
       exchange.responseBody.write(body)
     }
 
-    fetcher.fetch(request, part) { _, _ -> }
+    fetcher.fetch(request, Path(part.path)) { _, _ -> }
 
     assertThat(part.readText()).isEqualTo("0123456789")
   }
@@ -134,7 +135,7 @@ class HttpFileFetcherTest {
   fun `a partial file already holding every byte is complete`() = runTest {
     part.writeText("0123456789")
 
-    fetcher.fetch(request, part) { _, _ -> }
+    fetcher.fetch(request, Path(part.path)) { _, _ -> }
 
     assertThat(part.readText()).isEqualTo("0123456789")
   }
@@ -151,7 +152,7 @@ class HttpFileFetcherTest {
       }
     }
 
-    fetcher.fetch(request, part) { _, _ -> }
+    fetcher.fetch(request, Path(part.path)) { _, _ -> }
 
     assertThat(part.readText()).isEqualTo("0123456789")
     assertThat(refresher.refreshedWith).containsExactly("stale")
@@ -163,7 +164,7 @@ class HttpFileFetcherTest {
     accountManager.token = AbsToken("stale", "refresh")
     handler = { exchange -> exchange.sendResponseHeaders(401, -1) }
 
-    assertFailure { fetcher.fetch(request, part) { _, _ -> } }
+    assertFailure { fetcher.fetch(request, Path(part.path)) { _, _ -> } }
       .isInstanceOf(PermanentFetchException::class)
   }
 
@@ -173,7 +174,7 @@ class HttpFileFetcherTest {
     refresher.next = AbsToken("fresh", "refresh-2")
     handler = { exchange -> exchange.sendResponseHeaders(401, -1) }
 
-    assertFailure { fetcher.fetch(request, part) { _, _ -> } }
+    assertFailure { fetcher.fetch(request, Path(part.path)) { _, _ -> } }
       .isInstanceOf(PermanentFetchException::class)
     assertThat(requests.map { it["Authorization"] }).containsExactly("Bearer stale", "Bearer fresh")
   }
@@ -182,7 +183,7 @@ class HttpFileFetcherTest {
   fun `a user without download permission fails permanently`() = runTest {
     handler = { exchange -> exchange.sendResponseHeaders(403, -1) }
 
-    assertFailure { fetcher.fetch(request, part) { _, _ -> } }
+    assertFailure { fetcher.fetch(request, Path(part.path)) { _, _ -> } }
       .isInstanceOf(PermanentFetchException::class)
     assertThat(requests.single()["Authorization"]).isNull()
   }
@@ -191,7 +192,7 @@ class HttpFileFetcherTest {
   fun `a server error can be retried`() = runTest {
     handler = { exchange -> exchange.sendResponseHeaders(503, -1) }
 
-    val failure = assertFailure { fetcher.fetch(request, part) { _, _ -> } }
+    val failure = assertFailure { fetcher.fetch(request, Path(part.path)) { _, _ -> } }
     failure.isInstanceOf(IOException::class)
     failure.transform { it is PermanentFetchException }.isEqualTo(false)
   }
@@ -211,7 +212,7 @@ class HttpFileFetcherTest {
     val started = TimeSource.Monotonic.markNow()
 
     // A socket timeout is an IOException, so the queue retries it rather than failing for good
-    assertFailure { stalling.fetch(request, part) { _, _ -> } }
+    assertFailure { stalling.fetch(request, Path(part.path)) { _, _ -> } }
       .transform { it is IOException && it !is PermanentFetchException }
       .isTrue()
     // Abandoned by the socket timeout, long before the server would have given up

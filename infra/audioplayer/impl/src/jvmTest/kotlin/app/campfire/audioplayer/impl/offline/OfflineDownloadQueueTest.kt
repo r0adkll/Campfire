@@ -40,11 +40,12 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.files.Path
 
 class OfflineDownloadQueueTest {
 
   private val root: File = createTempDirectory("offline-downloads").toFile()
-  private val store = OfflineDownloadStore(root)
+  private val store = OfflineDownloadStore(Path(root.absolutePath))
 
   private val tracks = listOf(track(1, 0f, 60f), track(2, 60f, 60f))
   private val book: LibraryItem = session(tracks = tracks).libraryItem
@@ -72,7 +73,7 @@ class OfflineDownloadQueueTest {
     store = store,
     fetcher = FileFetcher { request, part, onProgress ->
       fetches += request
-      fetch(request, part, onProgress)
+      fetch(request, File(part.toString()), onProgress)
     },
     currentUser = { currentUser },
     scope = scope,
@@ -192,7 +193,7 @@ class OfflineDownloadQueueTest {
 
     queue.download(book)
     runCurrent()
-    assertThat(store.directory(OfflineDownloadKey(book.id)).exists()).isTrue()
+    assertThat(store.directory(OfflineDownloadKey(book.id)).isDirectory()).isTrue()
 
     queue.delete(book)
     assertThat(queue.getForItem(book).state).isEqualTo(State.None)
