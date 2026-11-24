@@ -68,9 +68,14 @@ import platform.darwin.dispatch_get_main_queue
  * requested start, and only then is it reported ready ([EngineState.Paused] or playback starts).
  * Position ticks are held back while opening, during a seek and after the item ended, so the owner
  * never sees a stale position that would read as a chapter boundary crossing.
+ *
+ * @param beforePlay runs right before AVPlayer starts, so the owner activates the audio session
+ * only once playback really begins, not when an item is merely opened paused.
  */
 @OptIn(ExperimentalForeignApi::class)
-class AvPlayerEngine : PlaybackEngine {
+class AvPlayerEngine(
+  private val beforePlay: () -> Unit = {},
+) : PlaybackEngine {
 
   private val _events = MutableSharedFlow<PlaybackEngineEvent>(extraBufferCapacity = EVENT_BUFFER)
   override val events: Flow<PlaybackEngineEvent> = _events.asSharedFlow()
@@ -157,8 +162,7 @@ class AvPlayerEngine : PlaybackEngine {
   override fun play() {
     playWhenReady = true
     if (opening || currentItem == null) return
-    player.defaultRate = rate
-    player.play()
+    startPlayer()
   }
 
   override fun pause() {
@@ -232,11 +236,16 @@ class AvPlayerEngine : PlaybackEngine {
     opening = false
     player.currentTime().durationOrNull()?.let { emit(PlaybackEngineEvent.PositionChanged(it)) }
     if (playWhenReady) {
-      player.defaultRate = rate
-      player.play()
+      startPlayer()
     } else {
       emit(PlaybackEngineEvent.StateChanged(EngineState.Paused))
     }
+  }
+
+  private fun startPlayer() {
+    beforePlay()
+    player.defaultRate = rate
+    player.play()
   }
 
   private fun onTimeControlStatusChanged() {
