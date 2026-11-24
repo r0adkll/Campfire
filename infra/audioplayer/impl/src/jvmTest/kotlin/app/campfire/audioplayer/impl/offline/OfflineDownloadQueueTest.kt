@@ -69,14 +69,22 @@ class OfflineDownloadQueueTest {
     currentUser: User? = downloadingUser,
     retryDelays: List<Duration> = listOf(1.seconds, 1.seconds),
     downloadsAllowed: Flow<Boolean>? = null,
+    prepare: suspend (List<PendingFetch>) -> Unit = {},
+    discard: suspend (List<Path>) -> Unit = {},
     fetch: suspend (FetchRequest, File, (Long, Long) -> Unit) -> Unit = { request, part, _ ->
       part.appendText(request.url)
     },
   ) = OfflineDownloadQueue(
     store = store,
-    fetcher = FileFetcher { request, part, onProgress ->
-      fetches += request
-      fetch(request, File(part.toString()), onProgress)
+    fetcher = object : FileFetcher {
+      override suspend fun fetch(request: FetchRequest, partFile: Path, onProgress: (Long, Long) -> Unit) {
+        fetches += request
+        fetch(request, File(partFile.toString()), onProgress)
+      }
+
+      override suspend fun prepare(upcoming: List<PendingFetch>) = prepare(upcoming)
+
+      override suspend fun discard(partFiles: List<Path>) = discard(partFiles)
     },
     currentUser = { currentUser },
     scope = scope,
@@ -106,6 +114,35 @@ class OfflineDownloadQueueTest {
     assertThat(File(queue.path(tracks[0])!!).readText()).isEqualTo("/track1.m4b")
     assertThat(File(queue.path(tracks[1])!!).readText()).isEqualTo("/track2.m4b")
     assertThat(queue.observeAll().first().map { it.libraryItemId }).containsExactly(book.id)
+  }
+
+  @Test
+  fun `each fetch is preceded by the files still to come`() = runTest {
+    val tracks = listOf(track(1, 0f, 60f), track(2, 60f, 60f), track(3, 120f, 60f))
+    val book = session(tracks = tracks).libraryItem
+    // Track 3 is already on disk, so it's never upcoming
+    val directory = File(store.directory(OfflineDownloadKey(book.id)).toString()).apply { mkdirs() }
+    File(directory, OfflineDownloadStore.fileName(3, tracks[2].metadata.ext)).writeText("done")
+    val prepared = mutableListOf<List<String>>()
+    val queue = queue(prepare = { upcoming -> prepared += upcoming.map { it.request.url } })
+
+    queue.download(book)
+    advanceUntilIdle()
+
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+    assertThat(fetches.map { it.url }).containsExactly("/track1.m4b", "/track2.m4b")
+    assertThat(prepared).containsExactly(listOf("/track2.m4b"))
+  }
+
+  @Test
+  fun `a failure starting upcoming files early doesn't stop the download`() = runTest {
+    val queue = queue(prepare = { throw IOException("boom") })
+
+    queue.download(book)
+    advanceUntilIdle()
+
+    assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+    assertThat(fetches.map { it.url }).containsExactly("/track1.m4b", "/track2.m4b")
   }
 
   @Test
@@ -232,6 +269,29 @@ class OfflineDownloadQueueTest {
     queue.download(book)
     advanceUntilIdle()
     assertThat(queue.getForItem(book).state).isEqualTo(State.Completed)
+  }
+
+  @Test
+  fun `delete lets the fetcher discard every part file before the download is cancelled`() = runTest {
+    var cancelled = false
+    val discarded = mutableListOf<Pair<List<String>, Boolean>>()
+    val queue = queue(
+      discard = { parts -> discarded += parts.map { it.name } to cancelled },
+    ) { _, _, _ ->
+      try {
+        awaitCancellation()
+      } finally {
+        cancelled = true
+      }
+    }
+
+    queue.download(book)
+    runCurrent()
+    queue.delete(book)
+    advanceUntilIdle()
+
+    assertThat(discarded).containsExactly(listOf("1.m4b.part", "2.m4b.part") to false)
+    assertThat(cancelled).isTrue()
   }
 
   @Test

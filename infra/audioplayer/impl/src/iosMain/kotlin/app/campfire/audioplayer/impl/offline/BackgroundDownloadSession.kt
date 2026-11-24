@@ -6,12 +6,17 @@ package app.campfire.audioplayer.impl.offline
 import app.campfire.core.logging.Cork
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import platform.Foundation.NSData
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSOperationQueue
@@ -23,6 +28,7 @@ import platform.Foundation.NSURLSession
 import platform.Foundation.NSURLSessionConfiguration
 import platform.Foundation.NSURLSessionDownloadDelegateProtocol
 import platform.Foundation.NSURLSessionDownloadTask
+import platform.Foundation.NSURLSessionDownloadTaskResumeData
 import platform.Foundation.NSURLSessionTask
 import platform.Foundation.NSURLSessionTaskStateRunning
 import platform.Foundation.NSURLSessionTaskStateSuspended
@@ -38,9 +44,11 @@ import platform.darwin.dispatch_get_main_queue
  *
  * Each task is tagged ([TransferTag]) with the `.part` file it fills, relative to the downloads
  * directory (whose absolute path changes when the app is updated), and the byte offset its request
- * resumes from. A file that lands while nothing waits for it, as after a relaunch, still ends up in
- * its part file, where the queue finds it on its next attempt. All of the session's bookkeeping
- * runs on its serial delegate queue.
+ * resumes from. A file that lands while nothing waits for it, as after a relaunch or when it was
+ * started ahead of its turn, still ends up in its part file, where the queue finds it. A transfer
+ * that ends early with resume data (stopped, cut off, or cancelled because the user quit the app)
+ * saves it beside its part file ([SavedResumeData]), so the next attempt carries on from there. All
+ * of the session's bookkeeping runs on its serial delegate queue.
  */
 @OptIn(ExperimentalForeignApi::class)
 object BackgroundDownloadSession : Cork {
@@ -52,6 +60,9 @@ object BackgroundDownloadSession : Cork {
 
   /** A response whose body couldn't be saved to its part file. */
   internal const val STATUS_NOT_SAVED = -1
+
+  /** How long stopping a transfer waits for iOS to hand over its resume data. */
+  private val STOP_TIMEOUT = 5.seconds
 
   private val delegateQueue = NSOperationQueue().apply {
     name = "app.campfire.downloads.session"
@@ -68,6 +79,12 @@ object BackgroundDownloadSession : Cork {
 
   // Only touched on delegateQueue
   private val transfers = mutableMapOf<ULong, Transfer>()
+
+  /** This launch's unfinished tasks, whether or not anything waits for them. */
+  private val started = mutableMapOf<ULong, NSURLSessionDownloadTask>()
+
+  /** Tasks cancelled for good, whose resume data isn't worth keeping. */
+  private val discarded = mutableSetOf<ULong>()
   private val savedStatus = mutableMapOf<ULong, Int>()
   private val unclaimed = mutableMapOf<ULong, TransferOutcome>()
   private var eventsCompletionHandler: (() -> Unit)? = null
@@ -90,39 +107,100 @@ object BackgroundDownloadSession : Cork {
     session
   }
 
-  /** The unfinished task filling [relativePath], from this launch or one before it. */
-  internal suspend fun runningTask(relativePath: String): Pair<NSURLSessionDownloadTask, TransferTag>? {
+  /** Every unfinished task, from this launch or one before it, with its tag. */
+  internal suspend fun unfinishedTasks(): List<Pair<NSURLSessionDownloadTask, TransferTag>> {
     val tasks = suspendCancellableCoroutine { continuation ->
       session.getAllTasksWithCompletionHandler { tasks -> continuation.resume(tasks.orEmpty()) }
     }
-    return tasks.filterIsInstance<NSURLSessionDownloadTask>().firstNotNullOfOrNull { task ->
+    return tasks.filterIsInstance<NSURLSessionDownloadTask>().mapNotNull { task ->
       val tag = TransferTag.decode(task.taskDescription)
       val unfinished = task.state == NSURLSessionTaskStateRunning || task.state == NSURLSessionTaskStateSuspended
-      if (tag?.relativePath == relativePath && unfinished) task to tag else null
+      if (tag != null && unfinished) task to tag else null
     }
   }
+
+  /** The unfinished task filling [relativePath], from this launch or one before it. */
+  internal suspend fun runningTask(relativePath: String): Pair<NSURLSessionDownloadTask, TransferTag>? =
+    unfinishedTasks().firstOrNull { (_, tag) -> tag.relativePath == relativePath }
 
   internal fun newTask(request: NSURLRequest, tag: TransferTag): NSURLSessionDownloadTask =
     session.downloadTaskWithRequest(request).apply { taskDescription = tag.encode() }
 
+  /** A task carrying on an interrupted transfer, tagged like the one it continues. */
+  internal fun resumedTask(resumeData: NSData, tag: TransferTag): NSURLSessionDownloadTask =
+    session.downloadTaskWithResumeData(resumeData).apply { taskDescription = tag.encode() }
+
+  /** Runs [task] without waiting for it. Its outcome is kept for whoever later [await]s it. */
+  internal fun start(task: NSURLSessionDownloadTask) {
+    delegateQueue.addOperationWithBlock {
+      started[task.taskIdentifier] = task
+      task.resume()
+    }
+  }
+
   /**
-   * Runs [task] (if it isn't already) and waits for it to finish. Cancelling the wait cancels the
-   * task. [onProgress] gets (bytes in the part file, total bytes or <= 0 when unknown).
+   * Runs [task] (if it isn't already) and waits for it to finish. Cancelling the wait stops the
+   * task, keeping its resume data. [onProgress] gets (bytes in the part file, total bytes or <= 0
+   * when unknown).
    */
   internal suspend fun await(task: NSURLSessionDownloadTask, onProgress: (Long, Long) -> Unit): TransferOutcome {
     val id = task.taskIdentifier
     val transfer = Transfer(task, onProgress)
     delegateQueue.addOperationWithBlock {
       val finished = unclaimed.remove(id)
-      if (finished != null) transfer.outcome.complete(finished) else transfers[id] = transfer
-      task.resume()
+      if (finished != null) {
+        transfer.outcome.complete(finished)
+      } else {
+        transfers[id] = transfer
+        started[id] = task
+        task.resume()
+      }
     }
     return try {
       transfer.outcome.await()
     } catch (e: CancellationException) {
-      task.cancel()
+      // The resume data is saved before the outcome completes, so it's on disk once this returns
+      task.cancelByProducingResumeData { }
+      withContext(NonCancellable) { withTimeoutOrNull(STOP_TIMEOUT) { transfer.outcome.await() } }
       delegateQueue.addOperationWithBlock { transfers.remove(id) }
       throw e
+    }
+  }
+
+  /** Stops every unfinished transfer into [directory] (relative to the downloads directory), keeping their resume data. */
+  internal suspend fun stopAll(directory: String) {
+    unfinishedTasks()
+      .filter { (_, tag) -> tag.relativePath.startsWith("$directory/") }
+      .forEach { (task, _) -> task.cancelByProducingResumeData { } }
+  }
+
+  /**
+   * Cancels every unfinished transfer into [directory] for good. No resume data is kept, so iOS
+   * deletes the bytes they'd downloaded.
+   */
+  internal suspend fun discardAll(directory: String) {
+    val tasks = unfinishedTasks().filter { (_, tag) -> tag.relativePath.startsWith("$directory/") }
+    onDelegateQueue {
+      for ((task, _) in tasks) {
+        discarded += task.taskIdentifier
+        task.cancel()
+      }
+    }
+  }
+
+  /** Gives up on [resumeData]: cancelling a task made from it lets iOS delete the bytes it kept. */
+  internal suspend fun discardResumeData(resumeData: NSData) {
+    val task = session.downloadTaskWithResumeData(resumeData)
+    onDelegateQueue {
+      discarded += task.taskIdentifier
+      task.cancel()
+    }
+  }
+
+  private suspend fun onDelegateQueue(block: () -> Unit) = suspendCancellableCoroutine { continuation ->
+    delegateQueue.addOperationWithBlock {
+      block()
+      continuation.resume(Unit)
     }
   }
 
@@ -134,7 +212,10 @@ object BackgroundDownloadSession : Cork {
     transfer.onProgress(base + written, if (expected > 0) base + expected else -1L)
   }
 
-  /** Saves the body into its part file. iOS deletes [location] as soon as this returns. */
+  /**
+   * Saves the body into its part file. iOS deletes [location] as soon as this returns. A resumed
+   * transfer hands over the whole body from its tag's offset, like the one it continues.
+   */
   private fun onDownloaded(task: NSURLSessionDownloadTask, location: NSURL) {
     val tag = TransferTag.decode(task.taskDescription) ?: return
     val status = task.httpStatus()
@@ -165,8 +246,12 @@ object BackgroundDownloadSession : Cork {
 
   private fun onComplete(task: NSURLSessionTask, error: NSError?) {
     val id = task.taskIdentifier
+    started.remove(id)
+    val keepResumeData = !discarded.remove(id)
     val status = savedStatus.remove(id) ?: task.httpStatus()
     val cancelled = error?.domain == NSURLErrorDomain && error?.code == NSURLErrorCancelled
+    val resumeData = error?.userInfo?.get(NSURLSessionDownloadTaskResumeData) as? NSData
+    if (resumeData != null && keepResumeData) saveResumeData(task, resumeData)
     val outcome = if (error != null) {
       TransferOutcome.Failed(error.localizedDescription, cancelled)
     } else {
@@ -179,24 +264,38 @@ object BackgroundDownloadSession : Cork {
     }
   }
 
+  private fun saveResumeData(task: NSURLSessionTask, resumeData: NSData) {
+    val tag = TransferTag.decode(task.taskDescription) ?: return
+    try {
+      SavedResumeData.save(Path(iosDownloadsRoot(), tag.relativePath), tag.offset, resumeData)
+      ibark { "Saved resume data for ${tag.relativePath}" }
+    } catch (e: Exception) {
+      ebark(e) { "Unable to save resume data for ${tag.relativePath}" }
+    }
+  }
+
   /**
-   * After a relaunch, the queue can resume a file before iOS has delivered the transfer from the
-   * earlier launch that already finished it, and so start a second transfer for the same part file.
-   * When the earlier one's body lands, it stands in for that second transfer, which is cancelled
-   * rather than downloading the file again.
+   * A finished transfer that nothing waited for can find another one this launch started for the
+   * same part file: after a relaunch, the queue can resume a file before iOS has delivered the
+   * earlier launch's transfer that already finished it. The finished one stands in for the others,
+   * which are cancelled rather than download the file again; returns the one something waits for.
    */
   private fun supersededTransfer(task: NSURLSessionTask, outcome: TransferOutcome): Transfer? {
     if (outcome !is TransferOutcome.Finished) return null
     if (outcome.status != HTTP_OK && outcome.status != HTTP_PARTIAL_CONTENT) return null
     val relativePath = TransferTag.decode(task.taskDescription)?.relativePath ?: return null
-    val (id, transfer) = transfers.entries
-      .firstOrNull { TransferTag.decode(it.value.task.taskDescription)?.relativePath == relativePath }
-      ?.toPair()
-      ?: return null
-    ibark { "A transfer from an earlier launch finished $relativePath, cancelling its replacement" }
-    transfers.remove(id)
-    transfer.task.cancel()
-    return transfer
+    val duplicates = started.values.filter { TransferTag.decode(it.taskDescription)?.relativePath == relativePath }
+    if (duplicates.isEmpty()) return null
+    ibark { "A finished transfer already filled $relativePath, cancelling ${duplicates.size} other(s) for it" }
+    var waiting: Transfer? = null
+    for (duplicate in duplicates) {
+      val id = duplicate.taskIdentifier
+      started.remove(id)
+      discarded += id
+      duplicate.cancel()
+      transfers.remove(id)?.let { waiting = it }
+    }
+    return waiting
   }
 
   private fun onEventsFinished() {
