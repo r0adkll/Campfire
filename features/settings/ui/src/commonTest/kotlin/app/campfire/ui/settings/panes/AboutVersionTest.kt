@@ -32,12 +32,12 @@ class AboutVersionTest {
 
   @Test
   fun `commit line shows local time with its offset and the sha`() {
-    assertThat(BuildCommit(november, "220c0be").line(minusFive)).isEqualTo("2026-11-24 09:03 -05:00 · 220c0be")
+    assertThat(BuildCommit(november, "220c0be").line(minusFive)).isEqualTo("2026-11-24 09:03 -05:00 (220c0be)")
   }
 
   @Test
   fun `a zero offset is written as +00 00 rather than Z`() {
-    assertThat(BuildCommit(november, "220c0be").line(TimeZone.UTC)).isEqualTo("2026-11-24 14:03 +00:00 · 220c0be")
+    assertThat(BuildCommit(november, "220c0be").line(TimeZone.UTC)).isEqualTo("2026-11-24 14:03 +00:00 (220c0be)")
   }
 
   @Test
@@ -67,7 +67,7 @@ class AboutVersionTest {
   @Test
   fun `copy text joins version and commit line`() {
     assertThat(info().versionCopyText(minusFive))
-      .isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+      .isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
   }
 
   @Test

@@ -7,7 +7,9 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -67,8 +69,9 @@ internal fun ActionSetting(
 }
 
 /**
- * A long-press with no tap action: the row ripples while pressed and can take keyboard focus, where
- * Enter or Space triggers it, since a key has no long-press of its own.
+ * A long-press with no tap action: the row ripples once held past the long-press timeout (a quick
+ * tap shows nothing) and can take keyboard focus, where Enter or Space triggers it, since a key has
+ * no long-press of its own.
  */
 @Composable
 private fun Modifier.longClickOnly(action: () -> Unit, label: String?): Modifier {
@@ -83,18 +86,23 @@ private fun Modifier.longClickOnly(action: () -> Unit, label: String?): Modifier
       activates
     }
     .pointerInput(Unit) {
-      detectTapGestures(
-        onPress = { offset ->
-          val press = PressInteraction.Press(offset)
-          interactionSource.emit(press)
-          val released = tryAwaitRelease()
-          interactionSource.emit(if (released) PressInteraction.Release(press) else PressInteraction.Cancel(press))
-        },
-        onLongPress = {
-          haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-          currentAction()
-        },
-      )
+      awaitEachGesture {
+        val down = awaitFirstDown()
+        // Non-null when the pointer lifts (or a scroll takes it) before the long-press timeout.
+        val endedEarly = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+          waitForUpOrCancellation()
+          true
+        }
+        if (endedEarly != null) return@awaitEachGesture
+
+        // Held long enough: only now ripple, so a quick tap shows nothing.
+        val press = PressInteraction.Press(down.position)
+        interactionSource.tryEmit(press)
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        currentAction()
+        val up = waitForUpOrCancellation()
+        interactionSource.tryEmit(if (up != null) PressInteraction.Release(press) else PressInteraction.Cancel(press))
+      }
     }
     .semantics {
       onLongClick(label = label) {

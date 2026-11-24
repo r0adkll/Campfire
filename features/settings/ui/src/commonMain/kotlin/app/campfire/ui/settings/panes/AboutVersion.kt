@@ -92,13 +92,19 @@ private val OffsetFormat = UtcOffset.Format {
 internal val ApplicationInfo.readableVersion: String
   get() = "$versionName ($versionCode)"
 
-/** `2026-11-24 09:03 -05:00 · 220c0be`, in [timeZone]. Either half is dropped when unknown. */
+/**
+ * `2026-11-24 09:03 -05:00 (220c0be)`, in [timeZone]. Without a time it's just the SHA; without a
+ * SHA, just the time.
+ */
 internal fun BuildCommit.line(timeZone: TimeZone): String {
   val formattedTime = time?.let { instant ->
     val local = instant.toLocalDateTime(timeZone)
     "${CommitTimeFormat.format(local)} ${OffsetFormat.format(timeZone.offsetAt(instant))}"
   }
-  return listOfNotNull(formattedTime, sha).joinToString(SEPARATOR)
+  return when {
+    formattedTime != null && sha != null -> "$formattedTime ($sha)"
+    else -> formattedTime ?: sha.orEmpty()
+  }
 }
 
 /** What a long-press on Version copies: [readableVersion] plus the commit [line] when known. */

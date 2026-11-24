@@ -18,6 +18,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -36,6 +37,7 @@ import app.campfire.core.toast.ToastHandle
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import kotlin.test.Test
@@ -55,7 +57,7 @@ class VersionSettingTest {
     setVersionSetting(onClick = null)
 
     onNodeWithText("1.4.0 (1040099)").assertIsDisplayed()
-    onNodeWithText("2026-11-24 09:03 -05:00 · 220c0be").assertIsDisplayed()
+    onNodeWithText("2026-11-24 09:03 -05:00 (220c0be)").assertIsDisplayed()
   }
 
   @Test
@@ -73,7 +75,7 @@ class VersionSettingTest {
     onNodeWithText("Version").performTouchInput { longClick() }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
     assertThat(toasts).containsExactly("Copied to clipboard")
     assertThat(clicks).isEqualTo(0)
   }
@@ -95,10 +97,14 @@ class VersionSettingTest {
     onNodeWithText("Version").assertHasNoClickAction()
     onNodeWithText("Version").assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
 
+    onNodeWithText("Version").performTouchInput { click() }
+    waitForIdle()
+    assertThat(clipboard.text).isNull()
+
     onNodeWithText("Version").performTouchInput { longClick() }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
   }
 
   @Test
@@ -109,7 +115,7 @@ class VersionSettingTest {
     onNodeWithText("Version").performKeyInput { pressKey(Key.Enter) }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
     assertThat(toasts).containsExactly("Copied to clipboard")
   }
 

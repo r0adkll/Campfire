@@ -75,7 +75,7 @@ class AboutPaneTest {
 
     // The time is in this machine's zone, so only the SHA is pinned here; VersionSettingTest covers the format.
     onNodeWithText("1.4.0 (1040099)").performScrollTo().assertIsDisplayed()
-    onNodeWithText("· 220c0be", substring = true).assertIsDisplayed()
+    onNodeWithText("(220c0be)", substring = true).assertIsDisplayed()
   }
 
   @Test
