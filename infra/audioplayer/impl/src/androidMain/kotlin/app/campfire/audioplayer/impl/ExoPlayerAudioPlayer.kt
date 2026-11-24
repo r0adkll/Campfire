@@ -744,20 +744,25 @@ class ExoPlayerAudioPlayer(
   private suspend fun onCastPlaybackDead() {
     wbark { "Cast playback failed to reach READY in time; falling back to local playback" }
     val resumeTime = overallTime.value
-    castController.disconnect()
 
-    // The composite CastPlayer swaps back to the local player when the session ends
-    withTimeoutOrNull(CAST_FALLBACK_SWAP_TIMEOUT_MS) {
-      while (player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL) {
-        delay(100)
+    // The user didn't pause or seek, so keep the whole fallback, including whatever the players
+    // report while swapping, out of their playback history
+    playbackHistoryForwardingPlayer.withoutRecording {
+      castController.disconnect()
+
+      // The composite CastPlayer swaps back to the local player when the session ends
+      withTimeoutOrNull(CAST_FALLBACK_SWAP_TIMEOUT_MS) {
+        while (player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+          delay(100)
+        }
       }
-    }
-    // Sync from actual state rather than the listener event, which may not have landed yet —
-    // the seek below must use local (chapter-queue) semantics
-    isRemotePlayback = player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL
+      // Sync from actual state rather than the listener event, which may not have landed yet —
+      // the seek below must use local (chapter-queue) semantics
+      isRemotePlayback = player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL
 
-    player.pause()
-    seekTo(resumeTime, play = false)
+      player.pause()
+      seekTo(resumeTime, play = false)
+    }
     GlobalToaster.show(
       context.getString(R.string.cast_failed_resumed_locally),
       Toast.Duration.LONG,
@@ -823,6 +828,7 @@ class ExoPlayerAudioPlayer(
       return
     }
 
+    playbackHistoryForwardingPlayer.recordPlaybackFailed()
     _error.value = error.asPlaybackFailure()
   }
 
