@@ -59,7 +59,6 @@ class IosPlaybackController(
     requeueCurrent: Boolean,
   ) {
     userScopeHolder.get().launch {
-      configureAudioSession()
       initializeAudioPlayerIfNeeded()
       playbackSessionManager.startSession(
         itemId,
@@ -93,15 +92,20 @@ class IosPlaybackController(
     }
   }
 
-  private fun configureAudioSession() {
+  /**
+   * Called by the engine right before AVPlayer starts. Activating the session interrupts other
+   * apps' audio, so it waits for real playback rather than happening when a session is merely
+   * restored paused. It runs on every start because the system deactivates the session during an
+   * interruption, and resuming afterwards needs it back.
+   */
+  private fun activateAudioSession() {
     try {
       AVAudioSession.sharedInstance().apply {
         setCategory(AVAudioSessionCategoryPlayback, null)
         setActive(true, null)
       }
-      bark { "AVAudioSession is now configured!" }
     } catch (e: Exception) {
-      bark(LogPriority.ERROR, throwable = e) { "Error setting up iOS AudioSession" }
+      bark(LogPriority.ERROR, throwable = e) { "Error activating iOS AudioSession" }
     }
   }
 
@@ -125,7 +129,7 @@ class IosPlaybackController(
         // AVPlayer has no equalizer hook; the player reports EqualizerState.Unsupported
         equalizerSettings = null,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
-        engineFactory = { AvPlayerEngine() },
+        engineFactory = { AvPlayerEngine(beforePlay = ::activateAudioSession) },
         accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
         requestHeadersProvider = serverRequestHeaders::forUrl,
         audioOutputController = audioOutputController,

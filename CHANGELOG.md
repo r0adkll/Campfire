@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Audiobooks not playing, freezing on books without chapters, skipping to the wrong chapter, and the queue not moving on to the next book
 - [Desktop] Marking the book you're listening to as finished stopping playback instead of moving on to the next book in your queue
 - The player showing stale playback state after playback stopped
+- [iOS] Servers using plain HTTP with a host name failing to connect
+- [iOS] Opening the app stopping audio playing in other apps
 
 ### Other Notes & Contributions
 
