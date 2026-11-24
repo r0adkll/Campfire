@@ -1,6 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
+import app.campfire.convention.campfireBuildStamp
 import app.campfire.convention.campfireVersionCode
 import app.campfire.convention.campfireVersionName
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
@@ -50,6 +51,9 @@ buildConfig {
   buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
   buildConfigField("int", "VERSION_CODE", "${campfireVersionCode()}")
   buildConfigField("boolean", "DEBUG", "$isDebugBuild")
+  val buildStamp = campfireBuildStamp()
+  buildConfigField("long", "COMMIT_TIME", "${buildStamp.commitEpochSeconds}L")
+  buildConfigField("String", "COMMIT_SHA", "\"${buildStamp.commitSha}\"")
   useKotlinOutput()
 }
 

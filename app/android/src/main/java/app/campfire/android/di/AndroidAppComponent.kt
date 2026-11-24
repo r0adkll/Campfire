@@ -14,6 +14,7 @@ import app.campfire.core.di.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
+import kotlin.time.Instant
 
 @DependencyGraph(AppScope::class)
 interface AndroidAppComponent : SharedAppComponent {
@@ -42,6 +43,8 @@ interface AndroidAppComponent : SharedAppComponent {
       manufacturer = Build.MANUFACTURER,
       model = Build.MODEL,
       sdkVersion = Build.VERSION.SDK_INT,
+      commitTime = BuildConfig.COMMIT_TIME.takeIf { it > 0 }?.let(Instant::fromEpochSeconds),
+      commitSha = BuildConfig.COMMIT_SHA.ifEmpty { null },
     )
   }
 

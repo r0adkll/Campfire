@@ -3,7 +3,7 @@
 
 package app.campfire.ui.settings.composables
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,6 +17,8 @@ internal fun ActionSetting(
   trailingContent: (@Composable () -> Unit)? = null,
   onClick: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
+  onLongClick: (() -> Unit)? = null,
+  onLongClickLabel: String? = null,
 ) {
   SettingListItem(
     leadingContent = leadingContent,
@@ -27,8 +29,10 @@ internal fun ActionSetting(
       containerColor = Color.Transparent,
     ),
     modifier = modifier
-      .clickable(
-        enabled = onClick != null,
+      .combinedClickable(
+        enabled = onClick != null || onLongClick != null,
+        onLongClickLabel = onLongClickLabel,
+        onLongClick = onLongClick,
         onClick = {
           onClick?.invoke()
         },

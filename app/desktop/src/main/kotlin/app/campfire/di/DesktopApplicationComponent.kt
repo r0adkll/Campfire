@@ -14,6 +14,7 @@ import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import java.util.prefs.Preferences
+import kotlin.time.Instant
 
 @DependencyGraph(AppScope::class)
 interface DesktopApplicationComponent : SharedAppComponent {
@@ -28,6 +29,8 @@ interface DesktopApplicationComponent : SharedAppComponent {
     versionCode = BuildConfig.VERSION_CODE,
     osName = System.getProperty("os.name"),
     osVersion = System.getProperty("os.version"),
+    commitTime = BuildConfig.COMMIT_TIME.takeIf { it > 0 }?.let(Instant::fromEpochSeconds),
+    commitSha = BuildConfig.COMMIT_SHA.ifEmpty { null },
   )
 
   @SingleIn(AppScope::class)

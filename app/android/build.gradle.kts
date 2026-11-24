@@ -3,6 +3,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
+import app.campfire.convention.campfireBuildStamp
 import app.campfire.convention.campfireVersionCode
 import app.campfire.convention.campfireVersionName
 import app.campfire.convention.deriveVersionCode
@@ -32,6 +33,10 @@ android {
 
     versionCode = campfireVersionCode()
     versionName = campfireVersionName()
+
+    val buildStamp = campfireBuildStamp()
+    buildConfigField("long", "COMMIT_TIME", "${buildStamp.commitEpochSeconds}L")
+    buildConfigField("String", "COMMIT_SHA", "\"${buildStamp.commitSha}\"")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
