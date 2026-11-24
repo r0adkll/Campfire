@@ -61,7 +61,7 @@ class PlaybackHistoryForwardingPlayer(
    */
   override fun setPlayWhenReady(playWhenReady: Boolean) {
     val wasPlayWhenReady = this.playWhenReady
-    if (!playWhenReady && wasPlayWhenReady) recordPauseForPlayingSession()
+    if (!playWhenReady) recordPauseForPlayingSession()
     super.setPlayWhenReady(playWhenReady)
     if (playWhenReady) recordPlayIfStarted(wasPlayWhenReady)
   }
@@ -81,14 +81,14 @@ class PlaybackHistoryForwardingPlayer(
     record(session, PlaybackActionType.Play, overallPosition.milliseconds)
   }
 
+  /** Records before pausing, while the position is still the playing one; the echo then records nothing. */
   override fun pause() {
-    val wasPlayWhenReady = playWhenReady
+    recordPauseForPlayingSession()
     super.pause()
-    if (wasPlayWhenReady) recordPauseForPlayingSession()
   }
 
   override fun stop() {
-    if (playWhenReady) recordPauseForPlayingSession()
+    recordPauseForPlayingSession()
     super.stop()
   }
 
@@ -140,20 +140,35 @@ class PlaybackHistoryForwardingPlayer(
   }
 
   /**
+   * Removing every item clears the queue too. A MediaSession controller's `clearMediaItems()`
+   * reaches this layer this way, through [ChapterWindowForwardingPlayer].
+   */
+  override fun removeMediaItem(index: Int) {
+    if (index == 0 && mediaItemCount == 1) onQueueReplaced(stopsPlayback = true)
+    super.removeMediaItem(index)
+  }
+
+  override fun removeMediaItems(fromIndex: Int, toIndex: Int) {
+    if (fromIndex == 0 && toIndex >= mediaItemCount) onQueueReplaced(stopsPlayback = true)
+    super.removeMediaItems(fromIndex, toIndex)
+  }
+
+  /**
    * Preparing a session replaces the queue. Doing so while another book plays stops that book, so
    * record its Pause first, while the position still belongs to it. Re-preparing the session that
    * is playing (HLS fallback, cache recovery) doesn't stop anything, unless the queue is cleared
    * outright ([stopsPlayback]). The new queue is neither at its end nor failed.
    */
   private fun onQueueReplaced(stopsPlayback: Boolean = false) {
-    if (playWhenReady && (stopsPlayback || session()?.id != playingSession?.id)) {
-      recordPauseForPlayingSession()
-    }
+    if (stopsPlayback || session()?.id != playingSession?.id) recordPauseForPlayingSession()
     endedSession = null
     hasFailed = false
   }
 
-  /** Records a Pause for the [playingSession], if one is playing, and closes it. */
+  /**
+   * Records a Pause for the [playingSession], if one is playing, and closes it. Every pause closes
+   * it, so callers don't need to check `playWhenReady` first.
+   */
   private fun recordPauseForPlayingSession() {
     val stopped = playingSession ?: return
     playingSession = null

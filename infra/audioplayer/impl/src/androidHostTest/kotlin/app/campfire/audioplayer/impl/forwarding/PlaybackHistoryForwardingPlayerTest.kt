@@ -334,6 +334,37 @@ class PlaybackHistoryForwardingPlayerTest {
   }
 
   @Test
+  fun `removing every item while the same book plays records a Pause`() {
+    val removals = listOf<(Player) -> Unit>(
+      { it.removeMediaItems(0, Int.MAX_VALUE) },
+      { it.removeMediaItem(0) },
+    )
+    removals.forEach { remove ->
+      recorder.actions.clear()
+      player.play()
+      delegate.position = 4_000
+
+      remove(player)
+
+      assertEquals(
+        listOf(Action(PlaybackActionType.Play, 0), Action(PlaybackActionType.Pause, 4_000)),
+        recorder.actions,
+      )
+    }
+  }
+
+  @Test
+  fun `removing some of the queue while playing records nothing more`() {
+    delegate.mediaItemCount = 3
+    player.play()
+
+    player.removeMediaItems(1, 3)
+    player.removeMediaItem(0)
+
+    assertEquals(listOf(PlaybackActionType.Play), recorder.types)
+  }
+
+  @Test
   fun `headphones disconnecting while playing records a Pause`() {
     player.play()
     delegate.position = 6_000
@@ -677,6 +708,7 @@ class PlaybackHistoryForwardingPlayerTest {
     var playWhenReady = false
     var position = 0L
     var playbackState = Player.STATE_READY
+    var mediaItemCount = 1
 
     /** On the last item, skipping next is ignored, as Media3's BasePlayer does. */
     var atLastItem = false
@@ -705,6 +737,7 @@ class PlaybackHistoryForwardingPlayerTest {
         "getPlayWhenReady" -> playWhenReady
         "getCurrentPosition" -> position
         "getPlaybackState" -> playbackState
+        "getMediaItemCount" -> mediaItemCount
         "setPlayWhenReady" -> {
           playWhenReady = args[0] as Boolean
           null
@@ -725,7 +758,7 @@ class PlaybackHistoryForwardingPlayerTest {
           listeners += args[0] as Player.Listener
           null
         }
-        "setMediaItems", "clearMediaItems" -> {
+        "setMediaItems", "clearMediaItems", "removeMediaItem", "removeMediaItems" -> {
           position = 0
           null
         }
