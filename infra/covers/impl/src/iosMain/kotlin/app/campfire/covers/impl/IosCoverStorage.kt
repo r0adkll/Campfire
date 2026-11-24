@@ -4,19 +4,20 @@
 package app.campfire.covers.impl
 
 import app.campfire.core.di.AppScope
+import app.campfire.core.files.applicationSupportDirectory
+import app.campfire.core.files.createExcludedFromBackup
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import platform.Foundation.NSApplicationSupportDirectory
-import platform.Foundation.NSSearchPathForDirectoriesInDomains
-import platform.Foundation.NSUserDomainMask
 
 @ContributesBinding(AppScope::class)
 @Inject
 class IosCoverStorage : CoverStorage {
-  // Application Support is kept, unlike Caches, but not shown in the Files app
-  override fun directory(): String {
-    val support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true)
-      .first() as String
-    return "$support/covers"
+
+  // Application Support is kept, unlike Caches, and not shown in the Files app. Covers can be
+  // fetched again, so they stay out of backups.
+  private val directory by lazy {
+    "${applicationSupportDirectory()}/covers".also(::createExcludedFromBackup)
   }
+
+  override fun directory(): String = directory
 }
