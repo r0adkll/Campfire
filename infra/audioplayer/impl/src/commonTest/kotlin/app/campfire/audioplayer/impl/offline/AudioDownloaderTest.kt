@@ -49,7 +49,7 @@ class AudioDownloaderTest {
   private fun TestScope.downloader() = AudioDownloader(manager, items, CoroutineScopeHolder { this })
 
   @Test
-  fun `handles audiobooks and episodes, not ebooks`() = runTest {
+  fun `handles audiobooks and episodes but not ebooks`() = runTest {
     val downloader = downloader()
 
     assertThat(downloader.handles(DownloadContent.Audiobook("book"))).isTrue()
@@ -58,7 +58,7 @@ class AudioDownloaderTest {
   }
 
   @Test
-  fun `every audio download shows, books and episodes alike`() = runTest {
+  fun `every audio download shows for books and episodes alike`() = runTest {
     manager.observeAllFlow.emit(
       listOf(
         OfflineDownload("book", OfflineDownload.State.Completed),

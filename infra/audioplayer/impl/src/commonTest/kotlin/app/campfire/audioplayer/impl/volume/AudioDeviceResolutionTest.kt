@@ -37,7 +37,7 @@ class AudioDeviceResolutionTest {
   }
 
   @Test
-  fun `replugging a device restores it, because the pin was never discarded`() {
+  fun `replugging a device restores it because the pin was never discarded`() {
     val unplugged = listOf(speakers)
     assertThat(AudioDeviceResolution.resolve("Headphones", unplugged)).isNull()
 
@@ -53,7 +53,7 @@ class AudioDeviceResolutionTest {
   }
 
   @Test
-  fun `matching is by name, since that is the only durable handle`() {
+  fun `matching is by name since that is the only durable handle`() {
     // Same name, different engine-side id — still the user's device
     val reIdentified = AudioDevice(id = "85", name = "Headphones")
     assertThat(AudioDeviceResolution.resolve("Headphones", listOf(reIdentified)))
