@@ -133,19 +133,22 @@ class PlaybackHistoryForwardingPlayer(
     super.setMediaItems(mediaItems, startIndex, startPositionMs)
   }
 
+  /** Clearing the queue stops whatever was playing, even when no other book replaces it. */
   override fun clearMediaItems() {
-    onQueueReplaced()
+    onQueueReplaced(stopsPlayback = true)
     super.clearMediaItems()
   }
 
   /**
    * Preparing a session replaces the queue. Doing so while another book plays stops that book, so
    * record its Pause first, while the position still belongs to it. Re-preparing the session that
-   * is playing (HLS fallback, cache recovery) doesn't stop anything. The new queue is neither at
-   * its end nor failed.
+   * is playing (HLS fallback, cache recovery) doesn't stop anything, unless the queue is cleared
+   * outright ([stopsPlayback]). The new queue is neither at its end nor failed.
    */
-  private fun onQueueReplaced() {
-    if (playWhenReady && session()?.id != playingSession?.id) recordPauseForPlayingSession()
+  private fun onQueueReplaced(stopsPlayback: Boolean = false) {
+    if (playWhenReady && (stopsPlayback || session()?.id != playingSession?.id)) {
+      recordPauseForPlayingSession()
+    }
     endedSession = null
     hasFailed = false
   }
@@ -160,11 +163,14 @@ class PlaybackHistoryForwardingPlayer(
   /** Playback stops that the player makes on its own, beneath the commands this layer sees. */
   private inner class PlayerInitiatedStopListener : Player.Listener {
     /**
-     * Headphones unplugged / Bluetooth disconnected, another app taking audio focus for good, or
-     * a pause from the cast receiver (its remote, or another device controlling it).
+     * Any pause the player reports: headphones unplugged / Bluetooth disconnected, another app
+     * taking audio focus for good, a pause from the cast receiver (its remote, or another device
+     * controlling it), the end of a media item, playback suppressed too long, or anything else
+     * pausing the player below this layer. Pauses made through this layer have already closed the
+     * [playingSession] by the time the player echoes them, so they record nothing more.
      */
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-      if (!playWhenReady && reason in PLAYER_INITIATED_PAUSE_REASONS) recordPauseForPlayingSession()
+      if (!playWhenReady) recordPauseForPlayingSession()
     }
 
     /**
@@ -211,7 +217,11 @@ class PlaybackHistoryForwardingPlayer(
 
   override fun seekToDefaultPosition() = recordSeek(PlaybackActionType.Seek) { super.seekToDefaultPosition() }
 
-  /** A chapter tap; never recorded as a Seek, but it can still resume a book from its end. */
+  /**
+   * A chapter tap in a book with one file per chapter (a single-file book's chapter tap is a
+   * recorded [seekTo] instead). Never recorded as a Seek, but it can still resume a book from its
+   * end.
+   */
   override fun seekToDefaultPosition(mediaItemIndex: Int) = recordSeek(type = null) {
     super.seekToDefaultPosition(mediaItemIndex)
   }
@@ -254,14 +264,6 @@ class PlaybackHistoryForwardingPlayer(
       fromPosition = fromPosition,
       toPosition = toPosition,
       episodeId = session.episodeId,
-    )
-  }
-
-  private companion object {
-    val PLAYER_INITIATED_PAUSE_REASONS = setOf(
-      Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY,
-      Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS,
-      Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE,
     )
   }
 }

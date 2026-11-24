@@ -321,6 +321,19 @@ class PlaybackHistoryForwardingPlayerTest {
   }
 
   @Test
+  fun `clearing the queue while the same book plays records a Pause`() {
+    player.play()
+    delegate.position = 4_000
+
+    player.clearMediaItems()
+
+    assertEquals(
+      listOf(Action(PlaybackActionType.Play, 0), Action(PlaybackActionType.Pause, 4_000)),
+      recorder.actions,
+    )
+  }
+
+  @Test
   fun `headphones disconnecting while playing records a Pause`() {
     player.play()
     delegate.position = 6_000
@@ -340,6 +353,22 @@ class PlaybackHistoryForwardingPlayerTest {
     delegate.pauseItself(Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS)
 
     assertEquals(listOf(PlaybackActionType.Play, PlaybackActionType.Pause), recorder.types)
+  }
+
+  @Test
+  fun `the player pausing itself for any other reason records a Pause`() {
+    val reasons = listOf(
+      Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM,
+      Player.PLAY_WHEN_READY_CHANGE_REASON_SUPPRESSED_TOO_LONG,
+    )
+    reasons.forEach { reason ->
+      recorder.actions.clear()
+      player.play()
+
+      delegate.pauseItself(reason)
+
+      assertEquals(listOf(PlaybackActionType.Play, PlaybackActionType.Pause), recorder.types)
+    }
   }
 
   @Test
