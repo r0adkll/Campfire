@@ -48,11 +48,11 @@ kotlin {
       }
     }
 
-    val skikoMain by creating {
+    val skikoMain = create("skikoMain") {
       dependsOn(commonMain.get())
     }
 
-    val jvmCommon by creating {
+    val jvmCommon = create("jvmCommon") {
       dependsOn(commonMain.get())
 
       dependencies {

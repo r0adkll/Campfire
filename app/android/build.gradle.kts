@@ -91,18 +91,18 @@ android {
     if (rootProject.file("app/signing/drop.keystore").exists()) {
       create("drop") {
         storeFile = rootProject.file("app/signing/drop.keystore")
-        storePassword = properties["CAMPFIRE_DROP_KEYSTORE_PWD"]?.toString().orEmpty()
+        storePassword = providers.gradleProperty("CAMPFIRE_DROP_KEYSTORE_PWD").orNull.orEmpty()
         keyAlias = "drop"
-        keyPassword = properties["CAMPFIRE_DROP_KEYSTORE_PWD"]?.toString().orEmpty()
+        keyPassword = providers.gradleProperty("CAMPFIRE_DROP_KEYSTORE_PWD").orNull.orEmpty()
       }
     }
 
     if (rootProject.file("app/signing/campfire.keystore").exists()) {
       create("release") {
         storeFile = file("../signing/campfire.keystore")
-        storePassword = properties["CAMPFIRE_KEYSTORE_PWD"]?.toString().orEmpty()
+        storePassword = providers.gradleProperty("CAMPFIRE_KEYSTORE_PWD").orNull.orEmpty()
         keyAlias = "audiobooks"
-        keyPassword = properties["CAMPFIRE_KEY_PWD"]?.toString().orEmpty()
+        keyPassword = providers.gradleProperty("CAMPFIRE_KEY_PWD").orNull.orEmpty()
       }
     }
   }
@@ -117,7 +117,7 @@ android {
       val releaseSigning = signingConfigs.findByName("release")
       // A versioned (tagged) release must never fall back to the committed debug key:
       // IzzyOnDroid rejects debug-signed APKs and users couldn't upgrade across keys.
-      check(releaseSigning != null || properties["CAMPFIRE_VERSIONNAME"] == null) {
+      check(releaseSigning != null || !providers.gradleProperty("CAMPFIRE_VERSIONNAME").isPresent) {
         "CAMPFIRE_VERSIONNAME is set but app/signing/campfire.keystore is missing; " +
           "refusing to sign a versioned release build with the debug key."
       }
@@ -155,7 +155,7 @@ android {
 androidComponents {
   // A build type's signing config wins over a flavor's, so the alpha override goes on the variant.
   onVariants(selector().withFlavor("default" to "alpha").withBuildType("release")) { variant ->
-    android.signingConfigs.findByName("drop")?.let { variant.signingConfig.setConfig(it) }
+    android.signingConfigs.findByName("drop")?.let { variant.signingConfig.from(it) }
   }
 }
 

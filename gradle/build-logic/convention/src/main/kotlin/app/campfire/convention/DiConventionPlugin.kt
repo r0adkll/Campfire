@@ -3,6 +3,7 @@
 
 package app.campfire.convention
 
+import dev.zacsweers.metro.gradle.DelicateMetroGradleApi
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
 import dev.zacsweers.metro.gradle.MetroPluginExtension
 import org.gradle.api.Plugin
@@ -17,7 +18,7 @@ import org.gradle.kotlin.dsl.configure
  * `-Pcampfire.metro.reports=true` to write Metro's graph reports to `build/reports/metro`.
  */
 class DiConventionPlugin : Plugin<Project> {
-  @OptIn(ExperimentalMetroGradleApi::class)
+  @OptIn(ExperimentalMetroGradleApi::class, DelicateMetroGradleApi::class)
   override fun apply(target: Project) = with(target) {
     pluginManager.apply("dev.zacsweers.metro")
 

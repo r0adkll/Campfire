@@ -97,6 +97,8 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
               // https://youtrack.jetbrains.com/issue/KT-57914
               val projectPath = this@with.path.substring(1).replace(":", "_")
               this as KotlinCompileCommon
+              // Deprecated without a replacement for metadata compilations (KGP 2.4).
+              @Suppress("DEPRECATION")
               moduleName.set("${projectPath}_commonMain")
             }
           }
