@@ -48,6 +48,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -55,7 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CheckCircle
@@ -70,6 +70,8 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.offline.OfflineStatus
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.cover_badge_episode
+import campfire.common.compose.generated.resources.cover_badge_episode_number
 import campfire.common.compose.generated.resources.item_actions_label
 import campfire.common.compose.generated.resources.placeholder_book
 import campfire.common.compose.generated.resources.unfinished_episodes
@@ -129,6 +131,8 @@ fun LibraryItemCard(
   // out, as they'd act on the whole podcast.
   val openActions = if (onClick != null && episode == null) rememberLibraryItemActionsOpener(item) else null
 
+  val decorationSize = if (showInformation) CoverDecorationSize.Regular else CoverDecorationSize.Compact
+
   ElevatedContentCard(
     modifier = modifier
       .thenIfNotNull(animationScope) { scope ->
@@ -161,15 +165,16 @@ fun LibraryItemCard(
             ProgressDecorator(
               progress = progress,
               isTransitioning = isTransitioning,
-              large = showInformation,
+              size = decorationSize,
             )
 
-            if (!episode?.episode.isNullOrBlank()) {
+            if (episode != null) {
               // Render the podcast episode decoration
               PodcastEpisodeDecorator(
                 episode = episode,
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
+                size = decorationSize,
               )
             } else if (item.isEbookOnly) {
               // Render the ebook format decoration
@@ -177,6 +182,7 @@ fun LibraryItemCard(
                 format = item.media.ebookFormat.orEmpty(),
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
+                size = decorationSize,
               )
             } else if (unfinishedEpisodes > 0) {
               // Render the podcast's unfinished episode count
@@ -184,12 +190,14 @@ fun LibraryItemCard(
                 count = unfinishedEpisodes,
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
+                size = decorationSize,
               )
             } else {
               // Render the offline status decoration
               OfflineStatusDecorator(
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
+                size = decorationSize,
               )
             }
           },
@@ -291,7 +299,7 @@ private fun LibraryItemCardImage(
 private fun BoxScope.ProgressDecorator(
   progress: MediaProgress?,
   isTransitioning: Boolean,
-  large: Boolean = true,
+  size: CoverDecorationSize,
 ) {
   progress?.let { mediaProgress ->
     if (mediaProgress.isFinished) {
@@ -303,17 +311,8 @@ private fun BoxScope.ProgressDecorator(
           .align(Alignment.TopStart),
       ) {
         MediaFinishedIndicator(
-          size = if (large) 24.dp else 18.dp,
-          modifier = Modifier
-            .thenIf(
-              condition = large,
-              whenTrue = {
-                Modifier.padding(8.dp)
-              },
-              whenFalse = {
-                Modifier.padding(4.dp)
-              },
-            ),
+          size = size.badgeHeight,
+          modifier = Modifier.padding(size.inset),
         )
       }
     } else {
@@ -326,7 +325,7 @@ private fun BoxScope.ProgressDecorator(
       ) {
         MediaProgressBar(
           mediaProgress = mediaProgress,
-          trackHeight = if (large) LargeProgressBarHeight else SmallProgressBarHeight,
+          trackHeight = size.progressBarHeight,
           modifier = Modifier
             .fillMaxWidth(),
         )
@@ -335,25 +334,65 @@ private fun BoxScope.ProgressDecorator(
   }
 }
 
+/**
+ * The scale of the decorations over a card's cover: [Regular] over a card that shows its title,
+ * [Compact] over the dense grid's bare covers. A badge is as tall as the finished check, and every
+ * decoration sits [inset] in from the cover's corner.
+ */
+internal enum class CoverDecorationSize(
+  val inset: Dp,
+  val badgeHeight: Dp,
+  val iconSize: Dp,
+  val badgeHorizontalPadding: Dp,
+  val progressBarHeight: Dp,
+) {
+  Regular(
+    inset = 8.dp,
+    badgeHeight = 24.dp,
+    iconSize = 18.dp,
+    badgeHorizontalPadding = 8.dp,
+    progressBarHeight = LargeProgressBarHeight,
+  ),
+  Compact(
+    inset = 4.dp,
+    badgeHeight = 18.dp,
+    iconSize = 14.dp,
+    badgeHorizontalPadding = 6.dp,
+    progressBarHeight = SmallProgressBarHeight,
+  ),
+}
+
+@Composable
+private fun BoxScope.TopEndDecoration(
+  isTransitioning: Boolean,
+  size: CoverDecorationSize,
+  content: @Composable () -> Unit,
+) {
+  AnimatedVisibility(
+    visible = isTransitioning,
+    enter = fadeIn(),
+    exit = fadeOut(),
+    modifier = Modifier
+      .align(Alignment.TopEnd)
+      .padding(size.inset),
+  ) {
+    content()
+  }
+}
+
 @Composable
 private fun BoxScope.OfflineStatusDecorator(
   offlineStatus: OfflineStatus,
   isTransitioning: Boolean,
+  size: CoverDecorationSize,
 ) {
   if (offlineStatus != OfflineStatus.None) {
-    AnimatedVisibility(
-      visible = isTransitioning,
-      enter = fadeIn(),
-      exit = fadeOut(),
-      modifier = Modifier
-        .align(Alignment.TopEnd)
-        .padding(
-          end = 8.dp,
-          top = 8.dp,
-        ),
-    ) {
-      OfflineStatusIndicator(
-        status = offlineStatus,
+    TopEndDecoration(isTransitioning, size) {
+      // The same pill as the labelled badges, so it reads over light covers too
+      CoverBadge(
+        text = null,
+        offlineStatus = offlineStatus,
+        size = size,
       )
     }
   }
@@ -364,41 +403,20 @@ private fun BoxScope.PodcastEpisodeDecorator(
   episode: PodcastEpisode,
   offlineStatus: OfflineStatus,
   isTransitioning: Boolean,
+  size: CoverDecorationSize,
 ) {
-  AnimatedVisibility(
-    visible = isTransitioning,
-    enter = fadeIn(),
-    exit = fadeOut(),
-    modifier = Modifier
-      .align(Alignment.TopEnd)
-      .padding(
-        end = 8.dp,
-        top = 8.dp,
-      ),
-  ) {
-    Row(
-      modifier = Modifier
-        .clip(CircleShape)
-        .background(
-          color = MaterialTheme.colorScheme.scrim.copy(0.68f),
-        )
-        .padding(
-          horizontal = 8.dp,
-          vertical = 4.dp,
-        ),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-      if (offlineStatus != OfflineStatus.None) {
-        OfflineStatusIndicator(offlineStatus)
-      }
-
-      Text(
-        text = "Episode ${episode.episode!!}",
-        style = MaterialTheme.typography.labelSmall,
-        color = Color.White,
-      )
-    }
+  TopEndDecoration(isTransitioning, size) {
+    // An episode without a number still says it's an episode, as its cover is the podcast's own
+    val number = episode.episode?.takeIf { it.isNotBlank() }
+    CoverBadge(
+      text = if (number != null) {
+        stringResource(Res.string.cover_badge_episode_number, number)
+      } else {
+        stringResource(Res.string.cover_badge_episode)
+      },
+      offlineStatus = offlineStatus,
+      size = size,
+    )
   }
 }
 
@@ -407,21 +425,13 @@ private fun BoxScope.EbookFormatDecorator(
   format: String,
   offlineStatus: OfflineStatus,
   isTransitioning: Boolean,
+  size: CoverDecorationSize,
 ) {
-  AnimatedVisibility(
-    visible = isTransitioning,
-    enter = fadeIn(),
-    exit = fadeOut(),
-    modifier = Modifier
-      .align(Alignment.TopEnd)
-      .padding(
-        end = 8.dp,
-        top = 8.dp,
-      ),
-  ) {
-    EbookFormatBadge(
-      format = format,
+  TopEndDecoration(isTransitioning, size) {
+    CoverBadge(
+      text = format.uppercase(),
       offlineStatus = offlineStatus,
+      size = size,
     )
   }
 }
@@ -435,29 +445,12 @@ fun EbookFormatBadge(
   modifier: Modifier = Modifier,
   offlineStatus: OfflineStatus = OfflineStatus.None,
 ) {
-  Row(
-    modifier = modifier
-      .clip(CircleShape)
-      .background(
-        color = MaterialTheme.colorScheme.scrim.copy(0.68f),
-      )
-      .padding(
-        horizontal = 8.dp,
-        vertical = 4.dp,
-      ),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-  ) {
-    if (offlineStatus != OfflineStatus.None) {
-      OfflineStatusIndicator(offlineStatus)
-    }
-
-    Text(
-      text = format.uppercase(),
-      style = MaterialTheme.typography.labelSmall,
-      color = Color.White,
-    )
-  }
+  CoverBadge(
+    text = format.uppercase(),
+    offlineStatus = offlineStatus,
+    size = CoverDecorationSize.Regular,
+    modifier = modifier,
+  )
 }
 
 @Composable
@@ -465,21 +458,13 @@ private fun BoxScope.UnfinishedEpisodesDecorator(
   count: Int,
   offlineStatus: OfflineStatus,
   isTransitioning: Boolean,
+  size: CoverDecorationSize,
 ) {
-  AnimatedVisibility(
-    visible = isTransitioning,
-    enter = fadeIn(),
-    exit = fadeOut(),
-    modifier = Modifier
-      .align(Alignment.TopEnd)
-      .padding(
-        end = 8.dp,
-        top = 8.dp,
-      ),
-  ) {
+  TopEndDecoration(isTransitioning, size) {
     UnfinishedEpisodesBadge(
       count = count,
       offlineStatus = offlineStatus,
+      size = size,
     )
   }
 }
@@ -494,39 +479,74 @@ fun UnfinishedEpisodesBadge(
   modifier: Modifier = Modifier,
   offlineStatus: OfflineStatus = OfflineStatus.None,
 ) {
+  UnfinishedEpisodesBadge(count, offlineStatus, CoverDecorationSize.Regular, modifier)
+}
+
+@Composable
+private fun UnfinishedEpisodesBadge(
+  count: Int,
+  offlineStatus: OfflineStatus,
+  size: CoverDecorationSize,
+  modifier: Modifier = Modifier,
+) {
+  // Read out in full, as the capped number on its own doesn't say what it counts
+  val description = pluralStringResource(Res.plurals.unfinished_episodes, count, count)
+  CoverBadge(
+    text = if (count > MaxBadgedEpisodes) {
+      stringResource(Res.string.unfinished_episodes_capped, MaxBadgedEpisodes)
+    } else {
+      count.toString()
+    },
+    offlineStatus = offlineStatus,
+    size = size,
+    modifier = modifier,
+    textModifier = Modifier.semantics { contentDescription = description },
+  )
+}
+
+/**
+ * A label over a cover in a scrim pill, as tall as [size]'s finished check, led by
+ * [offlineStatus] once the item is downloaded or on its way. A null [text] leaves the status on
+ * its own in the pill.
+ */
+@Composable
+private fun CoverBadge(
+  text: String?,
+  offlineStatus: OfflineStatus,
+  size: CoverDecorationSize,
+  modifier: Modifier = Modifier,
+  textModifier: Modifier = Modifier,
+) {
   Row(
     modifier = modifier
+      .height(size.badgeHeight)
       .clip(CircleShape)
       .background(
-        color = MaterialTheme.colorScheme.scrim.copy(0.68f),
+        color = MaterialTheme.colorScheme.scrim.copy(CoverBadgeScrimAlpha),
       )
-      .padding(
-        horizontal = 8.dp,
-        vertical = 4.dp,
-      ),
+      .padding(horizontal = size.badgeHorizontalPadding),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(4.dp),
   ) {
     if (offlineStatus != OfflineStatus.None) {
-      OfflineStatusIndicator(offlineStatus)
+      OfflineStatusIndicator(offlineStatus, size = size.iconSize, failedTint = coverBadgeErrorColor())
     }
 
-    // Read out in full, as the capped number on its own doesn't say what it counts
-    val description = pluralStringResource(Res.plurals.unfinished_episodes, count, count)
-    Text(
-      text = if (count > MaxBadgedEpisodes) {
-        stringResource(Res.string.unfinished_episodes_capped, MaxBadgedEpisodes)
-      } else {
-        count.toString()
-      },
-      style = MaterialTheme.typography.labelSmall,
-      color = Color.White,
-      modifier = Modifier.semantics { contentDescription = description },
-    )
+    if (text != null) {
+      Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White,
+        maxLines = 1,
+        modifier = textModifier,
+      )
+    }
   }
 }
 
 private const val MaxBadgedEpisodes = 99
+
+private const val CoverBadgeScrimAlpha = 0.68f
 
 @Composable
 private fun LibraryItemCardInformation(
@@ -739,6 +759,7 @@ fun OfflineStatusIndicator(
   modifier: Modifier = Modifier,
   size: Dp = 18.dp,
   tint: Color = Color.White,
+  failedTint: Color = MaterialTheme.colorScheme.error,
 ) {
   when (status) {
     OfflineStatus.None -> Unit
@@ -775,7 +796,7 @@ fun OfflineStatusIndicator(
       Icon(
         CampfireIcons.Rounded.Warning,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.error,
+        tint = failedTint,
         modifier = modifier
           .size(size),
       )
@@ -783,8 +804,19 @@ fun OfflineStatusIndicator(
   }
 }
 
+/**
+ * The theme's error red for drawing on a cover badge's scrim, which is dark whatever the theme:
+ * the lighter of its error and error container, as a light theme's error is too dark to read
+ * there.
+ */
+@Composable
+private fun coverBadgeErrorColor(): Color {
+  val colorScheme = MaterialTheme.colorScheme
+  return maxOf(colorScheme.error, colorScheme.errorContainer, compareBy { it.luminance() })
+}
+
 private val LibraryItemMarqueeVelocityRange = 30..40
 
-val SmallProgressBarHeight = 8.dp
-val LargeProgressBarHeight = 12.dp
+val SmallProgressBarHeight = 4.dp
+val LargeProgressBarHeight = 6.dp
 private const val ProgressBarAlpha = 0.5f

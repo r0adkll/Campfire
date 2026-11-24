@@ -30,8 +30,10 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
 import app.campfire.common.compose.widgets.FilterBar
+import app.campfire.common.compose.widgets.LargeProgressBarHeight
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryItemListItem
+import app.campfire.common.compose.widgets.SmallProgressBarHeight
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.ui.theming.ui.builder.color.ContrastCheck
 import campfire.ui.theming.ui.generated.resources.Res
@@ -330,7 +332,7 @@ private fun PreviewCard(
     val coverSize = maxWidth
     val progress = entry.item.userMediaProgress
     if (progress != null && !progress.isFinished) {
-      val barHeight = if (showInformation) LargeBarHeight else SmallBarHeight
+      val barHeight = if (showInformation) LargeProgressBarHeight else SmallProgressBarHeight
       Box(
         Modifier
           .padding(top = coverSize - barHeight)
@@ -366,5 +368,3 @@ private val ShelfBottomPadding = 8.dp
 /** [LibraryItemCard]'s vertical padding around its title and author. */
 private val CardInformationPadding = 16.dp
 private val GridSpacing = 8.dp
-private val LargeBarHeight = 12.dp
-private val SmallBarHeight = 8.dp

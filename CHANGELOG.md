@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Slimmer progress bars on covers, download status that stays readable on light covers, smaller badges in the dense library grid, and podcast episodes without a number now marked as episodes on Home
+
 ### Deprecated
 
 ### Removed
