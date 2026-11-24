@@ -24,7 +24,7 @@ kotlin {
 
     // Shared between the JVM and Android targets so throwable redaction (which needs
     // JVM stack trace APIs unavailable in commonMain) can be unit tested from jvmTest.
-    val jvmShared by creating {
+    val jvmShared = create("jvmShared") {
       dependsOn(commonMain.get())
     }
 

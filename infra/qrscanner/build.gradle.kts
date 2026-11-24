@@ -13,7 +13,7 @@ kotlin {
       }
     }
 
-    val jvmCommon by creating {
+    val jvmCommon = create("jvmCommon") {
       dependsOn(commonMain.get())
 
       dependencies {
