@@ -10,6 +10,8 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.core)
+
+        api(libs.circuitx.overlays)
       }
     }
   }

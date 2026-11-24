@@ -46,7 +46,7 @@ class ItemActionsTest {
   fun anAdminWithTheServersDefaults_canEditAndRescanButNotDelete() {
     val admin = account(User.Type.Admin, update = true, delete = false)
 
-    assertThat(admin.itemActions(item)).containsExactly(
+    assertThat(admin.itemActions(item, playbackHistoryEnabled = false)).containsExactly(
       ItemAction.Edit,
       ItemAction.Match,
       ItemAction.ChangeCover,
@@ -59,7 +59,7 @@ class ItemActionsTest {
   fun theRootAccount_canDoEverything() {
     val root = account(User.Type.Root, update = true, delete = true)
 
-    assertThat(root.itemActions(item)).containsExactly(
+    assertThat(root.itemActions(item, playbackHistoryEnabled = false)).containsExactly(
       ItemAction.Edit,
       ItemAction.Match,
       ItemAction.ChangeCover,
@@ -73,7 +73,7 @@ class ItemActionsTest {
   fun aUserGivenUpdateAndDelete_canEditAndDeleteButNotRescan() {
     val listener = account(User.Type.User, update = true, delete = true)
 
-    assertThat(listener.itemActions(item)).containsExactly(
+    assertThat(listener.itemActions(item, playbackHistoryEnabled = false)).containsExactly(
       ItemAction.Edit,
       ItemAction.Match,
       ItemAction.ChangeCover,
@@ -86,34 +86,64 @@ class ItemActionsTest {
   fun aUserGivenOnlyDelete_canOnlyDelete() {
     val listener = account(User.Type.User, update = false, delete = true)
 
-    assertThat(listener.itemActions(item)).containsExactly(ItemAction.Delete)
+    assertThat(listener.itemActions(item, playbackHistoryEnabled = false)).containsExactly(ItemAction.Delete)
   }
 
   @Test
   fun aPodcast_cantBeEditedYet() {
     val root = account(User.Type.Root, update = true, delete = true)
 
-    assertThat(root.itemActions(podcast)).containsExactly(ItemAction.Rescan, ItemAction.Delete)
+    assertThat(root.itemActions(podcast, playbackHistoryEnabled = false))
+      .containsExactly(ItemAction.Rescan, ItemAction.Delete)
+  }
+
+  @Test
+  fun aBooksPlaybackHistory_comesJustBeforeDeleting() {
+    val root = account(User.Type.Root, update = true, delete = true)
+
+    assertThat(root.itemActions(item, playbackHistoryEnabled = true)).containsExactly(
+      ItemAction.Edit,
+      ItemAction.Match,
+      ItemAction.ChangeCover,
+      ItemAction.QuickMatch,
+      ItemAction.Rescan,
+      ItemAction.PlaybackHistory,
+      ItemAction.Delete,
+    )
+  }
+
+  @Test
+  fun aUserWithNothingGranted_canStillLookBackThroughABooksHistory() {
+    assertThat(account(User.Type.User).itemActions(item, playbackHistoryEnabled = true))
+      .containsExactly(ItemAction.PlaybackHistory)
+  }
+
+  @Test
+  fun aPodcastsPlaybackHistory_isKeptPerEpisode_soItsMenuDoesntOfferIt() {
+    val root = account(User.Type.Root, update = true, delete = true)
+
+    assertThat(root.itemActions(podcast, playbackHistoryEnabled = true))
+      .containsExactly(ItemAction.Rescan, ItemAction.Delete)
   }
 
   @Test
   fun aUserWithNothingGranted_isOfferedNothing() {
-    assertThat(account(User.Type.User).itemActions(item)).isEmpty()
-    assertThat(account(User.Type.Guest).itemActions(item)).isEmpty()
+    assertThat(account(User.Type.User).itemActions(item, playbackHistoryEnabled = false)).isEmpty()
+    assertThat(account(User.Type.Guest).itemActions(item, playbackHistoryEnabled = false)).isEmpty()
   }
 
   @Test
   fun aDeactivatedAccount_isOfferedNothing() {
     val deactivated = account(User.Type.Root, update = true, delete = true, isActive = false)
 
-    assertThat(deactivated.itemActions(item)).isEmpty()
+    assertThat(deactivated.itemActions(item, playbackHistoryEnabled = false)).isEmpty()
   }
 
   @Test
   fun anItemThatIsASingleFile_cantBeRescanned() {
     val root = account(User.Type.Root, update = true, delete = true)
 
-    assertThat(root.itemActions(item.copy(isFile = true)))
+    assertThat(root.itemActions(item.copy(isFile = true), playbackHistoryEnabled = false))
       .containsExactly(
         ItemAction.Edit,
         ItemAction.Match,

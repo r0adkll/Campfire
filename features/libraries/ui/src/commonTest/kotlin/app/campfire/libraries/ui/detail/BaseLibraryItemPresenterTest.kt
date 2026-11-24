@@ -25,7 +25,10 @@ import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.manage.FakeLibraryRepository
+import app.campfire.libraries.ui.detail.manage.FakePlaybackHistoryUi
 import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
+import app.campfire.libraries.ui.detail.manage.NoOverlayHost
 import app.campfire.libraries.ui.detail.manage.quickMatcher
 import app.campfire.libraries.ui.detail.podcast.FakeEpisodeDeletingPodcastsRepository
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
@@ -37,11 +40,13 @@ import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.sessions.test.FakeStreamingRoutePredictor
+import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
+import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.test.FakeNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -76,6 +81,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val themeManager = FakeThemeManager()
   internal val themeSettings = TestThemeSettings()
   internal val libraryViewSettings = TestLibraryViewSettings()
+  internal val playbackSettings = FakePlaybackSettings()
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
   internal val bookInfoRegistry = FakeBookInfoRegistry()
@@ -137,6 +143,7 @@ abstract class BaseLibraryItemPresenterTest {
 
   internal val libraryRepository = FakeLibraryRepository()
   internal val matchRepository = FakeQuickMatchRepository()
+  internal val playbackHistoryUi = FakePlaybackHistoryUi()
 
   private val libraryItemPresenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),
@@ -149,13 +156,18 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     libraryViewSettings = libraryViewSettings,
+    playbackSettings = playbackSettings,
+    playbackHistory = ItemPlaybackHistory(playbackHistoryUi, audioPlayerHolder),
     dispatcherProvider = dispatcherProvider,
   )
 
   internal val presenter: Presenter<LibraryItemUiState> = object : Presenter<LibraryItemUiState> {
     @Composable
     override fun present(): LibraryItemUiState = withCompositionLocal(LocalSnackBarHost provides snackbarHost) {
-      libraryItemPresenter.present()
+      // The presenter shows the item's playback history in an overlay
+      withCompositionLocal(LocalOverlayHost provides NoOverlayHost) {
+        libraryItemPresenter.present()
+      }
     }
   }
 }

@@ -17,11 +17,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.window.core.layout.WindowSizeClass
+import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.test.FakeAudioPlayer
+import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.PlaybackControllerSession
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRecorder
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.test.assert.firstInstanceOf
+import app.campfire.common.test.session
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.LibraryItem
@@ -33,7 +38,9 @@ import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.ui.detail.ItemFinisher
+import app.campfire.libraries.ui.detail.manage.FakePlaybackHistoryUi
 import app.campfire.libraries.ui.detail.manage.FakeQuickMatchRepository
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
 import app.campfire.libraries.ui.detail.manage.quickMatcher
 import app.campfire.management.api.match.QuickMatchResult
 import app.campfire.management.api.screen.ItemEditorScreen
@@ -42,6 +49,7 @@ import app.campfire.offline.test.FakeDownloads
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
+import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
@@ -51,12 +59,15 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isLessThan
 import assertk.assertions.isTrue
+import assertk.assertions.prop
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.test.FakeNavigator
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -107,6 +118,10 @@ class DefaultLibraryItemActionsTest {
   private val playbackController = FakePlaybackController()
   private val downloads = FakeDownloads()
   private val libraryViewSettings = TestLibraryViewSettings()
+  private val playbackSettings = FakePlaybackSettings()
+  private val playbackHistoryUi = FakePlaybackHistoryUi()
+  private val player = FakeAudioPlayer()
+  private val audioPlayerHolder = FakeAudioPlayerHolder()
   private val quickActions = ItemQuickActions(
     userRepository = userRepository,
     mediaProgressRepository = mediaProgressRepository,
@@ -141,6 +156,8 @@ class DefaultLibraryItemActionsTest {
     ),
     quickActions = quickActions,
     libraryViewSettings = libraryViewSettings,
+    playbackSettings = playbackSettings,
+    playbackHistory = ItemPlaybackHistory(playbackHistoryUi, audioPlayerHolder),
     coroutineScopeHolder = CoroutineScopeHolder { scope },
   )
 
@@ -417,6 +434,54 @@ class DefaultLibraryItemActionsTest {
     onNodeWithTag("delete_confirm").performClick()
 
     awaitSnackbar("Couldn't delete this. Check your connection and try again.")
+  }
+
+  @Test
+  fun aBooksPlaybackHistory_isOfferedJustAboveDeleting() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    showActions()
+
+    val top = { tag: String -> onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot.top }
+    assertThat(top("item_action_rescan")).isLessThan(top("item_action_playback_history"))
+    assertThat(top("item_action_playback_history")).isLessThan(top("item_action_delete"))
+  }
+
+  @Test
+  fun playbackHistoryTurnedOff_isNotOffered() = runComposeUiTest {
+    playbackSettings.playbackHistoryEnabled = false
+    signIn(User.Type.Root, delete = true)
+    showActions()
+
+    onNodeWithTag("item_action_rescan").assertExists()
+    onNodeWithTag("item_action_playback_history").assertDoesNotExist()
+  }
+
+  @Test
+  fun aPodcastsPlaybackHistory_isNotOffered() = runComposeUiTest {
+    signIn(User.Type.Root, delete = true)
+    showActions(item = podcast)
+
+    onNodeWithTag("item_action_rescan").assertExists()
+    onNodeWithTag("item_action_playback_history").assertDoesNotExist()
+  }
+
+  @Test
+  fun aMomentPickedFromTheHistory_isJumpedTo_whileTheBookIsLoaded() = runComposeUiTest {
+    signIn(User.Type.User, delete = false, update = false)
+    player.preparedSession = session(libraryItem = item)
+    player.state.value = AudioPlayer.State.Paused
+    audioPlayerHolder.setCurrentPlayer(player)
+    playbackHistoryUi.picks = 12.minutes
+    showActions()
+
+    onNodeWithTag("item_action_playback_history").performClick()
+    waitForIdle()
+
+    assertThat(playbackHistoryUi.shown).containsExactly(item.id)
+    assertThat(player.invocations)
+      .firstInstanceOf<FakeAudioPlayer.Invocation.SeekTo>()
+      .prop(FakeAudioPlayer.Invocation.SeekTo::value)
+      .isEqualTo(12.minutes)
   }
 
   private fun signIn(type: User.Type, delete: Boolean, update: Boolean = true) {

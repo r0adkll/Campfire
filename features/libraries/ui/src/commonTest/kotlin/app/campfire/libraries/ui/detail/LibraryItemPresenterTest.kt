@@ -3,10 +3,13 @@
 
 package app.campfire.libraries.ui.detail
 
+import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.mediaProgress as testMediaProgress
+import app.campfire.common.test.session
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Media
 import app.campfire.core.model.SeriesSequence
@@ -35,6 +38,7 @@ import assertk.Assert
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.doesNotContain
 import assertk.assertions.hasSize
 import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
@@ -44,6 +48,7 @@ import assertk.assertions.isNull
 import assertk.assertions.prop
 import com.slack.circuit.test.test
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.test.runTest
 
 class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
@@ -72,6 +77,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
           ItemAction.ChangeCover,
           ItemAction.QuickMatch,
           ItemAction.Rescan,
+          ItemAction.PlaybackHistory,
           ItemAction.Delete,
         )
       cancelAndIgnoreRemainingEvents()
@@ -88,8 +94,55 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         ItemAction.Match,
         ItemAction.ChangeCover,
         ItemAction.QuickMatch,
+        ItemAction.PlaybackHistory,
         ItemAction.Delete,
       )
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun playbackHistoryTurnedOff_isNotOffered() = runTest {
+    playbackSettings.playbackHistoryEnabled = false
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      assertThat(awaitLoadedItem().itemActions).doesNotContain(ItemAction.PlaybackHistory)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun playbackHistoryTurnedOn_whileOpen_isOffered() = runTest {
+    playbackSettings.playbackHistoryEnabled = false
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      awaitLoadedItem()
+      playbackSettings.playbackHistoryEnabled = true
+
+      awaitItemMatching { ItemAction.PlaybackHistory in it.itemActions }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun playbackHistory_showsTheItemsHistory_andJumpsToWhatWasPicked() = runTest {
+    val item = emptyLibraryItem()
+    libraryItemRepository.libraryItemFlow.emit(item)
+    audioPlayer.preparedSession = session(libraryItem = item)
+    audioPlayer.state.value = AudioPlayer.State.Paused
+    audioPlayerHolder.setCurrentPlayer(audioPlayer)
+    playbackHistoryUi.picks = 12.minutes
+
+    presenter.test {
+      awaitLoadedItem().eventSink(LibraryItemUiEvent.PlaybackHistoryClick)
+
+      assertThat(playbackHistoryUi.shown).containsExactly(item.id)
+      assertThat(audioPlayer.invocations)
+        .firstInstanceOf<FakeAudioPlayer.Invocation.SeekTo>()
+        .prop(FakeAudioPlayer.Invocation.SeekTo::value)
+        .isEqualTo(12.minutes)
       cancelAndIgnoreRemainingEvents()
     }
   }

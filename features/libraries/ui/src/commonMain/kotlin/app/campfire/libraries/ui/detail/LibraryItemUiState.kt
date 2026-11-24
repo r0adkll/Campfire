@@ -32,7 +32,7 @@ data class LibraryItemUiState(
   val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out ContentUiState>,
-  /** What the account may do to the item on the server, in the order its menu shows them. */
+  /** What can be done with the item from its menu, in the order the menu shows them. */
   val itemActions: List<ItemAction> = emptyList(),
   /** The source a quick match would ask, by name, while asking whether to go ahead */
   val quickMatchSource: String? = null,
@@ -58,6 +58,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object AddToQueue : LibraryItemUiEvent
   data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
+
+  /** Show the item's playback history, to jump to a moment of it. */
+  data object PlaybackHistoryClick : LibraryItemUiEvent
 
   data class PlayClick(val method: PlayMethod?) : LibraryItemUiEvent
 

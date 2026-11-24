@@ -52,6 +52,7 @@ class ItemActionsSheetRenderTest {
     ItemAction.ChangeCover,
     ItemAction.QuickMatch,
     ItemAction.Rescan,
+    ItemAction.PlaybackHistory,
     ItemAction.Delete,
   )
 
@@ -77,7 +78,7 @@ class ItemActionsSheetRenderTest {
     width = 412,
     height = 915,
     item = book,
-    actions = emptyList(),
+    actions = listOf(ItemAction.PlaybackHistory),
     quick = listOf(
       QuickAction.Play(resume = false),
       QuickAction.RemoveDownload,

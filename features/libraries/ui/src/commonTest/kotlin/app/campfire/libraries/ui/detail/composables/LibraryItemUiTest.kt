@@ -37,6 +37,8 @@ import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.libraries.ui.detail.manage.QuickMatchChoice
+import assertk.assertThat
+import assertk.assertions.isLessThan
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
@@ -278,6 +280,27 @@ class LibraryItemUiTest {
     setContent { TestLibraryItem(loadedState(itemActions = emptyList())) }
 
     onNodeWithTag("item_actions_button").assertDoesNotExist()
+  }
+
+  @Test
+  fun playbackHistory_fromTheMenu_isShown() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(listOf(ItemAction.PlaybackHistory))) }
+
+    onNodeWithTag("item_actions_button").performClick()
+    onNodeWithTag("item_action_playback_history").performClick()
+
+    events.assertEvent(LibraryItemUiEvent.PlaybackHistoryClick)
+  }
+
+  @Test
+  fun playbackHistory_sitsJustAboveDeleting() = runComposeUiTest {
+    setContent { TestLibraryItem(loadedState(ItemAction.entries)) }
+
+    onNodeWithTag("item_actions_button").performClick()
+
+    val top = { tag: String -> onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot.top }
+    assertThat(top("item_action_rescan")).isLessThan(top("item_action_playback_history"))
+    assertThat(top("item_action_playback_history")).isLessThan(top("item_action_delete"))
   }
 
   private fun loadedState(

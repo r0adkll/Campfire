@@ -28,12 +28,14 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.RescanResult
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.manage.ItemPlaybackHistory
 import app.campfire.libraries.ui.detail.manage.QuickMatcher
 import app.campfire.libraries.ui.detail.manage.itemActions
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.management.api.match.MatchProvider
 import app.campfire.management.api.screen.ItemEditorScreen
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
@@ -48,6 +50,7 @@ import campfire.features.libraries.ui.generated.resources.item_rescan_updated
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.retained.collectAsRetainedState
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
@@ -72,6 +75,8 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val libraryViewSettings: LibraryViewSettings,
+  private val playbackSettings: PlaybackSettings,
+  private val playbackHistory: ItemPlaybackHistory,
   private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
@@ -122,14 +127,21 @@ class LibraryItemPresenter(
     // The app's own, so what a change did is told without passing it through the screen's state,
     // and which outlasts this screen to offer undoing a quick match
     val snackbarHost = LocalSnackBarHost.current
+    val overlayHost = LocalOverlayHost.current
 
     val deleteFilesByDefault by remember {
       libraryViewSettings.observeDeleteItemFilesByDefault()
     }.collectAsState()
 
+    val playbackHistoryEnabled by remember {
+      playbackSettings.observePlaybackHistoryEnabled()
+    }.collectAsState()
+
     val user = userSession.requiredUser
     val libraryItem = libraryItemContentState.dataOrNull
-    val itemActions = remember(user, libraryItem) { libraryItem?.let { user.itemActions(it) }.orEmpty() }
+    val itemActions = remember(user, libraryItem, playbackHistoryEnabled) {
+      libraryItem?.let { user.itemActions(it, playbackHistoryEnabled) }.orEmpty()
+    }
 
     return LibraryItemUiState(
       user = user,
@@ -174,6 +186,10 @@ class LibraryItemPresenter(
                 )
               }
           }
+        }
+
+        LibraryItemUiEvent.PlaybackHistoryClick -> {
+          scope.launch { playbackHistory.show(overlayHost, screen.libraryItemId) }
         }
 
         is LibraryItemUiEvent.EditClick -> {

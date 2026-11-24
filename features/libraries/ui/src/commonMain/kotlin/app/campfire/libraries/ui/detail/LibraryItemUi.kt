@@ -232,6 +232,7 @@ fun LibraryItemContent(
                       Analytics.send(ActionEvent("rescan_item", Click))
                       state.eventSink(LibraryItemUiEvent.RescanClick)
                     }
+                    ItemAction.PlaybackHistory -> state.eventSink(LibraryItemUiEvent.PlaybackHistoryClick)
                     ItemAction.Delete -> showDeleteDialog = true
                   }
                 },

@@ -20,6 +20,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.EditSquare
+import app.campfire.common.compose.icons.rounded.History
 import app.campfire.common.compose.icons.rounded.PhotoAlbum
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.icons.rounded.Search
@@ -32,12 +33,13 @@ import campfire.features.libraries.ui.generated.resources.menu_item_change_cover
 import campfire.features.libraries.ui.generated.resources.menu_item_delete_from_server
 import campfire.features.libraries.ui.generated.resources.menu_item_edit_details
 import campfire.features.libraries.ui.generated.resources.menu_item_match
+import campfire.features.libraries.ui.generated.resources.menu_item_playback_history
 import campfire.features.libraries.ui.generated.resources.menu_item_quick_match
 import campfire.features.libraries.ui.generated.resources.menu_item_rescan
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** Something an account can do to an item on the server, rather than to its own listening. */
+/** Something that can be done with an item from its menu, whether the server or the app does it. */
 enum class ItemAction {
   /** Change the item's details, such as its title and description. */
   Edit,
@@ -54,15 +56,24 @@ enum class ItemAction {
   /** Scan the item's files again. */
   Rescan,
 
+  /** Look back through what was done while listening to the item, and jump to a moment of it. */
+  PlaybackHistory,
+
   /** Remove the item from its library, and maybe its files from the server. */
   Delete,
 }
 
 /**
- * The [ItemAction]s the server would take from this account for [item], in the order a menu shows
- * them. Offering only these keeps the server from refusing an action the app offered.
+ * The [ItemAction]s this account can take for [item], in the order a menu shows them. Those the
+ * server carries out are offered only when it would take them from this account, so it doesn't
+ * refuse an action the app offered.
+ *
+ * @param playbackHistoryEnabled whether playback history is kept, so there is any to look back on
  */
-fun User.itemActions(item: LibraryItem): List<ItemAction> = buildList {
+fun User.itemActions(
+  item: LibraryItem,
+  playbackHistoryEnabled: Boolean,
+): List<ItemAction> = buildList {
   // Only a book's details can be edited so far
   if (canUpdateItems && item.media is Media.Book) {
     add(ItemAction.Edit)
@@ -72,6 +83,8 @@ fun User.itemActions(item: LibraryItem): List<ItemAction> = buildList {
   }
   // The server can't scan an item that is a single file on its own
   if (canRescanItems && !item.isFile) add(ItemAction.Rescan)
+  // A podcast's history is kept per episode, which the item's menu can't pick
+  if (playbackHistoryEnabled && item.media is Media.Book) add(ItemAction.PlaybackHistory)
   if (canDeleteItems) add(ItemAction.Delete)
 }
 
@@ -81,7 +94,7 @@ val ItemAction.editorSection: ItemEditorScreen.Section?
     ItemAction.Edit -> ItemEditorScreen.Section.Details
     ItemAction.Match -> ItemEditorScreen.Section.Match
     ItemAction.ChangeCover -> ItemEditorScreen.Section.Cover
-    ItemAction.QuickMatch, ItemAction.Rescan, ItemAction.Delete -> null
+    ItemAction.QuickMatch, ItemAction.Rescan, ItemAction.PlaybackHistory, ItemAction.Delete -> null
   }
 
 internal val ItemAction.label: StringResource
@@ -91,6 +104,7 @@ internal val ItemAction.label: StringResource
     ItemAction.ChangeCover -> Res.string.menu_item_change_cover
     ItemAction.QuickMatch -> Res.string.menu_item_quick_match
     ItemAction.Rescan -> Res.string.menu_item_rescan
+    ItemAction.PlaybackHistory -> Res.string.menu_item_playback_history
     ItemAction.Delete -> Res.string.menu_item_delete_from_server
   }
 
@@ -101,6 +115,7 @@ internal val ItemAction.icon: ImageVector
     ItemAction.ChangeCover -> CampfireIcons.Rounded.PhotoAlbum
     ItemAction.QuickMatch -> CampfireIcons.Rounded.AutoAwesome
     ItemAction.Rescan -> CampfireIcons.Rounded.Refresh
+    ItemAction.PlaybackHistory -> CampfireIcons.Rounded.History
     ItemAction.Delete -> CampfireIcons.Rounded.DeleteForever
   }
 
@@ -111,6 +126,7 @@ internal val ItemAction.testTag: String
     ItemAction.ChangeCover -> "item_action_change_cover"
     ItemAction.QuickMatch -> "item_action_quick_match"
     ItemAction.Rescan -> "item_action_rescan"
+    ItemAction.PlaybackHistory -> "item_action_playback_history"
     ItemAction.Delete -> "item_action_delete"
   }
 

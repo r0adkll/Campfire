@@ -19,6 +19,7 @@ import app.campfire.libraries.ui.detail.BaseLibraryItemPresenterTest
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.emptyLibraryItem
+import app.campfire.libraries.ui.detail.manage.ItemAction
 import app.campfire.offline.DownloadContent
 import app.campfire.offline.test.FakeDownloads
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
@@ -28,6 +29,7 @@ import app.cash.turbine.ReceiveTurbine
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.containsExactly
+import assertk.assertions.doesNotContain
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -88,6 +90,16 @@ class PodcastPresenterTest : BaseLibraryItemPresenterTest() {
     @Composable
     override fun present(): LibraryItemUiState = withCompositionLocal(LocalOverlayHost provides rememberOverlayHost()) {
       presenter.present()
+    }
+  }
+
+  @Test
+  fun aPodcast_doesNotOfferItsPlaybackHistory() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(podcast)
+
+    screenPresenter.test {
+      assertThat(awaitLoaded().itemActions).doesNotContain(ItemAction.PlaybackHistory)
+      cancelAndIgnoreRemainingEvents()
     }
   }
 

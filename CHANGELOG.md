@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Playback history in a book's menu and on its card, to look back on its listening or jump to a moment while it plays
 - [iOS] Download audiobooks and podcast episodes to listen offline. Downloads carry on while Campfire is in the background, and can wait for Wi-Fi
 
 ### Changed
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The player showing stale playback state after playback stopped
 - [iOS] Servers using plain HTTP with a host name failing to connect
 - [iOS] Opening the app stopping audio playing in other apps
+- A podcast's playback history in the player showing, jumping to, and clearing every episode's events instead of the playing episode's
 
 ### Other Notes & Contributions
 
