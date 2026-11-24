@@ -22,15 +22,36 @@ data class BuildStamp(
   val commitEpochSeconds: Long,
   /** Short commit SHA, or empty when unknown. */
   val commitSha: String,
-)
+) {
+
+  /**
+   * Declares the stamp as `COMMIT_TIME` / `COMMIT_SHA` build config fields through [field] (the
+   * Android or BuildConfig-plugin `buildConfigField`). The app decodes them with `BuildCommit`.
+   */
+  fun declareFields(field: (type: String, name: String, value: String) -> Unit) {
+    field("long", "COMMIT_TIME", "${commitEpochSeconds}L")
+    field("String", "COMMIT_SHA", "\"$commitSha\"")
+  }
+}
 
 fun Project.campfireBuildStamp(): BuildStamp {
-  val epoch = git("log", "-1", "--format=%ct")?.toLongOrNull()
-    ?: providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.trim()?.toLongOrNull()
-    ?: 0L
-  val sha = git("rev-parse", "--short=7", "HEAD").orEmpty()
-  return BuildStamp(commitEpochSeconds = epoch, commitSha = sha)
+  // One process for both values. The full SHA is cut here rather than with `--short`, which
+  // lengthens the prefix when it's ambiguous in the local clone — a shallow CI clone and F-Droid's
+  // full clone could then disagree, and the foss APKs would differ.
+  val (epoch, sha) = git("log", "-1", "--format=%ct %H")
+    ?.split(' ')
+    ?.takeIf { it.size == 2 }
+    ?.let { (time, hash) -> time.toLongOrNull() to hash.take(SHORT_SHA_LENGTH) }
+    ?: (null to "")
+  return BuildStamp(
+    commitEpochSeconds = epoch
+      ?: providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.trim()?.toLongOrNull()
+      ?: 0L,
+    commitSha = sha,
+  )
 }
+
+private const val SHORT_SHA_LENGTH = 7
 
 private fun Project.git(vararg args: String): String? = runCatching {
   val result = providers.exec {

@@ -34,9 +34,7 @@ android {
     versionCode = campfireVersionCode()
     versionName = campfireVersionName()
 
-    val buildStamp = campfireBuildStamp()
-    buildConfigField("long", "COMMIT_TIME", "${buildStamp.commitEpochSeconds}L")
-    buildConfigField("String", "COMMIT_SHA", "\"${buildStamp.commitSha}\"")
+    campfireBuildStamp().declareFields { type, name, value -> buildConfigField(type, name, value) }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

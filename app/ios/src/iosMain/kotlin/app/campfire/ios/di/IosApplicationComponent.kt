@@ -4,6 +4,7 @@
 package app.campfire.ios.di
 
 import app.campfire.common.di.SharedAppComponent
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.di.AppScope
 import app.campfire.ios.BuildConfig
 import dev.zacsweers.metro.DependencyGraph
@@ -11,7 +12,6 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.createGraph
 import kotlin.experimental.ExperimentalNativeApi
-import kotlin.time.Instant
 import platform.Foundation.NSBundle
 import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIDevice
@@ -39,8 +39,7 @@ interface IosApplicationComponent :
       ?: 0,
     osName = UIDevice.currentDevice.systemName,
     osVersion = UIDevice.currentDevice.systemVersion,
-    commitTime = BuildConfig.COMMIT_TIME.takeIf { it > 0 }?.let(Instant::fromEpochSeconds),
-    commitSha = BuildConfig.COMMIT_SHA.ifEmpty { null },
+    buildCommit = BuildCommit.fromBuildConfig(BuildConfig.COMMIT_TIME, BuildConfig.COMMIT_SHA),
   )
 
   @Provides

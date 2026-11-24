@@ -51,9 +51,7 @@ buildConfig {
   buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
   buildConfigField("int", "VERSION_CODE", "${campfireVersionCode()}")
   buildConfigField("boolean", "DEBUG", "$isDebugBuild")
-  val buildStamp = campfireBuildStamp()
-  buildConfigField("long", "COMMIT_TIME", "${buildStamp.commitEpochSeconds}L")
-  buildConfigField("String", "COMMIT_SHA", "\"${buildStamp.commitSha}\"")
+  campfireBuildStamp().declareFields { type, name, value -> buildConfigField(type, name, value) }
   useKotlinOutput()
 }
 

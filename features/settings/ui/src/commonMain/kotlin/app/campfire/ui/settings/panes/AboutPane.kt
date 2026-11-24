@@ -3,7 +3,6 @@
 
 package app.campfire.ui.settings.panes
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,10 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AreaChart
 import app.campfire.common.compose.icons.rounded.Code
@@ -55,12 +52,8 @@ import campfire.features.settings.ui.generated.resources.about_header_developer
 import campfire.features.settings.ui.generated.resources.about_header_legal
 import campfire.features.settings.ui.generated.resources.about_privacy_policy_title
 import campfire.features.settings.ui.generated.resources.about_tos_title
-import campfire.features.settings.ui.generated.resources.about_version_copied
-import campfire.features.settings.ui.generated.resources.about_version_copy_action
-import campfire.features.settings.ui.generated.resources.about_version_title
 import campfire.features.settings.ui.generated.resources.setting_about_title
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -166,28 +159,12 @@ internal fun AboutPane(
       versionClickCount = 0
     }
 
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    val copiedMessage = stringResource(Res.string.about_version_copied)
-    ActionSetting(
-      headlineContent = { Text(stringResource(Res.string.about_version_title)) },
-      supportingContent = {
-        Column {
-          Text(state.applicationInfo.readableVersion)
-          state.applicationInfo.commitLine()?.let { Text(it) }
-        }
-      },
+    VersionSetting(
+      applicationInfo = state.applicationInfo,
       onClick = {
         versionClickCount++
         Unit
       }.takeIf { !state.developerSettings.developerModeEnabled },
-      onLongClick = {
-        scope.launch {
-          clipboard.setClipEntry(plainTextClipEntry(state.applicationInfo.versionCopyText()))
-          toast.show(copiedMessage, Toast.Duration.SHORT)
-        }
-      },
-      onLongClickLabel = stringResource(Res.string.about_version_copy_action),
     )
   }
 }

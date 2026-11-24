@@ -3,8 +3,6 @@
 
 package app.campfire.core.app
 
-import kotlin.time.Instant
-
 data class ApplicationInfo(
   val packageName: String,
   val debugBuild: Boolean,
@@ -14,10 +12,8 @@ data class ApplicationInfo(
   val osName: String,
   val osVersion: String,
 
-  /** When the commit this build came from was made — not when it was built. Null if unknown. */
-  val commitTime: Instant? = null,
-  /** Short SHA of the commit this build came from. Null if unknown. */
-  val commitSha: String? = null,
+  /** The commit this build came from; null when the build had no git information. */
+  val buildCommit: BuildCommit? = null,
 
   // Android Related fields
   val manufacturer: String? = null,

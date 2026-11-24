@@ -8,13 +8,13 @@ import app.campfire.BuildConfig
 import app.campfire.common.di.SharedAppComponent
 import app.campfire.config.FileSystemPreferences
 import app.campfire.core.app.ApplicationInfo
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import java.util.prefs.Preferences
-import kotlin.time.Instant
 
 @DependencyGraph(AppScope::class)
 interface DesktopApplicationComponent : SharedAppComponent {
@@ -29,8 +29,7 @@ interface DesktopApplicationComponent : SharedAppComponent {
     versionCode = BuildConfig.VERSION_CODE,
     osName = System.getProperty("os.name"),
     osVersion = System.getProperty("os.version"),
-    commitTime = BuildConfig.COMMIT_TIME.takeIf { it > 0 }?.let(Instant::fromEpochSeconds),
-    commitSha = BuildConfig.COMMIT_SHA.ifEmpty { null },
+    buildCommit = BuildCommit.fromBuildConfig(BuildConfig.COMMIT_TIME, BuildConfig.COMMIT_SHA),
   )
 
   @SingleIn(AppScope::class)
