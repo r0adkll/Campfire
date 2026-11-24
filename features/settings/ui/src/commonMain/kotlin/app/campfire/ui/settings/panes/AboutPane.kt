@@ -23,8 +23,10 @@ import app.campfire.common.compose.icons.rounded.LogoDev
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.toast.LocalToast
+import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.toast.Toast
 import app.campfire.core.toast.ToastHandle
+import app.campfire.ui.settings.AboutSettingsInfo
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
@@ -62,13 +64,33 @@ internal fun AboutPane(
   onBackClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  AboutPane(
+    aboutSettings = state.aboutSettings,
+    applicationInfo = state.applicationInfo,
+    developerModeEnabled = state.developerSettings.developerModeEnabled,
+    eventSink = state.eventSink,
+    onBackClick = onBackClick,
+    modifier = modifier,
+  )
+}
+
+/** The About pane from just what it shows, so it can be tested without a whole [SettingsUiState]. */
+@Composable
+internal fun AboutPane(
+  aboutSettings: AboutSettingsInfo,
+  applicationInfo: ApplicationInfo,
+  developerModeEnabled: Boolean,
+  eventSink: (SettingsUiEvent) -> Unit,
+  onBackClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
   SettingPaneLayout(
     title = { Text(stringResource(Res.string.setting_about_title)) },
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
     fun sendEvent(event: SettingsUiEvent.AboutSettingEvent) {
-      state.eventSink(event)
+      eventSink(event)
     }
 
     Header(
@@ -94,7 +116,7 @@ internal fun AboutPane(
     )
 
     SwitchSetting(
-      value = state.aboutSettings.crashReportingEnabled,
+      value = aboutSettings.crashReportingEnabled,
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_crash_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_crash_reporting_subtitle)) },
@@ -102,7 +124,7 @@ internal fun AboutPane(
     )
 
     SwitchSetting(
-      value = state.aboutSettings.analyticReportingEnabled,
+      value = aboutSettings.analyticReportingEnabled,
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_analytic_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_analytic_reporting_subtitle)) },
@@ -146,7 +168,7 @@ internal fun AboutPane(
       priorToast = null
 
       if (versionClickCount >= DEVELOPER_MODE_CLICKS) {
-        state.eventSink(SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode)
+        eventSink(SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode)
         versionClickCount = 0
         toast.show("Developer mode enabled!", Toast.Duration.SHORT)
         return@LaunchedEffect
@@ -160,11 +182,11 @@ internal fun AboutPane(
     }
 
     VersionSetting(
-      applicationInfo = state.applicationInfo,
+      applicationInfo = applicationInfo,
       onClick = {
         versionClickCount++
         Unit
-      }.takeIf { !state.developerSettings.developerModeEnabled },
+      }.takeIf { !developerModeEnabled },
     )
   }
 }
