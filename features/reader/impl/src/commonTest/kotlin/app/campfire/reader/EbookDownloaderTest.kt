@@ -17,6 +17,7 @@ import io.ktor.http.HttpStatusCode
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -189,14 +190,22 @@ class EbookDownloaderTest {
   @Test
   fun aFetchCutOffByTheConditions_waitsAndTriesAgain() = runTest {
     // The connection goes as working offline starts
-    fixture.onRequest = { if (fixture.requests.size == 1) fixture.conditions.allowed.value = false }
+    val cutOff = CompletableDeferred<Unit>()
+    fixture.onRequest = {
+      if (fixture.requests.size == 1) {
+        fixture.conditions.allowed.value = false
+        cutOff.complete(Unit)
+      }
+    }
     fixture.responses = listOf(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK)
     val downloader = fixture.downloader()
 
     downloader.download(listOf(ebook))
-    // Queued again once the first try is cut off
-    downloader.observe(setOf(ebook))
-      .first { it[ebook]?.state == Download.State.Queued && fixture.requests.isNotEmpty() }
+    // Queued again once the first try is cut off. Wait for the cut-off first: the state before the
+    // request is an equal Queued, which the StateFlow won't emit twice, and allowing downloads
+    // before the cut-off would be undone by it.
+    cutOff.await()
+    downloader.awaitState(Download.State.Queued)
     fixture.conditions.allowed.value = true
 
     downloader.awaitState(Download.State.Downloaded)
