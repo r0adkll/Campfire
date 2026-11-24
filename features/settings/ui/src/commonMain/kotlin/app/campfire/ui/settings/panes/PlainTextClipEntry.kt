@@ -5,4 +5,5 @@ package app.campfire.ui.settings.panes
 
 import androidx.compose.ui.platform.ClipEntry
 
-internal expect fun plainTextClipEntry(text: String): ClipEntry
+/** A plain-text clip of [text]; [label] names it where the platform keeps one (Android). */
+internal expect fun plainTextClipEntry(text: String, label: String): ClipEntry

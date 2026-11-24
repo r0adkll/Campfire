@@ -3,16 +3,27 @@
 
 package app.campfire.ui.settings.composables
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.onLongClick
@@ -20,7 +31,7 @@ import androidx.compose.ui.semantics.semantics
 
 /**
  * A setting row that acts on a tap ([onClick]) and/or a long-press ([onLongClick]). With only a
- * long-press, the row offers no tap action, so a tap neither ripples nor is announced.
+ * long-press, the row offers no tap action to accessibility services or a tap.
  */
 @Composable
 internal fun ActionSetting(
@@ -55,21 +66,42 @@ internal fun ActionSetting(
   )
 }
 
+/**
+ * A long-press with no tap action: the row ripples while pressed and can take keyboard focus, where
+ * Enter or Space triggers it, since a key has no long-press of its own.
+ */
 @Composable
 private fun Modifier.longClickOnly(action: () -> Unit, label: String?): Modifier {
   val haptics = LocalHapticFeedback.current
   val currentAction by rememberUpdatedState(action)
-  return pointerInput(Unit) {
-    detectTapGestures(
-      onLongPress = {
-        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        currentAction()
-      },
-    )
-  }.semantics {
-    onLongClick(label = label) {
-      currentAction()
-      true
+  val interactionSource = remember { MutableInteractionSource() }
+  return indication(interactionSource, LocalIndication.current)
+    .focusable(interactionSource = interactionSource)
+    .onKeyEvent { event ->
+      val activates = event.type == KeyEventType.KeyUp && event.key in ActivationKeys
+      if (activates) currentAction()
+      activates
     }
-  }
+    .pointerInput(Unit) {
+      detectTapGestures(
+        onPress = { offset ->
+          val press = PressInteraction.Press(offset)
+          interactionSource.emit(press)
+          val released = tryAwaitRelease()
+          interactionSource.emit(if (released) PressInteraction.Release(press) else PressInteraction.Cancel(press))
+        },
+        onLongPress = {
+          haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+          currentAction()
+        },
+      )
+    }
+    .semantics {
+      onLongClick(label = label) {
+        currentAction()
+        true
+      }
+    }
 }
+
+private val ActivationKeys = setOf(Key.Enter, Key.NumPadEnter, Key.Spacebar, Key.DirectionCenter)

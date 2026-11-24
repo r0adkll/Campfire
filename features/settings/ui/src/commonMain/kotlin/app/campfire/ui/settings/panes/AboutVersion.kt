@@ -15,6 +15,7 @@ import app.campfire.core.app.BuildCommit
 import app.campfire.core.toast.Toast
 import app.campfire.ui.settings.composables.ActionSetting
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.about_version_clip_label
 import campfire.features.settings.ui.generated.resources.about_version_copied
 import campfire.features.settings.ui.generated.resources.about_version_copy_action
 import campfire.features.settings.ui.generated.resources.about_version_title
@@ -43,6 +44,7 @@ internal fun VersionSetting(
   val toast = LocalToast.current
   val scope = rememberCoroutineScope()
   val copiedMessage = stringResource(Res.string.about_version_copied)
+  val clipLabel = stringResource(Res.string.about_version_clip_label)
   val commitLine = applicationInfo.buildCommit?.line(timeZone)
 
   ActionSetting(
@@ -56,7 +58,7 @@ internal fun VersionSetting(
     onClick = onClick,
     onLongClick = {
       scope.launch {
-        clipboard.setClipEntry(plainTextClipEntry(applicationInfo.versionCopyText(timeZone)))
+        clipboard.setClipEntry(plainTextClipEntry(applicationInfo.versionCopyText(timeZone), clipLabel))
         toast.show(copiedMessage, Toast.Duration.SHORT)
       }
     },

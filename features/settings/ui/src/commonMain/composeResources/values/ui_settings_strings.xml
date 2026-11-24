@@ -216,6 +216,7 @@
   <string name="about_version_title">Version</string>
   <string name="about_version_copy_action">Copy version</string>
   <string name="about_version_copied">Copied to clipboard</string>
+  <string name="about_version_clip_label">Campfire version</string>
 
   <!-- App updates -->
   <string name="updates_summary_checking">Checking…</string>

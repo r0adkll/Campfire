@@ -5,6 +5,7 @@ package app.campfire.ui.settings.panes
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
@@ -20,7 +21,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.toast.LocalToast
@@ -95,6 +99,18 @@ class VersionSettingTest {
     waitForIdle()
 
     assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+  }
+
+  @Test
+  fun `once developer mode is on the keyboard can still copy`() = runComposeUiTest {
+    setVersionSetting(onClick = null)
+
+    onNodeWithText("Version").requestFocus()
+    onNodeWithText("Version").performKeyInput { pressKey(Key.Enter) }
+    waitForIdle()
+
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 · 220c0be")
+    assertThat(toasts).containsExactly("Copied to clipboard")
   }
 
   private fun ComposeUiTest.setVersionSetting(

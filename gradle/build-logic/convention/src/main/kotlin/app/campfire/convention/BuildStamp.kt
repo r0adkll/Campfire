@@ -38,7 +38,8 @@ fun Project.campfireBuildStamp(): BuildStamp {
   // One process for both values. The full SHA is cut here rather than with `--short`, which
   // lengthens the prefix when it's ambiguous in the local clone — a shallow CI clone and F-Droid's
   // full clone could then disagree, and the foss APKs would differ.
-  val (epoch, sha) = git("log", "-1", "--format=%ct %H")
+  // showSignature off: with it set in the user's git config, signature text lands in the output.
+  val (epoch, sha) = git("-c", "log.showSignature=false", "log", "-1", "--format=%ct %H")
     ?.split(' ')
     ?.takeIf { it.size == 2 }
     ?.let { (time, hash) -> time.toLongOrNull() to hash.take(SHORT_SHA_LENGTH) }
@@ -57,6 +58,9 @@ private fun Project.git(vararg args: String): String? = runCatching {
   val result = providers.exec {
     commandLine("git", *args)
     workingDir = rootDir
+    // Look for a repository at the project root only: a source tarball unpacked inside some other
+    // checkout must not pick up that checkout's HEAD.
+    rootDir.parentFile?.let { environment("GIT_CEILING_DIRECTORIES", it.absolutePath) }
     isIgnoreExitValue = true
   }
   if (result.result.get().exitValue != 0) return null

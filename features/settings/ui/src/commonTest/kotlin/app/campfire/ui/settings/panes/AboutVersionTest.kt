@@ -50,6 +50,15 @@ class AboutVersionTest {
   }
 
   @Test
+  fun `half-hour offsets keep their minutes and sign`() {
+    val india = UtcOffset(hours = 5, minutes = 30).asTimeZone()
+    val newfoundland = UtcOffset(hours = -3, minutes = -30).asTimeZone()
+
+    assertThat(BuildCommit(november, sha = null).line(india)).isEqualTo("2026-11-24 19:33 +05:30")
+    assertThat(BuildCommit(november, sha = null).line(newfoundland)).isEqualTo("2026-11-24 10:33 -03:30")
+  }
+
+  @Test
   fun `commit line drops whichever half is unknown`() {
     assertThat(BuildCommit(november, sha = null).line(minusFive)).isEqualTo("2026-11-24 09:03 -05:00")
     assertThat(BuildCommit(time = null, sha = "220c0be").line(minusFive)).isEqualTo("220c0be")

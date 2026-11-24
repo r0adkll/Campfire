@@ -97,10 +97,13 @@ class AboutPaneTest {
   }
 
   @Test
-  fun `the tap count resets after a pause`() = runComposeUiTest {
+  fun `the tap count resets only after the timeout`() = runComposeUiTest {
     setAboutPane()
 
     onNodeWithText("Version").performScrollTo().performClick()
+    waitForIdle()
+    mainClock.advanceTimeBy(DEVELOPER_MODE_CLICK_TIMEOUT - 500)
+    onNodeWithText("Version").performClick()
     waitForIdle()
     mainClock.advanceTimeBy(DEVELOPER_MODE_CLICK_TIMEOUT + 100)
     onNodeWithText("Version").performClick()
@@ -108,6 +111,9 @@ class AboutPaneTest {
 
     assertThat(toasts).containsExactly(
       "5 more clicks to enable developer mode!",
+      // Within the timeout: still counting.
+      "4 more clicks to enable developer mode!",
+      // After it: back to the start.
       "5 more clicks to enable developer mode!",
     )
   }
