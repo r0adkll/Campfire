@@ -21,7 +21,25 @@ internal fun interface FileFetcher {
    * @param onProgress called with (bytes on disk, total bytes or <= 0 when unknown)
    */
   suspend fun fetch(request: FetchRequest, partFile: Path, onProgress: (Long, Long) -> Unit)
+
+  /**
+   * Called just before each [fetch] with the download's files still to come after it. A fetcher
+   * whose transfers run outside the app can start them here, so they carry on while the app is
+   * suspended instead of waiting their turn; each file still reaches [fetch] in order, which picks
+   * up the transfer already under way. Cancelled along with the fetch it precedes.
+   */
+  suspend fun prepare(upcoming: List<PendingFetch>) = Unit
+
+  /**
+   * Called when a download is removed, before its fetch is cancelled: nothing fetched into
+   * [partFiles] is needed again, so the fetcher can stop their transfers outright and drop
+   * anything it kept to resume them. The part files themselves are deleted afterwards.
+   */
+  suspend fun discard(partFiles: List<Path>) = Unit
 }
+
+/** A file a download fetches later: what to fetch, and the `.part` file it fills. */
+internal data class PendingFetch(val request: FetchRequest, val partFile: Path)
 
 internal data class FetchRequest(
   val url: String,

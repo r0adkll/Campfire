@@ -246,10 +246,28 @@ internal class OfflineDownloadQueue(
 
   private fun remove(key: OfflineDownloadKey) {
     loader.value
-    entries.update { it - key }
+    var removed: Entry? = null
+    entries.update { current ->
+      removed = current[key]
+      current - key
+    }
+    val partFiles = removed?.manifest?.files.orEmpty().map { store.partFile(key, it) }
     submit {
+      discard(partFiles)
       takeJob(key)?.cancelAndJoin()
       store.delete(key)
+    }
+  }
+
+  /** Lets the fetcher drop what it kept to resume [partFiles]. Only tidying, so failing doesn't stop the removal. */
+  private suspend fun discard(partFiles: List<Path>) {
+    if (partFiles.isEmpty()) return
+    try {
+      fetcher.discard(partFiles)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      wbark(e) { "Unable to discard ${partFiles.size} partial file(s)" }
     }
   }
 
@@ -283,28 +301,31 @@ internal class OfflineDownloadQueue(
   private suspend fun fetchAll(manifest: DownloadManifest) {
     val key = manifest.key
     ibark { "Downloading ${manifest.files.size} file(s) for ${key.libraryItemId.loggableId}" }
-    for (file in manifest.files) {
+    manifest.files.forEachIndexed { index, file ->
       val completed = store.completedFile(key, file)
       if (completed.isFile()) {
         updateFile(manifest, file) {
           FileProgress(FileProgress.Status.Completed, completed.length(), completed.length(), clock())
         }
-        continue
+        return@forEachIndexed
       }
-      if (!fetchFile(manifest, file, completed)) return
+      val upcoming = manifest.files.drop(index + 1)
+        .filterNot { store.completedFile(key, it).isFile() }
+        .map { PendingFetch(fetchRequest(manifest, it), store.partFile(key, it)) }
+      if (!fetchFile(manifest, file, completed, upcoming)) return
     }
     ibark { "Download complete for ${key.libraryItemId.loggableId}" }
   }
 
   /** Fetches one file with retries. Returns false once it has failed for good. */
-  private suspend fun fetchFile(manifest: DownloadManifest, file: DownloadManifest.File, completed: Path): Boolean {
+  private suspend fun fetchFile(
+    manifest: DownloadManifest,
+    file: DownloadManifest.File,
+    completed: Path,
+    upcoming: List<PendingFetch>,
+  ): Boolean {
     val part = store.partFile(manifest.key, file)
-    val request = FetchRequest(
-      url = file.url,
-      userId = manifest.userId,
-      serverUrl = manifest.serverUrl,
-      expectedBytes = file.expectedBytes,
-    )
+    val request = fetchRequest(manifest, file)
     var attempt = 0
     while (true) {
       awaitAllowed(manifest, file, part)
@@ -314,6 +335,7 @@ internal class OfflineDownloadQueue(
       try {
         var lastPublished = 0L
         val fetched = whileAllowed {
+          prepare(upcoming)
           fetcher.fetch(request, part) { bytes, total ->
             val now = clock()
             if (now - lastPublished >= progressInterval.inWholeMilliseconds) {
@@ -348,6 +370,25 @@ internal class OfflineDownloadQueue(
         wbark(e) { "Download of track ${file.trackIndex} interrupted, retrying (attempt ${attempt + 1})" }
         delay(retryDelays[attempt++])
       }
+    }
+  }
+
+  private fun fetchRequest(manifest: DownloadManifest, file: DownloadManifest.File) = FetchRequest(
+    url = file.url,
+    userId = manifest.userId,
+    serverUrl = manifest.serverUrl,
+    expectedBytes = file.expectedBytes,
+  )
+
+  /** Lets the fetcher start [upcoming] early. Only a head start, so failing doesn't stop the download. */
+  private suspend fun prepare(upcoming: List<PendingFetch>) {
+    if (upcoming.isEmpty()) return
+    try {
+      fetcher.prepare(upcoming)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      wbark(e) { "Unable to start ${upcoming.size} upcoming file(s) early" }
     }
   }
 
