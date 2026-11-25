@@ -70,12 +70,11 @@ class AboutPaneTest {
   }
 
   @Test
-  fun `the version row shows the build commit`() = runComposeUiTest {
+  fun `the version row shows the short sha and no commit time`() = runComposeUiTest {
     setAboutPane()
 
-    // The time is in this machine's zone, so only the SHA is pinned here; VersionSettingTest covers the format.
-    onNodeWithText("1.4.0 (1040099)").performScrollTo().assertIsDisplayed()
-    onNodeWithText("(220c0be)", substring = true).assertIsDisplayed()
+    onNodeWithText("1.4.0 (1040099) [220c0be]").performScrollTo().assertIsDisplayed()
+    onNodeWithText("2026-11-24", substring = true).assertDoesNotExist()
   }
 
   @Test

@@ -1,6 +1,6 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
-import app.campfire.convention.campfireBuildStamp
+import app.campfire.convention.campfireBuildCommit
 
 plugins {
   id("app.campfire.multiplatform")
@@ -12,7 +12,7 @@ plugins {
 
 buildConfig {
   packageName("app.campfire.ios")
-  campfireBuildStamp().declareFields { type, name, value -> buildConfigField(type, name, value) }
+  campfireBuildCommit().declare { type, name, value -> buildConfigField(type, name, value) }
   useKotlinOutput { internalVisibility = true }
 }
 

@@ -3,7 +3,6 @@
 
 package app.campfire.ui.settings.panes
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -15,10 +14,10 @@ import app.campfire.core.app.BuildCommit
 import app.campfire.core.toast.Toast
 import app.campfire.ui.settings.composables.ActionSetting
 import campfire.features.settings.ui.generated.resources.Res
-import campfire.features.settings.ui.generated.resources.about_version_clip_label
-import campfire.features.settings.ui.generated.resources.about_version_copied
 import campfire.features.settings.ui.generated.resources.about_version_copy_action
 import campfire.features.settings.ui.generated.resources.about_version_title
+import campfire.features.settings.ui.generated.resources.build_info_clip_label
+import campfire.features.settings.ui.generated.resources.build_info_copied
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -29,45 +28,53 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Version row in About: the version, plus the commit the build came from when known.
- * Long-pressing copies both for a bug report; [onClick] is the developer-mode tap counter, null
- * once developer mode is on.
+ * The Version row in About. Long-pressing copies the version for a bug report; [onClick] is the
+ * developer-mode tap counter, null once developer mode is on.
  */
 @Composable
 internal fun VersionSetting(
   applicationInfo: ApplicationInfo,
   onClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
-  timeZone: TimeZone = TimeZone.currentSystemDefault(),
 ) {
-  val clipboard = LocalClipboard.current
-  val toast = LocalToast.current
-  val scope = rememberCoroutineScope()
-  val copiedMessage = stringResource(Res.string.about_version_copied)
-  val clipLabel = stringResource(Res.string.about_version_clip_label)
-  val commitLine = applicationInfo.buildCommit?.line(timeZone)
+  val version = applicationInfo.readableVersion
+  val copy = copyBuildInfoAction(version)
 
   ActionSetting(
     headlineContent = { Text(stringResource(Res.string.about_version_title)) },
-    supportingContent = {
-      Column {
-        Text(applicationInfo.readableVersion)
-        commitLine?.let { Text(it) }
-      }
-    },
+    supportingContent = { Text(version) },
     onClick = onClick,
-    onLongClick = {
-      scope.launch {
-        clipboard.setClipEntry(plainTextClipEntry(applicationInfo.versionCopyText(timeZone), clipLabel))
-        toast.show(copiedMessage, Toast.Duration.SHORT)
-      }
-    },
+    onLongClick = copy,
     onLongClickLabel = stringResource(Res.string.about_version_copy_action),
     modifier = modifier,
   )
 }
 
-private const val SEPARATOR = " · "
+/** Copies build info [text] — a version, or more — to the clipboard and confirms it with a toast. */
+@Composable
+internal fun copyBuildInfoAction(text: String): () -> Unit {
+  val clipboard = LocalClipboard.current
+  val toast = LocalToast.current
+  val scope = rememberCoroutineScope()
+  val copiedMessage = stringResource(Res.string.build_info_copied)
+  val clipLabel = stringResource(Res.string.build_info_clip_label)
+  return {
+    scope.launch {
+      clipboard.setClipEntry(plainTextClipEntry(text, clipLabel))
+      toast.show(copiedMessage, Toast.Duration.SHORT)
+    }
+  }
+}
+
+/** `1.4.0 (1040099) [220c0be]`, or `1.4.0 (1040099)` without a SHA. */
+internal fun readableVersion(versionName: String, versionCode: Long, sha: String?): String = buildString {
+  append(versionName).append(" (").append(versionCode).append(')')
+  sha?.let { append(" [").append(it).append(']') }
+}
+
+/** This build's [readableVersion]. */
+internal val ApplicationInfo.readableVersion: String
+  get() = readableVersion(versionName, versionCode.toLong(), buildCommit?.sha)
 
 private val CommitTimeFormat = LocalDateTime.Format {
   year()
@@ -88,25 +95,7 @@ private val OffsetFormat = UtcOffset.Format {
   offsetMinutesOfHour()
 }
 
-/** `1.4.0 (1040099)` */
-internal val ApplicationInfo.readableVersion: String
-  get() = "$versionName ($versionCode)"
-
-/**
- * `2026-11-24 09:03 -05:00 (220c0be)`, in [timeZone]. Without a time it's just the SHA; without a
- * SHA, just the time.
- */
-internal fun BuildCommit.line(timeZone: TimeZone): String {
-  val formattedTime = time?.let { instant ->
-    val local = instant.toLocalDateTime(timeZone)
-    "${CommitTimeFormat.format(local)} ${OffsetFormat.format(timeZone.offsetAt(instant))}"
-  }
-  return when {
-    formattedTime != null && sha != null -> "$formattedTime ($sha)"
-    else -> formattedTime ?: sha.orEmpty()
-  }
+/** `2026-11-24 09:03 -05:00`: the commit time in [timeZone], with its offset; null when unknown. */
+internal fun BuildCommit.formattedTime(timeZone: TimeZone): String? = time?.let { instant ->
+  "${CommitTimeFormat.format(instant.toLocalDateTime(timeZone))} ${OffsetFormat.format(timeZone.offsetAt(instant))}"
 }
-
-/** What a long-press on Version copies: [readableVersion] plus the commit [line] when known. */
-internal fun ApplicationInfo.versionCopyText(timeZone: TimeZone): String =
-  listOfNotNull(readableVersion, buildCommit?.line(timeZone)).joinToString(SEPARATOR)

@@ -244,7 +244,11 @@ jobs:
         shell: bash
         run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( ($(date +%s) - 1577836800) / 60 ))" >> $GITHUB_ENV
 
+      # Builds GitHub's merge commit, but the app names the pull request's head commit as its build
+      # commit (CAMPFIRE_BUILD_COMMIT below); depth 2 fetches the merge's parents, the head among them.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Set up JDK
         uses: actions/setup-java@v6
@@ -282,6 +286,7 @@ jobs:
         run: ./gradlew :app:android:assembleAlphaRelease
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_DROP_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_DROP_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_BUILD_COMMIT: ${{ github.event.pull_request.head.sha }}
 
       - name: Upload APK
         if: always()

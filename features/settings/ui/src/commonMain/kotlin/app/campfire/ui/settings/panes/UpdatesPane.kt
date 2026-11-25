@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.timeAgo
@@ -58,8 +59,8 @@ import campfire.features.settings.ui.generated.resources.updates_action_view_pro
 import campfire.features.settings.ui.generated.resources.updates_channel_beta
 import campfire.features.settings.ui.generated.resources.updates_channel_main
 import campfire.features.settings.ui.generated.resources.updates_check_again_title
+import campfire.features.settings.ui.generated.resources.updates_installed_copy_action
 import campfire.features.settings.ui.generated.resources.updates_installed_title
-import campfire.features.settings.ui.generated.resources.updates_installed_version
 import campfire.features.settings.ui.generated.resources.updates_kicker_available
 import campfire.features.settings.ui.generated.resources.updates_kicker_channel_ended
 import campfire.features.settings.ui.generated.resources.updates_kicker_checked
@@ -92,6 +93,7 @@ import campfire.features.settings.ui.generated.resources.updates_title_reinstall
 import campfire.features.settings.ui.generated.resources.updates_title_up_to_date
 import campfire.features.settings.ui.generated.resources.updates_title_version
 import campfire.features.settings.ui.generated.resources.updates_whats_new_header
+import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -405,14 +407,40 @@ private fun WhatsNew(notes: List<String>) {
   }
 }
 
+/**
+ * This install's version and SHA. Alpha builds add the commit's time and subject, and long-press
+ * copies all of it for a bug report.
+ */
 @Composable
-private fun InstalledRow(info: AppUpdatesSettingsInfo) {
+internal fun InstalledRow(
+  info: AppUpdatesSettingsInfo,
+  modifier: Modifier = Modifier,
+  timeZone: TimeZone = TimeZone.currentSystemDefault(),
+) {
+  val commit = info.installedCommit
+  val lines = buildList {
+    add(readableVersion(info.installedVersion, info.installedBuild, commit?.sha))
+    if (info.showCommitDetails && commit != null) {
+      commit.formattedTime(timeZone)?.let(::add)
+      commit.subject?.let(::add)
+    }
+  }
+  val copy = copyBuildInfoAction(lines.joinToString("\n"))
+  val copyLabel = stringResource(Res.string.updates_installed_copy_action)
+
   ActionSetting(
     leadingContent = { Icon(CampfireIcons.Rounded.Smartphone, contentDescription = null) },
     headlineContent = { Text(stringResource(Res.string.updates_installed_title)) },
     supportingContent = {
-      Text(stringResource(Res.string.updates_installed_version, info.installedVersion, info.installedBuild))
+      Column {
+        lines.forEach { line ->
+          Text(line, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+      }
     },
+    onLongClick = if (info.showCommitDetails) copy else null,
+    onLongClickLabel = if (info.showCommitDetails) copyLabel else null,
+    modifier = modifier,
   )
 }
 

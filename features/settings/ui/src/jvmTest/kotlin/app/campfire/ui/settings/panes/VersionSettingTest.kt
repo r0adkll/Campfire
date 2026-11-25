@@ -4,12 +4,8 @@
 package app.campfire.ui.settings.panes
 
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.NativeClipboard
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -38,12 +34,8 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.Transferable
 import kotlin.test.Test
 import kotlin.time.Instant
-import kotlinx.datetime.UtcOffset
-import kotlinx.datetime.asTimeZone
 
 @OptIn(ExperimentalTestApi::class)
 class VersionSettingTest {
@@ -53,15 +45,16 @@ class VersionSettingTest {
   private var clicks = 0
 
   @Test
-  fun `shows the version and the commit it was built from`() = runComposeUiTest {
+  fun `shows the version with the short sha and nothing else`() = runComposeUiTest {
     setVersionSetting(onClick = null)
 
-    onNodeWithText("1.4.0 (1040099)").assertIsDisplayed()
-    onNodeWithText("2026-11-24 09:03 -05:00 (220c0be)").assertIsDisplayed()
+    onNodeWithText("1.4.0 (1040099) [220c0be]").assertIsDisplayed()
+    onNodeWithText("2026-11-24", substring = true).assertDoesNotExist()
+    onNodeWithText("Ship it", substring = true).assertDoesNotExist()
   }
 
   @Test
-  fun `hides the commit line without git info`() = runComposeUiTest {
+  fun `drops the sha without git info`() = runComposeUiTest {
     setVersionSetting(onClick = null, buildCommit = null)
 
     onNodeWithText("1.4.0 (1040099)").assertIsDisplayed()
@@ -69,13 +62,13 @@ class VersionSettingTest {
   }
 
   @Test
-  fun `long-press copies the version and commit and confirms it`() = runComposeUiTest {
+  fun `long-press copies the version and confirms it`() = runComposeUiTest {
     setVersionSetting(onClick = { clicks++ })
 
     onNodeWithText("Version").performTouchInput { longClick() }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) [220c0be]")
     assertThat(toasts).containsExactly("Copied to clipboard")
     assertThat(clicks).isEqualTo(0)
   }
@@ -104,7 +97,7 @@ class VersionSettingTest {
     onNodeWithText("Version").performTouchInput { longClick() }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) [220c0be]")
   }
 
   @Test
@@ -115,13 +108,13 @@ class VersionSettingTest {
     onNodeWithText("Version").performKeyInput { pressKey(Key.Enter) }
     waitForIdle()
 
-    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) · 2026-11-24 09:03 -05:00 (220c0be)")
+    assertThat(clipboard.text).isEqualTo("1.4.0 (1040099) [220c0be]")
     assertThat(toasts).containsExactly("Copied to clipboard")
   }
 
   private fun ComposeUiTest.setVersionSetting(
     onClick: (() -> Unit)?,
-    buildCommit: BuildCommit? = BuildCommit(Instant.parse("2026-11-24T14:03:27Z"), "220c0be"),
+    buildCommit: BuildCommit? = BuildCommit(Instant.parse("2026-11-24T14:03:27Z"), "220c0be", "Ship it"),
   ) {
     setContent {
       CampfireTheme {
@@ -135,7 +128,6 @@ class VersionSettingTest {
           VersionSetting(
             applicationInfo = applicationInfo(buildCommit),
             onClick = onClick,
-            timeZone = UtcOffset(hours = -5).asTimeZone(),
           )
         }
       }
@@ -152,21 +144,4 @@ class VersionSettingTest {
     osVersion = "1",
     buildCommit = buildCommit,
   )
-
-  private class FakeClipboard : Clipboard {
-    private var entry: ClipEntry? = null
-
-    @OptIn(ExperimentalComposeUiApi::class)
-    val text: String?
-      get() = (entry?.nativeClipEntry as? Transferable)?.getTransferData(DataFlavor.stringFlavor) as? String
-
-    override suspend fun getClipEntry(): ClipEntry? = entry
-
-    override suspend fun setClipEntry(clipEntry: ClipEntry?) {
-      entry = clipEntry
-    }
-
-    override val nativeClipboard: NativeClipboard
-      get() = error("Not used")
-  }
 }

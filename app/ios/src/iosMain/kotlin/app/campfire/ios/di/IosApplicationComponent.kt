@@ -39,7 +39,11 @@ interface IosApplicationComponent :
       ?: 0,
     osName = UIDevice.currentDevice.systemName,
     osVersion = UIDevice.currentDevice.systemVersion,
-    buildCommit = BuildCommit.fromBuildConfig(BuildConfig.COMMIT_TIME, BuildConfig.COMMIT_SHA),
+    buildCommit = BuildCommit.fromBuildConfig(
+      BuildConfig.COMMIT_TIME,
+      BuildConfig.COMMIT_SHA,
+      BuildConfig.COMMIT_SUBJECT,
+    ),
   )
 
   @Provides

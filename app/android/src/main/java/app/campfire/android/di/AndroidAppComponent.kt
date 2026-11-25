@@ -43,7 +43,11 @@ interface AndroidAppComponent : SharedAppComponent {
       manufacturer = Build.MANUFACTURER,
       model = Build.MODEL,
       sdkVersion = Build.VERSION.SDK_INT,
-      buildCommit = BuildCommit.fromBuildConfig(BuildConfig.COMMIT_TIME, BuildConfig.COMMIT_SHA),
+      buildCommit = BuildCommit.fromBuildConfig(
+        BuildConfig.COMMIT_TIME,
+        BuildConfig.COMMIT_SHA,
+        BuildConfig.COMMIT_SUBJECT,
+      ),
     )
   }
 

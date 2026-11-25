@@ -12,20 +12,21 @@ import kotlin.time.Instant
 class BuildCommitTest {
 
   @Test
-  fun `decodes both build config fields`() {
-    assertThat(BuildCommit.fromBuildConfig(1_795_492_399L, "220c0be"))
-      .isEqualTo(BuildCommit(Instant.fromEpochSeconds(1_795_492_399L), "220c0be"))
+  fun `decodes every build config field`() {
+    assertThat(BuildCommit.fromBuildConfig(1_795_492_399L, "220c0be", "Ship it"))
+      .isEqualTo(BuildCommit(Instant.fromEpochSeconds(1_795_492_399L), "220c0be", "Ship it"))
   }
 
   @Test
-  fun `zero time and empty sha mean unknown`() {
-    assertThat(BuildCommit.fromBuildConfig(0L, "220c0be")).isEqualTo(BuildCommit(time = null, sha = "220c0be"))
-    assertThat(BuildCommit.fromBuildConfig(1_795_492_399L, ""))
-      .isEqualTo(BuildCommit(Instant.fromEpochSeconds(1_795_492_399L), sha = null))
+  fun `zero time and empty strings mean unknown`() {
+    assertThat(BuildCommit.fromBuildConfig(0L, "220c0be", ""))
+      .isEqualTo(BuildCommit(time = null, sha = "220c0be", subject = null))
+    assertThat(BuildCommit.fromBuildConfig(1_795_492_399L, "", " "))
+      .isEqualTo(BuildCommit(Instant.fromEpochSeconds(1_795_492_399L), sha = null, subject = null))
   }
 
   @Test
   fun `nothing known is no commit at all`() {
-    assertThat(BuildCommit.fromBuildConfig(0L, "")).isNull()
+    assertThat(BuildCommit.fromBuildConfig(0L, "", "")).isNull()
   }
 }

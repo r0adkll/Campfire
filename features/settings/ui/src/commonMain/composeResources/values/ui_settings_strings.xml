@@ -215,8 +215,8 @@
   <string name="about_changelog_title">Changelog</string>
   <string name="about_version_title">Version</string>
   <string name="about_version_copy_action">Copy version</string>
-  <string name="about_version_copied">Copied to clipboard</string>
-  <string name="about_version_clip_label">Campfire version</string>
+  <string name="build_info_copied">Copied to clipboard</string>
+  <string name="build_info_clip_label">Campfire build info</string>
 
   <!-- App updates -->
   <string name="updates_summary_checking">Checking…</string>
@@ -254,7 +254,7 @@
   <string name="updates_channel_beta">Beta</string>
   <string name="updates_whats_new_header">What's new</string>
   <string name="updates_installed_title">Installed</string>
-  <string name="updates_installed_version">%1$s (%2$d)</string>
+  <string name="updates_installed_copy_action">Copy build info</string>
   <string name="updates_check_again_title">Check again</string>
   <string name="updates_action_update">Update to %1$s</string>
   <string name="updates_action_reinstall">Reinstall</string>

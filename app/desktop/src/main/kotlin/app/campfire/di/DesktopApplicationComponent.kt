@@ -29,7 +29,11 @@ interface DesktopApplicationComponent : SharedAppComponent {
     versionCode = BuildConfig.VERSION_CODE,
     osName = System.getProperty("os.name"),
     osVersion = System.getProperty("os.version"),
-    buildCommit = BuildCommit.fromBuildConfig(BuildConfig.COMMIT_TIME, BuildConfig.COMMIT_SHA),
+    buildCommit = BuildCommit.fromBuildConfig(
+      BuildConfig.COMMIT_TIME,
+      BuildConfig.COMMIT_SHA,
+      BuildConfig.COMMIT_SUBJECT,
+    ),
   )
 
   @SingleIn(AppScope::class)
