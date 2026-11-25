@@ -53,7 +53,7 @@ class InstalledRowTest {
   fun `alpha builds copy every line on long-press`() = runComposeUiTest {
     setInstalledRow(showCommitDetails = true)
 
-    onNodeWithText("Installed").assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
+    onNodeWithText("Installed").assert(hasLongClickLabel("Copy build info"))
     onNodeWithText("Installed").performTouchInput { longClick() }
     waitForIdle()
 

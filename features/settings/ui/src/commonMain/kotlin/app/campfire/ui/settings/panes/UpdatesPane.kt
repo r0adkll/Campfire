@@ -47,6 +47,7 @@ import app.campfire.updates.AppUpdateCheck
 import app.campfire.updates.ReleaseChannel
 import app.campfire.updates.source.AppUpdate
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.build_info_copy_action
 import campfire.features.settings.ui.generated.resources.setting_updates_title
 import campfire.features.settings.ui.generated.resources.updates_action_check_now
 import campfire.features.settings.ui.generated.resources.updates_action_checking
@@ -59,7 +60,6 @@ import campfire.features.settings.ui.generated.resources.updates_action_view_pro
 import campfire.features.settings.ui.generated.resources.updates_channel_beta
 import campfire.features.settings.ui.generated.resources.updates_channel_main
 import campfire.features.settings.ui.generated.resources.updates_check_again_title
-import campfire.features.settings.ui.generated.resources.updates_installed_copy_action
 import campfire.features.settings.ui.generated.resources.updates_installed_title
 import campfire.features.settings.ui.generated.resources.updates_kicker_available
 import campfire.features.settings.ui.generated.resources.updates_kicker_channel_ended
@@ -408,8 +408,9 @@ private fun WhatsNew(notes: List<String>) {
 }
 
 /**
- * This install's version and SHA. Alpha builds add the commit's time and subject, and long-press
- * copies all of it for a bug report.
+ * This install's build info: its version and SHA, plus the commit's time and subject on Alpha
+ * builds, where long-press copies all of it for a bug report. A pull request build's number isn't
+ * repeated here; the channel chip above already shows it.
  */
 @Composable
 internal fun InstalledRow(
@@ -418,24 +419,20 @@ internal fun InstalledRow(
   timeZone: TimeZone = TimeZone.currentSystemDefault(),
 ) {
   val commit = info.installedCommit
-  val lines = buildList {
-    add(readableVersion(info.installedVersion, info.installedBuild, commit?.sha))
-    if (info.showCommitDetails && commit != null) {
-      commit.formattedTime(timeZone)?.let(::add)
-      commit.subject?.let(::add)
-    }
-  }
-  val copy = copyBuildInfoAction(lines.joinToString("\n"))
-  val copyLabel = stringResource(Res.string.updates_installed_copy_action)
+  val version = readableVersion(info.installedVersion, info.installedBuild, commit?.sha)
+  val time = commit?.formattedTime(timeZone)?.takeIf { info.showCommitDetails }
+  val subject = commit?.subject?.takeIf { info.showCommitDetails }
+  val copy = copyBuildInfoAction(listOfNotNull(version, time, subject).joinToString("\n"))
+  val copyLabel = stringResource(Res.string.build_info_copy_action)
 
   ActionSetting(
     leadingContent = { Icon(CampfireIcons.Rounded.Smartphone, contentDescription = null) },
     headlineContent = { Text(stringResource(Res.string.updates_installed_title)) },
     supportingContent = {
       Column {
-        lines.forEach { line ->
-          Text(line, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
+        Text(version)
+        time?.let { Text(it) }
+        subject?.let { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) }
       }
     },
     onLongClick = if (info.showCommitDetails) copy else null,

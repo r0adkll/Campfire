@@ -42,10 +42,14 @@ data class BuildCommitFields(
  * is when CI ran, so it passes the pull request's head commit instead.
  */
 fun Project.campfireBuildCommit(): BuildCommitFields {
-  val revision = providers.gradleProperty("CAMPFIRE_BUILD_COMMIT").orNull?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?.also { require(FULL_SHA_REGEX.matches(it)) { "CAMPFIRE_BUILD_COMMIT must be a full commit SHA, got '$it'" } }
-    ?: "HEAD"
+  val override = providers.gradleProperty("CAMPFIRE_BUILD_COMMIT").orNull?.trim()?.takeIf { it.isNotEmpty() }
+  // Anything but a full SHA could be read as a git option. Like any other git failure, it hides
+  // the build commit rather than failing the build or falling back to a commit that isn't it.
+  if (override != null && !FULL_SHA_REGEX.matches(override)) {
+    logger.warn("CAMPFIRE_BUILD_COMMIT must be a full commit SHA, got '$override'; building without a build commit")
+    return parseBuildCommit(null)
+  }
+  val revision = override ?: "HEAD"
 
   // One process for every value, NUL-separated since the message has spaces and newlines. `%B`
   // rather than `%s`, which joins a first paragraph that wraps without a blank line into one line.

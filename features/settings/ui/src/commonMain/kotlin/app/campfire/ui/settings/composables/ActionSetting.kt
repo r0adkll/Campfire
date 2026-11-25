@@ -33,7 +33,7 @@ import androidx.compose.ui.semantics.semantics
 
 /**
  * A setting row that acts on a tap ([onClick]) and/or a long-press ([onLongClick]). With only a
- * long-press, the row offers no tap action to accessibility services or a tap.
+ * long-press, a tap does nothing and accessibility services are offered no tap action.
  */
 @Composable
 internal fun ActionSetting(

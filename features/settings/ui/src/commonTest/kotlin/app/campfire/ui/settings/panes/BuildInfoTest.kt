@@ -15,7 +15,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.asTimeZone
 
-class AboutVersionTest {
+class BuildInfoTest {
 
   private val november = Instant.parse("2026-11-24T14:03:27Z")
   private val minusFive = UtcOffset(hours = -5).asTimeZone()

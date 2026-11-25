@@ -6,10 +6,8 @@ package app.campfire.ui.settings.panes
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
@@ -88,7 +86,7 @@ class VersionSettingTest {
     setVersionSetting(onClick = null)
 
     onNodeWithText("Version").assertHasNoClickAction()
-    onNodeWithText("Version").assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
+    onNodeWithText("Version").assert(hasLongClickLabel("Copy build info"))
 
     onNodeWithText("Version").performTouchInput { click() }
     waitForIdle()

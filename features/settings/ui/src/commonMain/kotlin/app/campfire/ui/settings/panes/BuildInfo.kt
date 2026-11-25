@@ -3,19 +3,14 @@
 
 package app.campfire.ui.settings.panes
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import app.campfire.common.compose.toast.LocalToast
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.BuildCommit
 import app.campfire.core.toast.Toast
-import app.campfire.ui.settings.composables.ActionSetting
 import campfire.features.settings.ui.generated.resources.Res
-import campfire.features.settings.ui.generated.resources.about_version_copy_action
-import campfire.features.settings.ui.generated.resources.about_version_title
 import campfire.features.settings.ui.generated.resources.build_info_clip_label
 import campfire.features.settings.ui.generated.resources.build_info_copied
 import kotlinx.coroutines.launch
@@ -27,30 +22,7 @@ import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * The Version row in About. Long-pressing copies the version for a bug report; [onClick] is the
- * developer-mode tap counter, null once developer mode is on.
- */
-@Composable
-internal fun VersionSetting(
-  applicationInfo: ApplicationInfo,
-  onClick: (() -> Unit)?,
-  modifier: Modifier = Modifier,
-) {
-  val version = applicationInfo.readableVersion
-  val copy = copyBuildInfoAction(version)
-
-  ActionSetting(
-    headlineContent = { Text(stringResource(Res.string.about_version_title)) },
-    supportingContent = { Text(version) },
-    onClick = onClick,
-    onLongClick = copy,
-    onLongClickLabel = stringResource(Res.string.about_version_copy_action),
-    modifier = modifier,
-  )
-}
-
-/** Copies build info [text] — a version, or more — to the clipboard and confirms it with a toast. */
+/** Copies build info [text] to the clipboard and confirms it with a toast. */
 @Composable
 internal fun copyBuildInfoAction(text: String): () -> Unit {
   val clipboard = LocalClipboard.current
