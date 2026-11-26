@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -145,26 +146,34 @@ internal fun RailAccountSwitcher(
             Text(
               text = serverName,
               style = MaterialTheme.typography.titleMedium.copy(fontFamily = PaytoneOneFontFamily),
-              maxLines = 1,
+              maxLines = 2,
               overflow = TextOverflow.Ellipsis,
             )
-            userName?.let {
-              Text(
-                text = it,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-              )
-            }
-          }
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Box(
+                modifier = Modifier.weight(1f),
+              ) {
+                userName?.let {
+                  Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                  )
+                }
+              }
 
-          val switchAccountLabel = stringResource(Res.string.action_switch_account)
-          IconButtonTooltip(text = switchAccountLabel) {
-            IconButton(onClick = onSwitchAccount) {
-              Icon(
-                CampfireIcons.Rounded.AccountSwitch,
-                contentDescription = switchAccountLabel,
-              )
+              val switchAccountLabel = stringResource(Res.string.action_switch_account)
+              IconButtonTooltip(text = switchAccountLabel) {
+                IconButton(onClick = onSwitchAccount) {
+                  Icon(
+                    CampfireIcons.Rounded.AccountSwitch,
+                    contentDescription = switchAccountLabel,
+                  )
+                }
+              }
             }
           }
         }

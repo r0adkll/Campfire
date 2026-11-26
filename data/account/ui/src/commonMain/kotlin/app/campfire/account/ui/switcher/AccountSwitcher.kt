@@ -131,8 +131,22 @@ private fun AccountSwitcher(
       switcherConfig = switcherConfig,
       socketState = state.socketState,
       workingOffline = state.workingOffline,
-      serverName = { Text(serverName) },
-      userName = { userName?.let { Text(it) } },
+      serverName = {
+        Text(
+          text = serverName,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+        )
+      },
+      userName = {
+        userName?.let {
+          Text(
+            text = it,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
+      },
       onClick = onClick,
       onRetryConnection = {
         state.eventSink(AccountSwitcherUiEvent.RetryConnection)
@@ -223,22 +237,30 @@ private fun AccountSwitcher(
         ) {
           serverName()
         }
-        ProvideTextStyle(switcherConfig.userNameTextStyle) {
-          userName()
-        }
-      }
-
-      Spacer(Modifier.width(16.dp))
-
-      val switchAccountLabel = stringResource(Res.string.action_switch_account)
-      IconButtonTooltip(text = switchAccountLabel) {
-        IconButton(
-          onClick = onClick,
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
         ) {
-          Icon(
-            CampfireIcons.Rounded.AccountSwitch,
-            contentDescription = switchAccountLabel,
-          )
+          Box(
+            modifier = Modifier.weight(1f),
+          ) {
+            ProvideTextStyle(switcherConfig.userNameTextStyle) {
+              userName()
+            }
+          }
+
+          Spacer(Modifier.width(8.dp))
+
+          val switchAccountLabel = stringResource(Res.string.action_switch_account)
+          IconButtonTooltip(text = switchAccountLabel) {
+            IconButton(
+              onClick = onClick,
+            ) {
+              Icon(
+                CampfireIcons.Rounded.AccountSwitch,
+                contentDescription = switchAccountLabel,
+              )
+            }
+          }
         }
       }
     }
