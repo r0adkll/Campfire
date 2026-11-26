@@ -5,6 +5,7 @@ package app.campfire.ui.appbar
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,6 +65,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
@@ -77,6 +80,9 @@ import campfire.ui.appbar.generated.resources.library_switcher_action_open
 import campfire.ui.appbar.generated.resources.library_switcher_action_previous
 import campfire.ui.appbar.generated.resources.library_switcher_description
 import kotlin.math.abs
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -103,6 +109,9 @@ internal fun librarySwitcherModel(
 }
 
 private val ChipHeight = 40.dp
+
+/** How long the chip's icon slides to a new library; the switch lands once it's done. */
+private const val SlideDurationMillis = 250
 
 /** How far a vertical swipe travels to switch library, unless it's flung. */
 private val SwipeDistance = 24.dp
@@ -142,6 +151,8 @@ internal fun LibrarySwitcher(
   modifier: Modifier = Modifier,
 ) {
   val haptics = LocalHapticFeedback.current
+  val scope = rememberCoroutineScope()
+  var switchJob by remember { mutableStateOf<Job?>(null) }
 
   val currentModel by rememberUpdatedState(model)
   var menuExpanded by remember { mutableStateOf(false) }
@@ -164,19 +175,34 @@ internal fun LibrarySwitcher(
 
   LaunchedEffect(model.currentLibrary.id) { pendingLibrary = null }
 
+  // The library the chip shows: a pick that hasn't landed yet, or the current one. Steps and
+  // swipes start from here so quick ones in a row chain instead of repeating the first.
+  fun shownLibrary(): Library = pendingLibrary ?: currentModel.currentLibrary
+
   fun select(library: Library) {
     menuExpanded = false
     highlightedId = null
-    if (library.id != currentModel.currentLibrary.id) {
-      haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-      pendingLibrary = library
+    switchJob?.cancel()
+    if (library.id == currentModel.currentLibrary.id) {
+      // Back to where it started before the last pick landed: drop that pick
+      pendingLibrary = null
+      return
+    }
+    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+    // A swipe's preview has already slid the icon into place; anything else slides it now
+    val alreadyShown = pendingLibrary?.id == library.id
+    pendingLibrary = library
+    switchJob = scope.launch {
+      // Switching reloads every screen keyed on the library, which would stall the slide
+      // if it landed mid-animation, so let the icon finish first
+      if (!alreadyShown) delay(SlideDurationMillis.toLong())
       currentModel.onLibrarySelected(library)
     }
   }
 
   fun step(by: Int): Boolean {
     val libraries = currentModel.libraries
-    val index = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
+    val index = libraries.indexOfFirst { it.id == shownLibrary().id }
     slideDirection = by
     select(libraries[wrapIndex(index, by, libraries.size)])
     return true
@@ -228,7 +254,7 @@ internal fun LibrarySwitcher(
 
               ChipGesture.Swipe -> {
                 val libraries = currentModel.libraries
-                val startIndex = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
+                val startIndex = libraries.indexOfFirst { it.id == shownLibrary().id }
                 val distancePx = SwipeDistance.toPx()
                 var dragY = currentEvent.changes.firstOrNull { it.id == down.id }
                   ?.let { it.position.y - down.position.y }
@@ -245,7 +271,7 @@ internal fun LibrarySwitcher(
                     slideDirection = if (step != 0) step else -preview
                     preview = step
                     pendingLibrary = libraries[wrapIndex(startIndex, step, libraries.size)]
-                      .takeIf { step != 0 }
+                      .takeIf { it.id != currentModel.currentLibrary.id }
                     if (step != 0) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                   }
                 }
@@ -264,7 +290,9 @@ internal fun LibrarySwitcher(
                   slideDirection = step
                   select(libraries[wrapIndex(startIndex, step, libraries.size)])
                 } else {
-                  pendingLibrary = null
+                  // Fell short: back to whatever the chip showed when the swipe began
+                  pendingLibrary = libraries[startIndex]
+                    .takeIf { it.id != currentModel.currentLibrary.id }
                 }
               }
 
@@ -327,8 +355,10 @@ internal fun LibrarySwitcher(
               val ids = model.libraries.map { it.id }
               if (ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)) 1 else -1
             }
-            (slideInVertically { direction * it } + fadeIn()) togetherWith
-              (slideOutVertically { -direction * it } + fadeOut()) using
+            val slide = tween<IntOffset>(SlideDurationMillis)
+            val fade = tween<Float>(SlideDurationMillis)
+            (slideInVertically(slide) { direction * it } + fadeIn(fade)) togetherWith
+              (slideOutVertically(slide) { -direction * it } + fadeOut(fade)) using
               SizeTransform(clip = true)
           },
         ) { library ->

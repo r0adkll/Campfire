@@ -89,8 +89,38 @@ class LibrarySwitcherTest {
     chip().performTouchInput { click() }
     onNodeWithText("Podcasts").performClick()
 
+    settle()
     assertEquals(listOf(podcasts), selections)
     onNodeWithText("Podcasts").assertDoesNotExist()
+  }
+
+  @Test
+  fun `a pick lands only once the chip has slid over`() = runComposeUiTest {
+    mainClock.autoAdvance = false
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput { click() }
+    mainClock.advanceTimeBy(100)
+    onNodeWithText("Podcasts").performClick()
+    mainClock.advanceTimeBy(100)
+    assertTrue(selections.isEmpty())
+
+    settle()
+    assertEquals(listOf(podcasts), selections)
+  }
+
+  @Test
+  fun `quick steps in a row chain and only the last lands`() = runComposeUiTest {
+    mainClock.autoAdvance = false
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performCustomAction("Next library")
+    chip().performCustomAction("Next library")
+
+    settle()
+    assertEquals(listOf(radio), selections)
   }
 
   @Test
@@ -101,6 +131,7 @@ class LibrarySwitcherTest {
     chip().performTouchInput { click() }
     onNodeWithText("Audiobooks").performClick()
 
+    settle()
     assertTrue(selections.isEmpty())
   }
 
@@ -116,6 +147,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(podcasts), selections)
   }
 
@@ -132,6 +164,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(podcasts), selections)
   }
 
@@ -147,6 +180,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(podcasts), selections)
   }
 
@@ -162,6 +196,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertTrue(selections.isEmpty())
     onNodeWithText("Podcasts").assertDoesNotExist()
   }
@@ -178,6 +213,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(radio), selections)
   }
 
@@ -192,6 +228,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(podcasts), selections)
   }
 
@@ -208,6 +245,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(podcasts), selections)
   }
 
@@ -224,6 +262,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertTrue(selections.isEmpty())
     // A swipe that fell short, not a tap
     onNodeWithText("Podcasts").assertDoesNotExist()
@@ -245,6 +284,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertEquals(listOf(radio), selections)
   }
 
@@ -258,6 +298,7 @@ class LibrarySwitcherTest {
     chip().performTouchInput { up() }
 
     onNodeWithText("Radio dramas").performClick()
+    settle()
     assertEquals(listOf(radio), selections)
   }
 
@@ -273,6 +314,7 @@ class LibrarySwitcherTest {
       up()
     }
 
+    settle()
     assertTrue(selections.isEmpty())
     onNodeWithText("Radio dramas").assertExists()
   }
@@ -291,6 +333,7 @@ class LibrarySwitcherTest {
     }
 
     onNodeWithText("Radio dramas").assertDoesNotExist()
+    settle()
     assertTrue(selections.isEmpty())
   }
 
@@ -300,17 +343,23 @@ class LibrarySwitcherTest {
     setContent { Switcher(current = current, onSelected = { current = it }) }
 
     chip().performCustomAction("Next library")
+    settle()
     assertEquals(radio, current)
     chip().performCustomAction("Previous library")
     chip().performCustomAction("Previous library")
+    settle()
     assertEquals(books, current)
     chip().performCustomAction("Previous library")
+    settle()
     assertEquals(radio, current)
   }
 
   private companion object {
     const val LongPress = 1_000L
   }
+
+  /** Past the chip's slide, after which the switch lands. */
+  private fun ComposeUiTest.settle() = mainClock.advanceTimeBy(500)
 
   private fun ComposeUiTest.chip(): SemanticsNodeInteraction =
     onNodeWithContentDescription("Library, ", substring = true)
