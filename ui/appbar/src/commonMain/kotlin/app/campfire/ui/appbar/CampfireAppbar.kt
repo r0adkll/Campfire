@@ -9,11 +9,14 @@ import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.core.di.UserScope
 import app.campfire.search.api.ui.SearchComponent
@@ -39,6 +42,7 @@ class DefaultCampfireAppBar(
   private val searchComponent: SearchComponent,
   private val themeIconContent: ThemeIconContent,
   private val appUpdates: AppUpdates,
+  private val appBarLibraries: AppBarLibraries,
 ) : CampfireAppBar {
   @OptIn(ExperimentalMaterial3Api::class)
   @Composable
@@ -48,9 +52,17 @@ class DefaultCampfireAppBar(
   ) {
     // The drawer's update card waits behind the menu button
     val update by appUpdates.undismissedUpdate.collectAsState()
+
+    // Session-held, so a new screen's app bar has the switcher from its first frame
+    val libraries by appBarLibraries.state.collectAsState()
+    val librarySwitcher = remember(libraries) {
+      librarySwitcherModel(libraries.currentLibrary, libraries.libraries, appBarLibraries::select)
+    }
+
     CampfireAppBarContent(
       searchComponent = searchComponent,
       themeIconContent = themeIconContent,
+      librarySwitcher = librarySwitcher,
       menuBadged = update != null,
       modifier = modifier,
       scrollBehavior = scrollBehavior,
@@ -65,6 +77,7 @@ object SharedAppBar
 private fun CampfireAppBarContent(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
+  librarySwitcher: LibrarySwitcherModel?,
   menuBadged: Boolean,
   modifier: Modifier,
   scrollBehavior: SearchBarScrollBehavior?,
@@ -73,6 +86,8 @@ private fun CampfireAppBarContent(
   if (windowSizeClass.isSupportingPaneEnabled && !windowSizeClass.isLandscapePhone) {
     ExpandedCampfireAppBar(
       searchComponent = searchComponent,
+      // The wide rail and the permanent drawer already show the library picker
+      librarySwitcher = librarySwitcher.takeIf { windowSizeClass.navigationType == NavigationType.Rail },
       scrollBehavior = scrollBehavior,
       modifier = modifier
         .sharedElement(
@@ -85,6 +100,7 @@ private fun CampfireAppBarContent(
       searchComponent = searchComponent,
       themeIconContent = themeIconContent,
       themeIconEnabled = !windowSizeClass.isLandscapePhone,
+      librarySwitcher = librarySwitcher,
       menuBadged = menuBadged,
       scrollBehavior = scrollBehavior,
       modifier = modifier
@@ -101,6 +117,7 @@ private fun CompactCampfireAppBar(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
   themeIconEnabled: Boolean,
+  librarySwitcher: LibrarySwitcherModel?,
   menuBadged: Boolean,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
@@ -110,6 +127,7 @@ private fun CompactCampfireAppBar(
     searchComponent = searchComponent,
     themeIconContent = themeIconContent,
     themeIconEnabled = themeIconEnabled,
+    librarySwitcher = librarySwitcher,
     themeIconBadged = menuBadged,
     onNavigationClick = drawerOpener,
     modifier = modifier,
@@ -120,11 +138,13 @@ private fun CompactCampfireAppBar(
 @Composable
 private fun ExpandedCampfireAppBar(
   searchComponent: SearchComponent,
+  librarySwitcher: LibrarySwitcherModel?,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   CampfireDockedSearchBar(
     searchComponent = searchComponent,
+    librarySwitcher = librarySwitcher,
     scrollBehavior = scrollBehavior,
     modifier = modifier,
   )

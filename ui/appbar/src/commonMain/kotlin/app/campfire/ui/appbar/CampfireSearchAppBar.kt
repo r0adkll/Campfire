@@ -74,6 +74,7 @@ internal fun CampfireSearchAppBar(
   themeIconEnabled: Boolean,
   onNavigationClick: () -> Unit,
   modifier: Modifier = Modifier,
+  librarySwitcher: LibrarySwitcherModel? = null,
   themeIconBadged: Boolean = false,
   actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
@@ -103,6 +104,9 @@ internal fun CampfireSearchAppBar(
     } else {
       null
     },
+    collapsedTrailingIcon = librarySwitcher?.let { model ->
+      { LibrarySwitcher(model) }
+    },
     actions = actions,
     modifier = modifier,
     scrollBehavior = scrollBehavior,
@@ -119,6 +123,7 @@ private fun CampfireSearchAppBar(
   searchComponent: SearchComponent,
   modifier: Modifier = Modifier,
   navigationIcon: (@Composable () -> Unit)? = null,
+  collapsedTrailingIcon: (@Composable () -> Unit)? = null,
   actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
@@ -166,19 +171,25 @@ private fun CampfireSearchAppBar(
           }
         },
         trailingIcon = {
-          AnimatedVisibility(
-            visible = searchBarState.currentValue == SearchBarValue.Expanded,
-          ) {
-            val clearLabel = stringResource(Res.string.action_clear_search)
-            IconButtonTooltip(text = clearLabel) {
-              IconButton(
-                onClick = {
-                  textFieldState.clearText()
-                  scope.launch { searchBarState.animateToCollapsed() }
-                },
-              ) {
-                Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
+          AnimatedContent(
+            targetState = searchBarState.currentValue,
+            contentAlignment = Alignment.Center,
+          ) { state ->
+            when (state) {
+              SearchBarValue.Expanded -> {
+                val clearLabel = stringResource(Res.string.action_clear_search)
+                IconButtonTooltip(text = clearLabel) {
+                  IconButton(
+                    onClick = {
+                      textFieldState.clearText()
+                      scope.launch { searchBarState.animateToCollapsed() }
+                    },
+                  ) {
+                    Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
+                  }
+                }
               }
+              SearchBarValue.Collapsed -> collapsedTrailingIcon?.invoke()
             }
           }
         },
