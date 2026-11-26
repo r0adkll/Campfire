@@ -44,7 +44,7 @@ titles = ["Project Hail Mary", "All Systems Red"]
 
 [app]
 variant = "fossDebug"
-package = "app.campfire.android"
+package = "app.campfire.android.debug"
 activity = "app.campfire.android.MainActivity"
 library = "Audiobooks"
 

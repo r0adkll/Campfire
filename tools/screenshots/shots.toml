@@ -108,7 +108,7 @@ titles = ["A Psalm for the Wild-Built", "The Long Way to a Small, Angry Planet",
 
 [app]
 variant = "fossDebug"
-package = "app.campfire.android"
+package = "app.campfire.android.debug"
 activity = "app.campfire.android.MainActivity"
 library = "Audiobooks"
 # Defaults for every shot; a shot may override `theme_mode` / `theme`.

@@ -156,6 +156,12 @@ android {
 }
 
 androidComponents {
+  // Every debug build, whatever its flavor, is one install beside the store, Alpha and Beta apps:
+  // switching flavors locally replaces it rather than any of those.
+  onVariants(selector().withBuildType("debug")) { variant ->
+    variant.applicationId.set("app.campfire.android.debug")
+  }
+
   // A build type's signing config wins over a flavor's, so the alpha override goes on the variant.
   onVariants(selector().withFlavor("default" to "alpha").withBuildType("release")) { variant ->
     android.signingConfigs.findByName("drop")?.let { variant.signingConfig.from(it) }

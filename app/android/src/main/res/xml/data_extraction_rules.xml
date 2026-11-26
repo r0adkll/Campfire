@@ -12,12 +12,14 @@
   <cloud-backup>
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
+    <include domain="sharedpref" path="app.campfire.android.debug_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />
     <include domain="database" path="campfire_themes.db-wal" />
   </cloud-backup>
   <device-transfer>
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
+    <include domain="sharedpref" path="app.campfire.android.debug_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />
     <include domain="database" path="campfire_themes.db-wal" />
   </device-transfer>
