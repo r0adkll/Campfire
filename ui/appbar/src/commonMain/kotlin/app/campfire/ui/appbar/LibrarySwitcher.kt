@@ -372,7 +372,7 @@ internal fun LibrarySwitcher(
             }
             .background(
               if (highlightedId == library.id) {
-                contentColor.copy(alpha = 0.1f)
+                contentColor.copy(alpha = 0.16f)
               } else {
                 Color.Transparent
               },

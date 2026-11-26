@@ -14,8 +14,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
@@ -102,6 +104,8 @@ private fun CampfireAppBarContent(
   if (windowSizeClass.isSupportingPaneEnabled && !windowSizeClass.isLandscapePhone) {
     ExpandedCampfireAppBar(
       searchComponent = searchComponent,
+      // The wide rail and the permanent drawer already show the library picker
+      librarySwitcher = librarySwitcher.takeIf { windowSizeClass.navigationType == NavigationType.Rail },
       scrollBehavior = scrollBehavior,
       modifier = modifier
         .sharedElement(
@@ -152,11 +156,13 @@ private fun CompactCampfireAppBar(
 @Composable
 private fun ExpandedCampfireAppBar(
   searchComponent: SearchComponent,
+  librarySwitcher: LibrarySwitcherModel?,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   CampfireDockedSearchBar(
     searchComponent = searchComponent,
+    librarySwitcher = librarySwitcher,
     scrollBehavior = scrollBehavior,
     modifier = modifier,
   )

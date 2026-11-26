@@ -3,9 +3,10 @@
 
 package app.campfire.ui.appbar
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowChromeInsets
@@ -52,12 +54,14 @@ import org.jetbrains.compose.resources.stringResource
 internal fun CampfireDockedSearchBar(
   searchComponent: SearchComponent,
   modifier: Modifier = Modifier,
+  librarySwitcher: LibrarySwitcherModel? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   val textFieldState = rememberTextFieldState()
 
   CampfireDockedSearchBar(
     textFieldState = textFieldState,
+    librarySwitcher = librarySwitcher,
     scrollBehavior = scrollBehavior,
     modifier = modifier,
   ) {
@@ -71,6 +75,7 @@ internal fun CampfireDockedSearchBar(
 private fun CampfireDockedSearchBar(
   textFieldState: TextFieldState,
   modifier: Modifier = Modifier,
+  librarySwitcher: LibrarySwitcherModel? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
   resultContent: @Composable () -> Unit,
 ) {
@@ -99,22 +104,28 @@ private fun CampfireDockedSearchBar(
         Icon(CampfireIcons.Rounded.Search, contentDescription = null)
       },
       trailingIcon = {
-        AnimatedVisibility(
-          visible = textFieldState.text.isNotEmpty() ||
-            searchBarState.currentValue == SearchBarValue.Expanded,
-          enter = fadeIn(),
-          exit = fadeOut(),
-        ) {
-          val clearLabel = stringResource(Res.string.action_clear_search)
-          IconButtonTooltip(text = clearLabel) {
-            IconButton(
-              onClick = {
-                textFieldState.clearText()
-                scope.launch { searchBarState.animateToCollapsed() }
-              },
-            ) {
-              Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
+        // The query outlives a collapse here, so clearing it wins over the switcher
+        val showClear = textFieldState.text.isNotEmpty() ||
+          searchBarState.currentValue == SearchBarValue.Expanded
+        AnimatedContent(
+          targetState = showClear,
+          transitionSpec = { fadeIn() togetherWith fadeOut() },
+          contentAlignment = Alignment.Center,
+        ) { clear ->
+          if (clear) {
+            val clearLabel = stringResource(Res.string.action_clear_search)
+            IconButtonTooltip(text = clearLabel) {
+              IconButton(
+                onClick = {
+                  textFieldState.clearText()
+                  scope.launch { searchBarState.animateToCollapsed() }
+                },
+              ) {
+                Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
+              }
             }
+          } else if (librarySwitcher != null) {
+            LibrarySwitcher(librarySwitcher)
           }
         }
       },
