@@ -6,9 +6,11 @@ package app.campfire.convention
 import com.android.build.api.dsl.ApplicationExtension
 import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
+import com.google.gms.googleservices.GoogleServicesTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.withType
 
 class FirebaseConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
@@ -30,6 +32,12 @@ class FirebaseConventionPlugin : Plugin<Project> {
         apply("com.google.gms.google-services")
         apply("com.google.firebase.crashlytics")
         apply("com.google.firebase.appdistribution")
+      }
+
+      // Debug builds never initialize Firebase, and their `.debug` application ids have no
+      // client in google-services.json, which fails the task outright.
+      tasks.withType<GoogleServicesTask>().configureEach {
+        if (name.endsWith("DebugGoogleServices")) enabled = false
       }
 
       extensions.configure<ApplicationExtension> {

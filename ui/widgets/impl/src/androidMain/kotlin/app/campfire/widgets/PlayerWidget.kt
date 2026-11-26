@@ -131,6 +131,8 @@ class PlayerWidget : GlanceAppWidget() {
     val component by remember {
       ComponentHolder.subscribe<PlayerWidgetComponent>()
     }.collectAsState(null)
+    // Each build installs under its own application id, so open the activity in this one
+    val packageName = LocalContext.current.packageName
 
     fun createMainActivityAction(
       parameters: ActionParameters = actionParametersOf(),
@@ -144,7 +146,7 @@ class PlayerWidget : GlanceAppWidget() {
         // NOTE: This works since we have a proguard rule to keep the MainActivity name
         //  from being obfuscated
         actionStartActivity(
-          componentName = ComponentName("app.campfire.android", "app.campfire.android.MainActivity"),
+          componentName = ComponentName(packageName, "app.campfire.android.MainActivity"),
           parameters = parameters,
         )
       }

@@ -31,21 +31,21 @@
       "name": "Android (Alpha Debug)",
       "icon": "iphone",
       "device": "android",
-      "command": "./gradlew :app:android:installAlphaDebug && adb shell am start -n app.campfire.android.alpha/app.campfire.android.MainActivity"
+      "command": "./gradlew :app:android:installAlphaDebug && adb shell am start -n app.campfire.android.debug/app.campfire.android.MainActivity"
     },
     {
       "id": "android-standard",
       "name": "Android (Standard Debug)",
       "icon": "iphone",
       "device": "android",
-      "command": "./gradlew :app:android:installStandardDebug && adb shell am start -n app.campfire.android/app.campfire.android.MainActivity"
+      "command": "./gradlew :app:android:installStandardDebug && adb shell am start -n app.campfire.android.debug/app.campfire.android.MainActivity"
     },
     {
       "id": "android-foss",
       "name": "Android (FOSS Debug)",
       "icon": "iphone",
       "device": "android",
-      "command": "./gradlew :app:android:installFossDebug && adb shell am start -n app.campfire.android/app.campfire.android.MainActivity"
+      "command": "./gradlew :app:android:installFossDebug && adb shell am start -n app.campfire.android.debug/app.campfire.android.MainActivity"
     },
     {
       "id": "android-alpha-release",

@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Opening the app stopping audio playing in other apps
 - A podcast's playback history in the player showing, jumping to, and clearing every episode's events instead of the playing episode's
 - [Android] Playback history missing pauses made outside the app, such as from the notification, headphones, car or a Cast device
+- [Android] Tapping the player widget on Alpha builds sometimes opening the store version of Campfire, or nothing at all
 
 ### Other Notes & Contributions
 
