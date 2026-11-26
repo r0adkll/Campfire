@@ -4,7 +4,6 @@
 package app.campfire.account.ui.switcher
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -199,16 +198,13 @@ private fun AccountSwitcher(
       .fillMaxWidth()
       .clickable(onClick = onClick),
   ) {
-    val bottomPadding by animateDpAsState(
-      targetValue = if (socketState is SocketState.Failed) 8.dp else switcherConfig.padding,
-    )
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .padding(
           start = switcherConfig.padding,
           top = switcherConfig.padding,
-          bottom = bottomPadding,
+          bottom = switcherConfig.paddingBottom,
           // This accounts for the built-in IconButton padding
           end = switcherConfig.paddingEnd,
         ),
@@ -237,29 +233,9 @@ private fun AccountSwitcher(
         ) {
           serverName()
         }
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Box(
-            modifier = Modifier.weight(1f),
-          ) {
-            ProvideTextStyle(switcherConfig.userNameTextStyle) {
-              userName()
-            }
-          }
-
-          Spacer(Modifier.width(8.dp))
-
-          val switchAccountLabel = stringResource(Res.string.action_switch_account)
-          IconButtonTooltip(text = switchAccountLabel) {
-            IconButton(
-              onClick = onClick,
-            ) {
-              Icon(
-                CampfireIcons.Rounded.AccountSwitch,
-                contentDescription = switchAccountLabel,
-              )
-            }
+        UserNameWithSwitchButton(onSwitchAccount = onClick) {
+          ProvideTextStyle(switcherConfig.userNameTextStyle) {
+            userName()
           }
         }
       }
@@ -274,7 +250,8 @@ private fun AccountSwitcher(
           .height(56.dp)
           .padding(
             start = 16.dp,
-            end = 12.dp,
+            // Lines the retry button up with the switch account button above it
+            end = switcherConfig.paddingEnd,
           ),
         verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -297,6 +274,40 @@ private fun AccountSwitcher(
     }
 
     content()
+  }
+}
+
+/**
+ * The second line of an account switcher card: the user name, with the switch account button
+ * right-aligned beside it. The button keeps its place while there is no user name to show.
+ */
+@Composable
+internal fun UserNameWithSwitchButton(
+  onSwitchAccount: () -> Unit,
+  modifier: Modifier = Modifier,
+  userName: @Composable () -> Unit,
+) {
+  Row(
+    modifier = modifier,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Box(
+      modifier = Modifier.weight(1f),
+    ) {
+      userName()
+    }
+
+    Spacer(Modifier.width(8.dp))
+
+    val switchAccountLabel = stringResource(Res.string.action_switch_account)
+    IconButtonTooltip(text = switchAccountLabel) {
+      IconButton(onClick = onSwitchAccount) {
+        Icon(
+          CampfireIcons.Rounded.AccountSwitch,
+          contentDescription = switchAccountLabel,
+        )
+      }
+    }
   }
 }
 
@@ -541,6 +552,11 @@ data class SwitcherConfig(
   val iconSize: Dp,
   val padding: Dp,
   val paddingEnd: Dp,
+  /**
+   * Smaller than [padding]: the switch account button's touch target already leaves space below
+   * the user name and icon, so this keeps the card from growing taller than [padding] alone would.
+   */
+  val paddingBottom: Dp,
   val indicatorSize: Dp,
   val indicatorOffset: Dp,
   val serverNameTextStyle: TextStyle,
@@ -552,6 +568,7 @@ val DefaultSwitcherConfig: SwitcherConfig
     iconSize = 64.dp,
     padding = 24.dp,
     paddingEnd = 16.dp,
+    paddingBottom = 8.dp,
     indicatorSize = 12.dp,
     indicatorOffset = 6.dp,
     serverNameTextStyle = MaterialTheme.typography.headlineSmall,
@@ -563,6 +580,7 @@ val LandscapeSwitcherConfig: SwitcherConfig
     iconSize = 40.dp,
     padding = 16.dp,
     paddingEnd = 8.dp,
+    paddingBottom = 0.dp,
     indicatorSize = 8.dp,
     indicatorOffset = 3.dp,
     serverNameTextStyle = MaterialTheme.typography.titleLarge,

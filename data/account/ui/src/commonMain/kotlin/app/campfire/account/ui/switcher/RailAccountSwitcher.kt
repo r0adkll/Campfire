@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,8 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,15 +28,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import campfire.data.account.ui.generated.resources.Res
-import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
 import org.jetbrains.compose.resources.stringResource
@@ -122,7 +116,8 @@ internal fun RailAccountSwitcher(
               start = 12.dp,
               top = 12.dp,
               end = 4.dp,
-              bottom = 12.dp,
+              // The switch account button's touch target leaves space below the user name
+              bottom = 0.dp,
             ),
           verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -149,30 +144,14 @@ internal fun RailAccountSwitcher(
               maxLines = 2,
               overflow = TextOverflow.Ellipsis,
             )
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Box(
-                modifier = Modifier.weight(1f),
-              ) {
-                userName?.let {
-                  Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                  )
-                }
-              }
-
-              val switchAccountLabel = stringResource(Res.string.action_switch_account)
-              IconButtonTooltip(text = switchAccountLabel) {
-                IconButton(onClick = onSwitchAccount) {
-                  Icon(
-                    CampfireIcons.Rounded.AccountSwitch,
-                    contentDescription = switchAccountLabel,
-                  )
-                }
+            UserNameWithSwitchButton(onSwitchAccount = onSwitchAccount) {
+              userName?.let {
+                Text(
+                  text = it,
+                  style = MaterialTheme.typography.labelMedium,
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+                )
               }
             }
           }

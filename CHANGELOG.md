@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Slimmer progress bars on covers, download status that stays readable on light covers, smaller badges in the dense library grid, and podcast episodes without a number now marked as episodes on Home
-- Long server names in the account switcher no longer get squeezed by the switch account button
 
 ### Deprecated
 
@@ -25,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Long server names in the account switcher getting squeezed by the switch account button
 - [iOS] Audiobooks not playing, freezing on books without chapters, skipping to the wrong chapter, and the queue not moving on to the next book
 - [Desktop] Marking the book you're listening to as finished stopping playback instead of moving on to the next book in your queue
 - The player showing stale playback state after playback stopped
