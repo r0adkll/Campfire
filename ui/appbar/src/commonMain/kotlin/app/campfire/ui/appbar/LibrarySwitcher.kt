@@ -24,14 +24,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -79,7 +73,6 @@ import campfire.ui.appbar.generated.resources.library_switcher_action_open
 import campfire.ui.appbar.generated.resources.library_switcher_action_previous
 import campfire.ui.appbar.generated.resources.library_switcher_description
 import kotlin.math.abs
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -131,8 +124,6 @@ internal fun LibrarySwitcher(
   modifier: Modifier = Modifier,
 ) {
   val haptics = LocalHapticFeedback.current
-  val scope = rememberCoroutineScope()
-  val tooltipState = rememberTooltipState(isPersistent = true)
 
   val currentModel by rememberUpdatedState(model)
   var menuExpanded by remember { mutableStateOf(false) }
@@ -177,149 +168,130 @@ internal fun LibrarySwitcher(
   val previousLabel = stringResource(Res.string.library_switcher_action_previous)
 
   Box(modifier) {
-    TooltipBox(
-      positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-      tooltip = {
-        PlainTooltip(
-          caretShape = TooltipDefaults.caretShape(),
-          shape = MaterialTheme.shapes.small,
-        ) {
-          Text(
-            text = displayedLibrary.name,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier
+        .padding(end = 4.dp)
+        .height(ChipHeight)
+        .clip(CircleShape)
+        .background(MaterialTheme.colorScheme.secondaryContainer)
+        .onGloballyPositioned { chipCoordinates = it }
+        .semantics(mergeDescendants = true) {
+          role = Role.DropdownList
+          contentDescription = description
+          onClick(label = openLabel) {
+            menuExpanded = true
+            true
+          }
+          customActions = listOf(
+            CustomAccessibilityAction(nextLabel) { step(1) },
+            CustomAccessibilityAction(previousLabel) { step(-1) },
           )
         }
-      },
-      state = tooltipState,
-      enableUserInput = false,
-    ) {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-          .padding(end = 4.dp)
-          .height(ChipHeight)
-          .clip(CircleShape)
-          .background(MaterialTheme.colorScheme.secondaryContainer)
-          .onGloballyPositioned { chipCoordinates = it }
-          .semantics(mergeDescendants = true) {
-            role = Role.DropdownList
-            contentDescription = description
-            onClick(label = openLabel) {
-              menuExpanded = true
-              true
-            }
-            customActions = listOf(
-              CustomAccessibilityAction(nextLabel) { step(1) },
-              CustomAccessibilityAction(previousLabel) { step(-1) },
-            )
-          }
-          .pointerInput(Unit) {
-            awaitEachGesture {
-              val down = awaitFirstDown()
-              // Keep the search field around the chip from treating this as a tap of its own
-              down.consume()
-              val gesture = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-                awaitTapOrSwipe(down.id, down.position, viewConfiguration.touchSlop)
-              } ?: ChipGesture.LongPress
+        .pointerInput(Unit) {
+          awaitEachGesture {
+            val down = awaitFirstDown()
+            // Keep the search field around the chip from treating this as a tap of its own
+            down.consume()
+            val gesture = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+              awaitTapOrSwipe(down.id, down.position, viewConfiguration.touchSlop)
+            } ?: ChipGesture.LongPress
 
-              when (gesture) {
-                ChipGesture.Cancel -> Unit
-                ChipGesture.Tap -> menuExpanded = true
+            when (gesture) {
+              ChipGesture.Cancel -> Unit
+              ChipGesture.Tap -> menuExpanded = true
 
-                ChipGesture.Swipe -> {
-                  val libraries = currentModel.libraries
-                  val startIndex = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
-                  var index = startIndex
-                  scope.launch { tooltipState.show() }
+              ChipGesture.Swipe -> {
+                val libraries = currentModel.libraries
+                val startIndex = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
+                var index = startIndex
 
-                  val released = trackPointer(down.id) { change ->
-                    val target = swipeTargetIndex(
-                      startIndex = startIndex,
-                      dragY = change.position.y - down.position.y,
-                      stepPx = SwipeStep.toPx(),
-                      count = libraries.size,
-                    )
-                    if (target != index) {
-                      index = target
-                      pendingLibrary = libraries[target].takeIf { target != startIndex }
-                      haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                    }
-                  }
-
-                  tooltipState.dismiss()
-                  if (released && index != startIndex) {
-                    select(libraries[index])
-                  } else {
-                    pendingLibrary = null
+                val released = trackPointer(down.id) { change ->
+                  val target = swipeTargetIndex(
+                    startIndex = startIndex,
+                    dragY = change.position.y - down.position.y,
+                    stepPx = SwipeStep.toPx(),
+                    count = libraries.size,
+                  )
+                  if (target != index) {
+                    index = target
+                    pendingLibrary = libraries[target].takeIf { target != startIndex }
+                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                   }
                 }
 
-                ChipGesture.LongPress -> {
-                  haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                  dragSelecting = true
-                  menuExpanded = true
-                  var moved = false
+                if (released && index != startIndex) {
+                  select(libraries[index])
+                } else {
+                  pendingLibrary = null
+                }
+              }
 
-                  val released = trackPointer(down.id) { change ->
-                    if ((change.position - down.position).getDistance() > viewConfiguration.touchSlop) {
-                      moved = true
-                    }
-                    // The menu opens over the chip, so the finger starts on a row: only pick
-                    // once it slides, or a wobble on release would select that row
-                    val onScreen = chipCoordinates?.localToScreen(change.position)?.takeIf { moved }
-                    val hit = onScreen?.let { point ->
-                      currentModel.libraries.firstOrNull { itemBounds[it.id]?.contains(point) == true }
-                    }
-                    if (hit?.id != highlightedId) {
-                      highlightedId = hit?.id
-                      if (hit != null) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                    }
+              ChipGesture.LongPress -> {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                dragSelecting = true
+                menuExpanded = true
+                var moved = false
+
+                val released = trackPointer(down.id) { change ->
+                  if ((change.position - down.position).getDistance() > viewConfiguration.touchSlop) {
+                    moved = true
                   }
+                  // The menu opens over the chip, so the finger starts on a row: only pick
+                  // once it slides, or a wobble on release would select that row
+                  val onScreen = chipCoordinates?.localToScreen(change.position)?.takeIf { moved }
+                  val hit = onScreen?.let { point ->
+                    currentModel.libraries.firstOrNull { itemBounds[it.id]?.contains(point) == true }
+                  }
+                  if (hit?.id != highlightedId) {
+                    highlightedId = hit?.id
+                    if (hit != null) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                  }
+                }
 
-                  dragSelecting = false
-                  val picked = currentModel.libraries.firstOrNull { it.id == highlightedId }
-                  when {
-                    released && picked != null -> select(picked)
-                    // Let go without sliding: leave the menu open to tap through
-                    !moved -> highlightedId = null
-                    // Slid off the menu: treat it as a cancel
-                    else -> {
-                      menuExpanded = false
-                      highlightedId = null
-                    }
+                dragSelecting = false
+                val picked = currentModel.libraries.firstOrNull { it.id == highlightedId }
+                when {
+                  released && picked != null -> select(picked)
+                  // Let go without sliding: leave the menu open to tap through
+                  !moved -> highlightedId = null
+                  // Slid off the menu: treat it as a cancel
+                  else -> {
+                    menuExpanded = false
+                    highlightedId = null
                   }
                 }
               }
             }
           }
-          .padding(start = 10.dp, end = 4.dp),
-      ) {
-        AnimatedContent(
-          targetState = displayedLibrary,
-          contentKey = { it.id },
-          transitionSpec = {
-            val ids = model.libraries.map { it.id }
-            val forward = ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)
-            val direction = if (forward) 1 else -1
-            (slideInVertically { direction * it } + fadeIn()) togetherWith
-              (slideOutVertically { -direction * it } + fadeOut()) using
-              SizeTransform(clip = true)
-          },
-        ) { library ->
-          Icon(
-            imageVector = library.icon.asComposeIcon(),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.size(20.dp),
-          )
         }
+        .padding(start = 10.dp, end = 4.dp),
+    ) {
+      AnimatedContent(
+        targetState = displayedLibrary,
+        contentKey = { it.id },
+        transitionSpec = {
+          val ids = model.libraries.map { it.id }
+          val forward = ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)
+          val direction = if (forward) 1 else -1
+          (slideInVertically { direction * it } + fadeIn()) togetherWith
+            (slideOutVertically { -direction * it } + fadeOut()) using
+            SizeTransform(clip = true)
+        },
+      ) { library ->
         Icon(
-          imageVector = CampfireIcons.Rounded.UnfoldMore,
+          imageVector = library.icon.asComposeIcon(),
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
-          modifier = Modifier.size(18.dp),
+          modifier = Modifier.size(20.dp),
         )
       }
+      Icon(
+        imageVector = CampfireIcons.Rounded.UnfoldMore,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier.size(18.dp),
+      )
     }
 
     DropdownMenu(
