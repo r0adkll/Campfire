@@ -1,0 +1,79 @@
+name: Fork PR APK Comment
+
+# A fork PR's CI run has a read-only token, so it can't comment on its own PR. This workflow runs
+# from the default branch with a write token once CI finishes, and links the APK artifact that the
+# `android-apk` job uploaded. It never checks out or runs the fork's code; the head branch and owner
+# are attacker-controlled strings, so they only reach the shell through env vars.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name != github.repository }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Link the APK on the pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          marker='<!-- campfire-fork-apk -->'
+
+          # workflow_run.pull_requests is always empty for fork PRs, so find the PR by its head.
+          # Matching the head SHA skips runs the fork has already pushed past; the newer run comments.
+          head=$(jq -rn --arg v "$HEAD_OWNER:$HEAD_BRANCH" '$v | @uri')
+          pr=$(gh api "repos/$REPO/pulls?state=open&head=$head" \
+            --jq '[.[] | select(.head.sha == env.HEAD_SHA) | .number] | first // empty')
+          if [ -z "$pr" ]; then
+            echo "No open pull request has $HEAD_SHA as its head; nothing to comment on"
+            exit 0
+          fi
+
+          artifact=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts" \
+            --jq '[.artifacts[] | select(.name == "android-alpha-release.apk" and (.expired | not))]
+              | first // empty | "\(.id) \(.expires_at[0:10])"')
+
+          short_sha=${HEAD_SHA:0:7}
+          run_url="https://github.com/$REPO/actions/runs/$RUN_ID"
+          body_file=$(mktemp)
+          if [ -n "$artifact" ]; then
+            read -r artifact_id expires <<<"$artifact"
+            cat >"$body_file" <<EOF
+          $marker
+          ### Android APK
+
+          [Download android-alpha-release.apk](https://github.com/$REPO/actions/runs/$RUN_ID/artifacts/$artifact_id) — built from $short_sha, available until $expires.
+
+          Builds from forks can't use the Drop signing key, so this APK is debug-signed: uninstall any Campfire Alpha installed from Drop before installing it. The download needs you to be signed in to GitHub.
+          EOF
+          else
+            cat >"$body_file" <<EOF
+          $marker
+          ### Android APK
+
+          The [CI run]($run_url) for $short_sha didn't produce an APK. Check the **Android / APK** job.
+          EOF
+          fi
+          comment_ids=$(gh api --paginate "repos/$REPO/issues/$pr/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id")
+          comment_id=${comment_ids%%$'\n'*}
+          if [ -n "$comment_id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -F body=@"$body_file" >/dev/null
+            echo "Updated comment $comment_id on #$pr"
+          else
+            gh api -X POST "repos/$REPO/issues/$pr/comments" -F body=@"$body_file" >/dev/null
+            echo "Commented on #$pr"
+          fi
