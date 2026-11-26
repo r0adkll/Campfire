@@ -23,8 +23,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -326,11 +328,14 @@ internal fun LibrarySwitcher(
       // Open over the chip rather than below it
       offset = DpOffset(x = 0.dp, y = -ChipHeight),
       shape = MaterialTheme.shapes.medium,
+      // The chip's colors, so the menu reads as the chip opening up
+      containerColor = MaterialTheme.colorScheme.secondaryContainer,
       onDismissRequest = {
         menuExpanded = false
         highlightedId = null
       },
     ) {
+      val contentColor = MaterialTheme.colorScheme.onSecondaryContainer
       model.libraries.forEach { library ->
         val selected = library.id == model.currentLibrary.id
         DropdownMenuItem(
@@ -342,8 +347,22 @@ internal fun LibrarySwitcher(
           },
           leadingIcon = { Icon(library.icon.asComposeIcon(), contentDescription = null) },
           // Radio buttons, matching the library picker in the drawer
-          trailingIcon = { RadioButton(selected = selected, onClick = null) },
+          trailingIcon = {
+            RadioButton(
+              selected = selected,
+              onClick = null,
+              colors = RadioButtonDefaults.colors(
+                selectedColor = contentColor,
+                unselectedColor = contentColor,
+              ),
+            )
+          },
           onClick = { select(library) },
+          colors = MenuDefaults.itemColors(
+            textColor = contentColor,
+            leadingIconColor = contentColor,
+            trailingIconColor = contentColor,
+          ),
           modifier = Modifier
             .onGloballyPositioned { coordinates ->
               itemBounds[library.id] = Rect(
@@ -353,7 +372,7 @@ internal fun LibrarySwitcher(
             }
             .background(
               if (highlightedId == library.id) {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                contentColor.copy(alpha = 0.1f)
               } else {
                 Color.Transparent
               },
