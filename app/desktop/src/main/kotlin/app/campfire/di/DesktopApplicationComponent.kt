@@ -8,6 +8,7 @@ import app.campfire.BuildConfig
 import app.campfire.common.di.SharedAppComponent
 import app.campfire.config.FileSystemPreferences
 import app.campfire.core.app.ApplicationInfo
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import dev.zacsweers.metro.DependencyGraph
@@ -28,6 +29,11 @@ interface DesktopApplicationComponent : SharedAppComponent {
     versionCode = BuildConfig.VERSION_CODE,
     osName = System.getProperty("os.name"),
     osVersion = System.getProperty("os.version"),
+    buildCommit = BuildCommit.fromBuildConfig(
+      BuildConfig.COMMIT_TIME,
+      BuildConfig.COMMIT_SHA,
+      BuildConfig.COMMIT_SUBJECT,
+    ),
   )
 
   @SingleIn(AppScope::class)

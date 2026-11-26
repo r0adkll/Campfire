@@ -9,6 +9,7 @@ import app.campfire.android.BuildConfig
 import app.campfire.common.di.SharedAppComponent
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.app.ApplicationInfo
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import dev.zacsweers.metro.DependencyGraph
@@ -42,6 +43,11 @@ interface AndroidAppComponent : SharedAppComponent {
       manufacturer = Build.MANUFACTURER,
       model = Build.MODEL,
       sdkVersion = Build.VERSION.SDK_INT,
+      buildCommit = BuildCommit.fromBuildConfig(
+        BuildConfig.COMMIT_TIME,
+        BuildConfig.COMMIT_SHA,
+        BuildConfig.COMMIT_SUBJECT,
+      ),
     )
   }
 

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.core.app.BuildCommit
 import app.campfire.ui.settings.AppUpdatesSettingsInfo
 import app.campfire.updates.AppUpdateCheck
 import app.campfire.updates.source.AppUpdate
@@ -24,6 +25,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import org.jetbrains.skia.EncodedImageFormat
 
 /**
@@ -71,7 +73,7 @@ class UpdatesSettingsRenderTest {
 
   @Test
   fun `alpha build up to date`() {
-    render("updates-up-to-date-alpha") { Pane(info(update = null, channel = "main")) }
+    render("updates-up-to-date-alpha") { Pane(info(update = null, channel = "main", alpha = true)) }
   }
 
   @Test
@@ -97,11 +99,18 @@ class UpdatesSettingsRenderTest {
     update: AppUpdate?,
     check: AppUpdateCheck = CHECKED,
     channel: String = "beta",
+    alpha: Boolean = false,
   ) = AppUpdatesSettingsInfo(
     update = update,
     check = check,
     installedVersion = "1.3.2",
     installedBuild = 1_003_020L,
+    installedCommit = BuildCommit(
+      time = Instant.parse("2026-11-24T14:03:27Z"),
+      sha = "220c0be",
+      subject = "Show the build commit under Installed on Alpha builds, with a long-press to copy it",
+    ),
+    showCommitDetails = alpha,
     channel = channel,
     sheet = NoSheet,
     showSheet = false,

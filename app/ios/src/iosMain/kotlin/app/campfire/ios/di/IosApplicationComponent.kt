@@ -4,7 +4,9 @@
 package app.campfire.ios.di
 
 import app.campfire.common.di.SharedAppComponent
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.di.AppScope
+import app.campfire.ios.BuildConfig
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -37,6 +39,11 @@ interface IosApplicationComponent :
       ?: 0,
     osName = UIDevice.currentDevice.systemName,
     osVersion = UIDevice.currentDevice.systemVersion,
+    buildCommit = BuildCommit.fromBuildConfig(
+      BuildConfig.COMMIT_TIME,
+      BuildConfig.COMMIT_SHA,
+      BuildConfig.COMMIT_SUBJECT,
+    ),
   )
 
   @Provides

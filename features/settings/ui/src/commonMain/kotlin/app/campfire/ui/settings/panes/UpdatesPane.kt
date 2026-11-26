@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.timeAgo
@@ -46,6 +47,7 @@ import app.campfire.updates.AppUpdateCheck
 import app.campfire.updates.ReleaseChannel
 import app.campfire.updates.source.AppUpdate
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.build_info_copy_action
 import campfire.features.settings.ui.generated.resources.setting_updates_title
 import campfire.features.settings.ui.generated.resources.updates_action_check_now
 import campfire.features.settings.ui.generated.resources.updates_action_checking
@@ -59,7 +61,6 @@ import campfire.features.settings.ui.generated.resources.updates_channel_beta
 import campfire.features.settings.ui.generated.resources.updates_channel_main
 import campfire.features.settings.ui.generated.resources.updates_check_again_title
 import campfire.features.settings.ui.generated.resources.updates_installed_title
-import campfire.features.settings.ui.generated.resources.updates_installed_version
 import campfire.features.settings.ui.generated.resources.updates_kicker_available
 import campfire.features.settings.ui.generated.resources.updates_kicker_channel_ended
 import campfire.features.settings.ui.generated.resources.updates_kicker_checked
@@ -92,6 +93,7 @@ import campfire.features.settings.ui.generated.resources.updates_title_reinstall
 import campfire.features.settings.ui.generated.resources.updates_title_up_to_date
 import campfire.features.settings.ui.generated.resources.updates_title_version
 import campfire.features.settings.ui.generated.resources.updates_whats_new_header
+import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -405,14 +407,37 @@ private fun WhatsNew(notes: List<String>) {
   }
 }
 
+/**
+ * This install's build info: its version and SHA, plus the commit's time and subject on Alpha
+ * builds, where long-press copies all of it for a bug report. A pull request build's number isn't
+ * repeated here; the channel chip above already shows it.
+ */
 @Composable
-private fun InstalledRow(info: AppUpdatesSettingsInfo) {
+internal fun InstalledRow(
+  info: AppUpdatesSettingsInfo,
+  modifier: Modifier = Modifier,
+  timeZone: TimeZone = TimeZone.currentSystemDefault(),
+) {
+  val commit = info.installedCommit
+  val version = readableVersion(info.installedVersion, info.installedBuild, commit?.sha)
+  val time = commit?.formattedTime(timeZone)?.takeIf { info.showCommitDetails }
+  val subject = commit?.subject?.takeIf { info.showCommitDetails }
+  val copy = copyBuildInfoAction(listOfNotNull(version, time, subject).joinToString("\n"))
+  val copyLabel = stringResource(Res.string.build_info_copy_action)
+
   ActionSetting(
     leadingContent = { Icon(CampfireIcons.Rounded.Smartphone, contentDescription = null) },
     headlineContent = { Text(stringResource(Res.string.updates_installed_title)) },
     supportingContent = {
-      Text(stringResource(Res.string.updates_installed_version, info.installedVersion, info.installedBuild))
+      Column {
+        Text(version)
+        time?.let { Text(it) }
+        subject?.let { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+      }
     },
+    onLongClick = if (info.showCommitDetails) copy else null,
+    onLongClickLabel = if (info.showCommitDetails) copyLabel else null,
+    modifier = modifier,
   )
 }
 

@@ -9,6 +9,7 @@ import app.campfire.audioplayer.model.AudioOutputDiagnostics
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
+import app.campfire.core.app.BuildCommit
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Server
 import app.campfire.network.reachability.NetworkSnapshot
@@ -166,6 +167,10 @@ data class AppUpdatesSettingsInfo(
   /** This install's version name and code. */
   val installedVersion: String,
   val installedBuild: Long,
+  /** The commit this install was built from; null without git information. */
+  val installedCommit: BuildCommit? = null,
+  /** Whether to show [installedCommit]'s time and subject, not just its SHA: Alpha builds only. */
+  val showCommitDetails: Boolean = false,
   /** The release channel this build follows, where the update source has them. */
   val channel: String?,
   val sheet: AppUpdateSheet,

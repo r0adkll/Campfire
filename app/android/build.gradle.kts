@@ -3,6 +3,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
+import app.campfire.convention.campfireBuildCommit
 import app.campfire.convention.campfireVersionCode
 import app.campfire.convention.campfireVersionName
 import app.campfire.convention.deriveVersionCode
@@ -32,6 +33,8 @@ android {
 
     versionCode = campfireVersionCode()
     versionName = campfireVersionName()
+
+    campfireBuildCommit().declare { type, name, value -> buildConfigField(type, name, value) }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

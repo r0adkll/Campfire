@@ -25,6 +25,7 @@ import app.campfire.common.screens.UrlScreen
 import app.campfire.core.Platform
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.ApplicationUrls
+import app.campfire.core.app.Flavor
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
@@ -361,6 +362,8 @@ class SettingsPresenter(
           check = appUpdateCheck,
           installedVersion = applicationInfo.versionName,
           installedBuild = applicationInfo.versionCode.toLong(),
+          installedCommit = applicationInfo.buildCommit,
+          showCommitDetails = applicationInfo.flavor == Flavor.Alpha,
           channel = appUpdates.channel,
           sheet = appUpdates.installSheet,
           showSheet = showAppUpdateSheet,

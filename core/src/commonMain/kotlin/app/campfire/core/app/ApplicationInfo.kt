@@ -12,6 +12,9 @@ data class ApplicationInfo(
   val osName: String,
   val osVersion: String,
 
+  /** The commit this build came from; null when the build had no git information. */
+  val buildCommit: BuildCommit? = null,
+
   // Android Related fields
   val manufacturer: String? = null,
   val model: String? = null,
