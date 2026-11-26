@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,8 @@ import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -101,25 +104,36 @@ internal fun librarySwitcherModel(
 
 private val ChipHeight = 40.dp
 
-/** How far a vertical swipe travels to step one library. */
-private val SwipeStep = 32.dp
+/** How far a vertical swipe travels to switch library, unless it's flung. */
+private val SwipeDistance = 24.dp
+
+/** How fast a short vertical flick has to be to switch library anyway. */
+private val SwipeFlingVelocity = 400.dp
 
 /** A swipe may lean this far off vertical (rise over run, about 60°) and still count. */
 private const val SwipeMinSlope = 0.6f
 
 /**
- * The library a vertical swipe of [dragY] lands on, starting from [startIndex]. Swiping up steps
- * forward through the list like a picker wheel, and the ends hold rather than wrapping.
+ * Which way one swipe moves through the libraries: 1 for the next, -1 for the previous, or 0 for
+ * none. Swiping up moves forward. A strong flick decides by its direction; otherwise the swipe
+ * has to travel [distancePx].
  */
-internal fun swipeTargetIndex(startIndex: Int, dragY: Float, stepPx: Float, count: Int): Int {
-  return (startIndex - (dragY / stepPx).toInt()).coerceIn(0, count - 1)
+internal fun swipeStep(dragY: Float, velocityY: Float, distancePx: Float, flingVelocityPx: Float): Int = when {
+  velocityY <= -flingVelocityPx -> 1
+  velocityY >= flingVelocityPx -> -1
+  dragY <= -distancePx -> 1
+  dragY >= distancePx -> -1
+  else -> 0
 }
+
+/** The library [by] steps from [index], wrapping around either end of [count] libraries. */
+internal fun wrapIndex(index: Int, by: Int, count: Int): Int = ((index + by) % count + count) % count
 
 /**
  * A compact chip showing the current library's icon that switches libraries three ways:
  *
  * - Tap to open a menu of every library.
- * - Swipe vertically to step through the libraries, committing the one shown on release.
+ * - Swipe up or down for the next or previous library, wrapping around at either end.
  * - Long press to open the menu, then slide onto a library and let go to pick it.
  */
 @Composable
@@ -139,6 +153,9 @@ internal fun LibrarySwitcher(
   // While the finger that opened the menu is still down. A focusable popup would take that
   // finger's events from the chip, so the menu only takes focus once it lifts.
   var dragSelecting by remember { mutableStateOf(false) }
+  // Which way the chip's icon slides: a swipe's direction, even when it wraps around the list,
+  // or 0 to follow the list order for picks from the menu.
+  var slideDirection by remember { mutableIntStateOf(0) }
 
   // Coordinates resolve on screen so the finger, owned by the chip's window, can be tested
   // against items laid out in the menu's popup.
@@ -160,8 +177,8 @@ internal fun LibrarySwitcher(
   fun step(by: Int): Boolean {
     val libraries = currentModel.libraries
     val index = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
-    val target = libraries.getOrNull(index + by) ?: return false
-    select(target)
+    slideDirection = by
+    select(libraries[wrapIndex(index, by, libraries.size)])
     return true
   }
 
@@ -196,8 +213,13 @@ internal fun LibrarySwitcher(
             val down = awaitFirstDown()
             // Keep the search field around the chip from treating this as a tap of its own
             down.consume()
+            // Fed from the first move, so a flick that ends just past the touch slop has a speed
+            val velocityTracker = VelocityTracker()
+            velocityTracker.addPointerInputChange(down)
             val gesture = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-              awaitTapOrSwipe(down.id, down.position, viewConfiguration.touchSlop)
+              awaitTapOrSwipe(down.id, down.position, viewConfiguration.touchSlop) { change ->
+                velocityTracker.addPointerInputChange(change)
+              }
             } ?: ChipGesture.LongPress
 
             when (gesture) {
@@ -207,24 +229,40 @@ internal fun LibrarySwitcher(
               ChipGesture.Swipe -> {
                 val libraries = currentModel.libraries
                 val startIndex = libraries.indexOfFirst { it.id == currentModel.currentLibrary.id }
-                var index = startIndex
+                val distancePx = SwipeDistance.toPx()
+                var dragY = currentEvent.changes.firstOrNull { it.id == down.id }
+                  ?.let { it.position.y - down.position.y }
+                  ?: 0f
+                var preview = 0
 
                 val released = trackPointer(down.id) { change ->
-                  val target = swipeTargetIndex(
-                    startIndex = startIndex,
-                    dragY = change.position.y - down.position.y,
-                    stepPx = SwipeStep.toPx(),
-                    count = libraries.size,
-                  )
-                  if (target != index) {
-                    index = target
-                    pendingLibrary = libraries[target].takeIf { target != startIndex }
-                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                  velocityTracker.addPointerInputChange(change)
+                  dragY = change.position.y - down.position.y
+                  // Preview by distance alone; a flick only shows its hand on release
+                  val step = swipeStep(dragY, velocityY = 0f, distancePx, Float.POSITIVE_INFINITY)
+                  if (step != preview) {
+                    // Sliding back to the current library reverses the way it went out
+                    slideDirection = if (step != 0) step else -preview
+                    preview = step
+                    pendingLibrary = libraries[wrapIndex(startIndex, step, libraries.size)]
+                      .takeIf { step != 0 }
+                    if (step != 0) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                   }
                 }
 
-                if (released && index != startIndex) {
-                  select(libraries[index])
+                val step = if (released) {
+                  swipeStep(
+                    dragY = dragY,
+                    velocityY = velocityTracker.calculateVelocity().y,
+                    distancePx = distancePx,
+                    flingVelocityPx = SwipeFlingVelocity.toPx(),
+                  )
+                } else {
+                  0
+                }
+                if (step != 0) {
+                  slideDirection = step
+                  select(libraries[wrapIndex(startIndex, step, libraries.size)])
                 } else {
                   pendingLibrary = null
                 }
@@ -255,7 +293,10 @@ internal fun LibrarySwitcher(
                 dragSelecting = false
                 val picked = currentModel.libraries.firstOrNull { it.id == highlightedId }
                 when {
-                  released && picked != null -> select(picked)
+                  released && picked != null -> {
+                    slideDirection = 0
+                    select(picked)
+                  }
                   // Let go without sliding: leave the menu open to tap through
                   !moved -> highlightedId = null
                   // Slid off the menu: treat it as a cancel
@@ -282,9 +323,10 @@ internal fun LibrarySwitcher(
           targetState = displayedLibrary,
           contentKey = { it.id },
           transitionSpec = {
-            val ids = model.libraries.map { it.id }
-            val forward = ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)
-            val direction = if (forward) 1 else -1
+            val direction = slideDirection.takeIf { it != 0 } ?: run {
+              val ids = model.libraries.map { it.id }
+              if (ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)) 1 else -1
+            }
             (slideInVertically { direction * it } + fadeIn()) togetherWith
               (slideOutVertically { -direction * it } + fadeOut()) using
               SizeTransform(clip = true)
@@ -341,7 +383,10 @@ internal fun LibrarySwitcher(
               ),
             )
           },
-          onClick = { select(library) },
+          onClick = {
+            slideDirection = 0
+            select(library)
+          },
           colors = MenuDefaults.itemColors(
             textColor = contentColor,
             leadingIconColor = contentColor,
@@ -377,10 +422,12 @@ private suspend fun AwaitPointerEventScope.awaitTapOrSwipe(
   pointerId: PointerId,
   downPosition: Offset,
   touchSlop: Float,
+  onChange: (PointerInputChange) -> Unit,
 ): ChipGesture {
   while (true) {
     val change = awaitPointerEvent().changes.firstOrNull { it.id == pointerId }
       ?: return ChipGesture.Cancel
+    onChange(change)
     if (change.changedToUp()) {
       change.consume()
       return ChipGesture.Tap
@@ -399,8 +446,9 @@ private suspend fun AwaitPointerEventScope.awaitTapOrSwipe(
 }
 
 /**
- * Feed each move of [pointerId] to [onMove], consuming it, until the pointer lifts. Returns true
- * for a clean release and false when the gesture was cancelled out from under us.
+ * Feed each move of [pointerId] to [onMove], consuming it, until the pointer lifts, and the release
+ * too so a fling's speed counts its last stretch. Returns true for a clean release and false when
+ * the gesture was cancelled out from under us.
  */
 private suspend fun AwaitPointerEventScope.trackPointer(
   pointerId: PointerId,
@@ -409,6 +457,7 @@ private suspend fun AwaitPointerEventScope.trackPointer(
   while (true) {
     val change = awaitPointerEvent().changes.firstOrNull { it.id == pointerId } ?: return false
     if (change.changedToUp()) {
+      onMove(change)
       change.consume()
       return true
     }

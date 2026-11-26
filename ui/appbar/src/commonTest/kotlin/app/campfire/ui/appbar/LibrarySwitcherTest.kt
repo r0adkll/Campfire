@@ -61,17 +61,24 @@ class LibrarySwitcherTest {
   }
 
   @Test
-  fun `swiping up steps forward and holds at the ends`() {
-    assertEquals(0, swipeTargetIndex(startIndex = 0, dragY = -10f, stepPx = 32f, count = 3))
-    assertEquals(1, swipeTargetIndex(startIndex = 0, dragY = -40f, stepPx = 32f, count = 3))
-    assertEquals(2, swipeTargetIndex(startIndex = 0, dragY = -70f, stepPx = 32f, count = 3))
-    assertEquals(2, swipeTargetIndex(startIndex = 0, dragY = -500f, stepPx = 32f, count = 3))
+  fun `a swipe past the distance moves one library`() {
+    assertEquals(1, swipeStep(dragY = -30f, velocityY = 0f, distancePx = 24f, flingVelocityPx = 400f))
+    assertEquals(-1, swipeStep(dragY = 30f, velocityY = 0f, distancePx = 24f, flingVelocityPx = 400f))
+    assertEquals(1, swipeStep(dragY = -500f, velocityY = 0f, distancePx = 24f, flingVelocityPx = 400f))
+    assertEquals(0, swipeStep(dragY = -10f, velocityY = 0f, distancePx = 24f, flingVelocityPx = 400f))
   }
 
   @Test
-  fun `swiping down steps back and holds at the ends`() {
-    assertEquals(1, swipeTargetIndex(startIndex = 2, dragY = 40f, stepPx = 32f, count = 3))
-    assertEquals(0, swipeTargetIndex(startIndex = 2, dragY = 500f, stepPx = 32f, count = 3))
+  fun `a flick moves one library whatever its distance`() {
+    assertEquals(1, swipeStep(dragY = -10f, velocityY = -900f, distancePx = 24f, flingVelocityPx = 400f))
+    assertEquals(-1, swipeStep(dragY = -30f, velocityY = 900f, distancePx = 24f, flingVelocityPx = 400f))
+  }
+
+  @Test
+  fun `stepping wraps around both ends`() {
+    assertEquals(1, wrapIndex(index = 0, by = 1, count = 3))
+    assertEquals(0, wrapIndex(index = 2, by = 1, count = 3))
+    assertEquals(2, wrapIndex(index = 0, by = -1, count = 3))
   }
 
   @Test
@@ -160,18 +167,66 @@ class LibrarySwitcherTest {
   }
 
   @Test
-  fun `swiping down from the first library selects nothing`() = runComposeUiTest {
+  fun `swiping down from the first library wraps to the last`() = runComposeUiTest {
     val selections = mutableListOf<Library>()
     setContent { Switcher(current = books, onSelected = { selections += it }) }
 
     chip().performTouchInput {
       down(center)
       moveBy(Offset(0f, 20.dp.toPx()))
-      moveBy(Offset(0f, 60.dp.toPx()))
+      moveBy(Offset(0f, 20.dp.toPx()))
+      up()
+    }
+
+    assertEquals(listOf(radio), selections)
+  }
+
+  @Test
+  fun `a long swipe still moves only one library`() = runComposeUiTest {
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput {
+      down(center)
+      repeat(6) { moveBy(Offset(0f, -20.dp.toPx())) }
+      up()
+    }
+
+    assertEquals(listOf(podcasts), selections)
+  }
+
+  @Test
+  fun `a short quick flick switches`() = runComposeUiTest {
+    // 20dp clears the test touch slop (18px at density 1) but not the 24dp swipe distance
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput {
+      down(center)
+      moveBy(Offset(0f, -10.dp.toPx()), delayMillis = 10)
+      moveBy(Offset(0f, -10.dp.toPx()), delayMillis = 10)
+      up()
+    }
+
+    assertEquals(listOf(podcasts), selections)
+  }
+
+  @Test
+  fun `a short slow drag does nothing`() = runComposeUiTest {
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput {
+      down(center)
+      moveBy(Offset(0f, -10.dp.toPx()), delayMillis = 150)
+      moveBy(Offset(0f, -10.dp.toPx()), delayMillis = 150)
+      advanceEventTime(150)
       up()
     }
 
     assertTrue(selections.isEmpty())
+    // A swipe that fell short, not a tap
+    onNodeWithText("Podcasts").assertDoesNotExist()
   }
 
   @Test
@@ -249,6 +304,8 @@ class LibrarySwitcherTest {
     chip().performCustomAction("Previous library")
     chip().performCustomAction("Previous library")
     assertEquals(books, current)
+    chip().performCustomAction("Previous library")
+    assertEquals(radio, current)
   }
 
   private companion object {
