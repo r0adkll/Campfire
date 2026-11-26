@@ -10,4 +10,8 @@
   </string-array>
   <string name="action_clear_search">Clear search</string>
   <string name="action_back">Back</string>
+  <string name="library_switcher_description">Library, %1$s</string>
+  <string name="library_switcher_action_open">Switch library</string>
+  <string name="library_switcher_action_next">Next library</string>
+  <string name="library_switcher_action_previous">Previous library</string>
 </resources>
