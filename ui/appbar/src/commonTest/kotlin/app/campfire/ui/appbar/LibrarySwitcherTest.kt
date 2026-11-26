@@ -113,6 +113,53 @@ class LibrarySwitcherTest {
   }
 
   @Test
+  fun `a swipe starting above the visible chip still switches`() = runComposeUiTest {
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    // The touch box is the pill's height; the 40dp chip is centered in it
+    chip().performTouchInput {
+      down(Offset(centerX, 3.dp.toPx()))
+      moveBy(Offset(0f, -20.dp.toPx()))
+      moveBy(Offset(0f, -20.dp.toPx()))
+      up()
+    }
+
+    assertEquals(listOf(podcasts), selections)
+  }
+
+  @Test
+  fun `a slanted swipe still switches`() = runComposeUiTest {
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput {
+      down(center)
+      moveBy(Offset(-12.dp.toPx(), -16.dp.toPx()))
+      moveBy(Offset(-12.dp.toPx(), -24.dp.toPx()))
+      up()
+    }
+
+    assertEquals(listOf(podcasts), selections)
+  }
+
+  @Test
+  fun `a mostly sideways drag does nothing`() = runComposeUiTest {
+    val selections = mutableListOf<Library>()
+    setContent { Switcher(current = books, onSelected = { selections += it }) }
+
+    chip().performTouchInput {
+      down(center)
+      moveBy(Offset(-30.dp.toPx(), -10.dp.toPx()))
+      moveBy(Offset(0f, -40.dp.toPx()))
+      up()
+    }
+
+    assertTrue(selections.isEmpty())
+    onNodeWithText("Podcasts").assertDoesNotExist()
+  }
+
+  @Test
   fun `swiping down from the first library selects nothing`() = runComposeUiTest {
     val selections = mutableListOf<Library>()
     setContent { Switcher(current = books, onSelected = { selections += it }) }

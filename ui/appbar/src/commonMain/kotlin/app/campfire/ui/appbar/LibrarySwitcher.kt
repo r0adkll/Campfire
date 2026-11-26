@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -103,6 +104,9 @@ private val ChipHeight = 40.dp
 /** How far a vertical swipe travels to step one library. */
 private val SwipeStep = 32.dp
 
+/** A swipe may lean this far off vertical (rise over run, about 60°) and still count. */
+private const val SwipeMinSlope = 0.6f
+
 /**
  * The library a vertical swipe of [dragY] lands on, starting from [startIndex]. Swiping up steps
  * forward through the list like a picker wheel, and the ends hold rather than wrapping.
@@ -168,13 +172,12 @@ internal fun LibrarySwitcher(
   val previousLabel = stringResource(Res.string.library_switcher_action_previous)
 
   Box(modifier) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
+    // The gestures cover the pill's full height and some room beside the chip, which on its own
+    // is too small to swipe on comfortably
+    Box(
+      contentAlignment = Alignment.Center,
       modifier = Modifier
-        .padding(end = 4.dp)
-        .height(ChipHeight)
-        .clip(CircleShape)
-        .background(MaterialTheme.colorScheme.secondaryContainer)
+        .height(SearchBarDefaults.InputFieldHeight)
         .onGloballyPositioned { chipCoordinates = it }
         .semantics(mergeDescendants = true) {
           role = Role.DropdownList
@@ -265,40 +268,49 @@ internal fun LibrarySwitcher(
             }
           }
         }
-        .padding(start = 10.dp, end = 4.dp),
+        .padding(start = 8.dp, end = 4.dp),
     ) {
-      AnimatedContent(
-        targetState = displayedLibrary,
-        contentKey = { it.id },
-        transitionSpec = {
-          val ids = model.libraries.map { it.id }
-          val forward = ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)
-          val direction = if (forward) 1 else -1
-          (slideInVertically { direction * it } + fadeIn()) togetherWith
-            (slideOutVertically { -direction * it } + fadeOut()) using
-            SizeTransform(clip = true)
-        },
-      ) { library ->
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+          .height(ChipHeight)
+          .clip(CircleShape)
+          .background(MaterialTheme.colorScheme.secondaryContainer)
+          .padding(start = 10.dp, end = 4.dp),
+      ) {
+        AnimatedContent(
+          targetState = displayedLibrary,
+          contentKey = { it.id },
+          transitionSpec = {
+            val ids = model.libraries.map { it.id }
+            val forward = ids.indexOf(targetState.id) >= ids.indexOf(initialState.id)
+            val direction = if (forward) 1 else -1
+            (slideInVertically { direction * it } + fadeIn()) togetherWith
+              (slideOutVertically { -direction * it } + fadeOut()) using
+              SizeTransform(clip = true)
+          },
+        ) { library ->
+          Icon(
+            imageVector = library.icon.asComposeIcon(),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(20.dp),
+          )
+        }
         Icon(
-          imageVector = library.icon.asComposeIcon(),
+          imageVector = CampfireIcons.Rounded.UnfoldMore,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
-          modifier = Modifier.size(20.dp),
+          modifier = Modifier.size(18.dp),
         )
       }
-      Icon(
-        imageVector = CampfireIcons.Rounded.UnfoldMore,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-        modifier = Modifier.size(18.dp),
-      )
     }
 
     DropdownMenu(
       expanded = menuExpanded,
       properties = PopupProperties(focusable = !dragSelecting),
       // Open over the chip rather than below it
-      offset = DpOffset(x = 0.dp, y = -ChipHeight),
+      offset = DpOffset(x = 0.dp, y = -SearchBarDefaults.InputFieldHeight),
       shape = MaterialTheme.shapes.medium,
       // The chip's colors, so the menu reads as the chip opening up
       containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -358,8 +370,8 @@ internal fun LibrarySwitcher(
 private enum class ChipGesture { Tap, Swipe, LongPress, Cancel }
 
 /**
- * Wait out the start of a gesture: a release is a tap, crossing the touch slop vertically is a
- * swipe, and crossing it sideways hands the gesture back. The caller's timeout makes a long press.
+ * Wait out the start of a gesture: a release is a tap, crossing the touch slop mostly vertically is
+ * a swipe, and crossing it sideways hands the gesture back. The caller's timeout makes a long press.
  */
 private suspend fun AwaitPointerEventScope.awaitTapOrSwipe(
   pointerId: PointerId,
@@ -375,11 +387,14 @@ private suspend fun AwaitPointerEventScope.awaitTapOrSwipe(
     }
     if (change.isConsumed) return ChipGesture.Cancel
     val delta = change.position - downPosition
-    if (abs(delta.y) > touchSlop && abs(delta.y) >= abs(delta.x)) {
-      change.consume()
-      return ChipGesture.Swipe
+    if (delta.getDistance() > touchSlop) {
+      // Thumbs rarely swipe straight up and down, so allow a generous slant
+      if (abs(delta.y) >= abs(delta.x) * SwipeMinSlope) {
+        change.consume()
+        return ChipGesture.Swipe
+      }
+      return ChipGesture.Cancel
     }
-    if (abs(delta.x) > touchSlop) return ChipGesture.Cancel
   }
 }
 
