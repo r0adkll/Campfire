@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +59,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
@@ -404,6 +407,11 @@ private fun UnlinkedContent(
       onValueChange = { token = it },
       placeholder = { Text(stringResource(Res.string.provider_token_hint)) },
       singleLine = true,
+      keyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Ascii,
+        capitalization = KeyboardCapitalization.None,
+        autoCorrectEnabled = false,
+      ),
       isError = provider.linkFailed,
       supportingText = if (provider.linkFailed) {
         { Text(stringResource(Res.string.provider_link_error)) }
