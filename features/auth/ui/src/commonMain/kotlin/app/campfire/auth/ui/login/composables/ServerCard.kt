@@ -62,6 +62,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -356,8 +357,11 @@ internal fun ServerCard(
             leadingIcon = { Icon(CampfireIcons.Rounded.Person, contentDescription = null) },
             keyboardOptions = KeyboardOptions(
               keyboardType = KeyboardType.Email,
+              capitalization = KeyboardCapitalization.None,
+              autoCorrectEnabled = false,
               imeAction = ImeAction.Next,
             ),
+            singleLine = true,
             modifier = Modifier
               .fillMaxWidth()
               .focusRequester(usernameFocus)
