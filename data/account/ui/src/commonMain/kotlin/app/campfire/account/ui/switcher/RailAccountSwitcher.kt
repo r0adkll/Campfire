@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,14 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
@@ -40,7 +37,9 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Width of the expanded switcher card. Wider than the rail's 220dp minimum would allow so a typical
- * server name fits beside the icon and the switch-account button; the rail grows to match.
+ * server name fits on one line beside the icon and the switch-account button; a longer one takes
+ * the full width and the button moves down beside the user name (see [AccountNames]). The rail
+ * grows to match.
  */
 val RailAccountSwitcherWidth = 232.dp
 
@@ -116,8 +115,7 @@ internal fun RailAccountSwitcher(
               start = 12.dp,
               top = 12.dp,
               end = 4.dp,
-              // The switch account button's touch target leaves space below the user name
-              bottom = 0.dp,
+              bottom = 12.dp,
             ),
           verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -135,26 +133,14 @@ internal fun RailAccountSwitcher(
 
           Spacer(Modifier.width(12.dp))
 
-          Column(
+          AccountNames(
+            serverName = serverName,
+            userName = userName,
+            serverNameStyle = MaterialTheme.typography.titleMedium.copy(fontFamily = PaytoneOneFontFamily),
+            userNameStyle = MaterialTheme.typography.labelMedium,
+            onSwitchAccount = onSwitchAccount,
             modifier = Modifier.weight(1f),
-          ) {
-            Text(
-              text = serverName,
-              style = MaterialTheme.typography.titleMedium.copy(fontFamily = PaytoneOneFontFamily),
-              maxLines = 2,
-              overflow = TextOverflow.Ellipsis,
-            )
-            UserNameWithSwitchButton(onSwitchAccount = onSwitchAccount) {
-              userName?.let {
-                Text(
-                  text = it,
-                  style = MaterialTheme.typography.labelMedium,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-                )
-              }
-            }
-          }
+          )
         }
 
         if (state.libraryState != null) {

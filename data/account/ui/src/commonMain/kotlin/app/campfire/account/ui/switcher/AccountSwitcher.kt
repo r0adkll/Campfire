@@ -4,6 +4,7 @@
 package app.campfire.account.ui.switcher
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -52,14 +52,12 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
-import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.ConnectionIndicator
 import app.campfire.common.compose.widgets.ConnectionState
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
@@ -67,7 +65,6 @@ import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
 import campfire.data.account.ui.generated.resources.Res
-import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.libraries_error_message
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
@@ -130,22 +127,8 @@ private fun AccountSwitcher(
       switcherConfig = switcherConfig,
       socketState = state.socketState,
       workingOffline = state.workingOffline,
-      serverName = {
-        Text(
-          text = serverName,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-        )
-      },
-      userName = {
-        userName?.let {
-          Text(
-            text = it,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-          )
-        }
-      },
+      serverName = serverName,
+      userName = userName,
       onClick = onClick,
       onRetryConnection = {
         state.eventSink(AccountSwitcherUiEvent.RetryConnection)
@@ -185,8 +168,8 @@ private fun AccountSwitcher(
   appTheme: AppTheme,
   socketState: SocketState,
   workingOffline: Boolean,
-  serverName: @Composable () -> Unit,
-  userName: @Composable () -> Unit,
+  serverName: String,
+  userName: String?,
   onClick: () -> Unit,
   onRetryConnection: () -> Unit,
   switcherConfig: SwitcherConfig,
@@ -198,13 +181,16 @@ private fun AccountSwitcher(
       .fillMaxWidth()
       .clickable(onClick = onClick),
   ) {
+    val bottomPadding by animateDpAsState(
+      targetValue = if (socketState is SocketState.Failed) 8.dp else switcherConfig.padding,
+    )
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .padding(
           start = switcherConfig.padding,
           top = switcherConfig.padding,
-          bottom = switcherConfig.paddingBottom,
+          bottom = bottomPadding,
           // This accounts for the built-in IconButton padding
           end = switcherConfig.paddingEnd,
         ),
@@ -222,23 +208,14 @@ private fun AccountSwitcher(
 
       Spacer(Modifier.width(16.dp))
 
-      Column(
-        modifier = Modifier
-          .weight(1f),
-      ) {
-        ProvideTextStyle(
-          switcherConfig.serverNameTextStyle.copy(
-            fontFamily = PaytoneOneFontFamily,
-          ),
-        ) {
-          serverName()
-        }
-        UserNameWithSwitchButton(onSwitchAccount = onClick) {
-          ProvideTextStyle(switcherConfig.userNameTextStyle) {
-            userName()
-          }
-        }
-      }
+      AccountNames(
+        serverName = serverName,
+        userName = userName,
+        serverNameStyle = switcherConfig.serverNameTextStyle.copy(fontFamily = PaytoneOneFontFamily),
+        userNameStyle = switcherConfig.userNameTextStyle,
+        onSwitchAccount = onClick,
+        modifier = Modifier.weight(1f),
+      )
     }
 
     AnimatedVisibility(
@@ -274,40 +251,6 @@ private fun AccountSwitcher(
     }
 
     content()
-  }
-}
-
-/**
- * The second line of an account switcher card: the user name, with the switch account button
- * right-aligned beside it. The button keeps its place while there is no user name to show.
- */
-@Composable
-internal fun UserNameWithSwitchButton(
-  onSwitchAccount: () -> Unit,
-  modifier: Modifier = Modifier,
-  userName: @Composable () -> Unit,
-) {
-  Row(
-    modifier = modifier,
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Box(
-      modifier = Modifier.weight(1f),
-    ) {
-      userName()
-    }
-
-    Spacer(Modifier.width(8.dp))
-
-    val switchAccountLabel = stringResource(Res.string.action_switch_account)
-    IconButtonTooltip(text = switchAccountLabel) {
-      IconButton(onClick = onSwitchAccount) {
-        Icon(
-          CampfireIcons.Rounded.AccountSwitch,
-          contentDescription = switchAccountLabel,
-        )
-      }
-    }
   }
 }
 
@@ -552,11 +495,6 @@ data class SwitcherConfig(
   val iconSize: Dp,
   val padding: Dp,
   val paddingEnd: Dp,
-  /**
-   * Smaller than [padding]: the switch account button's touch target already leaves space below
-   * the user name and icon, so this keeps the card from growing taller than [padding] alone would.
-   */
-  val paddingBottom: Dp,
   val indicatorSize: Dp,
   val indicatorOffset: Dp,
   val serverNameTextStyle: TextStyle,
@@ -568,7 +506,6 @@ val DefaultSwitcherConfig: SwitcherConfig
     iconSize = 64.dp,
     padding = 24.dp,
     paddingEnd = 16.dp,
-    paddingBottom = 8.dp,
     indicatorSize = 12.dp,
     indicatorOffset = 6.dp,
     serverNameTextStyle = MaterialTheme.typography.headlineSmall,
@@ -580,7 +517,6 @@ val LandscapeSwitcherConfig: SwitcherConfig
     iconSize = 40.dp,
     padding = 16.dp,
     paddingEnd = 8.dp,
-    paddingBottom = 0.dp,
     indicatorSize = 8.dp,
     indicatorOffset = 3.dp,
     serverNameTextStyle = MaterialTheme.typography.titleLarge,
