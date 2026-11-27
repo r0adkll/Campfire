@@ -14,4 +14,7 @@
   <string name="libraries_error_message">Uh-oh! Something went wrong trying to load your libraries.</string>
 
   <string name="action_switch_account">Switch account</string>
+
+  <string name="account_switcher_disconnected_format">Disconnected: %1$s</string>
+  <string name="action_retry_connection">Retry connection</string>
 </resources>

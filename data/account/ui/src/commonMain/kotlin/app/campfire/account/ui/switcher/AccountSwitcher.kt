@@ -58,6 +58,7 @@ import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.ConnectionIndicator
 import app.campfire.common.compose.widgets.ConnectionState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
@@ -65,6 +66,8 @@ import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
 import campfire.data.account.ui.generated.resources.Res
+import campfire.data.account.ui.generated.resources.account_switcher_disconnected_format
+import campfire.data.account.ui.generated.resources.action_retry_connection
 import campfire.data.account.ui.generated.resources.libraries_error_message
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
@@ -233,7 +236,10 @@ private fun AccountSwitcher(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-          text = "Disconnected: ${(socketState as? SocketState.Failed)?.reason}",
+          text = stringResource(
+            Res.string.account_switcher_disconnected_format,
+            (socketState as? SocketState.Failed)?.reason.orEmpty(),
+          ),
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.error,
           fontStyle = FontStyle.Italic,
@@ -242,10 +248,13 @@ private fun AccountSwitcher(
 
         Spacer(Modifier.width(8.dp))
 
-        IconButton(
-          onClick = onRetryConnection,
-        ) {
-          Icon(CampfireIcons.Rounded.Refresh, contentDescription = null)
+        val retryLabel = stringResource(Res.string.action_retry_connection)
+        IconButtonTooltip(text = retryLabel) {
+          IconButton(
+            onClick = onRetryConnection,
+          ) {
+            Icon(CampfireIcons.Rounded.Refresh, contentDescription = retryLabel)
+          }
         }
       }
     }
