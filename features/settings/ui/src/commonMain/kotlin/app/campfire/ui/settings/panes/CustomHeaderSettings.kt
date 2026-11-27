@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Add
@@ -154,7 +156,12 @@ private fun HeaderDialog(
           label = { Text(stringResource(Res.string.setting_connection_headers_name_label)) },
           singleLine = true,
           isError = showErrors && (error == HeaderError.MissingName || error == HeaderError.InvalidName),
-          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Ascii,
+            capitalization = KeyboardCapitalization.None,
+            autoCorrectEnabled = false,
+            imeAction = ImeAction.Next,
+          ),
         )
         TextField(
           value = value,
@@ -169,7 +176,11 @@ private fun HeaderDialog(
             null
           },
           // The keyboard can cover the dialog buttons (e.g. in landscape), so Done saves too
-          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            autoCorrectEnabled = false,
+            imeAction = ImeAction.Done,
+          ),
           keyboardActions = KeyboardActions(onDone = { save() }),
         )
       }

@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Long server names in the account switcher getting squeezed by the switch account button
 - [Android, iOS] The keyboard capitalizing or autocorrecting the username when signing in
 - The account switcher's retry connection button having no screen reader label or tooltip
+- [Android, iOS] The keyboard capitalizing, autocorrecting or remembering custom headers and book info provider tokens as you type them
 - [iOS] Audiobooks not playing, freezing on books without chapters, skipping to the wrong chapter, and the queue not moving on to the next book
 - [Desktop] Marking the book you're listening to as finished stopping playback instead of moving on to the next book in your queue
 - The player showing stale playback state after playback stopped

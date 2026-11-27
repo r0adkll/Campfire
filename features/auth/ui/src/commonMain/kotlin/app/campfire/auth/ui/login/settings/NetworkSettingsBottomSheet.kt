@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +37,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -168,11 +172,23 @@ private fun NetworkSettingsBottomSheet(
           state = newHeaderName,
           modifier = Modifier.fillMaxWidth(),
           label = { Text("Name") },
+          lineLimits = TextFieldLineLimits.SingleLine,
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Ascii,
+            capitalization = KeyboardCapitalization.None,
+            autoCorrectEnabled = false,
+          ),
         )
         OutlinedTextField(
           state = newHeaderValue,
           modifier = Modifier.fillMaxWidth(),
           label = { Text("Value") },
+          lineLimits = TextFieldLineLimits.SingleLine,
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Ascii,
+            capitalization = KeyboardCapitalization.None,
+            autoCorrectEnabled = false,
+          ),
         )
       }
 
