@@ -3,6 +3,7 @@
 
 package app.campfire.account.ui.switcher
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
@@ -12,6 +13,8 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -25,6 +28,8 @@ import app.campfire.common.compose.theme.CampfireTheme
 import assertk.assertThat
 import assertk.assertions.isCloseTo
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isLessThanOrEqualTo
+import assertk.assertions.isNotEmpty
 import assertk.assertions.isTrue
 import kotlin.test.Test
 
@@ -95,6 +100,22 @@ class AccountNamesTest {
     assertThat(switched).isTrue()
   }
 
+  @Test
+  fun `the switch button's tooltip sits above the button when it's on the user name line`() =
+    runComposeUiTest {
+      setAccountNames(serverName = LongServerName, userName = "henry")
+
+      val button = onNodeWithContentDescription("Switch account")
+      button.performTouchInput { longClick() }
+      waitForIdle()
+
+      val tooltips = onAllNodes(hasText("Switch account"), useUnmergedTree = true).fetchSemanticsNodes()
+      assertThat(tooltips).isNotEmpty()
+      val buttonTop = button.fetchSemanticsNode().boundsInWindow.top
+      // Anchored to the whole button, not the zero-height slot on the user name line
+      assertThat(tooltips.single().boundsInWindow.bottom).isLessThanOrEqualTo(buttonTop)
+    }
+
   private fun ComposeUiTest.switchButton(): DpRect =
     onNodeWithContentDescription("Switch account").getBoundsInRoot()
 
@@ -111,7 +132,8 @@ class AccountNamesTest {
           serverNameStyle = MaterialTheme.typography.headlineSmall,
           userNameStyle = MaterialTheme.typography.titleSmall,
           onSwitchAccount = onSwitchAccount,
-          modifier = Modifier.width(280.dp).testTag(Tag),
+          // Leaves room above for the tooltip
+          modifier = Modifier.padding(top = 96.dp).width(280.dp).testTag(Tag),
         )
       }
     }

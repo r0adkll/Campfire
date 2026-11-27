@@ -3,6 +3,7 @@
 
 package app.campfire.account.ui.switcher
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -87,14 +88,16 @@ internal fun AccountNames(
             modifier = Modifier.weight(1f),
           )
           Spacer(Modifier.width(ButtonSpacing))
-          SwitchAccountButton(
-            onClick = onSwitchAccount,
-            // Takes no height, so the user name line stays as tall as its text
-            modifier = Modifier.layout { measurable, constraints ->
+          // Takes no height, so the user name line stays as tall as its text. The wrapper, not the
+          // button, reports the zero height, so the tooltip still anchors to the full button.
+          Box(
+            Modifier.layout { measurable, constraints ->
               val placeable = measurable.measure(constraints.copy(minHeight = 0))
               layout(placeable.width, 0) { placeable.place(0, -placeable.height / 2) }
             },
-          )
+          ) {
+            SwitchAccountButton(onClick = onSwitchAccount)
+          }
         }
       }
     }
