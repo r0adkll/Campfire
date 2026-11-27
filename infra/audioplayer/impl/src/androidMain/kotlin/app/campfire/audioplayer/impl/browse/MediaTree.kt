@@ -633,9 +633,11 @@ enum class TopLevelMediaItem(
         .fluentIf(isGridLayout) {
           setExtras(
             Bundle().apply {
+              // Not CATEGORY_GRID_ITEM: car hosts treat category items' artwork as icons and tint
+              // them a single color, which paints every cover solid white
               putInt(
                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
-                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
+                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
               )
             },
           )
