@@ -9,43 +9,37 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import campfire.data.account.ui.generated.resources.Res
-import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Width of the expanded switcher card. Wider than the rail's 220dp minimum would allow so a typical
- * server name fits beside the icon and the switch-account button; the rail grows to match.
+ * server name fits on one line beside the icon and the switch-account button; a longer one takes
+ * the full width and the button moves down beside the user name (see [AccountNames]). The rail
+ * grows to match.
  */
 val RailAccountSwitcherWidth = 232.dp
 
@@ -139,34 +133,14 @@ internal fun RailAccountSwitcher(
 
           Spacer(Modifier.width(12.dp))
 
-          Column(
+          AccountNames(
+            serverName = serverName,
+            userName = userName,
+            serverNameStyle = MaterialTheme.typography.titleMedium.copy(fontFamily = PaytoneOneFontFamily),
+            userNameStyle = MaterialTheme.typography.labelMedium,
+            onSwitchAccount = onSwitchAccount,
             modifier = Modifier.weight(1f),
-          ) {
-            Text(
-              text = serverName,
-              style = MaterialTheme.typography.titleMedium.copy(fontFamily = PaytoneOneFontFamily),
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-            )
-            userName?.let {
-              Text(
-                text = it,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-              )
-            }
-          }
-
-          val switchAccountLabel = stringResource(Res.string.action_switch_account)
-          IconButtonTooltip(text = switchAccountLabel) {
-            IconButton(onClick = onSwitchAccount) {
-              Icon(
-                CampfireIcons.Rounded.AccountSwitch,
-                contentDescription = switchAccountLabel,
-              )
-            }
-          }
+          )
         }
 
         if (state.libraryState != null) {

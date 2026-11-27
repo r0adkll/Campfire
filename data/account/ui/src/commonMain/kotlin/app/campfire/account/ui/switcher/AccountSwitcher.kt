@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -53,14 +52,12 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
-import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.ConnectionIndicator
 import app.campfire.common.compose.widgets.ConnectionState
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
@@ -68,7 +65,6 @@ import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
 import campfire.data.account.ui.generated.resources.Res
-import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.libraries_error_message
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
@@ -131,8 +127,8 @@ private fun AccountSwitcher(
       switcherConfig = switcherConfig,
       socketState = state.socketState,
       workingOffline = state.workingOffline,
-      serverName = { Text(serverName) },
-      userName = { userName?.let { Text(it) } },
+      serverName = serverName,
+      userName = userName,
       onClick = onClick,
       onRetryConnection = {
         state.eventSink(AccountSwitcherUiEvent.RetryConnection)
@@ -172,8 +168,8 @@ private fun AccountSwitcher(
   appTheme: AppTheme,
   socketState: SocketState,
   workingOffline: Boolean,
-  serverName: @Composable () -> Unit,
-  userName: @Composable () -> Unit,
+  serverName: String,
+  userName: String?,
   onClick: () -> Unit,
   onRetryConnection: () -> Unit,
   switcherConfig: SwitcherConfig,
@@ -212,35 +208,14 @@ private fun AccountSwitcher(
 
       Spacer(Modifier.width(16.dp))
 
-      Column(
-        modifier = Modifier
-          .weight(1f),
-      ) {
-        ProvideTextStyle(
-          switcherConfig.serverNameTextStyle.copy(
-            fontFamily = PaytoneOneFontFamily,
-          ),
-        ) {
-          serverName()
-        }
-        ProvideTextStyle(switcherConfig.userNameTextStyle) {
-          userName()
-        }
-      }
-
-      Spacer(Modifier.width(16.dp))
-
-      val switchAccountLabel = stringResource(Res.string.action_switch_account)
-      IconButtonTooltip(text = switchAccountLabel) {
-        IconButton(
-          onClick = onClick,
-        ) {
-          Icon(
-            CampfireIcons.Rounded.AccountSwitch,
-            contentDescription = switchAccountLabel,
-          )
-        }
-      }
+      AccountNames(
+        serverName = serverName,
+        userName = userName,
+        serverNameStyle = switcherConfig.serverNameTextStyle.copy(fontFamily = PaytoneOneFontFamily),
+        userNameStyle = switcherConfig.userNameTextStyle,
+        onSwitchAccount = onClick,
+        modifier = Modifier.weight(1f),
+      )
     }
 
     AnimatedVisibility(
@@ -252,7 +227,8 @@ private fun AccountSwitcher(
           .height(56.dp)
           .padding(
             start = 16.dp,
-            end = 12.dp,
+            // Lines the retry button up with the switch account button above it
+            end = switcherConfig.paddingEnd,
           ),
         verticalAlignment = Alignment.CenterVertically,
       ) {
